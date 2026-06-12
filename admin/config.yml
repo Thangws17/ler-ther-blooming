@@ -1,0 +1,111 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "images/uploads"
+public_folder: "/images/uploads"
+
+locale: vi
+
+collections:
+
+  # ── Sản phẩm ──────────────────────────────────────────
+  - name: "products"
+    label: "🛍️ Sản phẩm"
+    files:
+      - name: "products"
+        label: "Danh sách sản phẩm"
+        file: "data/products.json"
+        fields:
+          - label: "Sản phẩm"
+            name: "items"
+            widget: "list"
+            summary: "{{fields.name}} — {{fields.price}}"
+            fields:
+              - label: "Tên sản phẩm"
+                name: "name"
+                widget: "string"
+                hint: "VD: Bó Hoa Hồng Tình Yêu"
+              - label: "Giá"
+                name: "price"
+                widget: "string"
+                hint: "VD: 250,000đ"
+              - label: "Mô tả ngắn"
+                name: "description"
+                widget: "text"
+                hint: "Mô tả 1-2 câu về sản phẩm"
+              - label: "Ảnh sản phẩm"
+                name: "image"
+                widget: "image"
+                required: false
+                hint: "Bỏ trống nếu chưa có ảnh, sẽ dùng ảnh mặc định"
+              - label: "Danh mục"
+                name: "category"
+                widget: "select"
+                options:
+                  - { label: "🌹 Hoa bó",     value: "Hoa bó" }
+                  - { label: "🌻 Giỏ hoa",    value: "Giỏ hoa" }
+                  - { label: "💐 Hoa để bàn", value: "Hoa để bàn" }
+                  - { label: "👰 Hoa cưới",   value: "Hoa cưới" }
+              - label: "Hiển thị ở Trang chủ?"
+                name: "featured"
+                widget: "boolean"
+                default: false
+                hint: "Bật để sản phẩm xuất hiện ở mục nổi bật trang chủ"
+
+  # ── Gallery ────────────────────────────────────────────
+  - name: "gallery"
+    label: "📸 Gallery"
+    files:
+      - name: "gallery"
+        label: "Album ảnh"
+        file: "data/gallery.json"
+        fields:
+          - label: "Ảnh"
+            name: "photos"
+            widget: "list"
+            summary: "{{fields.caption}}"
+            fields:
+              - label: "Ảnh"
+                name: "url"
+                widget: "image"
+              - label: "Chú thích (tuỳ chọn)"
+                name: "caption"
+                widget: "string"
+                required: false
+                hint: "VD: Bó hoa hồng cưới tháng 12"
+
+  # ── Cài đặt ────────────────────────────────────────────
+  - name: "settings"
+    label: "⚙️ Cài đặt"
+    files:
+      - name: "contact"
+        label: "Thông tin liên hệ"
+        file: "data/contact.json"
+        fields:
+          - label: "Số điện thoại"
+            name: "phone"
+            widget: "string"
+            hint: "VD: 0912 345 678"
+          - label: "Số Zalo (nếu khác số điện thoại)"
+            name: "zalo"
+            widget: "string"
+            hint: "Chỉ điền số, không dấu cách. VD: 0912345678"
+          - label: "Địa chỉ shop"
+            name: "address"
+            widget: "string"
+            hint: "VD: 123 Đường ABC, Quận 1, TP.HCM"
+          - label: "Giờ mở cửa"
+            name: "hours"
+            widget: "string"
+            hint: "VD: 7:00 – 21:00, Thứ 2 đến Chủ nhật"
+          - label: "Facebook (đường dẫn đầy đủ)"
+            name: "facebook"
+            widget: "string"
+            required: false
+            hint: "VD: https://facebook.com/lertherblooming"
+          - label: "Instagram (đường dẫn đầy đủ)"
+            name: "instagram"
+            widget: "string"
+            required: false
+            hint: "VD: https://instagram.com/lertherblooming"

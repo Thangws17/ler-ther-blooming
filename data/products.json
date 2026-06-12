@@ -1,0 +1,68 @@
+{
+  "items": [
+    {
+      "name": "Bó Hoa Hồng Tình Yêu",
+      "price": "250,000đ",
+      "description": "Bó hoa hồng đỏ 20 bông tươi thắm, cắm nghệ thuật với giấy gói cao cấp. Thích hợp tặng người thân yêu nhân dịp đặc biệt.",
+      "image": "",
+      "category": "Hoa bó",
+      "featured": true
+    },
+    {
+      "name": "Bó Hoa Hướng Dương",
+      "price": "180,000đ",
+      "description": "Bó hoa hướng dương tươi sáng, rực rỡ. Mang lại năng lượng tích cực và nụ cười rạng ngời cho người nhận.",
+      "image": "",
+      "category": "Hoa bó",
+      "featured": true
+    },
+    {
+      "name": "Giỏ Hoa Mừng Sinh Nhật",
+      "price": "350,000đ",
+      "description": "Giỏ hoa tươi đầy màu sắc với hoa hồng, cúc và huệ. Quà tặng hoàn hảo cho ngày sinh nhật của người thân.",
+      "image": "",
+      "category": "Giỏ hoa",
+      "featured": true
+    },
+    {
+      "name": "Bó Hoa Cẩm Chướng",
+      "price": "200,000đ",
+      "description": "Bó hoa cẩm chướng nhiều màu sắc tươi vui, thể hiện tình cảm chân thành dành cho người thân và bạn bè.",
+      "image": "",
+      "category": "Hoa bó",
+      "featured": false
+    },
+    {
+      "name": "Hoa Cưới Cô Dâu",
+      "price": "500,000đ",
+      "description": "Bó hoa cưới cầm tay sang trọng với hoa hồng trắng và baby's breath. Tôn lên vẻ đẹp thanh khiết của cô dâu trong ngày trọng đại.",
+      "image": "",
+      "category": "Hoa cưới",
+      "featured": true
+    },
+    {
+      "name": "Giỏ Hoa Khai Trương",
+      "price": "450,000đ",
+      "description": "Giỏ hoa khai trương rực rỡ với hoa hồng đỏ, lan vàng và cúc trắng. Mang lại may mắn và thịnh vượng cho cơ sở kinh doanh mới.",
+      "image": "",
+      "category": "Giỏ hoa",
+      "featured": false
+    },
+    {
+      "name": "Hoa Cúc Để Bàn",
+      "price": "120,000đ",
+      "description": "Bình hoa cúc nhỏ xinh trang trí bàn làm việc hoặc không gian sống. Tươi mát, dịu dàng, giúp không gian thêm ấm áp.",
+      "image": "",
+      "category": "Hoa để bàn",
+      "featured": false
+    },
+    {
+      "name": "Bó Hoa Mix Đồng Nội",
+      "price": "220,000đ",
+      "description": "Bó hoa đồng nội mix nhiều loài với màu sắc tự nhiên, nhẹ nhàng. Phong cách rustic độc đáo, phù hợp mọi lứa tuổi.",
+      "image": "",
+      "category": "Hoa bó",
+      "featured": false
+    }
+  ]
+}
