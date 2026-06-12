@@ -2,25 +2,25 @@
   "items": [
     {
       "name": "Tulip trắng mix cỏ suối",
-      "price": "600000",
+      "price": "600,000đ",
       "description": "Nhẹ nhàng, tinh tế, đơn giản nhưng chạm đến cảm xúc ngay lần đầu nhìn thấy",
       "image": "/images/uploads/698875776_122128908111009975_4806449835384766564_n.jpg",
       "category": "Hoa bó",
       "featured": true
     },
     {
-      "name": "Bó Hoa Hướng Dương",
-      "price": "180,000đ",
-      "description": "Bó hoa hướng dương tươi sáng, rực rỡ. Mang lại năng lượng tích cực và nụ cười rạng ngời cho người nhận.",
+      "name": "Cúc Ping Pong tốt nghiệp",
+      "price": "300,000đ",
+      "description": "Chào đón em bước vào thị trường lao động",
       "image": "/images/uploads/totnghiep2.jpg",
       "category": "Hoa bó",
       "featured": true
     },
     {
-      "name": "Giỏ Hoa Mừng Sinh Nhật",
+      "name": "Cúc marguerite x Sao xanh cỏ suối",
       "price": "350,000đ",
-      "description": "Giỏ hoa tươi đầy màu sắc với hoa hồng, cúc và huệ. Quà tặng hoàn hảo cho ngày sinh nhật của người thân.",
-      "image": "",
+      "description": "Giỏ hoa tươi đầy màu sắc với cúc và sao xanh. Quà tặng hoàn hảo cho ngày sinh nhật của người thân.",
+      "image": "/images/uploads/z7807669398388_59ddd8d5b5b630418f93d2bc187a501f.jpg",
       "category": "Giỏ hoa",
       "featured": true
     },
