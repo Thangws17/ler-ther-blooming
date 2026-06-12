@@ -1,10 +1,10 @@
 {
   "items": [
     {
-      "name": "Bó Hoa Hồng Tình Yêu",
-      "price": "250,000đ",
-      "description": "Bó hoa hồng đỏ 20 bông tươi thắm, cắm nghệ thuật với giấy gói cao cấp. Thích hợp tặng người thân yêu nhân dịp đặc biệt.",
-      "image": "",
+      "name": "Tulip trắng mix cỏ suối",
+      "price": "600000",
+      "description": "Nhẹ nhàng, tinh tế, đơn giản nhưng chạm đến cảm xúc ngay lần đầu nhìn thấy",
+      "image": "/images/uploads/698875776_122128908111009975_4806449835384766564_n.jpg",
       "category": "Hoa bó",
       "featured": true
     },
@@ -12,7 +12,7 @@
       "name": "Bó Hoa Hướng Dương",
       "price": "180,000đ",
       "description": "Bó hoa hướng dương tươi sáng, rực rỡ. Mang lại năng lượng tích cực và nụ cười rạng ngời cho người nhận.",
-      "image": "",
+      "image": "/images/uploads/totnghiep2.jpg",
       "category": "Hoa bó",
       "featured": true
     },
