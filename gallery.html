@@ -23,7 +23,7 @@
       <li><a href="index.html">Trang chủ</a></li>
       <li><a href="san-pham.html">Sản phẩm</a></li>
       <li><a href="gallery.html">Gallery</a></li>
-      <li><a href="dang-sau-nhung-bo-hoa.html">Đằng sau những bó hoa</a></li>
+      <li><a href="dang-sau-nhung-bo-hoa.html">Câu chuyện</a></li>
       <li><a href="lien-he.html">Liên hệ</a></li>
     </ul>
   </div>
@@ -45,9 +45,19 @@
 <!-- ── Gallery Grid ───────────────────────────────────── -->
 <section>
   <div class="container">
+    <div class="filter-tabs" style="margin-bottom:32px">
+      <button class="filter-tab gallery-filter-tab active" data-category="all">🌸 Tất cả</button>
+      <button class="filter-tab gallery-filter-tab" data-category="Hoa bó">🌹 Hoa bó</button>
+      <button class="filter-tab gallery-filter-tab" data-category="Giỏ hoa">🌻 Giỏ hoa</button>
+      <button class="filter-tab gallery-filter-tab" data-category="Hoa để bàn">💐 Hoa để bàn</button>
+      <button class="filter-tab gallery-filter-tab" data-category="Hoa cưới">👰 Hoa cưới</button>
+      <button class="filter-tab gallery-filter-tab" data-category="Sự kiện">🎉 Sự kiện</button>
+      <button class="filter-tab gallery-filter-tab" data-category="Khác">📷 Khác</button>
+    </div>
     <div class="gallery-grid" id="galleryGrid">
       <div class="loading"><div class="l-icon">📷</div><p>Đang tải ảnh…</p></div>
     </div>
+    <div id="galleryPagination"></div>
   </div>
 </section>
 

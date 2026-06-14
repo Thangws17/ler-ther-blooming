@@ -419,6 +419,21 @@ section    { padding:80px 0; }
 }
 .detail-actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; }
 
+/* ─── Pagination ─────────────────────────────────────────── */
+.pagination {
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  margin-top: 40px;
+}
+.page-btn {
+  padding: 10px 24px; border-radius: 50px;
+  border: 2px solid var(--border); background: var(--white);
+  font-family: 'Nunito', sans-serif; font-weight: 700; font-size: .9rem;
+  color: var(--text-mid); cursor: pointer; transition: var(--t);
+}
+.page-btn:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
+.page-btn:disabled { opacity: .38; cursor: not-allowed; }
+.page-info { font-family: 'Nunito', sans-serif; font-weight: 700; color: var(--text); font-size: .95rem; }
+
 /* ─── Responsive ─────────────────────────────────────────── */
 @media (max-width:900px) {
   .whyus-grid { grid-template-columns:1fr 1fr; }

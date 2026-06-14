@@ -122,26 +122,85 @@ async function loadFeatured() {
 }
 
 // ─── Gallery ──────────────────────────────────────────────
+const GALLERY_PER_PAGE   = 10;
+let galleryAll           = [];
+let galleryPage          = 0;
+let galleryActiveCategory = 'all';
+
 async function loadGallery() {
   const grid = document.getElementById('galleryGrid');
   if (!grid) return;
 
   const { data } = await sb.from('gallery').select('*').order('order_index');
-  const photos = data || [];
+  galleryAll = data || [];
+  galleryPage = 0;
+  galleryActiveCategory = 'all';
+  initGalleryFilters();
+  renderGalleryPage();
+}
 
-  if (!photos.length) {
+function getFilteredPhotos() {
+  if (galleryActiveCategory === 'all') return galleryAll;
+  return galleryAll.filter(ph => ph.category === galleryActiveCategory);
+}
+
+function renderGalleryPage() {
+  const grid = document.getElementById('galleryGrid');
+  if (!grid) return;
+
+  const filtered = getFilteredPhotos();
+  const start    = galleryPage * GALLERY_PER_PAGE;
+  const page     = filtered.slice(start, start + GALLERY_PER_PAGE);
+
+  if (!filtered.length) {
     grid.innerHTML = `
 <div class="gallery-empty">
   <div class="e-icon">📷</div>
-  <p>Album ảnh đang được cập nhật.<br>Quay lại sớm nhé!</p>
+  <p>Chưa có ảnh trong mục này.<br>Quay lại sớm nhé!</p>
 </div>`;
+    renderGalleryPagination(0);
     return;
   }
 
-  grid.innerHTML = photos.map((ph, i) => `
+  grid.innerHTML = page.map((ph, i) => `
 <div class="gallery-item" onclick="openLightbox('${ph.url}','${(ph.caption||'').replace(/'/g,"\\'")}')">
-  <img src="${ph.url}" alt="${ph.caption || 'Ảnh hoa ' + (i+1)}" loading="lazy">
+  <img src="${ph.url}" alt="${ph.caption || 'Ảnh hoa ' + (start + i + 1)}" loading="lazy">
 </div>`).join('');
+
+  renderGalleryPagination(filtered.length);
+}
+
+function renderGalleryPagination(total) {
+  const el = document.getElementById('galleryPagination');
+  if (!el) return;
+  const totalPages = Math.ceil(total / GALLERY_PER_PAGE);
+  if (totalPages <= 1) { el.innerHTML = ''; return; }
+  el.innerHTML = `
+<div class="pagination">
+  <button class="page-btn" onclick="setGalleryPage(${galleryPage - 1})" ${galleryPage === 0 ? 'disabled' : ''}>← Trước</button>
+  <span class="page-info">${galleryPage + 1} / ${totalPages}</span>
+  <button class="page-btn" onclick="setGalleryPage(${galleryPage + 1})" ${galleryPage >= totalPages - 1 ? 'disabled' : ''}>Tiếp →</button>
+</div>`;
+}
+
+function setGalleryPage(page) {
+  galleryPage = page;
+  renderGalleryPage();
+  document.getElementById('galleryGrid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function initGalleryFilters() {
+  const tabs = document.querySelectorAll('.gallery-filter-tab');
+  if (!tabs.length) return;
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      galleryActiveCategory = tab.dataset.category;
+      galleryPage = 0;
+      renderGalleryPage();
+    });
+  });
 }
 
 function openLightbox(url, caption) {

@@ -244,6 +244,17 @@
     <!-- Gallery -->
     <div id="panelGallery" class="panel" style="display:none">
       <div class="panel-topbar"><h1>Gallery</h1></div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:.82rem;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Danh mục ảnh sẽ upload</label>
+        <select id="galleryCategory" style="padding:9px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:.92rem;background:#fafafa;outline:none;">
+          <option value="Hoa bó">🌹 Hoa bó</option>
+          <option value="Giỏ hoa">🌻 Giỏ hoa</option>
+          <option value="Hoa để bàn">💐 Hoa để bàn</option>
+          <option value="Hoa cưới">👰 Hoa cưới</option>
+          <option value="Sự kiện">🎉 Sự kiện</option>
+          <option value="Khác" selected>📷 Khác</option>
+        </select>
+      </div>
       <div class="upload-zone" onclick="document.getElementById('galleryInput').click()">
         <input type="file" id="galleryInput" multiple accept="image/*" style="display:none" onchange="handleGalleryUpload(this.files)">
         <div class="upload-icon">📸</div>
@@ -607,26 +618,39 @@ async function saveProduct(e) {
 }
 
 // ── Gallery ──────────────────────────────────────
+const GALLERY_CATS = ['Hoa bó','Giỏ hoa','Hoa để bàn','Hoa cưới','Sự kiện','Khác']
+let galleryItems = []
+
 async function loadGallery() {
   const { data } = await sb.from('gallery').select('*').order('order_index')
+  galleryItems = data || []
   const grid = document.getElementById('galleryGrid')
-  if (!data?.length) {
+  if (!galleryItems.length) {
     grid.innerHTML = '<div class="empty-state">Chưa có ảnh nào. Upload ảnh ở trên.</div>'
     return
   }
-  grid.innerHTML = data.map(ph => `
+  grid.innerHTML = galleryItems.map(ph => {
+    const catOpts = GALLERY_CATS.map(c =>
+      `<option value="${c}" ${ph.category === c ? 'selected' : ''}>${c}</option>`
+    ).join('')
+    return `
 <div class="gallery-admin-item">
   <img src="${ph.url}" alt="${ph.caption || ''}">
-  <div class="gallery-admin-info">
+  <div class="gallery-admin-info" style="flex-direction:column;gap:4px;">
     <input class="caption-input" value="${(ph.caption||'').replace(/"/g,'&quot;')}"
       placeholder="Chú thích…" onblur="updateCaption(${ph.id}, this.value)">
-    <button class="btn-delete-sm" onclick="deleteGalleryItem(${ph.id})">✕</button>
+    <div style="display:flex;gap:4px;align-items:center;">
+      <select class="caption-input" style="flex:1;" onchange="updateCategory(${ph.id}, this.value)">${catOpts}</select>
+      <button class="btn-delete-sm" onclick="deleteGalleryItem(${ph.id})">✕</button>
+    </div>
   </div>
-</div>`).join('')
+</div>`
+  }).join('')
 }
 
 async function handleGalleryUpload(files) {
   if (!files.length) return
+  const category = document.getElementById('galleryCategory').value
   const progress = document.getElementById('uploadProgress')
   const fill     = document.getElementById('progressFill')
   const text     = document.getElementById('progressText')
@@ -638,7 +662,7 @@ async function handleGalleryUpload(files) {
     const { error } = await sb.storage.from('images').upload(path, file)
     if (!error) {
       const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
-      await sb.from('gallery').insert({ url: publicUrl, caption: '', order_index: done })
+      await sb.from('gallery').insert({ url: publicUrl, caption: '', category, order_index: done })
     }
     done++
     fill.style.width = `${(done / files.length) * 100}%`
@@ -655,8 +679,18 @@ async function updateCaption(id, caption) {
   await sb.from('gallery').update({ caption }).eq('id', id)
 }
 
+async function updateCategory(id, category) {
+  await sb.from('gallery').update({ category }).eq('id', id)
+  showToast('Đã cập nhật danh mục!')
+}
+
 async function deleteGalleryItem(id) {
   if (!confirm('Xóa ảnh này?')) return
+  const ph = galleryItems.find(x => x.id === id)
+  if (ph?.url) {
+    const storagePath = ph.url.replace(SUPABASE_URL + '/storage/v1/object/public/images/', '')
+    await sb.storage.from('images').remove([storagePath])
+  }
   await sb.from('gallery').delete().eq('id', id)
   showToast('Đã xóa ảnh')
   loadGallery()
