@@ -335,8 +335,8 @@ let _carImgs = [], _carIdx = 0, _carTimer = null;
 
 function _carGoTo(i) {
   _carIdx = (i + _carImgs.length) % _carImgs.length;
-  const main = document.getElementById('carouselMainImg');
-  if (main) main.src = _carImgs[_carIdx];
+  const track = document.getElementById('carouselTrack');
+  if (track) track.style.transform = `translateX(-${_carIdx * 100}%)`;
   document.querySelectorAll('.carousel-thumb').forEach((t, idx) =>
     t.classList.toggle('active', idx === _carIdx)
   );
@@ -359,6 +359,7 @@ function buildDetailImage(imgs, name, s) {
   if (imgs.length === 1) {
     return `<div class="detail-img"><img src="${imgs[0]}" alt="${name}"></div>`;
   }
+  const slides = imgs.map(url => `<img src="${url}" alt="${name}">`).join('');
   const thumbs = imgs.map((url, i) =>
     `<img src="${url}" class="carousel-thumb${i===0?' active':''}" onclick="_carGoTo(${i})" alt="${name} ${i+1}">`
   ).join('');
@@ -366,7 +367,7 @@ function buildDetailImage(imgs, name, s) {
 <div class="detail-carousel">
   <div class="carousel-main">
     <button class="carousel-arrow carousel-prev" onclick="_carMove(-1)">‹</button>
-    <img id="carouselMainImg" src="${imgs[0]}" alt="${name}">
+    <div class="carousel-track" id="carouselTrack">${slides}</div>
     <button class="carousel-arrow carousel-next" onclick="_carMove(1)">›</button>
   </div>
   <div class="carousel-thumbs">${thumbs}</div>
