@@ -1,5 +1,9 @@
 /* ─── Ler & Ther Blooming — main.js ─────────────────────── */
 
+const SUPABASE_URL = 'https://oijcwborkebjpavzyisl.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_vDRAF-LBS3nOpw1GHBchvw_xYuMfdqP'
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
 // ─── Nav ─────────────────────────────────────────────────
 function initNav() {
   const toggle = document.getElementById('menuToggle');
@@ -18,7 +22,6 @@ function initNav() {
     })
   );
 
-  // Mark active link based on filename
   const page = location.pathname.split('/').pop() || 'index.html';
   links.querySelectorAll('a').forEach(a => {
     const href = a.getAttribute('href');
@@ -48,10 +51,12 @@ function productCardHTML(p) {
   const productNameEnc = encodeURIComponent(p.name);
   return `
 <div class="product-card" data-category="${p.category}">
-  <div class="product-img">${img}</div>
+  <a href="san-pham-chi-tiet.html?id=${p.id}" class="product-img">${img}</a>
   <div class="product-info">
     <span class="product-cat">${p.category}</span>
-    <div class="product-name">${p.name}</div>
+    <div class="product-name">
+      <a href="san-pham-chi-tiet.html?id=${p.id}" style="color:inherit">${p.name}</a>
+    </div>
     <div class="product-desc">${p.description}</div>
     <div class="product-footer">
       <span class="product-price">${p.price}</span>
@@ -72,15 +77,14 @@ async function loadProducts() {
 
   grid.innerHTML = '<div class="loading"><div class="l-icon">🌸</div><p>Đang tải sản phẩm…</p></div>';
 
-  try {
-    const res  = await fetch('./data/products.json');
-    const data = await res.json();
-    allProducts = data.items || [];
-    renderProducts(allProducts, grid);
-    initFilters();
-  } catch {
+  const { data, error } = await sb.from('products').select('*').order('order_index');
+  if (error || !data) {
     grid.innerHTML = '<div class="loading"><p>Không thể tải sản phẩm, vui lòng thử lại.</p></div>';
+    return;
   }
+  allProducts = data;
+  renderProducts(allProducts, grid);
+  initFilters();
 }
 
 function renderProducts(list, grid) {
@@ -111,16 +115,10 @@ async function loadFeatured() {
   const grid = document.getElementById('featuredGrid');
   if (!grid) return;
 
-  try {
-    const res  = await fetch('./data/products.json');
-    const data = await res.json();
-    const list = (data.items || []).filter(p => p.featured).slice(0, 4);
-    if (!list.length) { grid.closest('section')?.remove(); return; }
-    grid.innerHTML = list.map(productCardHTML).join('');
-    wireOrderButtons();
-  } catch {
-    grid.closest('section')?.remove();
-  }
+  const { data } = await sb.from('products').select('*').eq('featured', true).order('order_index').limit(4);
+  if (!data?.length) { grid.closest('section')?.remove(); return; }
+  grid.innerHTML = data.map(productCardHTML).join('');
+  wireOrderButtons();
 }
 
 // ─── Gallery ──────────────────────────────────────────────
@@ -128,28 +126,22 @@ async function loadGallery() {
   const grid = document.getElementById('galleryGrid');
   if (!grid) return;
 
-  try {
-    const res   = await fetch('./data/gallery.json');
-    const data  = await res.json();
-    const photos = data.photos || [];
+  const { data } = await sb.from('gallery').select('*').order('order_index');
+  const photos = data || [];
 
-    if (!photos.length) {
-      grid.innerHTML = `
+  if (!photos.length) {
+    grid.innerHTML = `
 <div class="gallery-empty">
   <div class="e-icon">📷</div>
   <p>Album ảnh đang được cập nhật.<br>Quay lại sớm nhé!</p>
 </div>`;
-      return;
-    }
+    return;
+  }
 
-    grid.innerHTML = photos.map((ph, i) => `
+  grid.innerHTML = photos.map((ph, i) => `
 <div class="gallery-item" onclick="openLightbox('${ph.url}','${(ph.caption||'').replace(/'/g,"\\'")}')">
   <img src="${ph.url}" alt="${ph.caption || 'Ảnh hoa ' + (i+1)}" loading="lazy">
 </div>`).join('');
-
-  } catch {
-    grid.innerHTML = '<div class="loading"><p>Không thể tải gallery.</p></div>';
-  }
 }
 
 function openLightbox(url, caption) {
@@ -170,24 +162,19 @@ function openLightbox(url, caption) {
 let contactInfo = null;
 
 async function loadContact() {
-  try {
-    const res = await fetch('./data/contact.json');
-    contactInfo = await res.json();
-  } catch { return; }
+  const { data } = await sb.from('contact').select('*').eq('id', 1).single();
+  if (!data) return;
+  contactInfo = data;
 
-  // contact page fields
   setText('cPhone',   contactInfo.phone   || '—');
   setText('cAddress', contactInfo.address || '—');
   setText('cHours',   contactInfo.hours   || '—');
 
-  // contact page buttons
   setHref('zaloBtn', zaloURL(contactInfo.zalo || contactInfo.phone));
   setHref('callBtn', `tel:${clean(contactInfo.phone)}`);
 
-  // float button
   updateZaloFloat();
 
-  // social links in footer
   if (contactInfo.facebook) {
     const fb = document.getElementById('fbLink');
     if (fb) { fb.href = contactInfo.facebook; fb.style.display = 'inline'; }
@@ -223,11 +210,68 @@ function wireOrderButtons() {
   });
 }
 
+// ─── Product Detail Page ──────────────────────────────────
+async function loadProductDetail() {
+  const content = document.getElementById('detailContent');
+  if (!content) return;
+
+  const id = new URLSearchParams(location.search).get('id');
+  if (!id) { content.innerHTML = '<div class="loading"><p>Không tìm thấy sản phẩm.</p></div>'; return; }
+
+  const { data: p } = await sb.from('products').select('*').eq('id', id).single();
+  if (!p) { content.innerHTML = '<div class="loading"><p>Sản phẩm không tồn tại.</p></div>'; return; }
+
+  document.title = `${p.name} — Ler & Ther Blooming`;
+
+  const s = catStyle(p.category);
+  const img = p.image
+    ? `<img src="${p.image}" alt="${p.name}">`
+    : `<div class="detail-img-ph" style="background:${s.bg}">${s.emoji}</div>`;
+
+  const num = contactInfo?.zalo || contactInfo?.phone || '';
+  const zaloHref = num ? zaloURL(num) : '#';
+
+  content.innerHTML = `
+<div class="detail-wrap">
+  <div class="detail-img">${img}</div>
+  <div class="detail-info">
+    <a href="san-pham.html" class="detail-back">← Quay lại sản phẩm</a>
+    <span class="detail-cat">${p.category}</span>
+    <h1 class="detail-name">${p.name}</h1>
+    <div class="detail-price">${p.price}</div>
+    <p class="detail-desc">${p.description}</p>
+    <div class="detail-actions">
+      <a href="${zaloHref}" target="_blank" class="btn btn-orange" style="font-size:1rem;">
+        📞 Đặt hoa qua Zalo
+      </a>
+      <a href="san-pham.html" class="btn btn-outline">Xem thêm sản phẩm</a>
+    </div>
+  </div>
+</div>`;
+
+  loadRelated(p.category, p.id);
+}
+
+async function loadRelated(category, excludeId) {
+  const section = document.getElementById('relatedSection');
+  const grid    = document.getElementById('relatedGrid');
+  if (!section || !grid) return;
+
+  const { data } = await sb.from('products').select('*')
+    .eq('category', category).neq('id', excludeId).limit(4);
+  if (!data?.length) return;
+
+  grid.innerHTML = data.map(productCardHTML).join('');
+  wireOrderButtons();
+  section.style.display = 'block';
+}
+
 // ─── Init ─────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   initNav();
-  await loadContact();   // load contact first so buttons work
+  await loadContact();
   loadFeatured();
   loadProducts();
   loadGallery();
+  loadProductDetail();
 });

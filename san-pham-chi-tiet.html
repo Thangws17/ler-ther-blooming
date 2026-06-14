@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gallery — Ler & Ther Blooming</title>
-  <meta name="description" content="Xem album ảnh hoa tươi đẹp từ Ler & Ther Blooming.">
+  <title>Chi tiết sản phẩm — Ler & Ther Blooming</title>
+  <meta name="description" content="Xem chi tiết sản phẩm hoa tươi tại Ler & Ther Blooming.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
   <link rel="stylesheet" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -28,29 +28,22 @@
   </div>
 </nav>
 
-<!-- ── Page Header ────────────────────────────────────── -->
-<div class="page-header">
+<!-- ── Detail ─────────────────────────────────────────── -->
+<section id="detailSection" style="padding:60px 0;">
   <div class="container">
-    <h1>📷 Gallery</h1>
-    <p>Những khoảnh khắc đẹp từ Ler &amp; Ther Blooming</p>
-  </div>
-</div>
-
-<!-- ── Gallery Grid ───────────────────────────────────── -->
-<section>
-  <div class="container">
-    <div class="gallery-grid" id="galleryGrid">
-      <div class="loading"><div class="l-icon">📷</div><p>Đang tải ảnh…</p></div>
+    <div id="detailContent">
+      <div class="loading"><div class="l-icon">🌸</div><p>Đang tải sản phẩm…</p></div>
     </div>
   </div>
 </section>
 
-<!-- ── CTA ────────────────────────────────────────────── -->
-<section class="cta-banner" style="padding:60px 0;">
+<!-- ── Related Products ───────────────────────────────── -->
+<section id="relatedSection" style="background:#fff; display:none;">
   <div class="container">
-    <h2>Thích những bó hoa này?</h2>
-    <p>Liên hệ ngay để đặt hoa hoặc tham khảo thêm mẫu tại shop nhé!</p>
-    <a href="lien-he.html" class="btn btn-white">Liên hệ đặt hoa 🌸</a>
+    <div class="section-header">
+      <h2>Sản phẩm cùng danh mục</h2>
+    </div>
+    <div class="products-grid" id="relatedGrid"></div>
   </div>
 </section>
 
