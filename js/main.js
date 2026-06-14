@@ -302,7 +302,7 @@ async function loadProductDetail() {
     <div class="detail-price">${p.price}</div>
     <p class="detail-desc">${p.description}</p>
     <div class="detail-actions">
-      <a href="${zaloHref}" target="_blank" class="btn btn-orange" style="font-size:1rem;">
+      <a href="#" class="btn btn-orange order-btn" data-product="${encodeURIComponent(p.name)}" style="font-size:1rem;">
         📞 Đặt hoa qua Zalo
       </a>
       <a href="san-pham.html" class="btn btn-outline">Xem thêm sản phẩm</a>
@@ -310,6 +310,7 @@ async function loadProductDetail() {
   </div>
 </div>`;
 
+  wireOrderButtons();
   loadRelated(p.category, p.id);
 }
 
