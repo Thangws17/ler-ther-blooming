@@ -205,9 +205,70 @@ function wireOrderButtons() {
   const num = contactInfo?.zalo || contactInfo?.phone || '';
   document.querySelectorAll('.order-btn').forEach(btn => {
     const name = decodeURIComponent(btn.dataset.product || '');
-    btn.href = num ? zaloURL(num) : '#';
-    if (num) btn.target = '_blank';
+    if (num) {
+      btn.href   = zaloURL(num);
+      btn.target = '_blank';
+      btn.onclick = () => {
+        if (name) {
+          navigator.clipboard.writeText(`Tôi muốn đặt: ${name}`).catch(() => {});
+          showMiniToast('📋 Đã copy tên sản phẩm — paste vào Zalo để đặt!');
+        }
+      };
+    } else {
+      btn.href = '#';
+    }
   });
+}
+
+function showMiniToast(msg) {
+  let t = document.getElementById('miniToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'miniToast';
+    t.style.cssText = [
+      'position:fixed;bottom:90px;left:50%;transform:translateX(-50%)',
+      'background:rgba(30,30,30,.92);color:#fff;padding:10px 22px',
+      'border-radius:50px;font-size:.85rem;font-weight:600',
+      'z-index:9999;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.25)',
+    ].join(';');
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.style.display = 'none', 3000);
+}
+
+// ─── Banner ───────────────────────────────────────────────
+function loadBanner() {
+  if (sessionStorage.getItem('banner_dismissed')) return;
+  if (!contactInfo?.banner_active || !contactInfo?.banner_text) return;
+  const el = document.getElementById('siteBanner');
+  if (!el) return;
+  document.getElementById('bannerText').textContent = contactInfo.banner_text;
+  el.style.display = 'block';
+}
+
+function closeBanner() {
+  const el = document.getElementById('siteBanner');
+  if (el) el.style.display = 'none';
+  sessionStorage.setItem('banner_dismissed', '1');
+}
+
+// ─── Testimonials ─────────────────────────────────────────
+async function loadTestimonials() {
+  const grid = document.getElementById('testimonialsGrid');
+  if (!grid) return;
+  const { data } = await sb.from('testimonials').select('*').eq('active', true).order('order_index');
+  if (!data?.length) { grid.closest('section')?.remove(); return; }
+  grid.innerHTML = data.map(t => `
+<div class="testimonial-card">
+  <p class="testimonial-quote">${t.content}</p>
+  <div class="testimonial-author">
+    <span class="testimonial-name">${t.name}</span>
+    ${t.context ? `<span class="testimonial-context">— ${t.context}</span>` : ''}
+  </div>
+</div>`).join('');
 }
 
 // ─── Product Detail Page ──────────────────────────────────
@@ -270,8 +331,10 @@ async function loadRelated(category, excludeId) {
 document.addEventListener('DOMContentLoaded', async () => {
   initNav();
   await loadContact();
+  loadBanner();
   loadFeatured();
   loadProducts();
   loadGallery();
+  loadTestimonials();
   loadProductDetail();
 });

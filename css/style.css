@@ -336,6 +336,48 @@ section    { padding:80px 0; }
   font-size:.82rem; opacity:.42;
 }
 
+/* ─── Banner ─────────────────────────────────────────────── */
+.site-banner {
+  background: var(--green);
+  color: #fff;
+  padding: 11px 20px;
+}
+.banner-inner {
+  max-width: 1180px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+}
+.banner-inner span { font-size: .92rem; font-weight: 600; }
+.banner-close {
+  background: rgba(255,255,255,.2); border: none; color: #fff;
+  width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+  font-size: .7rem; flex-shrink: 0; transition: background .2s;
+}
+.banner-close:hover { background: rgba(255,255,255,.38); }
+
+/* ─── Testimonials ────────────────────────────────────────── */
+.testimonials { background: var(--green-pale); }
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+.testimonial-card {
+  background: var(--white); border-radius: var(--radius);
+  padding: 28px; box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 16px;
+}
+.testimonial-quote {
+  font-size: .97rem; line-height: 1.8; color: var(--text-mid);
+  font-style: italic; flex: 1; position: relative; padding-left: 20px;
+}
+.testimonial-quote::before {
+  content: '"'; position: absolute; left: 0; top: -4px;
+  font-size: 2.4rem; color: var(--green-light); font-style: normal; line-height: 1;
+}
+.testimonial-author { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.testimonial-name { font-family: 'Nunito', sans-serif; font-weight: 700; color: var(--text); }
+.testimonial-context { font-size: .82rem; color: var(--text-light); }
+
 /* ─── Product Detail ─────────────────────────────────────── */
 .detail-wrap {
   display:grid; grid-template-columns:1fr 1fr; gap:52px; align-items:start;

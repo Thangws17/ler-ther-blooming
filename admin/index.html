@@ -221,6 +221,7 @@
     <nav class="sidebar-nav">
       <button class="nav-item active" data-tab="Products" onclick="switchTab(this)">🛍️ Sản phẩm</button>
       <button class="nav-item" data-tab="Gallery" onclick="switchTab(this)">📸 Gallery</button>
+      <button class="nav-item" data-tab="Testimonials" onclick="switchTab(this)">💬 Đánh giá</button>
       <button class="nav-item" data-tab="Contact" onclick="switchTab(this)">⚙️ Liên hệ</button>
     </nav>
     <div class="sidebar-bottom">
@@ -285,9 +286,26 @@
             <label>Instagram</label>
             <input type="text" name="instagram" placeholder="https://instagram.com/…">
           </div>
+          <div class="field-group full">
+            <label>Nội dung banner thông báo</label>
+            <input type="text" name="banner_text" placeholder="VD: 🌸 Khuyến mãi 8/3 — giảm 10% tất cả đơn hàng!">
+          </div>
+          <div class="check-row">
+            <input type="checkbox" name="banner_active" id="bannerActive">
+            <label for="bannerActive">Hiện banner trên website</label>
+          </div>
         </div>
         <button type="submit" class="btn-green">💾 Lưu thay đổi</button>
       </form>
+    </div>
+
+    <!-- Đánh giá -->
+    <div id="panelTestimonials" class="panel" style="display:none">
+      <div class="panel-topbar">
+        <h1>Đánh giá khách hàng</h1>
+        <button class="btn-green" onclick="openTestimonialModal()">+ Thêm đánh giá</button>
+      </div>
+      <div id="testimonialsList"><div class="loading-state">Đang tải…</div></div>
     </div>
 
   </main>
@@ -356,6 +374,47 @@
   </div>
 </div>
 
+<!-- ── Testimonial Modal ──────────────────────────── -->
+<div id="testimonialModal" class="modal-overlay" style="display:none" onclick="closeTestimonialModalOutside(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="testimonialModalTitle">Thêm đánh giá</h2>
+      <button class="modal-close" onclick="closeTestimonialModal()">✕</button>
+    </div>
+    <form id="testimonialForm" onsubmit="saveTestimonial(event)">
+      <input type="hidden" id="testimonialId">
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field-group">
+            <label>Tên khách hàng *</label>
+            <input type="text" id="tName" required placeholder="VD: Chị Lan">
+          </div>
+          <div class="field-group">
+            <label>Dịp / ngữ cảnh</label>
+            <input type="text" id="tContext" placeholder="VD: Sinh nhật bạn thân">
+          </div>
+          <div class="field-group full">
+            <label>Nội dung đánh giá *</label>
+            <textarea id="tContent" required rows="4" placeholder="Lời chia sẻ của khách hàng…"></textarea>
+          </div>
+          <div class="field-group">
+            <label>Thứ tự hiển thị</label>
+            <input type="number" id="tOrder" value="0" min="0">
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="tActive" checked>
+            <label for="tActive">Hiển thị trên website</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" onclick="closeTestimonialModal()">Hủy</button>
+        <button type="submit" class="btn-green" id="saveTestimonialBtn">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- ── Toast ──────────────────────────────────────── -->
 <div id="toast" class="toast" style="display:none"></div>
 
@@ -411,8 +470,9 @@ function switchTab(btn) {
   const tab = btn.dataset.tab
   document.querySelectorAll('.panel').forEach(p => p.style.display = 'none')
   document.getElementById('panel' + tab).style.display = 'block'
-  if (tab === 'Gallery') loadGallery()
-  if (tab === 'Contact') loadContact()
+  if (tab === 'Gallery')       loadGallery()
+  if (tab === 'Testimonials')  loadTestimonials()
+  if (tab === 'Contact')       loadContact()
 }
 
 // ── Products ─────────────────────────────────────
@@ -607,18 +667,113 @@ async function loadContact() {
   const { data } = await sb.from('contact').select('*').eq('id', 1).single()
   if (!data) return
   const form = document.getElementById('contactForm')
-  ;['phone','zalo','address','hours','facebook','instagram'].forEach(key => {
+  ;['phone','zalo','address','hours','facebook','instagram','banner_text'].forEach(key => {
     const el = form.querySelector(`[name="${key}"]`)
     if (el) el.value = data[key] || ''
   })
+  const bannerCheck = form.querySelector('[name="banner_active"]')
+  if (bannerCheck) bannerCheck.checked = !!data.banner_active
 }
 
 async function saveContact(e) {
   e.preventDefault()
   const data = {}
   new FormData(e.target).forEach((v, k) => data[k] = v)
+  // checkbox không xuất hiện trong FormData khi unchecked — xử lý thủ công
+  data.banner_active = document.getElementById('bannerActive').checked
   const { error } = await sb.from('contact').update(data).eq('id', 1)
   error ? showToast('Lỗi: ' + error.message, 'error') : showToast('Đã lưu thông tin liên hệ!')
+}
+
+// ── Testimonials ─────────────────────────────────
+let testimonials = []
+
+async function loadTestimonials() {
+  const { data } = await sb.from('testimonials').select('*').order('order_index')
+  testimonials = data || []
+  renderTestimonials()
+}
+
+function renderTestimonials() {
+  const el = document.getElementById('testimonialsList')
+  if (!testimonials.length) {
+    el.innerHTML = '<div class="empty-state">Chưa có đánh giá nào. Thêm đánh giá đầu tiên!</div>'
+    return
+  }
+  el.innerHTML = `
+<table class="data-table">
+  <thead><tr><th>Tên khách</th><th>Nội dung</th><th>Dịp</th><th>Hiển thị</th><th></th></tr></thead>
+  <tbody>${testimonials.map(t => `
+  <tr>
+    <td><strong>${t.name}</strong></td>
+    <td style="max-width:300px;color:#555;font-size:.88rem;">${t.content.slice(0, 80)}${t.content.length > 80 ? '…' : ''}</td>
+    <td style="font-size:.85rem;color:#7A9879;">${t.context || '—'}</td>
+    <td><button class="toggle-btn ${t.active ? 'on' : ''}" onclick="toggleTestimonial(${t.id},${t.active})">${t.active ? '✓ Có' : '— Không'}</button></td>
+    <td class="actions">
+      <button class="btn-edit" onclick="openTestimonialModal(${t.id})">Sửa</button>
+      <button class="btn-delete" onclick="deleteTestimonial(${t.id})">Xóa</button>
+    </td>
+  </tr>`).join('')}</tbody>
+</table>`
+}
+
+async function toggleTestimonial(id, current) {
+  await sb.from('testimonials').update({ active: !current }).eq('id', id)
+  loadTestimonials()
+}
+
+async function deleteTestimonial(id) {
+  if (!confirm('Xóa đánh giá này?')) return
+  await sb.from('testimonials').delete().eq('id', id)
+  showToast('Đã xóa đánh giá')
+  loadTestimonials()
+}
+
+function openTestimonialModal(id = null) {
+  document.getElementById('testimonialForm').reset()
+  document.getElementById('testimonialId').value = ''
+  document.getElementById('tActive').checked = true
+
+  if (id) {
+    const t = testimonials.find(x => x.id === id)
+    if (!t) return
+    document.getElementById('testimonialModalTitle').textContent = 'Sửa đánh giá'
+    document.getElementById('testimonialId').value = t.id
+    document.getElementById('tName').value    = t.name
+    document.getElementById('tContext').value = t.context || ''
+    document.getElementById('tContent').value = t.content
+    document.getElementById('tOrder').value   = t.order_index || 0
+    document.getElementById('tActive').checked = t.active
+  } else {
+    document.getElementById('testimonialModalTitle').textContent = 'Thêm đánh giá'
+  }
+  document.getElementById('testimonialModal').style.display = 'flex'
+}
+
+function closeTestimonialModal() { document.getElementById('testimonialModal').style.display = 'none' }
+function closeTestimonialModalOutside(e) { if (e.target.id === 'testimonialModal') closeTestimonialModal() }
+
+async function saveTestimonial(e) {
+  e.preventDefault()
+  const btn = document.getElementById('saveTestimonialBtn')
+  btn.textContent = 'Đang lưu…'; btn.disabled = true
+
+  const id   = document.getElementById('testimonialId').value
+  const data = {
+    name:        document.getElementById('tName').value.trim(),
+    context:     document.getElementById('tContext').value.trim(),
+    content:     document.getElementById('tContent').value.trim(),
+    order_index: parseInt(document.getElementById('tOrder').value) || 0,
+    active:      document.getElementById('tActive').checked,
+  }
+
+  const { error } = id
+    ? await sb.from('testimonials').update(data).eq('id', id)
+    : await sb.from('testimonials').insert(data)
+
+  if (error) showToast('Lỗi: ' + error.message, 'error')
+  else { showToast(id ? 'Đã cập nhật!' : 'Đã thêm đánh giá!'); closeTestimonialModal(); loadTestimonials() }
+  btn.textContent = 'Lưu'; btn.disabled = false
 }
 
 // ── Toast ─────────────────────────────────────────
