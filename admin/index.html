@@ -361,9 +361,14 @@
               <img id="imgPreview" alt="preview">
               <button type="button" onclick="clearImage()">✕ Xóa ảnh</button>
             </div>
-            <div class="img-upload-area" onclick="document.getElementById('productImgInput').click()">
-              <input type="file" id="productImgInput" accept="image/*" style="display:none" onchange="handleProductImageUpload(this)">
-              📷 Click để chọn ảnh mới
+            <div style="display:flex;gap:8px;">
+              <div class="img-upload-area" style="flex:1;" onclick="document.getElementById('productImgInput').click()">
+                <input type="file" id="productImgInput" accept="image/*" style="display:none" onchange="handleProductImageUpload(this)">
+                📷 Upload ảnh mới
+              </div>
+              <div class="img-upload-area" style="flex:1;color:#2E7D32;border-color:#2E7D32;" onclick="openGalleryPicker()">
+                📸 Chọn từ Gallery
+              </div>
             </div>
             <input type="hidden" id="fImage">
           </div>
@@ -382,6 +387,17 @@
         <button type="submit" class="btn-green" id="saveBtn">Lưu</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- ── Gallery Picker ────────────────────────────── -->
+<div id="galleryPicker" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;padding:24px;overflow-y:auto;" onclick="closeGalleryPickerOutside(event)">
+  <div style="background:#fff;border-radius:16px;max-width:820px;margin:0 auto;box-shadow:0 24px 64px rgba(0,0,0,.25);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #eee;">
+      <h2 style="font-size:1.2rem;font-weight:800;">📸 Chọn ảnh từ Gallery</h2>
+      <button onclick="closeGalleryPicker()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999;padding:4px 8px;border-radius:6px;">✕</button>
+    </div>
+    <div id="galleryPickerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:20px 24px 24px;"></div>
   </div>
 </div>
 
@@ -808,6 +824,40 @@ async function saveTestimonial(e) {
   if (error) showToast('Lỗi: ' + error.message, 'error')
   else { showToast(id ? 'Đã cập nhật!' : 'Đã thêm đánh giá!'); closeTestimonialModal(); loadTestimonials() }
   btn.textContent = 'Lưu'; btn.disabled = false
+}
+
+// ── Gallery Picker ────────────────────────────────
+async function openGalleryPicker() {
+  const grid = document.getElementById('galleryPickerGrid')
+  grid.innerHTML = '<div class="loading-state">Đang tải ảnh…</div>'
+  document.getElementById('galleryPicker').style.display = 'block'
+
+  const { data } = await sb.from('gallery').select('id,url,caption,category').order('order_index')
+  if (!data?.length) {
+    grid.innerHTML = '<div class="empty-state">Chưa có ảnh nào trong Gallery.</div>'
+    return
+  }
+  grid.innerHTML = data.map(ph => `
+<div onclick="selectGalleryImage('${ph.url}')" style="cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid transparent;transition:border-color .15s;" onmouseover="this.style.borderColor='#2E7D32'" onmouseout="this.style.borderColor='transparent'">
+  <img src="${ph.url}" alt="${ph.caption||''}" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;">
+  ${ph.caption ? `<p style="font-size:.75rem;padding:4px 6px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ph.caption}</p>` : ''}
+</div>`).join('')
+}
+
+function selectGalleryImage(url) {
+  newImageUrl = url
+  document.getElementById('fImage').value = url
+  document.getElementById('imgPreview').src = url
+  document.getElementById('imgPreviewWrap').style.display = 'block'
+  closeGalleryPicker()
+}
+
+function closeGalleryPicker() {
+  document.getElementById('galleryPicker').style.display = 'none'
+}
+
+function closeGalleryPickerOutside(e) {
+  if (e.target.id === 'galleryPicker') closeGalleryPicker()
 }
 
 // ── Toast ─────────────────────────────────────────
