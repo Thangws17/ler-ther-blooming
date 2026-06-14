@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đằng sau những bó hoa — Ler & Ther Blooming</title>
+  <meta name="description" content="Câu chuyện thật đằng sau Ler & Ther Blooming — về tình yêu với hoa và hành trình của hai người.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .story-section {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 80px 20px;
+    }
+    .story-section p {
+      font-size: 1.13rem;
+      line-height: 1.95;
+      color: var(--text-mid);
+      margin-bottom: 28px;
+    }
+    .story-section em {
+      font-style: normal;
+      color: var(--text);
+      font-weight: 700;
+    }
+    .story-quote {
+      border-left: 3px solid var(--green-light);
+      padding: 6px 0 6px 24px;
+      margin: 36px 0;
+      font-size: 1.08rem;
+      color: var(--text-mid);
+      font-style: italic;
+      line-height: 1.9;
+    }
+    .story-values {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 64px;
+      padding-top: 56px;
+      border-top: 1px solid var(--border);
+    }
+    .story-value {
+      text-align: center;
+      padding: 28px 16px;
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .story-value-icon { font-size: 2.2rem; margin-bottom: 14px; }
+    .story-value h3 { font-size: 1rem; margin-bottom: 8px; color: var(--text); }
+    .story-value p { font-size: .88rem; color: var(--text-mid); line-height: 1.7; margin: 0; }
+    .story-cta {
+      text-align: center;
+      margin-top: 56px;
+      padding-top: 48px;
+      border-top: 1px solid var(--border);
+    }
+    .story-cta p { margin-bottom: 20px; font-size: 1rem; }
+
+    @media (max-width: 640px) {
+      .story-values { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Navbar ─────────────────────────────────────────── -->
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="logo">
+      <span class="logo-icon">🌸</span>
+      <span>Ler &amp; Ther <span class="logo-accent">Blooming</span></span>
+    </a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Trang chủ</a></li>
+      <li><a href="san-pham.html">Sản phẩm</a></li>
+      <li><a href="gallery.html">Gallery</a></li>
+      <li><a href="dang-sau-nhung-bo-hoa.html">Đằng sau những bó hoa</a></li>
+      <li><a href="lien-he.html">Liên hệ</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── Page Header ────────────────────────────────────── -->
+<div class="page-header">
+  <div class="container">
+    <h1>Đằng sau những bó hoa</h1>
+    <p>Câu chuyện thật của Ler &amp; Ther Blooming</p>
+  </div>
+</div>
+
+<!-- ── Story ──────────────────────────────────────────── -->
+<section style="background:#fff;">
+  <div class="story-section">
+
+    <p>
+      <em>Ler</em> là người cắm hoa. <em>Ther</em> là người đi cùng.
+    </p>
+
+    <p>
+      Ler sống thiên về cảm xúc — nên mỗi bó hoa không chỉ là hoa,
+      mà là thứ gì đó Ler muốn gửi đi.
+    </p>
+
+    <p>
+      Khó khăn ban đầu có, chi phí có, có cả những buổi sáng đi nhập
+      hoa giữa trời mưa, mua nhầm màu rồi quay lại mua đúng — nhưng
+      chưa bao giờ đủ để dừng lại.
+    </p>
+
+    <div class="story-quote">
+      Ther không cắm hoa, nhưng Ther ở đó — trên mọi chuyến đi,
+      trên chặng đường dài.
+    </div>
+
+    <p>
+      <em>Ler &amp; Ther Blooming</em> là vậy. Không hoành tráng, nhưng thật.
+    </p>
+
+    <!-- Values -->
+    <div class="story-values">
+      <div class="story-value">
+        <div class="story-value-icon">🌸</div>
+        <h3>Tâm huyết</h3>
+        <p>Mỗi bó hoa được cắm với toàn bộ cảm xúc, không phải chỉ bằng tay.</p>
+      </div>
+      <div class="story-value">
+        <div class="story-value-icon">🤝</div>
+        <h3>Đồng hành</h3>
+        <p>Ther luôn ở đó — từ những chuyến đi nhập hoa sớm đến từng đơn hàng.</p>
+      </div>
+      <div class="story-value">
+        <div class="story-value-icon">💌</div>
+        <h3>Gửi gắm</h3>
+        <p>Hoa là cách Ler nói những điều khó nói — và gửi chúng đến tay bạn.</p>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="story-cta">
+      <p style="color:var(--text-mid)">Muốn để Ler gửi gắm điều gì đó qua một bó hoa?</p>
+      <a href="san-pham.html" class="btn btn-primary">🌺 Xem sản phẩm</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Footer ─────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="logo">
+          <span class="logo-icon">🌸</span>
+          <span>Ler &amp; Ther <span class="logo-accent">Blooming</span></span>
+        </a>
+        <p>Shop hoa tươi với tâm huyết — mỗi bông hoa là một lời yêu thương được gửi đi.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Trang</h4>
+        <ul>
+          <li><a href="index.html">Trang chủ</a></li>
+          <li><a href="san-pham.html">Sản phẩm</a></li>
+          <li><a href="gallery.html">Gallery</a></li>
+          <li><a href="dang-sau-nhung-bo-hoa.html">Đằng sau những bó hoa</a></li>
+          <li><a href="lien-he.html">Liên hệ</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Kết nối</h4>
+        <ul>
+          <li><a href="#" id="fbLink" style="display:none">Facebook</a></li>
+          <li><a href="#" id="igLink" style="display:none">Instagram</a></li>
+          <li><a href="lien-he.html">Zalo / Điện thoại</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2025 Ler &amp; Ther Blooming. Made with 🌸</div>
+  </div>
+</footer>
+
+<a href="#" class="zalo-float" id="zaloFloat" target="_blank" aria-label="Chat Zalo">
+  <span>💬</span>
+  <span class="zalo-label">Chat Zalo</span>
+</a>
+
+<script src="js/main.js"></script>
+</body>
+</html>
