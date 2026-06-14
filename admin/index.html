@@ -356,21 +356,17 @@
             <textarea id="fDesc" placeholder="Mô tả ngắn về sản phẩm…"></textarea>
           </div>
           <div class="field-group full">
-            <label>Ảnh sản phẩm</label>
-            <div id="imgPreviewWrap" class="img-preview-wrap" style="display:none">
-              <img id="imgPreview" alt="preview">
-              <button type="button" onclick="clearImage()">✕ Xóa ảnh</button>
-            </div>
+            <label>Ảnh sản phẩm <span style="font-weight:400;color:#7A9879;">(ảnh đầu tiên là ảnh chính)</span></label>
+            <div id="productImagesGrid" style="display:flex;flex-wrap:wrap;gap:8px;min-height:16px;margin-bottom:10px;align-items:flex-start;"></div>
             <div style="display:flex;gap:8px;">
               <div class="img-upload-area" style="flex:1;" onclick="document.getElementById('productImgInput').click()">
-                <input type="file" id="productImgInput" accept="image/*" style="display:none" onchange="handleProductImageUpload(this)">
+                <input type="file" id="productImgInput" accept="image/*" multiple style="display:none" onchange="handleProductImagesUpload(this)">
                 📷 Upload ảnh mới
               </div>
               <div class="img-upload-area" style="flex:1;color:#2E7D32;border-color:#2E7D32;" onclick="openGalleryPicker()">
                 📸 Chọn từ Gallery
               </div>
             </div>
-            <input type="hidden" id="fImage">
           </div>
           <div class="field-group">
             <label>Thứ tự hiển thị</label>
@@ -552,13 +548,31 @@ async function deleteProduct(id) {
 }
 
 // ── Product Modal ─────────────────────────────────
-let newImageUrl = ''
+let newImages = []
+
+function renderProductImagesGrid() {
+  const grid = document.getElementById('productImagesGrid')
+  if (!newImages.length) {
+    grid.innerHTML = '<p style="color:#999;font-size:.8rem;padding:4px 0;">Chưa có ảnh. Upload hoặc chọn từ Gallery.</p>'
+    return
+  }
+  grid.innerHTML = newImages.map((url, i) => `
+<div style="position:relative;flex-shrink:0;">
+  <img src="${url}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:${i===0?'2.5px solid #2E7D32':'1.5px solid #ddd'};">
+  ${i===0?'<span style="position:absolute;bottom:2px;left:2px;background:#2E7D32;color:#fff;font-size:.55rem;padding:1px 5px;border-radius:3px;font-weight:700;">Chính</span>':''}
+  <button type="button" onclick="removeProductImage(${i})" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#E64A19;color:#fff;border:none;cursor:pointer;font-size:.6rem;display:flex;align-items:center;justify-content:center;">✕</button>
+</div>`).join('')
+}
+
+function removeProductImage(i) {
+  newImages.splice(i, 1)
+  renderProductImagesGrid()
+}
 
 function openModal(id = null) {
-  newImageUrl = ''
+  newImages = []
   document.getElementById('productForm').reset()
   document.getElementById('productId').value = ''
-  clearImage()
 
   if (id) {
     const p = products.find(x => x.id === id)
@@ -571,41 +585,31 @@ function openModal(id = null) {
     document.getElementById('fDesc').value        = p.description || ''
     document.getElementById('fOrder').value       = p.order_index || 0
     document.getElementById('fFeatured').checked  = p.featured
-    document.getElementById('fImage').value       = p.image || ''
-    newImageUrl = p.image || ''
-    if (p.image) {
-      document.getElementById('imgPreview').src = p.image
-      document.getElementById('imgPreviewWrap').style.display = 'block'
-    }
+    newImages = p.images?.length ? [...p.images] : (p.image ? [p.image] : [])
   } else {
     document.getElementById('modalTitle').textContent = 'Thêm sản phẩm'
   }
+  renderProductImagesGrid()
   document.getElementById('modal').style.display = 'flex'
 }
 
 function closeModal() { document.getElementById('modal').style.display = 'none' }
 function closeModalOutside(e) { if (e.target.id === 'modal') closeModal() }
 
-async function handleProductImageUpload(input) {
-  const file = input.files[0]
-  if (!file) return
-  document.getElementById('imgPreview').src = URL.createObjectURL(file)
-  document.getElementById('imgPreviewWrap').style.display = 'block'
-
-  const path = `products/${Date.now()}_${file.name.replace(/\s/g, '_')}`
-  const { error } = await sb.storage.from('images').upload(path, file)
-  if (error) { showToast('Lỗi upload: ' + error.message, 'error'); return }
-  const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
-  newImageUrl = publicUrl
-  document.getElementById('fImage').value = publicUrl
-  showToast('Upload ảnh thành công!')
-}
-
-function clearImage() {
-  newImageUrl = ''
-  document.getElementById('fImage').value = ''
-  document.getElementById('imgPreviewWrap').style.display = 'none'
-  document.getElementById('productImgInput').value = ''
+async function handleProductImagesUpload(input) {
+  const files = Array.from(input.files)
+  if (!files.length) return
+  showToast('Đang upload…')
+  for (const file of files) {
+    const path = `products/${Date.now()}_${file.name.replace(/\s/g, '_')}`
+    const { error } = await sb.storage.from('images').upload(path, file)
+    if (error) { showToast('Lỗi: ' + error.message, 'error'); continue }
+    const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
+    newImages.push(publicUrl)
+  }
+  input.value = ''
+  renderProductImagesGrid()
+  showToast(`Upload xong ${files.length} ảnh!`)
 }
 
 async function saveProduct(e) {
@@ -619,7 +623,8 @@ async function saveProduct(e) {
     price:       document.getElementById('fPrice').value.trim(),
     category:    document.getElementById('fCategory').value,
     description: document.getElementById('fDesc').value.trim(),
-    image:       newImageUrl || document.getElementById('fImage').value,
+    image:       newImages[0] || '',
+    images:      newImages,
     order_index: parseInt(document.getElementById('fOrder').value) || 0,
     featured:    document.getElementById('fFeatured').checked,
   }
@@ -845,11 +850,12 @@ async function openGalleryPicker() {
 }
 
 function selectGalleryImage(url) {
-  newImageUrl = url
-  document.getElementById('fImage').value = url
-  document.getElementById('imgPreview').src = url
-  document.getElementById('imgPreviewWrap').style.display = 'block'
+  if (!newImages.includes(url)) {
+    newImages.push(url)
+    renderProductImagesGrid()
+  }
   closeGalleryPicker()
+  showToast('Đã thêm ảnh từ Gallery!')
 }
 
 function closeGalleryPicker() {

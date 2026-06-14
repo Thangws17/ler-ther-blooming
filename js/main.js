@@ -330,6 +330,49 @@ async function loadTestimonials() {
 </div>`).join('');
 }
 
+// ─── Product Detail Carousel ─────────────────────────────
+let _carImgs = [], _carIdx = 0, _carTimer = null;
+
+function _carGoTo(i) {
+  _carIdx = (i + _carImgs.length) % _carImgs.length;
+  const main = document.getElementById('carouselMainImg');
+  if (main) main.src = _carImgs[_carIdx];
+  document.querySelectorAll('.carousel-thumb').forEach((t, idx) =>
+    t.classList.toggle('active', idx === _carIdx)
+  );
+  clearInterval(_carTimer);
+  _carTimer = setInterval(() => _carGoTo(_carIdx + 1), 5000);
+}
+
+function _carMove(dir) { _carGoTo(_carIdx + dir); }
+
+function _startCarousel(imgs) {
+  _carImgs = imgs; _carIdx = 0;
+  clearInterval(_carTimer);
+  _carTimer = setInterval(() => _carGoTo(_carIdx + 1), 5000);
+}
+
+function buildDetailImage(imgs, name, s) {
+  if (!imgs.length) {
+    return `<div class="detail-img"><div class="detail-img-ph" style="background:${s.bg}">${s.emoji}</div></div>`;
+  }
+  if (imgs.length === 1) {
+    return `<div class="detail-img"><img src="${imgs[0]}" alt="${name}"></div>`;
+  }
+  const thumbs = imgs.map((url, i) =>
+    `<img src="${url}" class="carousel-thumb${i===0?' active':''}" onclick="_carGoTo(${i})" alt="${name} ${i+1}">`
+  ).join('');
+  return `
+<div class="detail-carousel">
+  <div class="carousel-main">
+    <button class="carousel-arrow carousel-prev" onclick="_carMove(-1)">‹</button>
+    <img id="carouselMainImg" src="${imgs[0]}" alt="${name}">
+    <button class="carousel-arrow carousel-next" onclick="_carMove(1)">›</button>
+  </div>
+  <div class="carousel-thumbs">${thumbs}</div>
+</div>`;
+}
+
 // ─── Product Detail Page ──────────────────────────────────
 async function loadProductDetail() {
   const content = document.getElementById('detailContent');
@@ -344,16 +387,12 @@ async function loadProductDetail() {
   document.title = `${p.name} — Ler & Ther Blooming`;
 
   const s = catStyle(p.category);
-  const img = p.image
-    ? `<img src="${p.image}" alt="${p.name}">`
-    : `<div class="detail-img-ph" style="background:${s.bg}">${s.emoji}</div>`;
-
-  const num = contactInfo?.zalo || contactInfo?.phone || '';
-  const zaloHref = num ? zaloURL(num) : '#';
+  const imgs = (p.images?.length ? p.images : null) || (p.image ? [p.image] : []);
+  const imgSection = buildDetailImage(imgs, p.name, s);
 
   content.innerHTML = `
 <div class="detail-wrap">
-  <div class="detail-img">${img}</div>
+  ${imgSection}
   <div class="detail-info">
     <a href="san-pham.html" class="detail-back">← Quay lại sản phẩm</a>
     <span class="detail-cat">${p.category}</span>
@@ -370,6 +409,7 @@ async function loadProductDetail() {
 </div>`;
 
   wireOrderButtons();
+  if (imgs.length > 1) _startCarousel(imgs);
   loadRelated(p.category, p.id);
 }
 
