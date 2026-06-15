@@ -297,6 +297,14 @@
             <label>Instagram</label>
             <input type="text" name="instagram" placeholder="https://instagram.com/…">
           </div>
+          <div class="field-group">
+            <label>TikTok</label>
+            <input type="text" name="tiktok" placeholder="https://tiktok.com/@…">
+          </div>
+          <div class="field-group">
+            <label>Threads</label>
+            <input type="text" name="threads" placeholder="https://threads.net/@…">
+          </div>
           <div class="field-group full">
             <label>Ảnh hero trang chủ <span style="font-weight:400;color:#7A9879;">(ảnh nền lớn phía trên cùng)</span></label>
             <div id="heroImgPreviewWrap" class="img-preview-wrap" style="display:none">
@@ -739,7 +747,7 @@ async function loadContact() {
   const { data } = await sb.from('contact').select('*').eq('id', 1).single()
   if (!data) return
   const form = document.getElementById('contactForm')
-  ;['phone','zalo','address','hours','facebook','instagram','banner_text'].forEach(key => {
+  ;['phone','zalo','address','hours','facebook','instagram','tiktok','threads','banner_text'].forEach(key => {
     const el = form.querySelector(`[name="${key}"]`)
     if (el) el.value = data[key] || ''
   })

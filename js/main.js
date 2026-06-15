@@ -252,14 +252,35 @@ async function loadContact() {
     mapEl.innerHTML = `<iframe src="https://maps.google.com/maps?q=${encodeURIComponent(contactInfo.address)}&output=embed&z=15" width="100%" height="340" style="border:0;border-radius:16px;display:block;" loading="lazy" allowfullscreen></iframe>`;
   }
 
-  if (contactInfo.facebook) {
-    const fb = document.getElementById('fbLink');
-    if (fb) { fb.href = contactInfo.facebook; fb.style.display = 'inline'; }
-  }
-  if (contactInfo.instagram) {
-    const ig = document.getElementById('igLink');
-    if (ig) { ig.href = contactInfo.instagram; ig.style.display = 'inline'; }
-  }
+  const SOCIALS = [
+    { key:'facebook',  cItem:'cFbItem', cLink:'cFbLink', footer:'fbLink', cls:'btn-fb', label:'📘 Facebook'  },
+    { key:'instagram', cItem:'cIgItem', cLink:'cIgLink', footer:'igLink', cls:'btn-ig', label:'📸 Instagram' },
+    { key:'tiktok',    cItem:'cTtItem', cLink:'cTtLink', footer:'ttLink', cls:'btn-tt', label:'🎵 TikTok'    },
+    { key:'threads',   cItem:'cThItem', cLink:'cThLink', footer:'thLink', cls:'btn-th', label:'🧵 Threads'   },
+  ];
+  const ctaRow     = document.getElementById('ctaSocialRow');
+  const ctaSection = document.getElementById('ctaSocialSection');
+  let hasSocial = false;
+
+  SOCIALS.forEach(s => {
+    const url = contactInfo[s.key];
+    if (!url) return;
+    hasSocial = true;
+    const cItem = document.getElementById(s.cItem);
+    const cLink = document.getElementById(s.cLink);
+    if (cItem) cItem.style.display = 'flex';
+    if (cLink) cLink.href = url;
+    const footerEl = document.getElementById(s.footer);
+    if (footerEl) { footerEl.href = url; footerEl.style.display = 'inline'; }
+    if (ctaRow) {
+      const btn = document.createElement('a');
+      btn.href = url; btn.target = '_blank';
+      btn.className = `btn-social ${s.cls}`;
+      btn.textContent = s.label;
+      ctaRow.appendChild(btn);
+    }
+  });
+  if (ctaSection && hasSocial) ctaSection.style.display = 'block';
 }
 
 function setText(id, val) {
