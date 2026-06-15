@@ -232,7 +232,25 @@ async function loadContact() {
   setHref('zaloBtn', zaloURL(contactInfo.zalo || contactInfo.phone));
   setHref('callBtn', `tel:${clean(contactInfo.phone)}`);
 
+  setHref('zaloTextLink', zaloURL(contactInfo.zalo || contactInfo.phone));
   updateZaloFloat();
+
+  // Hero background photo
+  const heroBg = document.getElementById('heroBg');
+  if (heroBg && contactInfo.hero_image) {
+    heroBg.style.backgroundImage = `url('${contactInfo.hero_image}')`;
+    heroBg.style.display = 'block';
+    requestAnimationFrame(() => heroBg.classList.add('loaded'));
+    // update OG image for sharing
+    const ogImg = document.querySelector('meta[property="og:image"]');
+    if (ogImg) ogImg.content = contactInfo.hero_image;
+  }
+
+  // Google Maps embed
+  const mapEl = document.getElementById('contactMap');
+  if (mapEl && contactInfo.address) {
+    mapEl.innerHTML = `<iframe src="https://maps.google.com/maps?q=${encodeURIComponent(contactInfo.address)}&output=embed&z=15" width="100%" height="340" style="border:0;border-radius:16px;display:block;" loading="lazy" allowfullscreen></iframe>`;
+  }
 
   if (contactInfo.facebook) {
     const fb = document.getElementById('fbLink');
@@ -386,6 +404,13 @@ async function loadProductDetail() {
   if (!p) { content.innerHTML = '<div class="loading"><p>Sản phẩm không tồn tại.</p></div>'; return; }
 
   document.title = `${p.name} — Ler & Ther Blooming`;
+  const _ogTitle = document.querySelector('meta[property="og:title"]');
+  const _ogDesc  = document.querySelector('meta[property="og:description"]');
+  const _ogImg   = document.querySelector('meta[property="og:image"]');
+  if (_ogTitle) _ogTitle.content = `${p.name} — Ler & Ther Blooming`;
+  if (_ogDesc)  _ogDesc.content  = p.description || '';
+  if (_ogImg && p.images?.length) _ogImg.content = p.images[0];
+  else if (_ogImg && p.image)     _ogImg.content = p.image;
 
   const s = catStyle(p.category);
   const imgs = (p.images?.length ? p.images : null) || (p.image ? [p.image] : []);

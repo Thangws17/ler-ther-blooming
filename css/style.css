@@ -111,6 +111,16 @@ section    { padding:80px 0; }
   background:rgba(255,255,255,.03);
   bottom:-180px; left:-120px; pointer-events:none;
 }
+.hero-img {
+  position:absolute; inset:0; z-index:0;
+  background-size:cover; background-position:center;
+  opacity:0; transition:opacity .9s ease;
+}
+.hero-img.loaded { opacity:1; }
+.hero-img::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg,rgba(10,50,12,.75) 0%,rgba(30,100,35,.55) 100%);
+}
 .hero-content { position:relative; z-index:1; color:#fff; max-width:620px; }
 .hero-badge {
   display:inline-flex; align-items:center; gap:8px;
@@ -268,7 +278,13 @@ section    { padding:80px 0; }
   border-radius:var(--radius); padding:40px; color:#fff; text-align:center;
 }
 .contact-cta h3 { font-size:1.45rem; margin-bottom:14px; }
-.contact-cta p  { opacity:.85; line-height:1.8; margin-bottom:30px; }
+.contact-cta p  { opacity:.85; line-height:1.8; margin-bottom:16px; }
+.response-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.28);
+  border-radius:50px; padding:6px 18px;
+  font-size:.82rem; font-weight:700; margin-bottom:22px;
+}
 .contact-cta-btns { display:flex; flex-direction:column; gap:12px; }
 .btn-zalo {
   display:flex; align-items:center; justify-content:center; gap:8px;

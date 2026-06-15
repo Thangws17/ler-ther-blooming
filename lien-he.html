@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Liên hệ — Ler & Ther Blooming</title>
   <meta name="description" content="Liên hệ đặt hoa tại Ler & Ther Blooming qua Zalo hoặc điện thoại.">
+  <meta property="og:type"        content="website">
+  <meta property="og:site_name"   content="Ler & Ther Blooming">
+  <meta property="og:locale"      content="vi_VN">
+  <meta property="og:title"       content="Liên hệ đặt hoa — Ler & Ther Blooming">
+  <meta property="og:description" content="Đặt hoa tươi qua Zalo hoặc điện thoại — phản hồi nhanh, giao tận nơi.">
+  <meta property="og:image"       content="">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
   <link rel="stylesheet" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -95,6 +101,7 @@
           Nhắn tin qua Zalo hoặc gọi điện trực tiếp —
           chúng tôi sẽ tư vấn mẫu hoa phù hợp và báo giá nhanh nhất có thể.
         </p>
+        <div class="response-badge">⏱ Thường phản hồi trong 15–30 phút</div>
         <div class="contact-cta-btns">
           <a href="#" class="btn-zalo" id="zaloBtn" target="_blank">
             💬 Nhắn Zalo ngay
@@ -106,6 +113,13 @@
       </div>
 
     </div>
+  </div>
+</section>
+
+<!-- ── Map ────────────────────────────────────────────── -->
+<section style="padding:0 0 60px;">
+  <div class="container">
+    <div id="contactMap"></div>
   </div>
 </section>
 
@@ -126,6 +140,7 @@
           <li><a href="index.html">Trang chủ</a></li>
           <li><a href="san-pham.html">Sản phẩm</a></li>
           <li><a href="gallery.html">Gallery</a></li>
+          <li><a href="dang-sau-nhung-bo-hoa.html">Câu chuyện</a></li>
           <li><a href="lien-he.html">Liên hệ</a></li>
         </ul>
       </div>
@@ -143,19 +158,5 @@
 </footer>
 
 <script src="js/main.js"></script>
-<script>
-  // Also wire the inline Zalo text link on this page
-  document.addEventListener('DOMContentLoaded', () => {
-    fetch('./data/contact.json')
-      .then(r => r.json())
-      .then(d => {
-        const num = d.zalo || d.phone || '';
-        if (num) {
-          const link = document.getElementById('zaloTextLink');
-          if (link) link.href = 'https://zalo.me/' + num.replace(/\s/g,'');
-        }
-      }).catch(() => {});
-  });
-</script>
 </body>
 </html>

@@ -298,6 +298,23 @@
             <input type="text" name="instagram" placeholder="https://instagram.com/…">
           </div>
           <div class="field-group full">
+            <label>Ảnh hero trang chủ <span style="font-weight:400;color:#7A9879;">(ảnh nền lớn phía trên cùng)</span></label>
+            <div id="heroImgPreviewWrap" class="img-preview-wrap" style="display:none">
+              <img id="heroImgPreview" alt="hero" style="max-height:120px;border-radius:8px;object-fit:cover;">
+              <button type="button" onclick="clearHeroImage()">✕ Xóa ảnh</button>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <div class="img-upload-area" style="flex:1;" onclick="document.getElementById('heroImgInput').click()">
+                <input type="file" id="heroImgInput" accept="image/*" style="display:none" onchange="handleHeroImageUpload(this)">
+                📷 Upload ảnh mới
+              </div>
+              <div class="img-upload-area" style="flex:1;color:#2E7D32;border-color:#2E7D32;" onclick="openGalleryPickerForHero()">
+                📸 Chọn từ Gallery
+              </div>
+            </div>
+            <input type="hidden" id="heroImageUrl" name="hero_image">
+          </div>
+          <div class="field-group full">
             <label>Nội dung banner thông báo</label>
             <input type="text" name="banner_text" placeholder="VD: 🌸 Khuyến mãi 8/3 — giảm 10% tất cả đơn hàng!">
           </div>
@@ -728,6 +745,32 @@ async function loadContact() {
   })
   const bannerCheck = form.querySelector('[name="banner_active"]')
   if (bannerCheck) bannerCheck.checked = !!data.banner_active
+  if (data.hero_image) setHeroImagePreview(data.hero_image)
+}
+
+// ── Hero Image ────────────────────────────────────
+async function handleHeroImageUpload(input) {
+  const file = input.files[0]
+  if (!file) return
+  showToast('Đang upload…')
+  const path = `hero/${Date.now()}_${file.name.replace(/\s/g,'_')}`
+  const { error } = await sb.storage.from('images').upload(path, file)
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
+  setHeroImagePreview(publicUrl)
+  showToast('Upload ảnh hero thành công!')
+}
+
+function setHeroImagePreview(url) {
+  document.getElementById('heroImgPreview').src = url
+  document.getElementById('heroImgPreviewWrap').style.display = 'block'
+  document.getElementById('heroImageUrl').value = url
+}
+
+function clearHeroImage() {
+  document.getElementById('heroImgPreviewWrap').style.display = 'none'
+  document.getElementById('heroImageUrl').value = ''
+  document.getElementById('heroImgInput').value = ''
 }
 
 async function saveContact(e) {
@@ -832,7 +875,15 @@ async function saveTestimonial(e) {
 }
 
 // ── Gallery Picker ────────────────────────────────
+let _galleryPickerTarget = 'product'
+
+function openGalleryPickerForHero() {
+  _galleryPickerTarget = 'hero'
+  openGalleryPicker()
+}
+
 async function openGalleryPicker() {
+  _galleryPickerTarget = _galleryPickerTarget || 'product'
   const grid = document.getElementById('galleryPickerGrid')
   grid.innerHTML = '<div class="loading-state">Đang tải ảnh…</div>'
   document.getElementById('galleryPicker').style.display = 'block'
@@ -850,6 +901,13 @@ async function openGalleryPicker() {
 }
 
 function selectGalleryImage(url) {
+  if (_galleryPickerTarget === 'hero') {
+    setHeroImagePreview(url)
+    closeGalleryPicker()
+    showToast('Đã chọn ảnh hero!')
+    _galleryPickerTarget = 'product'
+    return
+  }
   if (!newImages.includes(url)) {
     newImages.push(url)
     renderProductImagesGrid()
