@@ -31,6 +31,27 @@ function initNav() {
   });
 }
 
+// ─── Scroll reveal ───────────────────────────────────────
+let _revealObserver;
+function initScrollReveal(root = document) {
+  if (!_revealObserver) {
+    _revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          _revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+  }
+  root.querySelectorAll('.reveal:not(.in-view)').forEach(el => _revealObserver.observe(el));
+}
+
+// stagger helper: tag each element in a NodeList/array with an increasing delay
+function staggerReveal(els, step = 0.08) {
+  els.forEach((el, i) => el.style.setProperty('--reveal-delay', `${i * step}s`));
+}
+
 // ─── Category visual styles ───────────────────────────────
 const CAT = {
   'Hoa bó'    : { bg:'linear-gradient(135deg,#FF8A80,#F06292)', emoji:'🌹' },
@@ -50,7 +71,7 @@ function productCardHTML(p) {
     : `<div class="product-img-ph" style="background:${s.bg}">${s.emoji}</div>`;
   const productNameEnc = encodeURIComponent(p.name);
   return `
-<div class="product-card" data-category="${p.category}">
+<div class="product-card reveal" data-category="${p.category}">
   <a href="san-pham-chi-tiet.html?id=${p.id}" class="product-img">${img}</a>
   <div class="product-info">
     <span class="product-cat">${p.category}</span>
@@ -94,6 +115,8 @@ function renderProducts(list, grid) {
   }
   grid.innerHTML = list.map(productCardHTML).join('');
   wireOrderButtons();
+  staggerReveal(grid.querySelectorAll('.reveal'));
+  initScrollReveal(grid);
 }
 
 function initFilters() {
@@ -119,6 +142,8 @@ async function loadFeatured() {
   if (!data?.length) { grid.closest('section')?.remove(); return; }
   grid.innerHTML = data.map(productCardHTML).join('');
   wireOrderButtons();
+  staggerReveal(grid.querySelectorAll('.reveal'));
+  initScrollReveal(grid);
 }
 
 // ─── Gallery ──────────────────────────────────────────────
@@ -163,9 +188,11 @@ function renderGalleryPage() {
   }
 
   grid.innerHTML = page.map((ph, i) => `
-<div class="gallery-item" onclick="openLightbox('${ph.url}','${(ph.caption||'').replace(/'/g,"\\'")}')">
+<div class="gallery-item reveal" onclick="openLightbox('${ph.url}','${(ph.caption||'').replace(/'/g,"\\'")}')">
   <img src="${ph.url}" alt="${ph.caption || 'Ảnh hoa ' + (start + i + 1)}" loading="lazy">
 </div>`).join('');
+  staggerReveal(grid.querySelectorAll('.reveal'), 0.05);
+  initScrollReveal(grid);
 
   renderGalleryPagination(filtered.length);
 }
@@ -360,13 +387,15 @@ async function loadTestimonials() {
   const { data } = await sb.from('testimonials').select('*').eq('active', true).order('order_index');
   if (!data?.length) { grid.closest('section')?.remove(); return; }
   grid.innerHTML = data.map(t => `
-<div class="testimonial-card">
+<div class="testimonial-card reveal">
   <p class="testimonial-quote">${t.content}</p>
   <div class="testimonial-author">
     <span class="testimonial-name">${t.name}</span>
     ${t.context ? `<span class="testimonial-context">— ${t.context}</span>` : ''}
   </div>
 </div>`).join('');
+  staggerReveal(grid.querySelectorAll('.reveal'));
+  initScrollReveal(grid);
 }
 
 // ─── Product Detail Carousel ─────────────────────────────
@@ -471,6 +500,8 @@ async function loadRelated(category, excludeId) {
 
   grid.innerHTML = data.map(productCardHTML).join('');
   wireOrderButtons();
+  staggerReveal(grid.querySelectorAll('.reveal'));
+  initScrollReveal(grid);
   section.style.display = 'block';
 }
 
@@ -484,4 +515,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadGallery();
   loadTestimonials();
   loadProductDetail();
+  initScrollReveal();
 });
