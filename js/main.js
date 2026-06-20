@@ -364,6 +364,90 @@ function showMiniToast(msg) {
   t._t = setTimeout(() => t.style.display = 'none', 3000);
 }
 
+// ─── Order Modal ──────────────────────────────────────────
+let _orderProduct = { id: null, name: '' };
+
+function openOrderModal(productId, productName) {
+  _orderProduct = { id: productId, name: productName };
+  document.getElementById('orderModalBody').innerHTML = `
+<h3>Đặt hàng</h3>
+<span class="order-product-name">🌸 ${productName}</span>
+<form id="orderForm" onsubmit="submitOrder(event)">
+  <div class="order-field">
+    <label>Họ tên người đặt *</label>
+    <input type="text" id="orderName" required>
+  </div>
+  <div class="order-row">
+    <div class="order-field">
+      <label>Số điện thoại *</label>
+      <input type="tel" id="orderPhone" required>
+    </div>
+    <div class="order-field">
+      <label>Số lượng</label>
+      <input type="number" id="orderQty" min="1" value="1">
+    </div>
+  </div>
+  <div class="order-field">
+    <label>Địa chỉ giao hàng *</label>
+    <input type="text" id="orderAddress" required>
+  </div>
+  <div class="order-field">
+    <label>Ngày giao mong muốn</label>
+    <input type="date" id="orderDate">
+  </div>
+  <div class="order-field">
+    <label>Lời nhắn trên thiếp</label>
+    <textarea id="orderMessage" placeholder="VD: Chúc mừng sinh nhật..."></textarea>
+  </div>
+  <div class="order-field">
+    <label>Ghi chú thêm</label>
+    <textarea id="orderNote" placeholder="Yêu cầu khác (nếu có)"></textarea>
+  </div>
+  <button type="submit" class="btn btn-primary order-submit" id="orderSubmitBtn">Gửi đơn đặt hàng</button>
+</form>`;
+  document.getElementById('orderOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeOrderModal() {
+  document.getElementById('orderOverlay')?.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function submitOrder(event) {
+  event.preventDefault();
+  const btn = document.getElementById('orderSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Đang gửi…';
+
+  const { error } = await sb.rpc('place_order', {
+    p_phone: document.getElementById('orderPhone').value.trim(),
+    p_name: document.getElementById('orderName').value.trim(),
+    p_address: document.getElementById('orderAddress').value.trim(),
+    p_product_id: _orderProduct.id,
+    p_product_name: _orderProduct.name,
+    p_quantity: parseInt(document.getElementById('orderQty').value) || 1,
+    p_delivery_date: document.getElementById('orderDate').value || null,
+    p_message_card: document.getElementById('orderMessage').value.trim() || null,
+    p_note: document.getElementById('orderNote').value.trim() || null,
+  });
+
+  if (error) {
+    btn.disabled = false;
+    btn.textContent = 'Gửi đơn đặt hàng';
+    showMiniToast('❌ Có lỗi xảy ra, vui lòng thử lại hoặc nhắn Zalo.');
+    return;
+  }
+
+  document.getElementById('orderModalBody').innerHTML = `
+<div class="order-success">
+  <div class="o-icon">🌸</div>
+  <h3>Đặt hàng thành công!</h3>
+  <p style="color:var(--text-mid);margin-top:8px;">Chúng mình sẽ liên hệ qua Zalo/điện thoại để xác nhận sớm nhất.</p>
+  <button class="btn btn-primary" style="margin-top:20px;" onclick="closeOrderModal()">Đóng</button>
+</div>`;
+}
+
 // ─── Banner ───────────────────────────────────────────────
 function loadBanner() {
   if (sessionStorage.getItem('banner_dismissed')) return;
@@ -476,10 +560,12 @@ async function loadProductDetail() {
     <div class="detail-price">${p.price}</div>
     <p class="detail-desc">${p.description}</p>
     <div class="detail-actions">
-      <a href="#" class="btn btn-orange order-btn" data-product="${encodeURIComponent(p.name)}" style="font-size:1rem;">
-        📞 Đặt hoa qua Zalo
+      <button type="button" class="btn btn-primary" style="font-size:1rem;" onclick="openOrderModal(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
+        🌸 Đặt hàng ngay
+      </button>
+      <a href="#" class="btn btn-outline order-btn" data-product="${encodeURIComponent(p.name)}">
+        📞 Hỏi qua Zalo
       </a>
-      <a href="san-pham.html" class="btn btn-outline">Xem thêm sản phẩm</a>
     </div>
   </div>
 </div>`;

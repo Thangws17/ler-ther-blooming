@@ -119,6 +119,12 @@
     .actions { display: flex; gap: 6px; }
     .toggle-btn { padding: 5px 12px; border-radius: 50px; border: none; cursor: pointer; font-size: .78rem; font-weight: 700; background: #eee; color: #999; transition: all .2s; }
     .toggle-btn.on { background: #C8E6C9; color: #2E7D32; }
+    .status-select { padding: 6px 10px; border-radius: 8px; border: 1.5px solid #ddd; font-size: .82rem; font-weight: 700; background: #fafafa; color: #555; cursor: pointer; }
+    .status-select.s-moi        { background: #FFF3E0; color: #E65100; border-color: #FFCC80; }
+    .status-select.s-xacnhan    { background: #E3F2FD; color: #1565C0; border-color: #90CAF9; }
+    .status-select.s-danggiao   { background: #F3E5F5; color: #6A1B9A; border-color: #CE93D8; }
+    .status-select.s-hoanthanh  { background: #E8F5E9; color: #2E7D32; border-color: #A5D6A7; }
+    .status-select.s-huy        { background: #FFEBEE; color: #C62828; border-color: #EF9A9A; }
 
     /* ── Upload zone ──────────────────────────── */
     .upload-zone {
@@ -221,6 +227,8 @@
     <nav class="sidebar-nav">
       <button class="nav-item active" data-tab="Products" onclick="switchTab(this)">🛍️ Sản phẩm</button>
       <button class="nav-item" data-tab="Gallery" onclick="switchTab(this)">📸 Gallery</button>
+      <button class="nav-item" data-tab="Orders" onclick="switchTab(this)">📦 Đơn hàng</button>
+      <button class="nav-item" data-tab="Customers" onclick="switchTab(this)">👤 Khách hàng</button>
       <button class="nav-item" data-tab="Testimonials" onclick="switchTab(this)">💬 Đánh giá</button>
       <button class="nav-item" data-tab="Contact" onclick="switchTab(this)">⚙️ Liên hệ</button>
     </nav>
@@ -266,6 +274,31 @@
         <p class="progress-text" id="progressText"></p>
       </div>
       <div id="galleryGrid" class="gallery-admin-grid"></div>
+    </div>
+
+    <!-- Đơn hàng -->
+    <div id="panelOrders" class="panel" style="display:none">
+      <div class="panel-topbar">
+        <h1>Đơn hàng</h1>
+        <select id="orderStatusFilter" onchange="renderOrders()" style="padding:9px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:.88rem;background:#fafafa;outline:none;">
+          <option value="">Tất cả trạng thái</option>
+          <option>Mới</option>
+          <option>Đã xác nhận</option>
+          <option>Đang giao</option>
+          <option>Hoàn thành</option>
+          <option>Đã hủy</option>
+        </select>
+      </div>
+      <div id="ordersTable"><div class="loading-state">Đang tải…</div></div>
+    </div>
+
+    <!-- Khách hàng -->
+    <div id="panelCustomers" class="panel" style="display:none">
+      <div class="panel-topbar">
+        <h1>Khách hàng</h1>
+        <input type="text" id="customerSearch" placeholder="Tìm theo tên hoặc SĐT…" oninput="renderCustomers()" style="padding:9px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:.88rem;width:240px;outline:none;">
+      </div>
+      <div id="customersTable"><div class="loading-state">Đang tải…</div></div>
     </div>
 
     <!-- Liên hệ -->
@@ -463,6 +496,17 @@
   </div>
 </div>
 
+<!-- Customer order history -->
+<div id="customerOrdersModal" class="modal-overlay" style="display:none" onclick="closeCustomerOrdersModalOutside(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="customerOrdersTitle">Lịch sử đơn</h2>
+      <button class="modal-close" onclick="closeCustomerOrdersModal()">✕</button>
+    </div>
+    <div class="modal-body" id="customerOrdersBody"></div>
+  </div>
+</div>
+
 <!-- ── Toast ──────────────────────────────────────── -->
 <div id="toast" class="toast" style="display:none"></div>
 
@@ -519,6 +563,8 @@ function switchTab(btn) {
   document.querySelectorAll('.panel').forEach(p => p.style.display = 'none')
   document.getElementById('panel' + tab).style.display = 'block'
   if (tab === 'Gallery')       loadGallery()
+  if (tab === 'Orders')        loadOrders()
+  if (tab === 'Customers')     loadCustomers()
   if (tab === 'Testimonials')  loadTestimonials()
   if (tab === 'Contact')       loadContact()
 }
@@ -881,6 +927,139 @@ async function saveTestimonial(e) {
   else { showToast(id ? 'Đã cập nhật!' : 'Đã thêm đánh giá!'); closeTestimonialModal(); loadTestimonials() }
   btn.textContent = 'Lưu'; btn.disabled = false
 }
+
+// ── Orders ────────────────────────────────────────
+let orders = []
+const ORDER_STATUSES = ['Mới', 'Đã xác nhận', 'Đang giao', 'Hoàn thành', 'Đã hủy']
+const STATUS_CLASS = { 'Mới': 's-moi', 'Đã xác nhận': 's-xacnhan', 'Đang giao': 's-danggiao', 'Hoàn thành': 's-hoanthanh', 'Đã hủy': 's-huy' }
+
+async function loadOrders() {
+  const { data } = await sb.from('orders').select('*, customers(name, phone)').order('created_at', { ascending: false })
+  orders = data || []
+  renderOrders()
+}
+
+function renderOrders() {
+  const el = document.getElementById('ordersTable')
+  const filter = document.getElementById('orderStatusFilter').value
+  const list = filter ? orders.filter(o => o.status === filter) : orders
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state">Chưa có đơn hàng nào.</div>'
+    return
+  }
+  el.innerHTML = `
+<table class="data-table">
+  <thead><tr>
+    <th>Khách hàng</th><th>SĐT</th><th>Sản phẩm</th><th>SL</th>
+    <th>Ngày giao</th><th>Trạng thái</th><th>Ngày đặt</th><th></th>
+  </tr></thead>
+  <tbody>${list.map(o => `
+  <tr>
+    <td><strong>${o.customers?.name || '—'}</strong></td>
+    <td>${o.customers?.phone || '—'}</td>
+    <td>${o.product_name}</td>
+    <td>${o.quantity}</td>
+    <td>${o.delivery_date || '—'}</td>
+    <td>
+      <select class="status-select ${STATUS_CLASS[o.status] || ''}" onchange="updateOrderStatus(${o.id}, this.value)">
+        ${ORDER_STATUSES.map(s => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
+      </select>
+    </td>
+    <td style="font-size:.82rem;color:#7A9879;">${new Date(o.created_at).toLocaleDateString('vi-VN')}</td>
+    <td class="actions">
+      <button class="btn-edit" onclick="viewOrderDetail(${o.id})">Chi tiết</button>
+      <button class="btn-delete" onclick="deleteOrder(${o.id})">Xóa</button>
+    </td>
+  </tr>`).join('')}</tbody>
+</table>`
+}
+
+async function updateOrderStatus(id, status) {
+  const { error } = await sb.from('orders').update({ status }).eq('id', id)
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  const o = orders.find(x => x.id === id)
+  if (o) o.status = status
+  renderOrders()
+  showToast('Đã cập nhật trạng thái!')
+}
+
+function viewOrderDetail(id) {
+  const o = orders.find(x => x.id === id)
+  if (!o) return
+  document.getElementById('customerOrdersTitle').textContent = `Đơn #${o.id}`
+  document.getElementById('customerOrdersBody').innerHTML = `
+<div class="form-grid">
+  <p><strong>Khách:</strong> ${o.customers?.name || '—'} — ${o.customers?.phone || '—'}</p>
+  <p><strong>Sản phẩm:</strong> ${o.product_name} × ${o.quantity}</p>
+  <p><strong>Địa chỉ giao:</strong> ${o.delivery_address || '—'}</p>
+  <p><strong>Ngày giao mong muốn:</strong> ${o.delivery_date || '—'}</p>
+  <p><strong>Lời nhắn trên thiếp:</strong> ${o.message_card || '—'}</p>
+  <p><strong>Ghi chú:</strong> ${o.note || '—'}</p>
+  <p><strong>Đặt lúc:</strong> ${new Date(o.created_at).toLocaleString('vi-VN')}</p>
+</div>`
+  document.getElementById('customerOrdersModal').style.display = 'flex'
+}
+
+async function deleteOrder(id) {
+  if (!confirm('Xóa đơn hàng này?')) return
+  await sb.from('orders').delete().eq('id', id)
+  showToast('Đã xóa đơn hàng')
+  loadOrders()
+}
+
+// ── Customers ─────────────────────────────────────
+let customers = []
+
+async function loadCustomers() {
+  const { data } = await sb.from('customers').select('*').order('created_at', { ascending: false })
+  customers = data || []
+  renderCustomers()
+}
+
+function renderCustomers() {
+  const el = document.getElementById('customersTable')
+  const q = document.getElementById('customerSearch').value.trim().toLowerCase()
+  const list = q ? customers.filter(c => c.name.toLowerCase().includes(q) || c.phone.includes(q)) : customers
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state">Chưa có khách hàng nào.</div>'
+    return
+  }
+  el.innerHTML = `
+<table class="data-table">
+  <thead><tr><th>Tên</th><th>SĐT</th><th>Địa chỉ</th><th>Ngày tạo</th><th></th></tr></thead>
+  <tbody>${list.map(c => `
+  <tr>
+    <td><strong>${c.name}</strong></td>
+    <td>${c.phone}</td>
+    <td style="max-width:280px;color:#555;font-size:.88rem;">${c.address || '—'}</td>
+    <td style="font-size:.82rem;color:#7A9879;">${new Date(c.created_at).toLocaleDateString('vi-VN')}</td>
+    <td class="actions"><button class="btn-edit" onclick="viewCustomerOrders(${c.id})">Xem đơn</button></td>
+  </tr>`).join('')}</tbody>
+</table>`
+}
+
+async function viewCustomerOrders(id) {
+  const c = customers.find(x => x.id === id)
+  if (!c) return
+  const { data } = await sb.from('orders').select('*').eq('customer_id', id).order('created_at', { ascending: false })
+  document.getElementById('customerOrdersTitle').textContent = `Lịch sử đơn — ${c.name}`
+  document.getElementById('customerOrdersBody').innerHTML = !data?.length
+    ? '<div class="empty-state">Khách này chưa có đơn nào.</div>'
+    : `<table class="data-table">
+<thead><tr><th>Sản phẩm</th><th>SL</th><th>Trạng thái</th><th>Ngày đặt</th></tr></thead>
+<tbody>${data.map(o => `
+<tr>
+  <td>${o.product_name}</td>
+  <td>${o.quantity}</td>
+  <td><span class="toggle-btn on">${o.status}</span></td>
+  <td style="font-size:.82rem;color:#7A9879;">${new Date(o.created_at).toLocaleDateString('vi-VN')}</td>
+</tr>`).join('')}</tbody>
+</table>`
+  document.getElementById('customerOrdersModal').style.display = 'flex'
+}
+
+function closeCustomerOrdersModal() { document.getElementById('customerOrdersModal').style.display = 'none' }
+function closeCustomerOrdersModalOutside(e) { if (e.target.id === 'customerOrdersModal') closeCustomerOrdersModal() }
 
 // ── Gallery Picker ────────────────────────────────
 let _galleryPickerTarget = 'product'

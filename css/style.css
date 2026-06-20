@@ -481,6 +481,42 @@ section    { padding:80px 0; }
 .carousel-thumb:hover { opacity:.85; }
 .carousel-thumb.active { border-color:var(--green); opacity:1; }
 
+/* ─── Order Modal ────────────────────────────────────────── */
+.order-overlay {
+  position:fixed; inset:0; background:rgba(26,46,26,.55);
+  display:none; align-items:center; justify-content:center;
+  z-index:1000; padding:20px; backdrop-filter:blur(2px);
+}
+.order-overlay.open { display:flex; }
+.order-modal {
+  background:var(--white); border-radius:var(--radius);
+  max-width:480px; width:100%; max-height:90vh; overflow-y:auto;
+  padding:32px; box-shadow:var(--shadow-lg); position:relative;
+}
+.order-modal h3 { font-size:1.3rem; color:var(--text); margin-bottom:4px; }
+.order-modal .order-product-name { color:var(--green); font-weight:700; margin-bottom:20px; display:block; }
+.order-close {
+  position:absolute; top:16px; right:16px; background:none; border:none;
+  font-size:1.3rem; color:var(--text-light); cursor:pointer; line-height:1;
+}
+.order-field { margin-bottom:16px; }
+.order-field label {
+  display:block; font-size:.82rem; font-weight:700; color:var(--text-mid);
+  margin-bottom:6px; text-transform:uppercase; letter-spacing:.03em;
+}
+.order-field input, .order-field textarea {
+  width:100%; padding:11px 14px; border:1.5px solid var(--border);
+  border-radius:var(--radius-sm); font-family:'Open Sans',sans-serif;
+  font-size:.95rem; color:var(--text); outline:none; transition:var(--t);
+  background:var(--bg);
+}
+.order-field input:focus, .order-field textarea:focus { border-color:var(--green-light); background:var(--white); }
+.order-field textarea { resize:vertical; min-height:64px; }
+.order-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.order-submit { width:100%; margin-top:6px; padding:13px; font-size:1rem; }
+.order-success { text-align:center; padding:20px 0; }
+.order-success .o-icon { font-size:3rem; margin-bottom:12px; }
+
 /* ─── Pagination ─────────────────────────────────────────── */
 .pagination {
   display: flex; align-items: center; justify-content: center; gap: 16px;
