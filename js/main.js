@@ -133,6 +133,22 @@ function initFilters() {
   });
 }
 
+// ─── Hero price hint (home page) — tự tính giá thấp nhất ──
+async function loadHeroPriceHint() {
+  const el = document.getElementById('heroPriceHint');
+  if (!el) return;
+  const { data } = await sb.from('products').select('price');
+  if (!data?.length) return;
+  // Giá lưu dạng text ("600,000 đ") → tách số, bỏ giá trị bất thường
+  const nums = data
+    .map(p => parseInt(String(p.price ?? '').replace(/[^\d]/g, ''), 10))
+    .filter(n => n >= 1000);
+  if (!nums.length) return;
+  const min = Math.min(...nums);
+  el.textContent = `🌷 Hoa tươi chỉ từ ${min.toLocaleString('vi-VN')}đ · Giao tận nơi nội thành`;
+  el.style.display = 'block';
+}
+
 // ─── Featured products (home page) ───────────────────────
 async function loadFeatured() {
   const grid = document.getElementById('featuredGrid');
@@ -188,11 +204,9 @@ function renderGalleryPage() {
   }
 
   grid.innerHTML = page.map((ph, i) => `
-<div class="gallery-item reveal" onclick="openLightbox('${ph.url}','${(ph.caption||'').replace(/'/g,"\\'")}')">
+<div class="gallery-item" style="animation-delay:${(i * 0.04).toFixed(2)}s" onclick="openLightbox('${ph.url}','${(ph.caption||'').replace(/'/g,"\\'")}')">
   <img src="${ph.url}" alt="${ph.caption || 'Ảnh hoa ' + (start + i + 1)}" loading="lazy">
 </div>`).join('');
-  staggerReveal(grid.querySelectorAll('.reveal'), 0.05);
-  initScrollReveal(grid);
 
   renderGalleryPagination(filtered.length);
 }
@@ -219,6 +233,13 @@ function setGalleryPage(page) {
 function initGalleryFilters() {
   const tabs = document.querySelectorAll('.gallery-filter-tab');
   if (!tabs.length) return;
+  // Ẩn tab danh mục không có ảnh nào (giữ lại tab "Tất cả")
+  tabs.forEach(tab => {
+    const cat = tab.dataset.category;
+    if (cat === 'all') return;
+    const has = galleryAll.some(ph => ph.category === cat);
+    tab.style.display = has ? '' : 'none';
+  });
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       tabs.forEach(t => t.classList.remove('active'));
@@ -232,16 +253,21 @@ function initGalleryFilters() {
 
 function openLightbox(url, caption) {
   const el = document.createElement('div');
-  el.style.cssText =
-    'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;' +
-    'align-items:center;justify-content:center;flex-direction:column;gap:16px;' +
-    'cursor:pointer;padding:20px;';
+  el.className = 'lightbox';
   el.innerHTML =
-    `<img src="${url}" style="max-width:90vw;max-height:80vh;border-radius:12px;object-fit:contain;" alt="${caption}">` +
-    (caption ? `<p style="color:#fff;font-family:Nunito,sans-serif;font-size:1.1rem;">${caption}</p>` : '') +
-    `<p style="color:rgba(255,255,255,.45);font-size:.85rem;">Nhấn bất kỳ đâu để đóng</p>`;
-  el.addEventListener('click', () => el.remove());
+    `<img src="${url}" alt="${caption}">` +
+    (caption ? `<p class="lightbox-caption">${caption}</p>` : '') +
+    `<p class="lightbox-hint">Nhấn bất kỳ đâu hoặc phím Esc để đóng</p>`;
+  const close = () => {
+    el.classList.remove('show');
+    document.removeEventListener('keydown', onKey);
+    setTimeout(() => el.remove(), 260);
+  };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  el.addEventListener('click', close);
+  document.addEventListener('keydown', onKey);
   document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
 }
 
 // ─── Contact ──────────────────────────────────────────────
@@ -627,6 +653,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initNav();
   await loadContact();
   loadBanner();
+  loadHeroPriceHint();
   loadFeatured();
   loadProducts();
   loadGallery();
