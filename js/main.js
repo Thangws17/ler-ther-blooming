@@ -372,6 +372,12 @@ function showMiniToast(msg) {
 // ─── Order Modal ──────────────────────────────────────────
 let _orderProduct = { id: null, name: '' };
 
+const HANOI_AREAS = [
+  'Hoàn Kiếm', 'Ba Đình', 'Đống Đa', 'Hai Bà Trưng', 'Cầu Giấy',
+  'Tây Hồ', 'Thanh Xuân', 'Hoàng Mai', 'Long Biên', 'Hà Đông',
+  'Bắc Từ Liêm', 'Nam Từ Liêm',
+];
+
 function openOrderModal(productId, productName) {
   _orderProduct = { id: productId, name: productName };
   document.getElementById('orderModalBody').innerHTML = `
@@ -394,8 +400,16 @@ function openOrderModal(productId, productName) {
     </div>
   </div>
   <div class="order-field">
+    <label>Khu vực giao *</label>
+    <select id="orderArea" required>
+      <option value="">— Chọn khu vực —</option>
+      ${HANOI_AREAS.map(a => `<option value="${a}">${a}</option>`).join('')}
+      <option value="Khu vực khác">Khu vực khác (ngoại thành / tỉnh khác)</option>
+    </select>
+  </div>
+  <div class="order-field">
     <label>Địa chỉ giao hàng *</label>
-    <input type="text" id="orderAddress" required>
+    <input type="text" id="orderAddress" required placeholder="Số nhà, ngõ, đường, phường…">
   </div>
   <div class="order-field">
     <label>Ngày giao mong muốn</label>
@@ -426,8 +440,10 @@ async function submitOrder(event) {
   btn.disabled = true;
   btn.textContent = 'Đang gửi…';
 
+  const phone = document.getElementById('orderPhone').value.trim();
+
   const { error } = await sb.rpc('place_order', {
-    p_phone: document.getElementById('orderPhone').value.trim(),
+    p_phone: phone,
     p_name: document.getElementById('orderName').value.trim(),
     p_address: document.getElementById('orderAddress').value.trim(),
     p_product_id: _orderProduct.id,
@@ -436,6 +452,7 @@ async function submitOrder(event) {
     p_delivery_date: document.getElementById('orderDate').value || null,
     p_message_card: document.getElementById('orderMessage').value.trim() || null,
     p_note: document.getElementById('orderNote').value.trim() || null,
+    p_delivery_area: document.getElementById('orderArea').value || null,
   });
 
   if (error) {
@@ -445,12 +462,20 @@ async function submitOrder(event) {
     return;
   }
 
+  const zalo = zaloURL(contactInfo?.zalo || contactInfo?.phone);
   document.getElementById('orderModalBody').innerHTML = `
 <div class="order-success">
   <div class="o-icon">🌸</div>
-  <h3>Đặt hàng thành công!</h3>
-  <p style="color:var(--text-mid);margin-top:8px;">Chúng mình sẽ liên hệ qua Zalo/điện thoại để xác nhận sớm nhất.</p>
-  <button class="btn btn-primary" style="margin-top:20px;" onclick="closeOrderModal()">Đóng</button>
+  <h3>Đã nhận đơn của bạn!</h3>
+  <p style="color:var(--text-mid);margin-top:10px;line-height:1.75;">
+    Đơn đặt <strong>${_orderProduct.name}</strong> đã được ghi nhận.<br>
+    Chúng mình sẽ liên hệ số <strong>${phone}</strong> qua Zalo/điện thoại
+    trong <strong>15–30 phút</strong> để xác nhận và báo phí giao (nếu có).
+  </p>
+  <div style="display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap;">
+    <a href="${zalo}" target="_blank" class="btn btn-primary">💬 Nhắn Zalo luôn</a>
+    <button class="btn btn-outline" onclick="closeOrderModal()">Đóng</button>
+  </div>
 </div>`;
 }
 

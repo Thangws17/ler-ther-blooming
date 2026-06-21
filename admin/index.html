@@ -964,7 +964,7 @@ function renderOrders() {
 <table class="data-table">
   <thead><tr>
     <th>Khách hàng</th><th>SĐT</th><th>Sản phẩm</th><th>SL</th>
-    <th>Ngày giao</th><th>Trạng thái</th><th>Ngày đặt</th><th></th>
+    <th>Khu vực</th><th>Ngày giao</th><th>Trạng thái</th><th>Ngày đặt</th><th></th>
   </tr></thead>
   <tbody>${list.map(o => `
   <tr>
@@ -972,6 +972,7 @@ function renderOrders() {
     <td>${o.customers?.phone || '—'}</td>
     <td>${o.product_name}</td>
     <td>${o.quantity}</td>
+    <td style="font-size:.85rem;">${o.delivery_area || '—'}</td>
     <td>${o.delivery_date || '—'}</td>
     <td>
       <select class="status-select ${STATUS_CLASS[o.status] || ''}" onchange="updateOrderStatus(${o.id}, this.value)">
@@ -1004,6 +1005,7 @@ function viewOrderDetail(id) {
 <div class="form-grid">
   <p><strong>Khách:</strong> ${o.customers?.name || '—'} — ${o.customers?.phone || '—'}</p>
   <p><strong>Sản phẩm:</strong> ${o.product_name} × ${o.quantity}</p>
+  <p><strong>Khu vực giao:</strong> ${o.delivery_area || '—'}</p>
   <p><strong>Địa chỉ giao:</strong> ${o.delivery_address || '—'}</p>
   <p><strong>Ngày giao mong muốn:</strong> ${o.delivery_date || '—'}</p>
   <p><strong>Lời nhắn trên thiếp:</strong> ${o.message_card || '—'}</p>

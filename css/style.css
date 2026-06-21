@@ -510,13 +510,13 @@ section    { padding:80px 0; }
   display:block; font-size:.82rem; font-weight:700; color:var(--text-mid);
   margin-bottom:6px; text-transform:uppercase; letter-spacing:.03em;
 }
-.order-field input, .order-field textarea {
+.order-field input, .order-field textarea, .order-field select {
   width:100%; padding:11px 14px; border:1.5px solid var(--border);
   border-radius:var(--radius-sm); font-family:'Open Sans',sans-serif;
   font-size:.95rem; color:var(--text); outline:none; transition:var(--t);
   background:var(--bg);
 }
-.order-field input:focus, .order-field textarea:focus { border-color:var(--green-light); background:var(--white); }
+.order-field input:focus, .order-field textarea:focus, .order-field select:focus { border-color:var(--green-light); background:var(--white); }
 .order-field textarea { resize:vertical; min-height:64px; }
 .order-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 .order-submit { width:100%; margin-top:6px; padding:13px; font-size:1rem; }
@@ -555,6 +555,29 @@ section    { padding:80px 0; }
 }
 @media (max-width:860px) {
   .policy-wrap { grid-template-columns:1fr; max-width:560px; }
+}
+
+/* ─── FAQ ─────────────────────────────────────────────────── */
+.faq-wrap { max-width:720px; margin:0 auto; }
+.faq-item {
+  background:var(--white); border:1px solid var(--border);
+  border-radius:var(--radius-sm); margin-bottom:14px; overflow:hidden;
+}
+.faq-item summary {
+  list-style:none; cursor:pointer; padding:18px 22px;
+  font-family:'Nunito',sans-serif; font-weight:700; font-size:1rem;
+  color:var(--text); display:flex; justify-content:space-between; align-items:center;
+  gap:14px; transition:var(--t);
+}
+.faq-item summary::-webkit-details-marker { display:none; }
+.faq-item summary::after {
+  content:'+'; font-size:1.5rem; color:var(--green); font-weight:400;
+  flex-shrink:0; transition:transform .25s ease;
+}
+.faq-item[open] summary::after { transform:rotate(45deg); }
+.faq-item summary:hover { background:var(--green-pale); }
+.faq-answer {
+  padding:0 22px 20px; color:var(--text-mid); font-size:.94rem; line-height:1.85;
 }
 
 /* ─── Scroll Reveal ──────────────────────────────────────── */
