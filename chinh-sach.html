@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chi tiết sản phẩm — Ler & Ther Blooming</title>
-  <meta name="description" content="Xem chi tiết sản phẩm hoa tươi tại Ler & Ther Blooming.">
-  <meta property="og:type"        content="product">
+  <title>Chính sách — Ler & Ther Blooming</title>
+  <meta name="description" content="Chính sách giao hàng, thanh toán và cam kết chất lượng tại Ler & Ther Blooming.">
+  <meta property="og:type"        content="website">
   <meta property="og:site_name"   content="Ler & Ther Blooming">
   <meta property="og:locale"      content="vi_VN">
-  <meta property="og:title"       content="Hoa tươi — Ler & Ther Blooming">
-  <meta property="og:description" content="Xem chi tiết và đặt hoa tươi tại Ler & Ther Blooming.">
+  <meta property="og:title"       content="Chính sách — Ler & Ther Blooming">
+  <meta property="og:description" content="Chính sách giao hàng, thanh toán và cam kết chất lượng — minh bạch, rõ ràng trước khi bạn đặt hoa.">
   <meta property="og:image"       content="">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
   <link rel="stylesheet" href="css/style.css">
@@ -35,30 +35,50 @@
   </div>
 </nav>
 
-<!-- ── Detail ─────────────────────────────────────────── -->
-<section id="detailSection" style="padding:60px 0;">
-  <div class="container">
-    <div id="detailContent">
-      <div class="loading"><div class="l-icon">🌸</div><p>Đang tải sản phẩm…</p></div>
-    </div>
-  </div>
-</section>
+<!-- ── Banner ────────────────────────────────────────────── -->
+<div id="siteBanner" class="site-banner" style="display:none">
+  <div class="banner-inner"><span id="bannerText"></span><button class="banner-close" onclick="closeBanner()">✕</button></div>
+</div>
 
-<!-- ── Order Modal ────────────────────────────────────── -->
-<div class="order-overlay" id="orderOverlay" onclick="if(event.target===this) closeOrderModal()">
-  <div class="order-modal">
-    <button class="order-close" onclick="closeOrderModal()" aria-label="Đóng">✕</button>
-    <div id="orderModalBody"></div>
+<!-- ── Page Header ────────────────────────────────────── -->
+<div class="page-header">
+  <div class="container">
+    <h1>📋 Chính sách</h1>
+    <p>Minh bạch &amp; rõ ràng — để bạn yên tâm trước khi đặt hoa</p>
   </div>
 </div>
 
-<!-- ── Related Products ───────────────────────────────── -->
-<section id="relatedSection" style="background:#fff; display:none;">
-  <div class="container">
-    <div class="section-header reveal">
-      <h2>Sản phẩm cùng danh mục</h2>
+<!-- ── Policy ─────────────────────────────────────────── -->
+<section>
+  <div class="container policy-wrap">
+
+    <div class="policy-card reveal">
+      <div class="policy-icon">🚚</div>
+      <h2>Giao hàng</h2>
+      <div class="policy-body" id="policyDelivery">Đang tải…</div>
     </div>
-    <div class="products-grid" id="relatedGrid"></div>
+
+    <div class="policy-card reveal" style="--reveal-delay:.08s">
+      <div class="policy-icon">💳</div>
+      <h2>Thanh toán</h2>
+      <div class="policy-body" id="policyPayment">Đang tải…</div>
+    </div>
+
+    <div class="policy-card reveal" style="--reveal-delay:.16s">
+      <div class="policy-icon">🌸</div>
+      <h2>Cam kết chất lượng</h2>
+      <div class="policy-body" id="policyQuality">Đang tải…</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── CTA ────────────────────────────────────────────── -->
+<section class="cta-banner" style="padding:60px 0;">
+  <div class="container reveal">
+    <h2>Sẵn sàng đặt hoa?</h2>
+    <p>Còn thắc mắc gì về giao hàng hay thanh toán, nhắn Zalo để được tư vấn ngay nhé!</p>
+    <a href="san-pham.html" class="btn btn-white">Xem sản phẩm 🌸</a>
   </div>
 </section>
 

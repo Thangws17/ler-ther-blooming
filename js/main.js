@@ -69,7 +69,7 @@ function productCardHTML(p) {
   const img = p.image
     ? `<img src="${p.image}" alt="${p.name}" loading="lazy">`
     : `<div class="product-img-ph" style="background:${s.bg}">${s.emoji}</div>`;
-  const productNameEnc = encodeURIComponent(p.name);
+  const nameEsc = p.name.replace(/'/g, "\\'");
   return `
 <div class="product-card reveal" data-category="${p.category}">
   <a href="san-pham-chi-tiet.html?id=${p.id}" class="product-img">${img}</a>
@@ -81,9 +81,9 @@ function productCardHTML(p) {
     <div class="product-desc">${p.description}</div>
     <div class="product-footer">
       <span class="product-price">${p.price}</span>
-      <a class="product-btn order-btn" href="#" data-product="${productNameEnc}" target="_blank">
-        📞 Đặt hoa
-      </a>
+      <button type="button" class="product-btn" onclick="openOrderModal(${p.id}, '${nameEsc}')">
+        🌸 Đặt ngay
+      </button>
     </div>
   </div>
 </div>`;
@@ -262,6 +262,11 @@ async function loadContact() {
   setHref('zaloTextLink', zaloURL(contactInfo.zalo || contactInfo.phone));
   updateZaloFloat();
 
+  // Policy page content
+  setText('policyDelivery', contactInfo.policy_delivery || 'Liên hệ shop để biết thêm chi tiết.');
+  setText('policyPayment',  contactInfo.policy_payment  || 'Liên hệ shop để biết thêm chi tiết.');
+  setText('policyQuality',  contactInfo.policy_quality  || 'Liên hệ shop để biết thêm chi tiết.');
+
   // Hero background photo
   const heroBg = document.getElementById('heroBg');
   if (heroBg && contactInfo.hero_image) {
@@ -372,6 +377,7 @@ function openOrderModal(productId, productName) {
   document.getElementById('orderModalBody').innerHTML = `
 <h3>Đặt hàng</h3>
 <span class="order-product-name">🌸 ${productName}</span>
+<div class="order-reassure">🚚 Nội thành miễn phí · 💳 COD / Chuyển khoản · 🌸 Gửi ảnh duyệt trước khi giao · <a href="chinh-sach.html" target="_blank">Xem chính sách</a></div>
 <form id="orderForm" onsubmit="submitOrder(event)">
   <div class="order-field">
     <label>Họ tên người đặt *</label>

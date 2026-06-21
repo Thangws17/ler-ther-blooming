@@ -212,7 +212,7 @@ section    { padding:80px 0; }
 }
 .product-btn {
   display:inline-flex; align-items:center; gap:5px;
-  background:var(--green); color:#fff;
+  background:var(--green); color:#fff; border:none; cursor:pointer;
   padding:8px 16px; border-radius:50px;
   font-family:'Nunito',sans-serif; font-weight:700; font-size:.82rem;
   transition:var(--t);
@@ -494,7 +494,13 @@ section    { padding:80px 0; }
   padding:32px; box-shadow:var(--shadow-lg); position:relative;
 }
 .order-modal h3 { font-size:1.3rem; color:var(--text); margin-bottom:4px; }
-.order-modal .order-product-name { color:var(--green); font-weight:700; margin-bottom:20px; display:block; }
+.order-modal .order-product-name { color:var(--green); font-weight:700; margin-bottom:14px; display:block; }
+.order-reassure {
+  background:var(--green-pale); border-radius:var(--radius-sm);
+  padding:10px 14px; font-size:.82rem; color:var(--text-mid);
+  line-height:1.7; margin-bottom:20px;
+}
+.order-reassure a { color:var(--green); font-weight:700; }
 .order-close {
   position:absolute; top:16px; right:16px; background:none; border:none;
   font-size:1.3rem; color:var(--text-light); cursor:pointer; line-height:1;
@@ -531,6 +537,25 @@ section    { padding:80px 0; }
 .page-btn:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
 .page-btn:disabled { opacity: .38; cursor: not-allowed; }
 .page-info { font-family: 'Nunito', sans-serif; font-weight: 700; color: var(--text); font-size: .95rem; }
+
+/* ─── Policy ─────────────────────────────────────────────── */
+.policy-wrap {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:24px;
+  max-width:1100px; margin:0 auto;
+}
+.policy-card {
+  background:var(--white); border:1px solid var(--border);
+  border-radius:var(--radius); padding:32px 28px; box-shadow:var(--shadow);
+}
+.policy-icon { font-size:2.4rem; margin-bottom:14px; }
+.policy-card h2 { font-size:1.2rem; color:var(--text); margin-bottom:14px; }
+.policy-body {
+  color:var(--text-mid); font-size:.95rem; line-height:1.85;
+  white-space:pre-line;
+}
+@media (max-width:860px) {
+  .policy-wrap { grid-template-columns:1fr; max-width:560px; }
+}
 
 /* ─── Scroll Reveal ──────────────────────────────────────── */
 .reveal {

@@ -363,6 +363,19 @@
             <input type="checkbox" name="banner_active" id="bannerActive">
             <label for="bannerActive">Hiện banner trên website</label>
           </div>
+
+          <div class="field-group full" style="border-top:1px solid #eee;padding-top:20px;margin-top:8px;">
+            <label>🚚 Chính sách giao hàng <span style="font-weight:400;color:#7A9879;">(mỗi dòng là 1 ý — hiện ở trang Chính sách)</span></label>
+            <textarea name="policy_delivery" rows="4" placeholder="VD: Miễn phí giao nội thành…"></textarea>
+          </div>
+          <div class="field-group full">
+            <label>💳 Chính sách thanh toán</label>
+            <textarea name="policy_payment" rows="3" placeholder="VD: Tiền mặt khi nhận / Chuyển khoản…"></textarea>
+          </div>
+          <div class="field-group full">
+            <label>🌸 Cam kết chất lượng</label>
+            <textarea name="policy_quality" rows="3" placeholder="VD: Gửi ảnh duyệt trước khi giao…"></textarea>
+          </div>
         </div>
         <button type="submit" class="btn-green">💾 Lưu thay đổi</button>
       </form>
@@ -793,7 +806,7 @@ async function loadContact() {
   const { data } = await sb.from('contact').select('*').eq('id', 1).single()
   if (!data) return
   const form = document.getElementById('contactForm')
-  ;['phone','zalo','address','hours','facebook','instagram','tiktok','threads','banner_text'].forEach(key => {
+  ;['phone','zalo','address','hours','facebook','instagram','tiktok','threads','banner_text','policy_delivery','policy_payment','policy_quality'].forEach(key => {
     const el = form.querySelector(`[name="${key}"]`)
     if (el) el.value = data[key] || ''
   })
