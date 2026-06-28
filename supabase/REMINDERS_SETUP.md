@@ -40,10 +40,12 @@ update app_settings set
   telegram_bot_token = 'PASTE_BOT_TOKEN',
   telegram_chat_id   = 'PASTE_CHAT_ID',
   resend_api_key     = 're_PASTE_API_KEY',
-  reminder_email     = 'email_cua_ban@gmail.com'
+  reminder_email     = 'mail1@gmail.com, mail2@gmail.com'
 where id = 1;
 ```
 
+> **Gửi nhiều email**: điền các địa chỉ vào `reminder_email`, cách nhau bằng dấu
+> phẩy (vd `'a@gmail.com, b@gmail.com'`) — tất cả cùng nhận thông báo.
 > Chỉ muốn dùng Telegram (bỏ email): để trống `resend_api_key`/`reminder_email`.
 > Ngược lại chỉ muốn email: để trống 2 trường telegram.
 

@@ -73,7 +73,10 @@ begin
                                     'Content-Type', 'application/json'),
       body    := jsonb_build_object(
         'from',    coalesce(s.reminder_from, 'onboarding@resend.dev'),
-        'to',      s.reminder_email,
+        -- reminder_email có thể chứa nhiều địa chỉ cách nhau dấu phẩy → mảng người nhận
+        'to',      (select coalesce(jsonb_agg(trim(e)), '[]'::jsonb)
+                    from unnest(string_to_array(s.reminder_email, ',')) e
+                    where length(trim(e)) > 0),
         'subject', '🌸 Chuẩn bị hàng ngày mai: ' || v_count || ' đơn',
         'html',    v_html
       )
@@ -98,7 +101,7 @@ select cron.schedule('daily-delivery-reminder', '30 1 * * *', $$select send_deli
 --   telegram_bot_token = 'PASTE_BOT_TOKEN',
 --   telegram_chat_id   = 'PASTE_CHAT_ID',
 --   resend_api_key     = 're_PASTE_API_KEY',
---   reminder_email     = 'email_cua_ban@gmail.com'
+--   reminder_email     = 'mail1@gmail.com, mail2@gmail.com'  -- nhiều mail: cách nhau dấu phẩy
 -- where id = 1;
 --
 -- Test ngay (tạo trước 1 đơn có ngày giao = ngày mai):
