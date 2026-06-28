@@ -126,6 +126,13 @@
     .status-select.s-hoanthanh  { background: #E8F5E9; color: #2E7D32; border-color: #A5D6A7; }
     .status-select.s-huy        { background: #FFEBEE; color: #C62828; border-color: #EF9A9A; }
 
+    /* ── Cảnh báo chuẩn bị hàng ───────────────── */
+    .prep-alert { background: #FFF8E1; border: 1.5px solid #FFCC80; border-left: 5px solid #FB8C00; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; }
+    .prep-alert-head { font-size: 1.02rem; font-weight: 700; color: #E65100; margin-bottom: 12px; }
+    .prep-alert-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .prep-chip { background: #fff; border: 1px solid #FFCC80; border-radius: 50px; padding: 6px 14px; font-size: .85rem; color: #5d4037; cursor: pointer; transition: all .15s; }
+    .prep-chip:hover { background: #FB8C00; color: #fff; border-color: #FB8C00; }
+
     /* ── Dashboard ────────────────────────────── */
     .dash-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
     .dash-card { background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,.06); text-align: center; }
@@ -264,6 +271,7 @@
     <!-- Tổng quan -->
     <div id="panelDashboard" class="panel">
       <div class="panel-topbar"><h1>Tổng quan</h1></div>
+      <div id="prepAlert"></div>
       <div id="dashboardCards" class="dash-cards"></div>
       <h2 style="margin:28px 0 14px;font-size:1.15rem;">📅 Giao hôm nay</h2>
       <div id="dashboardToday"><div class="loading-state">Đang tải…</div></div>
@@ -773,14 +781,27 @@ async function loadDashboard() {
   const { data } = await sb.from('orders').select('*, customers(name, phone)').order('created_at', { ascending: false })
   const all = data || []
   const today = todayStr()
+  const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE')
   const now = new Date()
-  const active = all.filter(o => o.status !== 'Đã hủy')
+  const active = all.filter(o => o.status !== 'Đã hủy' && o.status !== 'Hoàn thành')
 
   const newCount   = all.filter(o => o.status === 'Mới').length
   const todayOrders = active.filter(o => o.delivery_date === today)
-  const revenue = active
+  const tomorrowOrders = active.filter(o => o.delivery_date === tomorrow)
+  const revenue = all
+    .filter(o => o.status !== 'Đã hủy')
     .filter(o => { const d = new Date(o.created_at); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() })
     .reduce((s, o) => s + (Number(o.total) || 0), 0)
+
+  // ⚠️ Cảnh báo chuẩn bị hàng cho ngày mai
+  const [, tm, td] = tomorrow.split('-')
+  document.getElementById('prepAlert').innerHTML = !tomorrowOrders.length ? '' : `
+    <div class="prep-alert">
+      <div class="prep-alert-head">⚠️ Chuẩn bị hàng — ngày mai (${td}/${tm}) cần giao <strong>${tomorrowOrders.length} đơn</strong></div>
+      <div class="prep-alert-list">
+        ${tomorrowOrders.map(o => `<span class="prep-chip" onclick="viewOrderDetail(${o.id})">${orderCode(o.id)} · ${orderCustomerName(o)} · ${o.product_name}${o.delivery_area ? ' · ' + o.delivery_area : ''}</span>`).join('')}
+      </div>
+    </div>`
 
   document.getElementById('dashboardCards').innerHTML = `
     <div class="dash-card"><div class="dash-num" style="color:#E65100">${newCount}</div><div class="dash-label">Đơn mới chờ xử lý</div></div>
