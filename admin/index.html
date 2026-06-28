@@ -126,6 +126,25 @@
     .status-select.s-hoanthanh  { background: #E8F5E9; color: #2E7D32; border-color: #A5D6A7; }
     .status-select.s-huy        { background: #FFEBEE; color: #C62828; border-color: #EF9A9A; }
 
+    /* ── Dashboard ────────────────────────────── */
+    .dash-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .dash-card { background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,.06); text-align: center; }
+    .dash-num { font-size: 2.1rem; font-weight: 800; line-height: 1.1; }
+    .dash-label { margin-top: 8px; color: #7A9879; font-size: .9rem; font-weight: 600; }
+    @media (max-width: 720px) { .dash-cards { grid-template-columns: 1fr; } }
+
+    /* ── Lịch giao ────────────────────────────── */
+    .deliv-group { margin-bottom: 26px; }
+    .deliv-head { font-size: 1rem; color: #2E7D32; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+    .deliv-count { font-size: .78rem; font-weight: 700; color: #7A9879; background: #E8F5E9; padding: 2px 10px; border-radius: 50px; }
+    .deliv-row { display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #f0f4f0; border-radius: 10px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer; transition: all .15s; }
+    .deliv-row:hover { border-color: #C8E6C9; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+    .deliv-code { font-weight: 800; color: #2E7D32; min-width: 78px; }
+    .deliv-name { font-weight: 700; min-width: 120px; }
+    .deliv-area { color: #555; font-size: .85rem; min-width: 90px; }
+    .deliv-prod { color: #555; font-size: .88rem; flex: 1; }
+    @media (max-width: 720px) { .deliv-row { flex-wrap: wrap; gap: 6px 12px; } .deliv-prod { flex: 1 1 100%; } }
+
     /* ── Upload zone ──────────────────────────── */
     .upload-zone {
       border: 2px dashed #C8E6C9; border-radius: 12px;
@@ -225,10 +244,12 @@
   <aside class="sidebar">
     <div class="sidebar-brand">🌸 Admin</div>
     <nav class="sidebar-nav">
-      <button class="nav-item active" data-tab="Products" onclick="switchTab(this)">🛍️ Sản phẩm</button>
-      <button class="nav-item" data-tab="Gallery" onclick="switchTab(this)">📸 Gallery</button>
+      <button class="nav-item active" data-tab="Dashboard" onclick="switchTab(this)">📊 Tổng quan</button>
       <button class="nav-item" data-tab="Orders" onclick="switchTab(this)">📦 Đơn hàng</button>
+      <button class="nav-item" data-tab="Delivery" onclick="switchTab(this)">📅 Lịch giao</button>
       <button class="nav-item" data-tab="Customers" onclick="switchTab(this)">👤 Khách hàng</button>
+      <button class="nav-item" data-tab="Products" onclick="switchTab(this)">🛍️ Sản phẩm</button>
+      <button class="nav-item" data-tab="Gallery" onclick="switchTab(this)">📸 Gallery</button>
       <button class="nav-item" data-tab="Testimonials" onclick="switchTab(this)">💬 Đánh giá</button>
       <button class="nav-item" data-tab="Contact" onclick="switchTab(this)">⚙️ Liên hệ</button>
     </nav>
@@ -240,8 +261,22 @@
 
   <main class="content">
 
+    <!-- Tổng quan -->
+    <div id="panelDashboard" class="panel">
+      <div class="panel-topbar"><h1>Tổng quan</h1></div>
+      <div id="dashboardCards" class="dash-cards"></div>
+      <h2 style="margin:28px 0 14px;font-size:1.15rem;">📅 Giao hôm nay</h2>
+      <div id="dashboardToday"><div class="loading-state">Đang tải…</div></div>
+    </div>
+
+    <!-- Lịch giao -->
+    <div id="panelDelivery" class="panel" style="display:none">
+      <div class="panel-topbar"><h1>Lịch giao hàng</h1></div>
+      <div id="deliveryList"><div class="loading-state">Đang tải…</div></div>
+    </div>
+
     <!-- Sản phẩm -->
-    <div id="panelProducts" class="panel">
+    <div id="panelProducts" class="panel" style="display:none">
       <div class="panel-topbar">
         <h1>Sản phẩm</h1>
         <button class="btn-green" onclick="openModal()">+ Thêm sản phẩm</button>
@@ -280,14 +315,17 @@
     <div id="panelOrders" class="panel" style="display:none">
       <div class="panel-topbar">
         <h1>Đơn hàng</h1>
-        <select id="orderStatusFilter" onchange="renderOrders()" style="padding:9px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:.88rem;background:#fafafa;outline:none;">
-          <option value="">Tất cả trạng thái</option>
-          <option>Mới</option>
-          <option>Đã xác nhận</option>
-          <option>Đang giao</option>
-          <option>Hoàn thành</option>
-          <option>Đã hủy</option>
-        </select>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <select id="orderStatusFilter" onchange="renderOrders()" style="padding:9px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:.88rem;background:#fafafa;outline:none;">
+            <option value="">Tất cả trạng thái</option>
+            <option>Mới</option>
+            <option>Đã xác nhận</option>
+            <option>Đang giao</option>
+            <option>Hoàn thành</option>
+            <option>Đã hủy</option>
+          </select>
+          <button class="btn-green" onclick="openNewOrderModal()">+ Thêm đơn</button>
+        </div>
       </div>
       <div id="ordersTable"><div class="loading-state">Đang tải…</div></div>
     </div>
@@ -520,6 +558,149 @@
   </div>
 </div>
 
+<!-- Sửa đơn hàng -->
+<div id="orderEditModal" class="modal-overlay" style="display:none" onclick="closeOrderEditModalOutside(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="orderEditTitle">Sửa đơn</h2>
+      <button class="modal-close" onclick="closeOrderEditModal()">✕</button>
+    </div>
+    <form id="orderEditForm" onsubmit="saveOrderEdit(event)">
+      <input type="hidden" id="oeId">
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field-group full">
+            <label>Sản phẩm</label>
+            <input type="text" id="oeProductName">
+          </div>
+          <div class="field-group">
+            <label>Số lượng</label>
+            <input type="number" id="oeQuantity" min="1" value="1">
+          </div>
+          <div class="field-group">
+            <label>Trạng thái</label>
+            <select id="oeStatus"></select>
+          </div>
+          <div class="field-group">
+            <label>Đơn giá (đ)</label>
+            <input type="number" id="oeUnitPrice" min="0" step="1000" placeholder="VD: 350000">
+          </div>
+          <div class="field-group">
+            <label>Phí ship (đ)</label>
+            <input type="number" id="oeShipping" min="0" step="1000" value="0">
+          </div>
+          <div class="field-group full">
+            <label>Tổng tạm tính</label>
+            <div id="oeTotalPreview" style="font-size:1.15rem;font-weight:800;color:#2E7D32;padding:6px 0;">—</div>
+          </div>
+          <div class="field-group">
+            <label>Khu vực giao</label>
+            <input type="text" id="oeArea" placeholder="VD: Cầu Giấy">
+          </div>
+          <div class="field-group">
+            <label>Ngày giao</label>
+            <input type="date" id="oeDate">
+          </div>
+          <div class="field-group full">
+            <label>Địa chỉ giao</label>
+            <input type="text" id="oeAddress">
+          </div>
+          <div class="field-group full">
+            <label>Lời nhắn trên thiếp</label>
+            <textarea id="oeMessage" rows="2"></textarea>
+          </div>
+          <div class="field-group full">
+            <label>Ghi chú</label>
+            <textarea id="oeNote" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" onclick="closeOrderEditModal()">Hủy</button>
+        <button type="submit" class="btn-green" id="saveOrderEditBtn">Lưu đơn</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Thêm đơn thủ công -->
+<div id="orderNewModal" class="modal-overlay" style="display:none" onclick="closeNewOrderModalOutside(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Thêm đơn thủ công</h2>
+      <button class="modal-close" onclick="closeNewOrderModal()">✕</button>
+    </div>
+    <form id="orderNewForm" onsubmit="saveNewOrder(event)">
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field-group">
+            <label>Tên khách *</label>
+            <input type="text" id="noName" required placeholder="VD: Chị Lan">
+          </div>
+          <div class="field-group">
+            <label>Số điện thoại <span style="font-weight:400;color:#7A9879;">(nếu có)</span></label>
+            <input type="tel" id="noPhone" placeholder="VD: 0912345678">
+          </div>
+          <div class="field-group full">
+            <label>Chọn sản phẩm <span style="font-weight:400;color:#7A9879;">(hoặc nhập tay bên dưới)</span></label>
+            <select id="noProductPick" onchange="onNewOrderProductPick()">
+              <option value="">— Nhập tay —</option>
+            </select>
+          </div>
+          <div class="field-group full">
+            <label>Tên sản phẩm *</label>
+            <input type="text" id="noProductName" required placeholder="VD: Bó hồng đỏ 20 bông">
+          </div>
+          <div class="field-group">
+            <label>Số lượng</label>
+            <input type="number" id="noQuantity" min="1" value="1">
+          </div>
+          <div class="field-group">
+            <label>Trạng thái</label>
+            <select id="noStatus"></select>
+          </div>
+          <div class="field-group">
+            <label>Đơn giá (đ)</label>
+            <input type="number" id="noUnitPrice" min="0" step="1000" placeholder="VD: 350000">
+          </div>
+          <div class="field-group">
+            <label>Phí ship (đ)</label>
+            <input type="number" id="noShipping" min="0" step="1000" value="0">
+          </div>
+          <div class="field-group full">
+            <label>Tổng tạm tính</label>
+            <div id="noTotalPreview" style="font-size:1.15rem;font-weight:800;color:#2E7D32;padding:6px 0;">—</div>
+          </div>
+          <div class="field-group">
+            <label>Khu vực giao</label>
+            <input type="text" id="noArea" placeholder="VD: Cầu Giấy">
+          </div>
+          <div class="field-group">
+            <label>Ngày giao</label>
+            <input type="date" id="noDate">
+          </div>
+          <div class="field-group full">
+            <label>Địa chỉ giao</label>
+            <input type="text" id="noAddress" placeholder="Số nhà, ngõ, đường, phường…">
+          </div>
+          <div class="field-group full">
+            <label>Lời nhắn trên thiếp</label>
+            <textarea id="noMessage" rows="2"></textarea>
+          </div>
+          <div class="field-group full">
+            <label>Ghi chú</label>
+            <textarea id="noNote" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" onclick="closeNewOrderModal()">Hủy</button>
+        <button type="submit" class="btn-green" id="saveNewOrderBtn">Tạo đơn</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- ── Toast ──────────────────────────────────────── -->
 <div id="toast" class="toast" style="display:none"></div>
 
@@ -565,7 +746,8 @@ function showLogin() {
 function showApp() {
   document.getElementById('loginWrap').style.display = 'none'
   document.getElementById('appWrap').style.display = 'flex'
-  loadProducts()
+  loadProducts()   // nạp sẵn để modal Sửa đơn gợi ý giá niêm yết
+  loadDashboard()
 }
 
 // ── Tabs ─────────────────────────────────────────
@@ -575,11 +757,92 @@ function switchTab(btn) {
   const tab = btn.dataset.tab
   document.querySelectorAll('.panel').forEach(p => p.style.display = 'none')
   document.getElementById('panel' + tab).style.display = 'block'
-  if (tab === 'Gallery')       loadGallery()
+  if (tab === 'Dashboard')     loadDashboard()
   if (tab === 'Orders')        loadOrders()
+  if (tab === 'Delivery')      loadDelivery()
+  if (tab === 'Gallery')       loadGallery()
   if (tab === 'Customers')     loadCustomers()
   if (tab === 'Testimonials')  loadTestimonials()
   if (tab === 'Contact')       loadContact()
+}
+
+// ── Dashboard ─────────────────────────────────────
+const todayStr = () => new Date().toLocaleDateString('sv-SE')  // YYYY-MM-DD theo giờ địa phương
+
+async function loadDashboard() {
+  const { data } = await sb.from('orders').select('*, customers(name, phone)').order('created_at', { ascending: false })
+  const all = data || []
+  const today = todayStr()
+  const now = new Date()
+  const active = all.filter(o => o.status !== 'Đã hủy')
+
+  const newCount   = all.filter(o => o.status === 'Mới').length
+  const todayOrders = active.filter(o => o.delivery_date === today)
+  const revenue = active
+    .filter(o => { const d = new Date(o.created_at); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() })
+    .reduce((s, o) => s + (Number(o.total) || 0), 0)
+
+  document.getElementById('dashboardCards').innerHTML = `
+    <div class="dash-card"><div class="dash-num" style="color:#E65100">${newCount}</div><div class="dash-label">Đơn mới chờ xử lý</div></div>
+    <div class="dash-card"><div class="dash-num" style="color:#1565C0">${todayOrders.length}</div><div class="dash-label">Cần giao hôm nay</div></div>
+    <div class="dash-card"><div class="dash-num" style="color:#2E7D32">${fmtVnd(revenue)}</div><div class="dash-label">Doanh thu tháng này</div></div>`
+
+  // Cho viewOrderDetail/openOrderEditModal dùng được từ Dashboard
+  orders = all
+  const el = document.getElementById('dashboardToday')
+  el.innerHTML = !todayOrders.length
+    ? '<div class="empty-state">Hôm nay không có đơn nào cần giao.</div>'
+    : `<table class="data-table">
+<thead><tr><th>Mã đơn</th><th>Khách</th><th>Khu vực</th><th>Sản phẩm</th><th>Trạng thái</th><th></th></tr></thead>
+<tbody>${todayOrders.map(o => `
+<tr>
+  <td><strong style="color:#2E7D32">${orderCode(o.id)}</strong></td>
+  <td>${orderCustomerName(o)}<br><span style="font-size:.8rem;color:#7A9879">${orderCustomerPhone(o)}</span></td>
+  <td style="font-size:.85rem">${o.delivery_area || '—'}</td>
+  <td>${o.product_name}</td>
+  <td><span class="status-select ${STATUS_CLASS[o.status] || ''}" style="cursor:default">${o.status}</span></td>
+  <td class="actions"><button class="btn-edit" onclick="viewOrderDetail(${o.id})">Chi tiết</button></td>
+</tr>`).join('')}</tbody></table>`
+}
+
+// ── Lịch giao ─────────────────────────────────────
+async function loadDelivery() {
+  const { data } = await sb.from('orders').select('*, customers(name, phone)').order('delivery_date', { ascending: true })
+  orders = data || []
+  const active = orders.filter(o => o.status !== 'Đã hủy')
+  const today = todayStr()
+  const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE')
+
+  const noDate  = active.filter(o => !o.delivery_date)
+  const dated   = active.filter(o => o.delivery_date)
+  const todayG  = dated.filter(o => o.delivery_date === today)
+  const tomoG   = dated.filter(o => o.delivery_date === tomorrow)
+  const future  = dated.filter(o => o.delivery_date > tomorrow)
+
+  // Nhóm "Sắp tới" theo từng ngày
+  const futureByDate = {}
+  future.forEach(o => { (futureByDate[o.delivery_date] ||= []).push(o) })
+
+  const row = o => `
+<div class="deliv-row" onclick="viewOrderDetail(${o.id})">
+  <span class="deliv-code">${orderCode(o.id)}</span>
+  <span class="deliv-name">${orderCustomerName(o)}</span>
+  <span class="deliv-area">${o.delivery_area || '—'}</span>
+  <span class="deliv-prod">${o.product_name}</span>
+  <span class="status-select ${STATUS_CLASS[o.status] || ''}" style="cursor:pointer">${o.status}</span>
+</div>`
+
+  const fmtDay = ds => { const [y,m,d] = ds.split('-'); return `${d}/${m}` }
+  const group = (title, items) => !items.length ? '' :
+    `<div class="deliv-group"><h3 class="deliv-head">${title} <span class="deliv-count">${items.length} đơn</span></h3>${items.map(row).join('')}</div>`
+
+  const el = document.getElementById('deliveryList')
+  let html = ''
+  html += group('📅 Hôm nay', todayG)
+  html += group('📅 Ngày mai', tomoG)
+  Object.keys(futureByDate).sort().forEach(ds => { html += group('📅 ' + fmtDay(ds), futureByDate[ds]) })
+  html += group('❓ Chưa hẹn ngày', noDate)
+  el.innerHTML = html || '<div class="empty-state">Chưa có đơn nào cần giao.</div>'
 }
 
 // ── Products ─────────────────────────────────────
@@ -946,6 +1209,14 @@ let orders = []
 const ORDER_STATUSES = ['Mới', 'Đã xác nhận', 'Đang giao', 'Hoàn thành', 'Đã hủy']
 const STATUS_CLASS = { 'Mới': 's-moi', 'Đã xác nhận': 's-xacnhan', 'Đang giao': 's-danggiao', 'Hoàn thành': 's-hoanthanh', 'Đã hủy': 's-huy' }
 
+// Mã đơn dễ đọc + định dạng tiền
+const orderCode = id => '#LT-' + String(id).padStart(4, '0')
+const fmtVnd = n => (Number(n) || 0).toLocaleString('vi-VN') + 'đ'
+const orderTotalLabel = o => (o.unit_price == null ? '<span style="color:#E65100">Chưa định giá</span>' : '<strong>' + fmtVnd(o.total) + '</strong>')
+// Tên/SĐT khách: ưu tiên khách đã ghép, fallback sang tên snapshot trên đơn
+const orderCustomerName = o => o.customers?.name || o.customer_name || '—'
+const orderCustomerPhone = o => o.customers?.phone || '—'
+
 async function loadOrders() {
   const { data } = await sb.from('orders').select('*, customers(name, phone)').order('created_at', { ascending: false })
   orders = data || []
@@ -963,15 +1234,16 @@ function renderOrders() {
   el.innerHTML = `
 <table class="data-table">
   <thead><tr>
-    <th>Khách hàng</th><th>SĐT</th><th>Sản phẩm</th><th>SL</th>
-    <th>Khu vực</th><th>Ngày giao</th><th>Trạng thái</th><th>Ngày đặt</th><th></th>
+    <th>Mã đơn</th><th>Khách hàng</th><th>Sản phẩm</th><th>SL</th><th>Tổng tiền</th>
+    <th>Khu vực</th><th>Ngày giao</th><th>Trạng thái</th><th></th>
   </tr></thead>
   <tbody>${list.map(o => `
   <tr>
-    <td><strong>${o.customers?.name || '—'}</strong></td>
-    <td>${o.customers?.phone || '—'}</td>
+    <td><strong style="color:#2E7D32">${orderCode(o.id)}</strong></td>
+    <td><strong>${orderCustomerName(o)}</strong><br><span style="font-size:.8rem;color:#7A9879;">${orderCustomerPhone(o)}</span></td>
     <td>${o.product_name}</td>
     <td>${o.quantity}</td>
+    <td style="font-size:.88rem;">${orderTotalLabel(o)}</td>
     <td style="font-size:.85rem;">${o.delivery_area || '—'}</td>
     <td>${o.delivery_date || '—'}</td>
     <td>
@@ -979,7 +1251,6 @@ function renderOrders() {
         ${ORDER_STATUSES.map(s => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
       </select>
     </td>
-    <td style="font-size:.82rem;color:#7A9879;">${new Date(o.created_at).toLocaleDateString('vi-VN')}</td>
     <td class="actions">
       <button class="btn-edit" onclick="viewOrderDetail(${o.id})">Chi tiết</button>
       <button class="btn-delete" onclick="deleteOrder(${o.id})">Xóa</button>
@@ -1000,17 +1271,26 @@ async function updateOrderStatus(id, status) {
 function viewOrderDetail(id) {
   const o = orders.find(x => x.id === id)
   if (!o) return
-  document.getElementById('customerOrdersTitle').textContent = `Đơn #${o.id}`
+  document.getElementById('customerOrdersTitle').textContent = `Đơn ${orderCode(o.id)}`
+  const priceRows = o.unit_price == null
+    ? `<p style="color:#E65100"><strong>Chưa định giá</strong> — nhấn "Sửa đơn" để nhập giá.</p>`
+    : `<p><strong>Đơn giá:</strong> ${fmtVnd(o.unit_price)} × ${o.quantity}</p>
+       <p><strong>Phí ship:</strong> ${fmtVnd(o.shipping_fee)}</p>
+       <p style="font-size:1.05rem;"><strong>Tổng tiền:</strong> <strong style="color:#2E7D32">${fmtVnd(o.total)}</strong></p>`
   document.getElementById('customerOrdersBody').innerHTML = `
 <div class="form-grid">
-  <p><strong>Khách:</strong> ${o.customers?.name || '—'} — ${o.customers?.phone || '—'}</p>
+  <p><strong>Khách:</strong> ${orderCustomerName(o)} — ${orderCustomerPhone(o)}</p>
   <p><strong>Sản phẩm:</strong> ${o.product_name} × ${o.quantity}</p>
+  ${priceRows}
   <p><strong>Khu vực giao:</strong> ${o.delivery_area || '—'}</p>
   <p><strong>Địa chỉ giao:</strong> ${o.delivery_address || '—'}</p>
   <p><strong>Ngày giao mong muốn:</strong> ${o.delivery_date || '—'}</p>
   <p><strong>Lời nhắn trên thiếp:</strong> ${o.message_card || '—'}</p>
   <p><strong>Ghi chú:</strong> ${o.note || '—'}</p>
   <p><strong>Đặt lúc:</strong> ${new Date(o.created_at).toLocaleString('vi-VN')}</p>
+</div>
+<div style="margin-top:18px;text-align:right;">
+  <button class="btn-green" onclick="openOrderEditModal(${o.id})">✏️ Sửa đơn</button>
 </div>`
   document.getElementById('customerOrdersModal').style.display = 'flex'
 }
@@ -1019,6 +1299,149 @@ async function deleteOrder(id) {
   if (!confirm('Xóa đơn hàng này?')) return
   await sb.from('orders').delete().eq('id', id)
   showToast('Đã xóa đơn hàng')
+  loadOrders()
+}
+
+// ── Sửa đơn ───────────────────────────────────────
+function oeUpdateTotalPreview() {
+  const price = parseFloat(document.getElementById('oeUnitPrice').value) || 0
+  const qty   = parseInt(document.getElementById('oeQuantity').value) || 0
+  const ship  = parseFloat(document.getElementById('oeShipping').value) || 0
+  const total = price * qty + ship
+  document.getElementById('oeTotalPreview').textContent = price ? fmtVnd(total) : 'Chưa định giá'
+}
+
+function openOrderEditModal(id) {
+  const o = orders.find(x => x.id === id)
+  if (!o) return
+  document.getElementById('orderEditTitle').textContent = `Sửa đơn ${orderCode(o.id)}`
+  document.getElementById('oeId').value = o.id
+  document.getElementById('oeProductName').value = o.product_name || ''
+  document.getElementById('oeQuantity').value = o.quantity || 1
+  document.getElementById('oeStatus').innerHTML = ORDER_STATUSES.map(s => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')
+  // Gợi ý giá niêm yết của sản phẩm (tách số từ chuỗi giá text)
+  const listed = products.find(p => p.id === o.product_id)?.price
+  const listedNum = listed ? parseInt(String(listed).replace(/[^\d]/g, ''), 10) : null
+  const up = document.getElementById('oeUnitPrice')
+  up.value = o.unit_price ?? ''
+  up.placeholder = listedNum ? `Giá niêm yết: ${listedNum}` : 'VD: 350000'
+  document.getElementById('oeShipping').value = o.shipping_fee ?? 0
+  document.getElementById('oeArea').value = o.delivery_area || ''
+  document.getElementById('oeDate').value = o.delivery_date || ''
+  document.getElementById('oeAddress').value = o.delivery_address || ''
+  document.getElementById('oeMessage').value = o.message_card || ''
+  document.getElementById('oeNote').value = o.note || ''
+  ;['oeUnitPrice', 'oeQuantity', 'oeShipping'].forEach(fid =>
+    document.getElementById(fid).oninput = oeUpdateTotalPreview)
+  oeUpdateTotalPreview()
+  document.getElementById('customerOrdersModal').style.display = 'none'
+  document.getElementById('orderEditModal').style.display = 'flex'
+}
+
+function closeOrderEditModal() { document.getElementById('orderEditModal').style.display = 'none' }
+function closeOrderEditModalOutside(e) { if (e.target.id === 'orderEditModal') closeOrderEditModal() }
+
+async function saveOrderEdit(e) {
+  e.preventDefault()
+  const btn = document.getElementById('saveOrderEditBtn')
+  btn.textContent = 'Đang lưu…'; btn.disabled = true
+  const id = parseInt(document.getElementById('oeId').value)
+  const priceVal = document.getElementById('oeUnitPrice').value
+  const data = {
+    product_name:     document.getElementById('oeProductName').value.trim(),
+    quantity:         parseInt(document.getElementById('oeQuantity').value) || 1,
+    unit_price:       priceVal === '' ? null : parseFloat(priceVal),
+    shipping_fee:     parseFloat(document.getElementById('oeShipping').value) || 0,
+    status:           document.getElementById('oeStatus').value,
+    delivery_area:    document.getElementById('oeArea').value.trim() || null,
+    delivery_date:    document.getElementById('oeDate').value || null,
+    delivery_address: document.getElementById('oeAddress').value.trim() || null,
+    message_card:     document.getElementById('oeMessage').value.trim() || null,
+    note:             document.getElementById('oeNote').value.trim() || null,
+  }
+  const { error } = await sb.from('orders').update(data).eq('id', id)
+  btn.textContent = 'Lưu đơn'; btn.disabled = false
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  showToast('Đã lưu đơn!')
+  closeOrderEditModal()
+  loadOrders()
+}
+
+// ── Thêm đơn thủ công ─────────────────────────────
+function noUpdateTotalPreview() {
+  const price = parseFloat(document.getElementById('noUnitPrice').value) || 0
+  const qty   = parseInt(document.getElementById('noQuantity').value) || 0
+  const ship  = parseFloat(document.getElementById('noShipping').value) || 0
+  document.getElementById('noTotalPreview').textContent = price ? fmtVnd(price * qty + ship) : 'Chưa định giá'
+}
+
+function onNewOrderProductPick() {
+  const id = document.getElementById('noProductPick').value
+  if (!id) return
+  const p = products.find(x => x.id == id)
+  if (!p) return
+  document.getElementById('noProductName').value = p.name
+  const num = p.price ? parseInt(String(p.price).replace(/[^\d]/g, ''), 10) : null
+  if (num) document.getElementById('noUnitPrice').value = num
+  noUpdateTotalPreview()
+}
+
+function openNewOrderModal() {
+  document.getElementById('orderNewForm').reset()
+  // Danh sách sản phẩm để chọn nhanh
+  document.getElementById('noProductPick').innerHTML =
+    '<option value="">— Nhập tay —</option>' +
+    products.map(p => `<option value="${p.id}">${p.name} (${p.price || ''})</option>`).join('')
+  document.getElementById('noStatus').innerHTML =
+    ORDER_STATUSES.map(s => `<option ${s === 'Đã xác nhận' ? 'selected' : ''}>${s}</option>`).join('')
+  ;['noUnitPrice', 'noQuantity', 'noShipping'].forEach(fid =>
+    document.getElementById(fid).oninput = noUpdateTotalPreview)
+  document.getElementById('noTotalPreview').textContent = '—'
+  document.getElementById('orderNewModal').style.display = 'flex'
+}
+
+function closeNewOrderModal() { document.getElementById('orderNewModal').style.display = 'none' }
+function closeNewOrderModalOutside(e) { if (e.target.id === 'orderNewModal') closeNewOrderModal() }
+
+async function saveNewOrder(e) {
+  e.preventDefault()
+  const btn = document.getElementById('saveNewOrderBtn')
+  btn.textContent = 'Đang tạo…'; btn.disabled = true
+
+  const pickedId = document.getElementById('noProductPick').value
+  const address  = document.getElementById('noAddress').value.trim() || null
+
+  // 1) Tạo đơn + dedup khách theo SĐT qua RPC place_order
+  const { data: newId, error } = await sb.rpc('place_order', {
+    p_phone:         document.getElementById('noPhone').value.trim() || null,
+    p_name:          document.getElementById('noName').value.trim(),
+    p_address:       address,
+    p_product_id:    pickedId ? parseInt(pickedId) : null,
+    p_product_name:  document.getElementById('noProductName').value.trim(),
+    p_quantity:      parseInt(document.getElementById('noQuantity').value) || 1,
+    p_delivery_date: document.getElementById('noDate').value || null,
+    p_message_card:  document.getElementById('noMessage').value.trim() || null,
+    p_note:          document.getElementById('noNote').value.trim() || null,
+    p_delivery_area: document.getElementById('noArea').value.trim() || null,
+  })
+
+  if (error) {
+    btn.textContent = 'Tạo đơn'; btn.disabled = false
+    showToast('Lỗi: ' + error.message, 'error'); return
+  }
+
+  // 2) Cập nhật giá / phí ship / trạng thái cho đơn vừa tạo
+  const priceVal = document.getElementById('noUnitPrice').value
+  const patch = {
+    shipping_fee: parseFloat(document.getElementById('noShipping').value) || 0,
+    status:       document.getElementById('noStatus').value,
+  }
+  if (priceVal !== '') patch.unit_price = parseFloat(priceVal)
+  await sb.from('orders').update(patch).eq('id', newId)
+
+  btn.textContent = 'Tạo đơn'; btn.disabled = false
+  showToast('Đã tạo đơn ' + orderCode(newId) + '!')
+  closeNewOrderModal()
   loadOrders()
 }
 
