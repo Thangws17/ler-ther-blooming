@@ -134,7 +134,7 @@
     .prep-chip:hover { background: #FB8C00; color: #fff; border-color: #FB8C00; }
 
     /* ── Dashboard ────────────────────────────── */
-    .dash-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 18px; }
     .dash-card { background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,.06); text-align: center; }
     .dash-num { font-size: 2.1rem; font-weight: 800; line-height: 1.1; }
     .dash-label { margin-top: 8px; color: #7A9879; font-size: .9rem; font-weight: 600; }
@@ -255,6 +255,7 @@
       <button class="nav-item" data-tab="Orders" onclick="switchTab(this)">📦 Đơn hàng</button>
       <button class="nav-item" data-tab="Delivery" onclick="switchTab(this)">📅 Lịch giao</button>
       <button class="nav-item" data-tab="Customers" onclick="switchTab(this)">👤 Khách hàng</button>
+      <button class="nav-item" data-tab="Expenses" onclick="switchTab(this)">💰 Sổ chi phí</button>
       <button class="nav-item" data-tab="Products" onclick="switchTab(this)">🛍️ Sản phẩm</button>
       <button class="nav-item" data-tab="Gallery" onclick="switchTab(this)">📸 Gallery</button>
       <button class="nav-item" data-tab="Testimonials" onclick="switchTab(this)">💬 Đánh giá</button>
@@ -336,6 +337,19 @@
         </div>
       </div>
       <div id="ordersTable"><div class="loading-state">Đang tải…</div></div>
+    </div>
+
+    <!-- Sổ chi phí -->
+    <div id="panelExpenses" class="panel" style="display:none">
+      <div class="panel-topbar">
+        <h1>Sổ chi phí</h1>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input type="month" id="expenseMonth" onchange="loadExpenses()" style="padding:8px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:.88rem;background:#fafafa;outline:none;">
+          <button class="btn-green" onclick="openExpenseModal()">+ Thêm chi phí</button>
+        </div>
+      </div>
+      <div id="expenseSummary"></div>
+      <div id="expensesTable" style="margin-top:18px;"><div class="loading-state">Đang tải…</div></div>
     </div>
 
     <!-- Khách hàng -->
@@ -709,6 +723,60 @@
   </div>
 </div>
 
+<!-- Thêm/Sửa chi phí -->
+<div id="expenseModal" class="modal-overlay" style="display:none" onclick="closeExpenseModalOutside(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="expenseModalTitle">Thêm chi phí</h2>
+      <button class="modal-close" onclick="closeExpenseModal()">✕</button>
+    </div>
+    <form id="expenseForm" onsubmit="saveExpense(event)">
+      <input type="hidden" id="exId">
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field-group">
+            <label>Ngày *</label>
+            <input type="date" id="exDate" required>
+          </div>
+          <div class="field-group">
+            <label>Loại</label>
+            <select id="exCategory">
+              <option>Hoa</option>
+              <option>Phụ kiện</option>
+              <option>Vận chuyển</option>
+              <option selected>Khác</option>
+            </select>
+          </div>
+          <div class="field-group full">
+            <label>Mặt hàng <span style="font-weight:400;color:#7A9879;">(tùy chọn)</span></label>
+            <input type="text" id="exItem" placeholder="VD: Hồng đỏ, Ruy băng, Túi giấy…">
+          </div>
+          <div class="field-group">
+            <label>Số lượng</label>
+            <input type="number" id="exQty" min="0" step="any" placeholder="VD: 50" oninput="exUpdateAmount()">
+          </div>
+          <div class="field-group">
+            <label>Đơn giá (đ)</label>
+            <input type="number" id="exUnitPrice" min="0" step="any" placeholder="VD: 5000" oninput="exUpdateAmount()">
+          </div>
+          <div class="field-group full">
+            <label>Thành tiền (đ) *</label>
+            <input type="number" id="exAmount" min="0" step="any" required placeholder="Tự tính từ SL × đơn giá, hoặc gõ tay">
+          </div>
+          <div class="field-group full">
+            <label>Ghi chú</label>
+            <textarea id="exNote" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" onclick="closeExpenseModal()">Hủy</button>
+        <button type="submit" class="btn-green" id="saveExpenseBtn">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- ── Toast ──────────────────────────────────────── -->
 <div id="toast" class="toast" style="display:none"></div>
 
@@ -768,6 +836,7 @@ function switchTab(btn) {
   if (tab === 'Dashboard')     loadDashboard()
   if (tab === 'Orders')        loadOrders()
   if (tab === 'Delivery')      loadDelivery()
+  if (tab === 'Expenses')      loadExpenses()
   if (tab === 'Gallery')       loadGallery()
   if (tab === 'Customers')     loadCustomers()
   if (tab === 'Testimonials')  loadTestimonials()
@@ -788,10 +857,18 @@ async function loadDashboard() {
   const newCount   = all.filter(o => o.status === 'Mới').length
   const todayOrders = active.filter(o => o.delivery_date === today)
   const tomorrowOrders = active.filter(o => o.delivery_date === tomorrow)
-  const revenue = all
-    .filter(o => o.status !== 'Đã hủy')
-    .filter(o => { const d = new Date(o.created_at); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() })
-    .reduce((s, o) => s + (Number(o.total) || 0), 0)
+  const monthKey = today.slice(0, 7)
+  const inMonth = o => (o.created_at || '').slice(0, 7) === monthKey
+  // Doanh thu dự kiến: đơn đã chốt giá, chưa hủy. Thực tế: chỉ đơn đã Hoàn thành.
+  const revenueProjected = all.filter(o => o.status !== 'Đã hủy' && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
+  const revenueActual = all.filter(o => o.status === 'Hoàn thành' && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
+
+  // Chi phí tháng này → lãi gộp thực tế = doanh thu thực tế − chi phí
+  const { data: expData } = await sb.from('expenses').select('amount, expense_date')
+  const monthExpense = (expData || [])
+    .filter(e => (e.expense_date || '').slice(0, 7) === monthKey)
+    .reduce((s, e) => s + (Number(e.amount) || 0), 0)
+  const profit = revenueActual - monthExpense
 
   // ⚠️ Cảnh báo chuẩn bị hàng cho ngày mai
   const [, tm, td] = tomorrow.split('-')
@@ -799,14 +876,16 @@ async function loadDashboard() {
     <div class="prep-alert">
       <div class="prep-alert-head">⚠️ Chuẩn bị hàng — ngày mai (${td}/${tm}) cần giao <strong>${tomorrowOrders.length} đơn</strong></div>
       <div class="prep-alert-list">
-        ${tomorrowOrders.map(o => `<span class="prep-chip" onclick="viewOrderDetail(${o.id})">${orderCode(o.id)} · ${orderCustomerName(o)} · ${o.product_name}${o.delivery_area ? ' · ' + o.delivery_area : ''}</span>`).join('')}
+        ${tomorrowOrders.map(o => `<span class="prep-chip" onclick="viewOrderDetail(${o.id})">${orderCode(o.id)} · ${orderCustomerName(o)} · ${esc(o.product_name)}${o.delivery_area ? ' · ' + esc(o.delivery_area) : ''}</span>`).join('')}
       </div>
     </div>`
 
   document.getElementById('dashboardCards').innerHTML = `
     <div class="dash-card"><div class="dash-num" style="color:#E65100">${newCount}</div><div class="dash-label">Đơn mới chờ xử lý</div></div>
     <div class="dash-card"><div class="dash-num" style="color:#1565C0">${todayOrders.length}</div><div class="dash-label">Cần giao hôm nay</div></div>
-    <div class="dash-card"><div class="dash-num" style="color:#2E7D32">${fmtVnd(revenue)}</div><div class="dash-label">Doanh thu tháng này</div></div>`
+    <div class="dash-card"><div class="dash-num" style="color:#2E7D32">${fmtVnd(revenueActual)}</div><div class="dash-label">Doanh thu thực tế tháng</div></div>
+    <div class="dash-card"><div class="dash-num" style="color:#7A9879">${fmtVnd(revenueProjected)}</div><div class="dash-label">Doanh thu dự kiến tháng</div></div>
+    <div class="dash-card"><div class="dash-num" style="color:${profit >= 0 ? '#1565C0' : '#C62828'}">${fmtVnd(profit)}</div><div class="dash-label">${profit >= 0 ? 'Lãi gộp' : 'Lỗ'} thực tế tháng</div></div>`
 
   // Cho viewOrderDetail/openOrderEditModal dùng được từ Dashboard
   orders = all
@@ -819,8 +898,8 @@ async function loadDashboard() {
 <tr>
   <td><strong style="color:#2E7D32">${orderCode(o.id)}</strong></td>
   <td>${orderCustomerName(o)}<br><span style="font-size:.8rem;color:#7A9879">${orderCustomerPhone(o)}</span></td>
-  <td style="font-size:.85rem">${o.delivery_area || '—'}</td>
-  <td>${o.product_name}</td>
+  <td style="font-size:.85rem">${esc(o.delivery_area || '—')}</td>
+  <td>${esc(o.product_name)}</td>
   <td><span class="status-select ${STATUS_CLASS[o.status] || ''}" style="cursor:default">${o.status}</span></td>
   <td class="actions"><button class="btn-edit" onclick="viewOrderDetail(${o.id})">Chi tiết</button></td>
 </tr>`).join('')}</tbody></table>`
@@ -830,12 +909,14 @@ async function loadDashboard() {
 async function loadDelivery() {
   const { data } = await sb.from('orders').select('*, customers(name, phone)').order('delivery_date', { ascending: true })
   orders = data || []
-  const active = orders.filter(o => o.status !== 'Đã hủy')
+  // Ẩn đơn đã hủy & đã hoàn thành (đã giao xong, không cần trong lịch nữa)
+  const active = orders.filter(o => o.status !== 'Đã hủy' && o.status !== 'Hoàn thành')
   const today = todayStr()
   const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE')
 
   const noDate  = active.filter(o => !o.delivery_date)
   const dated   = active.filter(o => o.delivery_date)
+  const overdue = dated.filter(o => o.delivery_date < today)
   const todayG  = dated.filter(o => o.delivery_date === today)
   const tomoG   = dated.filter(o => o.delivery_date === tomorrow)
   const future  = dated.filter(o => o.delivery_date > tomorrow)
@@ -848,8 +929,8 @@ async function loadDelivery() {
 <div class="deliv-row" onclick="viewOrderDetail(${o.id})">
   <span class="deliv-code">${orderCode(o.id)}</span>
   <span class="deliv-name">${orderCustomerName(o)}</span>
-  <span class="deliv-area">${o.delivery_area || '—'}</span>
-  <span class="deliv-prod">${o.product_name}</span>
+  <span class="deliv-area">${esc(o.delivery_area || '—')}</span>
+  <span class="deliv-prod">${esc(o.product_name)}</span>
   <span class="status-select ${STATUS_CLASS[o.status] || ''}" style="cursor:pointer">${o.status}</span>
 </div>`
 
@@ -859,11 +940,141 @@ async function loadDelivery() {
 
   const el = document.getElementById('deliveryList')
   let html = ''
+  if (overdue.length) html += `<div class="deliv-group deliv-overdue"><h3 class="deliv-head" style="color:#C62828">🔴 Trễ hạn <span class="deliv-count" style="background:#FFEBEE;color:#C62828">${overdue.length} đơn</span></h3>${overdue.map(o => row(o).replace('<span class="deliv-name">', `<span class="deliv-area" style="color:#C62828">${fmtDay(o.delivery_date)}</span><span class="deliv-name">`)).join('')}</div>`
   html += group('📅 Hôm nay', todayG)
   html += group('📅 Ngày mai', tomoG)
   Object.keys(futureByDate).sort().forEach(ds => { html += group('📅 ' + fmtDay(ds), futureByDate[ds]) })
   html += group('❓ Chưa hẹn ngày', noDate)
   el.innerHTML = html || '<div class="empty-state">Chưa có đơn nào cần giao.</div>'
+}
+
+// ── Sổ chi phí ────────────────────────────────────
+let expenses = []
+const EXPENSE_CATS = ['Hoa', 'Phụ kiện', 'Vận chuyển', 'Khác']
+
+async function loadExpenses() {
+  const input = document.getElementById('expenseMonth')
+  if (!input.value) input.value = new Date().toLocaleDateString('sv-SE').slice(0, 7)
+  const month = input.value                       // YYYY-MM
+  const start = month + '-01'
+  const [y, m] = month.split('-').map(Number)
+  const nextStart = new Date(y, m, 1).toLocaleDateString('sv-SE')  // đầu tháng kế
+
+  const { data: exp } = await sb.from('expenses').select('*')
+    .gte('expense_date', start).lt('expense_date', nextStart)
+    .order('expense_date', { ascending: false })
+  expenses = exp || []
+
+  // Doanh thu cùng tháng: dự kiến (đã chốt giá, chưa hủy) vs thực tế (đã Hoàn thành)
+  const { data: ord } = await sb.from('orders').select('total, created_at, status')
+  const inMonth = o => (o.created_at || '').slice(0, 7) === month
+  const revenueProjected = (ord || []).filter(o => o.status !== 'Đã hủy' && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
+  const revenueActual = (ord || []).filter(o => o.status === 'Hoàn thành' && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
+
+  renderExpenses(revenueActual, revenueProjected)
+}
+
+function renderExpenses(revenueActual, revenueProjected) {
+  const totalExpense = expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0)
+  const profit = revenueActual - totalExpense
+  const byCat = EXPENSE_CATS.map(c => ({
+    c, sum: expenses.filter(e => e.category === c).reduce((s, e) => s + (Number(e.amount) || 0), 0)
+  })).filter(x => x.sum > 0)
+
+  document.getElementById('expenseSummary').innerHTML = `
+    <div class="dash-cards">
+      <div class="dash-card"><div class="dash-num" style="color:#2E7D32">${fmtVnd(revenueActual)}</div><div class="dash-label">Doanh thu thực tế</div></div>
+      <div class="dash-card"><div class="dash-num" style="color:#7A9879">${fmtVnd(revenueProjected)}</div><div class="dash-label">Doanh thu dự kiến</div></div>
+      <div class="dash-card"><div class="dash-num" style="color:#C62828">${fmtVnd(totalExpense)}</div><div class="dash-label">Chi phí tháng</div></div>
+      <div class="dash-card"><div class="dash-num" style="color:${profit >= 0 ? '#1565C0' : '#C62828'}">${fmtVnd(profit)}</div><div class="dash-label">${profit >= 0 ? 'Lãi gộp' : 'Lỗ'} thực tế</div></div>
+    </div>
+    ${byCat.length ? `<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;">
+      ${byCat.map(x => `<span class="cat-badge" style="font-size:.82rem;padding:5px 12px;">${x.c}: <strong>${fmtVnd(x.sum)}</strong></span>`).join('')}
+    </div>` : ''}`
+
+  const el = document.getElementById('expensesTable')
+  el.innerHTML = !expenses.length
+    ? '<div class="empty-state">Chưa có chi phí nào trong tháng này. Nhấn "+ Thêm chi phí".</div>'
+    : `<table class="data-table">
+<thead><tr><th>Ngày</th><th>Loại</th><th>Mặt hàng</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th><th>Ghi chú</th><th></th></tr></thead>
+<tbody>${expenses.map(e => `
+<tr>
+  <td>${e.expense_date.split('-').reverse().join('/')}</td>
+  <td><span class="cat-badge">${esc(e.category)}</span></td>
+  <td>${esc(e.item || '—')}</td>
+  <td>${e.quantity ?? '—'}</td>
+  <td>${e.unit_price != null ? fmtVnd(e.unit_price) : '—'}</td>
+  <td><strong>${fmtVnd(e.amount)}</strong></td>
+  <td style="font-size:.85rem;color:#555;max-width:200px;">${esc(e.note || '—')}</td>
+  <td class="actions">
+    <button class="btn-edit" onclick="openExpenseModal(${e.id})">Sửa</button>
+    <button class="btn-delete" onclick="deleteExpense(${e.id})">Xóa</button>
+  </td>
+</tr>`).join('')}</tbody></table>`
+}
+
+function exUpdateAmount() {
+  const q = parseFloat(document.getElementById('exQty').value)
+  const p = parseFloat(document.getElementById('exUnitPrice').value)
+  if (!isNaN(q) && !isNaN(p)) document.getElementById('exAmount').value = q * p
+}
+
+function openExpenseModal(id = null) {
+  document.getElementById('expenseForm').reset()
+  document.getElementById('exId').value = ''
+  if (id) {
+    const e = expenses.find(x => x.id === id)
+    if (!e) return
+    document.getElementById('expenseModalTitle').textContent = 'Sửa chi phí'
+    document.getElementById('exId').value = e.id
+    document.getElementById('exDate').value = e.expense_date
+    document.getElementById('exCategory').value = e.category
+    document.getElementById('exItem').value = e.item || ''
+    document.getElementById('exQty').value = e.quantity ?? ''
+    document.getElementById('exUnitPrice').value = e.unit_price ?? ''
+    document.getElementById('exAmount').value = e.amount ?? ''
+    document.getElementById('exNote').value = e.note || ''
+  } else {
+    document.getElementById('expenseModalTitle').textContent = 'Thêm chi phí'
+    document.getElementById('exDate').value = new Date().toLocaleDateString('sv-SE')
+  }
+  document.getElementById('expenseModal').style.display = 'flex'
+}
+
+function closeExpenseModal() { document.getElementById('expenseModal').style.display = 'none' }
+function closeExpenseModalOutside(e) { if (e.target.id === 'expenseModal') closeExpenseModal() }
+
+async function saveExpense(e) {
+  e.preventDefault()
+  const btn = document.getElementById('saveExpenseBtn')
+  btn.textContent = 'Đang lưu…'; btn.disabled = true
+  const id = document.getElementById('exId').value
+  const q = document.getElementById('exQty').value
+  const p = document.getElementById('exUnitPrice').value
+  const data = {
+    expense_date: document.getElementById('exDate').value,
+    category:     document.getElementById('exCategory').value,
+    item:         document.getElementById('exItem').value.trim() || null,
+    quantity:     q === '' ? null : parseFloat(q),
+    unit_price:   p === '' ? null : parseFloat(p),
+    amount:       parseFloat(document.getElementById('exAmount').value) || 0,
+    note:         document.getElementById('exNote').value.trim() || null,
+  }
+  const { error } = id
+    ? await sb.from('expenses').update(data).eq('id', id)
+    : await sb.from('expenses').insert(data)
+  btn.textContent = 'Lưu'; btn.disabled = false
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  showToast(id ? 'Đã cập nhật chi phí!' : 'Đã thêm chi phí!')
+  closeExpenseModal()
+  loadExpenses()
+}
+
+async function deleteExpense(id) {
+  if (!confirm('Xóa dòng chi phí này?')) return
+  await sb.from('expenses').delete().eq('id', id)
+  showToast('Đã xóa chi phí')
+  loadExpenses()
 }
 
 // ── Products ─────────────────────────────────────
@@ -1230,18 +1441,29 @@ let orders = []
 const ORDER_STATUSES = ['Mới', 'Đã xác nhận', 'Đang giao', 'Hoàn thành', 'Đã hủy']
 const STATUS_CLASS = { 'Mới': 's-moi', 'Đã xác nhận': 's-xacnhan', 'Đang giao': 's-danggiao', 'Hoàn thành': 's-hoanthanh', 'Đã hủy': 's-huy' }
 
+// Chống XSS: escape dữ liệu do khách/người dùng nhập trước khi đưa vào innerHTML
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))
+
 // Mã đơn dễ đọc + định dạng tiền
 const orderCode = id => '#LT-' + String(id).padStart(4, '0')
 const fmtVnd = n => (Number(n) || 0).toLocaleString('vi-VN') + 'đ'
 const orderTotalLabel = o => (o.unit_price == null ? '<span style="color:#E65100">Chưa định giá</span>' : '<strong>' + fmtVnd(o.total) + '</strong>')
-// Tên/SĐT khách: ưu tiên khách đã ghép, fallback sang tên snapshot trên đơn
-const orderCustomerName = o => o.customers?.name || o.customer_name || '—'
-const orderCustomerPhone = o => o.customers?.phone || '—'
+// Tên/SĐT khách: ưu tiên khách đã ghép, fallback sang tên snapshot trên đơn (đã escape)
+const orderCustomerName = o => esc(o.customers?.name || o.customer_name || '—')
+const orderCustomerPhone = o => esc(o.customers?.phone || '—')
 
 async function loadOrders() {
   const { data } = await sb.from('orders').select('*, customers(name, phone)').order('created_at', { ascending: false })
   orders = data || []
   renderOrders()
+}
+
+// Sau khi sửa/xóa/tạo đơn từ modal: refresh đúng tab đang mở (Dashboard/Lịch giao/Đơn hàng)
+function reloadActiveOrderViews() {
+  const vis = id => { const el = document.getElementById(id); return el && el.style.display !== 'none' }
+  if (vis('panelDashboard')) loadDashboard()
+  else if (vis('panelDelivery')) loadDelivery()
+  else loadOrders()
 }
 
 function renderOrders() {
@@ -1262,10 +1484,10 @@ function renderOrders() {
   <tr>
     <td><strong style="color:#2E7D32">${orderCode(o.id)}</strong></td>
     <td><strong>${orderCustomerName(o)}</strong><br><span style="font-size:.8rem;color:#7A9879;">${orderCustomerPhone(o)}</span></td>
-    <td>${o.product_name}</td>
+    <td>${esc(o.product_name)}</td>
     <td>${o.quantity}</td>
     <td style="font-size:.88rem;">${orderTotalLabel(o)}</td>
-    <td style="font-size:.85rem;">${o.delivery_area || '—'}</td>
+    <td style="font-size:.85rem;">${esc(o.delivery_area || '—')}</td>
     <td>${o.delivery_date || '—'}</td>
     <td>
       <select class="status-select ${STATUS_CLASS[o.status] || ''}" onchange="updateOrderStatus(${o.id}, this.value)">
@@ -1301,13 +1523,13 @@ function viewOrderDetail(id) {
   document.getElementById('customerOrdersBody').innerHTML = `
 <div class="form-grid">
   <p><strong>Khách:</strong> ${orderCustomerName(o)} — ${orderCustomerPhone(o)}</p>
-  <p><strong>Sản phẩm:</strong> ${o.product_name} × ${o.quantity}</p>
+  <p><strong>Sản phẩm:</strong> ${esc(o.product_name)} × ${o.quantity}</p>
   ${priceRows}
-  <p><strong>Khu vực giao:</strong> ${o.delivery_area || '—'}</p>
-  <p><strong>Địa chỉ giao:</strong> ${o.delivery_address || '—'}</p>
+  <p><strong>Khu vực giao:</strong> ${esc(o.delivery_area || '—')}</p>
+  <p><strong>Địa chỉ giao:</strong> ${esc(o.delivery_address || '—')}</p>
   <p><strong>Ngày giao mong muốn:</strong> ${o.delivery_date || '—'}</p>
-  <p><strong>Lời nhắn trên thiếp:</strong> ${o.message_card || '—'}</p>
-  <p><strong>Ghi chú:</strong> ${o.note || '—'}</p>
+  <p><strong>Lời nhắn trên thiếp:</strong> ${esc(o.message_card || '—')}</p>
+  <p><strong>Ghi chú:</strong> ${esc(o.note || '—')}</p>
   <p><strong>Đặt lúc:</strong> ${new Date(o.created_at).toLocaleString('vi-VN')}</p>
 </div>
 <div style="margin-top:18px;text-align:right;">
@@ -1320,7 +1542,7 @@ async function deleteOrder(id) {
   if (!confirm('Xóa đơn hàng này?')) return
   await sb.from('orders').delete().eq('id', id)
   showToast('Đã xóa đơn hàng')
-  loadOrders()
+  reloadActiveOrderViews()
 }
 
 // ── Sửa đơn ───────────────────────────────────────
@@ -1385,7 +1607,7 @@ async function saveOrderEdit(e) {
   if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
   showToast('Đã lưu đơn!')
   closeOrderEditModal()
-  loadOrders()
+  reloadActiveOrderViews()
 }
 
 // ── Thêm đơn thủ công ─────────────────────────────
@@ -1463,7 +1685,7 @@ async function saveNewOrder(e) {
   btn.textContent = 'Tạo đơn'; btn.disabled = false
   showToast('Đã tạo đơn ' + orderCode(newId) + '!')
   closeNewOrderModal()
-  loadOrders()
+  reloadActiveOrderViews()
 }
 
 // ── Customers ─────────────────────────────────────
@@ -1488,9 +1710,9 @@ function renderCustomers() {
   <thead><tr><th>Tên</th><th>SĐT</th><th>Địa chỉ</th><th>Ngày tạo</th><th></th></tr></thead>
   <tbody>${list.map(c => `
   <tr>
-    <td><strong>${c.name}</strong></td>
-    <td>${c.phone}</td>
-    <td style="max-width:280px;color:#555;font-size:.88rem;">${c.address || '—'}</td>
+    <td><strong>${esc(c.name)}</strong></td>
+    <td>${esc(c.phone)}</td>
+    <td style="max-width:280px;color:#555;font-size:.88rem;">${esc(c.address || '—')}</td>
     <td style="font-size:.82rem;color:#7A9879;">${new Date(c.created_at).toLocaleDateString('vi-VN')}</td>
     <td class="actions"><button class="btn-edit" onclick="viewCustomerOrders(${c.id})">Xem đơn</button></td>
   </tr>`).join('')}</tbody>
@@ -1508,7 +1730,7 @@ async function viewCustomerOrders(id) {
 <thead><tr><th>Sản phẩm</th><th>SL</th><th>Trạng thái</th><th>Ngày đặt</th></tr></thead>
 <tbody>${data.map(o => `
 <tr>
-  <td>${o.product_name}</td>
+  <td>${esc(o.product_name)}</td>
   <td>${o.quantity}</td>
   <td><span class="toggle-btn on">${o.status}</span></td>
   <td style="font-size:.82rem;color:#7A9879;">${new Date(o.created_at).toLocaleDateString('vi-VN')}</td>
