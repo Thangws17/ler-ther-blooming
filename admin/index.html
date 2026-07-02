@@ -161,6 +161,24 @@
     .deliv-prod { color: #555; font-size: .88rem; flex: 1; }
     @media (max-width: 720px) { .deliv-row { flex-wrap: wrap; gap: 6px 12px; } .deliv-prod { flex: 1 1 100%; } }
 
+    /* ── Quản lý danh mục Gallery ─────────────── */
+    .cat-manager { background: #fff; border: 1px solid #e8f0e8; border-radius: 12px; padding: 18px 20px; margin-bottom: 22px; }
+    .cat-manager-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin-bottom: 14px; }
+    .cat-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .cat-row { display: flex; align-items: center; gap: 8px; background: #f8faf8; border: 1px solid #eef3ee; border-radius: 8px; padding: 7px 10px; }
+    .cat-row .cat-emoji { width: 40px; text-align: center; padding: 6px 4px; border: 1.5px solid #ddd; border-radius: 6px; background: #fff; font-size: 1rem; }
+    .cat-row .cat-name { flex: 1; min-width: 100px; padding: 7px 10px; border: 1.5px solid #ddd; border-radius: 6px; background: #fff; font-weight: 600; }
+    .cat-row .cat-emoji:focus, .cat-row .cat-name:focus { border-color: #2E7D32; outline: none; }
+    .cat-count { font-size: .78rem; color: #7A9879; background: #E8F5E9; border-radius: 50px; padding: 3px 10px; white-space: nowrap; }
+    .cat-move { background: #eef3ee; border: none; border-radius: 6px; width: 28px; height: 30px; cursor: pointer; color: #2E7D32; font-weight: 800; font-size: .85rem; }
+    .cat-move:hover { background: #C8E6C9; }
+    .cat-move:disabled { opacity: .35; cursor: not-allowed; }
+    .cat-add-row { display: flex; gap: 8px; align-items: center; }
+    .cat-add-row input { padding: 9px 12px; border: 1.5px solid #ddd; border-radius: 8px; background: #fafafa; }
+    .cat-add-row input:focus { border-color: #2E7D32; background: #fff; outline: none; }
+    .cat-add-row input#newCatName { flex: 1; }
+    @media (max-width: 600px) { .cat-row .cat-count { display: none; } }
+
     /* ── Upload zone ──────────────────────────── */
     .upload-zone {
       border: 2px dashed #C8E6C9; border-radius: 12px;
@@ -305,16 +323,24 @@
     <!-- Gallery -->
     <div id="panelGallery" class="panel" style="display:none">
       <div class="panel-topbar"><h1>Gallery</h1></div>
+
+      <!-- Quản lý danh mục -->
+      <div class="cat-manager">
+        <div class="cat-manager-head">
+          <strong>Danh mục ảnh</strong>
+          <span style="font-size:.82rem;color:#7A9879;">Thêm / sửa / xóa — trang Gallery sẽ hiển thị theo danh mục</span>
+        </div>
+        <div id="galleryCatList" class="cat-list"></div>
+        <div class="cat-add-row">
+          <input type="text" id="newCatEmoji" maxlength="2" placeholder="🌸" style="width:56px;text-align:center;">
+          <input type="text" id="newCatName" placeholder="Tên danh mục mới…" onkeydown="if(event.key==='Enter')addGalleryCat()">
+          <button class="btn-green" onclick="addGalleryCat()">+ Thêm</button>
+        </div>
+      </div>
+
       <div style="margin-bottom:16px;">
         <label style="font-size:.82rem;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Danh mục ảnh sẽ upload</label>
-        <select id="galleryCategory" style="padding:9px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:.92rem;background:#fafafa;outline:none;">
-          <option value="Hoa bó">🌹 Hoa bó</option>
-          <option value="Giỏ hoa">🌻 Giỏ hoa</option>
-          <option value="Hoa để bàn">💐 Hoa để bàn</option>
-          <option value="Hoa cưới">👰 Hoa cưới</option>
-          <option value="Sự kiện">🎉 Sự kiện</option>
-          <option value="Khác" selected>📷 Khác</option>
-        </select>
+        <select id="galleryCategory" style="padding:9px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:.92rem;background:#fafafa;outline:none;"></select>
       </div>
       <div class="upload-zone" onclick="document.getElementById('galleryInput').click()">
         <input type="file" id="galleryInput" multiple accept="image/*" style="display:none" onchange="handleGalleryUpload(this.files)">
@@ -1238,20 +1264,129 @@ async function saveProduct(e) {
 }
 
 // ── Gallery ──────────────────────────────────────
-const GALLERY_CATS = ['Hoa bó','Giỏ hoa','Hoa để bàn','Hoa cưới','Sự kiện','Khác']
+let galleryCats = []   // [{id, name, emoji, order_index}]
 let galleryItems = []
 
+async function loadGalleryCats() {
+  const { data } = await sb.from('gallery_categories').select('*').order('order_index')
+  galleryCats = data || []
+  // Đổ vào dropdown "Danh mục ảnh sẽ upload"
+  const sel = document.getElementById('galleryCategory')
+  if (sel) {
+    const cur = sel.value
+    sel.innerHTML = galleryCats.map(c => `<option value="${esc(c.name)}">${esc(c.emoji || '📷')} ${esc(c.name)}</option>`).join('')
+    if (galleryCats.some(c => c.name === cur)) sel.value = cur
+  }
+}
+
+function galleryCatCount(name) {
+  return galleryItems.filter(ph => ph.category === name).length
+}
+
+function renderGalleryCatManager() {
+  const el = document.getElementById('galleryCatList')
+  if (!el) return
+  if (!galleryCats.length) {
+    el.innerHTML = '<div style="color:#7A9879;font-size:.88rem;">Chưa có danh mục nào. Thêm ở bên dưới.</div>'
+    return
+  }
+  el.innerHTML = galleryCats.map((c, i) => `
+<div class="cat-row">
+  <input class="cat-emoji" maxlength="2" value="${esc(c.emoji || '')}" onblur="saveGalleryCat(${c.id}, 'emoji', this.value)">
+  <input class="cat-name" value="${esc(c.name)}" onblur="saveGalleryCat(${c.id}, 'name', this.value)">
+  <span class="cat-count">${galleryCatCount(c.name)} ảnh</span>
+  <button class="cat-move" onclick="moveGalleryCat(${c.id}, -1)" ${i === 0 ? 'disabled' : ''} title="Lên">▲</button>
+  <button class="cat-move" onclick="moveGalleryCat(${c.id}, 1)" ${i === galleryCats.length - 1 ? 'disabled' : ''} title="Xuống">▼</button>
+  <button class="btn-delete-sm" onclick="deleteGalleryCat(${c.id})" title="Xóa">✕</button>
+</div>`).join('')
+}
+
+async function addGalleryCat() {
+  const nameEl = document.getElementById('newCatName')
+  const emojiEl = document.getElementById('newCatEmoji')
+  const name = nameEl.value.trim()
+  const emoji = emojiEl.value.trim() || '📷'
+  if (!name) { showToast('Nhập tên danh mục', 'error'); return }
+  if (galleryCats.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+    showToast('Danh mục này đã tồn tại', 'error'); return
+  }
+  const maxOrder = galleryCats.reduce((m, c) => Math.max(m, c.order_index || 0), 0)
+  const { error } = await sb.from('gallery_categories').insert({ name, emoji, order_index: maxOrder + 1 })
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  nameEl.value = ''; emojiEl.value = ''
+  showToast('Đã thêm danh mục!')
+  await loadGalleryCats(); renderGalleryCatManager()
+}
+
+async function saveGalleryCat(id, field, value) {
+  const cat = galleryCats.find(c => c.id === id)
+  if (!cat) return
+  value = value.trim()
+  if (field === 'name') {
+    if (!value) { showToast('Tên danh mục không được trống', 'error'); renderGalleryCatManager(); return }
+    if (value === cat.name) return  // không đổi
+    if (galleryCats.some(c => c.id !== id && c.name.toLowerCase() === value.toLowerCase())) {
+      showToast('Đã có danh mục trùng tên', 'error'); renderGalleryCatManager(); return
+    }
+    // Đổi tên: cập nhật cả ảnh đang dùng tên cũ để không mồ côi
+    const oldName = cat.name
+    const { error } = await sb.from('gallery_categories').update({ name: value }).eq('id', id)
+    if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+    await sb.from('gallery').update({ category: value }).eq('category', oldName)
+    showToast('Đã đổi tên danh mục!')
+    await loadGalleryCats(); await loadGallery()
+    return
+  }
+  // field === 'emoji'
+  if (value === (cat.emoji || '')) return
+  const { error } = await sb.from('gallery_categories').update({ emoji: value || '📷' }).eq('id', id)
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  await loadGalleryCats(); renderGalleryCatManager()
+}
+
+async function moveGalleryCat(id, dir) {
+  const i = galleryCats.findIndex(c => c.id === id)
+  const j = i + dir
+  if (i < 0 || j < 0 || j >= galleryCats.length) return
+  const a = galleryCats[i], b = galleryCats[j]
+  await Promise.all([
+    sb.from('gallery_categories').update({ order_index: b.order_index }).eq('id', a.id),
+    sb.from('gallery_categories').update({ order_index: a.order_index }).eq('id', b.id),
+  ])
+  await loadGalleryCats(); renderGalleryCatManager()
+}
+
+async function deleteGalleryCat(id) {
+  const cat = galleryCats.find(c => c.id === id)
+  if (!cat) return
+  if (galleryCats.length <= 1) { showToast('Cần giữ ít nhất 1 danh mục', 'error'); return }
+  const count = galleryCatCount(cat.name)
+  const fallback = galleryCats.find(c => c.id !== id)  // danh mục còn lại đầu tiên
+  if (count > 0) {
+    if (!confirm(`${count} ảnh đang dùng danh mục "${cat.name}" sẽ được chuyển sang "${fallback.name}". Tiếp tục?`)) return
+    await sb.from('gallery').update({ category: fallback.name }).eq('category', cat.name)
+  } else if (!confirm(`Xóa danh mục "${cat.name}"?`)) return
+  const { error } = await sb.from('gallery_categories').delete().eq('id', id)
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  showToast('Đã xóa danh mục!')
+  await loadGalleryCats(); await loadGallery()
+}
+
 async function loadGallery() {
+  await loadGalleryCats()
   const { data } = await sb.from('gallery').select('*').order('order_index')
   galleryItems = data || []
+  renderGalleryCatManager()
   const grid = document.getElementById('galleryGrid')
   if (!galleryItems.length) {
     grid.innerHTML = '<div class="empty-state">Chưa có ảnh nào. Upload ảnh ở trên.</div>'
     return
   }
   grid.innerHTML = galleryItems.map(ph => {
-    const catOpts = GALLERY_CATS.map(c =>
-      `<option value="${c}" ${ph.category === c ? 'selected' : ''}>${c}</option>`
+    const names = galleryCats.map(c => c.name)
+    const opts = ph.category && !names.includes(ph.category) ? [ph.category, ...names] : names
+    const catOpts = opts.map(c =>
+      `<option value="${esc(c)}" ${ph.category === c ? 'selected' : ''}>${esc(c)}</option>`
     ).join('')
     return `
 <div class="gallery-admin-item">

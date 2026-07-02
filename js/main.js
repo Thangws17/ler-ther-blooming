@@ -165,6 +165,7 @@ async function loadFeatured() {
 // ─── Gallery ──────────────────────────────────────────────
 const GALLERY_PER_PAGE   = 10;
 let galleryAll           = [];
+let galleryCats          = [];
 let galleryPage          = 0;
 let galleryActiveCategory = 'all';
 
@@ -172,12 +173,29 @@ async function loadGallery() {
   const grid = document.getElementById('galleryGrid');
   if (!grid) return;
 
-  const { data } = await sb.from('gallery').select('*').order('order_index');
-  galleryAll = data || [];
+  const [galRes, catRes] = await Promise.all([
+    sb.from('gallery').select('*').order('order_index'),
+    sb.from('gallery_categories').select('*').order('order_index'),
+  ]);
+  galleryAll = galRes.data || [];
+  galleryCats = catRes.data || [];
   galleryPage = 0;
   galleryActiveCategory = 'all';
+  buildGalleryFilterTabs();
   initGalleryFilters();
   renderGalleryPage();
+}
+
+// Dựng tab lọc theo danh mục (chỉ hiện danh mục đang có ảnh)
+function buildGalleryFilterTabs() {
+  const wrap = document.getElementById('galleryFilters');
+  if (!wrap) return;
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const tabs = galleryCats
+    .filter(c => galleryAll.some(ph => ph.category === c.name))
+    .map(c => `<button class="filter-tab gallery-filter-tab" data-category="${esc(c.name)}">${esc(c.emoji || '📷')} ${esc(c.name)}</button>`)
+    .join('');
+  wrap.innerHTML = `<button class="filter-tab gallery-filter-tab active" data-category="all">🌸 Tất cả</button>${tabs}`;
 }
 
 function getFilteredPhotos() {
@@ -233,13 +251,6 @@ function setGalleryPage(page) {
 function initGalleryFilters() {
   const tabs = document.querySelectorAll('.gallery-filter-tab');
   if (!tabs.length) return;
-  // Ẩn tab danh mục không có ảnh nào (giữ lại tab "Tất cả")
-  tabs.forEach(tab => {
-    const cat = tab.dataset.category;
-    if (cat === 'all') return;
-    const has = galleryAll.some(ph => ph.category === cat);
-    tab.style.display = has ? '' : 'none';
-  });
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       tabs.forEach(t => t.classList.remove('active'));
