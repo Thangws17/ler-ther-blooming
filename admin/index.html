@@ -119,7 +119,24 @@
     .thumb { width: 48px; height: 48px; border-radius: 8px; overflow: hidden; background: #E8F5E9; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
     .thumb img { width: 100%; height: 100%; object-fit: cover; }
     .cat-badge { background: #E8F5E9; color: #2E7D32; border-radius: 50px; padding: 3px 10px; font-size: .75rem; font-weight: 700; white-space: nowrap; }
-    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .actions { display: flex; gap: 4px; flex-wrap: wrap; }
+    /* Thanh tìm kiếm / lọc */
+    .filter-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+    .filter-search { flex: 1; min-width: 220px; padding: 9px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: .9rem; background: #fafafa; outline: none; }
+    .filter-search:focus { border-color: #2E7D32; background: #fff; }
+    .filter-select { padding: 9px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: .88rem; background: #fafafa; outline: none; }
+    .filter-select:focus { border-color: #2E7D32; background: #fff; }
+    .btn-clear { padding: 9px 14px; border: 1.5px solid #ddd; border-radius: 8px; background: #fff; color: #777; font-size: .85rem; font-weight: 600; cursor: pointer; }
+    .btn-clear:hover { border-color: #E64A19; color: #E64A19; }
+    /* Nút thao tác dạng icon gọn */
+    .btn-icon { width: 32px; height: 30px; padding: 0; border: none; border-radius: 6px; cursor: pointer; font-size: .92rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; transition: background .15s; }
+    .btn-icon.i-view { background: #E3F2FD; }
+    .btn-icon.i-view:hover { background: #BBDEFB; }
+    .btn-icon.i-edit { background: #E8F5E9; }
+    .btn-icon.i-edit:hover { background: #C8E6C9; }
+    .btn-icon.i-edit:disabled { background: #f0f0f0; opacity: .5; cursor: not-allowed; }
+    .btn-icon.i-del { background: #FBE9E7; }
+    .btn-icon.i-del:hover { background: #FFCCBC; }
     /* Bảng cuộn ngang trên màn hình nhỏ, tránh vỡ layout */
     [id$="Table"], #dashboardToday { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     @media (max-width: 720px) {
@@ -366,17 +383,20 @@
     <div id="panelOrders" class="panel" style="display:none">
       <div class="panel-topbar">
         <h1>Đơn hàng</h1>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <select id="orderStatusFilter" onchange="renderOrders()" style="padding:9px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:.88rem;background:#fafafa;outline:none;">
-            <option value="">Tất cả trạng thái</option>
-            <option>Mới</option>
-            <option>Đã xác nhận</option>
-            <option>Đang giao</option>
-            <option>Hoàn thành</option>
-            <option>Đã hủy</option>
-          </select>
-          <button class="btn-green" onclick="openNewOrderModal()">+ Thêm đơn</button>
-        </div>
+        <button class="btn-green" onclick="openNewOrderModal()">+ Thêm đơn</button>
+      </div>
+      <div class="filter-bar">
+        <input type="search" id="orderSearch" class="filter-search" placeholder="🔍 Tìm mã đơn / tên khách / SĐT / sản phẩm…" oninput="renderOrders()">
+        <select id="orderStatusFilter" onchange="renderOrders()" class="filter-select">
+          <option value="">Tất cả trạng thái</option>
+          <option>Mới</option>
+          <option>Đã xác nhận</option>
+          <option>Đang giao</option>
+          <option>Hoàn thành</option>
+          <option>Đã hủy</option>
+        </select>
+        <input type="date" id="orderDateFilter" onchange="renderOrders()" class="filter-select" title="Lọc theo ngày giao">
+        <button type="button" class="btn-clear" onclick="clearOrderFilters()">Xóa lọc</button>
       </div>
       <div id="ordersTable"><div class="loading-state">Đang tải…</div></div>
     </div>
@@ -954,7 +974,7 @@ async function loadDashboard() {
   <td style="font-size:.85rem">${esc(o.delivery_area || '—')}</td>
   <td>${esc(o.product_name)}</td>
   <td><span class="status-select ${STATUS_CLASS[o.status] || ''}" style="cursor:default">${o.status}</span></td>
-  <td class="actions"><button class="btn-edit" onclick="viewOrderDetail(${o.id})">Chi tiết</button></td>
+  <td class="actions"><button class="btn-icon i-view" title="Chi tiết" onclick="viewOrderDetail(${o.id})">👁</button></td>
 </tr>`).join('')}</tbody></table>`
 }
 
@@ -1060,8 +1080,8 @@ function renderExpenses(revenueActual, revenueProjected) {
   <td><strong>${fmtVnd(e.amount)}</strong></td>
   <td style="font-size:.85rem;color:#555;max-width:200px;">${esc(e.note || '—')}</td>
   <td class="actions">
-    <button class="btn-edit" onclick="openExpenseModal(${e.id})">Sửa</button>
-    <button class="btn-delete" onclick="deleteExpense(${e.id})">Xóa</button>
+    <button class="btn-icon i-edit" title="Sửa" onclick="openExpenseModal(${e.id})">✏️</button>
+    <button class="btn-icon i-del" title="Xóa" onclick="deleteExpense(${e.id})">🗑</button>
   </td>
 </tr>`).join('')}</tbody></table>`
 }
@@ -1160,8 +1180,8 @@ function renderProducts() {
     <td><button class="toggle-btn ${p.featured ? 'on' : ''}" onclick="toggleFeatured(${p.id},${p.featured})">${p.featured ? '✓ Có' : '— Không'}</button></td>
     <td>${p.order_index}</td>
     <td class="actions">
-      <button class="btn-edit" onclick="openModal(${p.id})">Sửa</button>
-      <button class="btn-delete" onclick="deleteProduct(${p.id})">Xóa</button>
+      <button class="btn-icon i-edit" title="Sửa" onclick="openModal(${p.id})">✏️</button>
+      <button class="btn-icon i-del" title="Xóa" onclick="deleteProduct(${p.id})">🗑</button>
     </td>
   </tr>`).join('')}</tbody>
 </table>`
@@ -1599,8 +1619,8 @@ function renderTestimonials() {
     <td style="font-size:.85rem;color:#7A9879;">${esc(t.context || '—')}</td>
     <td><button class="toggle-btn ${t.active ? 'on' : ''}" onclick="toggleTestimonial(${t.id},${t.active})">${t.active ? '✓ Có' : '— Không'}</button></td>
     <td class="actions">
-      <button class="btn-edit" onclick="openTestimonialModal(${t.id})">Sửa</button>
-      <button class="btn-delete" onclick="deleteTestimonial(${t.id})">Xóa</button>
+      <button class="btn-icon i-edit" title="Sửa" onclick="openTestimonialModal(${t.id})">✏️</button>
+      <button class="btn-icon i-del" title="Xóa" onclick="deleteTestimonial(${t.id})">🗑</button>
     </td>
   </tr>`).join('')}</tbody>
 </table>`
@@ -1695,12 +1715,40 @@ function reloadActiveOrderViews() {
   else loadOrders()
 }
 
+function clearOrderFilters() {
+  document.getElementById('orderSearch').value = ''
+  document.getElementById('orderStatusFilter').value = ''
+  document.getElementById('orderDateFilter').value = ''
+  renderOrders()
+}
+
 function renderOrders() {
   const el = document.getElementById('ordersTable')
-  const filter = document.getElementById('orderStatusFilter').value
-  const list = filter ? orders.filter(o => o.status === filter) : orders
-  if (!list.length) {
+  const status = document.getElementById('orderStatusFilter').value
+  const date   = document.getElementById('orderDateFilter').value
+  const q      = document.getElementById('orderSearch').value.trim().toLowerCase()
+
+  const list = orders.filter(o => {
+    if (status && o.status !== status) return false
+    if (date && o.delivery_date !== date) return false
+    if (q) {
+      const hay = [
+        orderCode(o.id),
+        o.customers?.name || o.customer_name || '',
+        o.customers?.phone || '',
+        o.product_name || '',
+      ].join(' ').toLowerCase()
+      if (!hay.includes(q)) return false
+    }
+    return true
+  })
+
+  if (!orders.length) {
     el.innerHTML = '<div class="empty-state">Chưa có đơn hàng nào.</div>'
+    return
+  }
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state">Không tìm thấy đơn khớp bộ lọc. <a href="#" onclick="clearOrderFilters();return false" style="color:#2E7D32;font-weight:700;">Xóa lọc</a></div>'
     return
   }
   el.innerHTML = `
@@ -1724,9 +1772,9 @@ function renderOrders() {
       </select>
     </td>
     <td class="actions">
-      <button class="btn-edit" onclick="viewOrderDetail(${o.id})">Chi tiết</button>
-      <button class="btn-edit" onclick="openOrderEditModal(${o.id})" ${o.status === 'Hoàn thành' ? 'disabled' : ''}>✏️ Sửa</button>
-      <button class="btn-delete" onclick="deleteOrder(${o.id})">Xóa</button>
+      <button class="btn-icon i-view" title="Chi tiết" onclick="viewOrderDetail(${o.id})">👁</button>
+      <button class="btn-icon i-edit" title="Sửa đơn" onclick="openOrderEditModal(${o.id})" ${o.status === 'Hoàn thành' ? 'disabled' : ''}>✏️</button>
+      <button class="btn-icon i-del" title="Xóa đơn" onclick="deleteOrder(${o.id})">🗑</button>
     </td>
   </tr>`).join('')}</tbody>
 </table>`
@@ -1991,7 +2039,7 @@ function renderCustomers() {
     <td>${esc(c.phone)}</td>
     <td style="max-width:280px;color:#555;font-size:.88rem;">${esc(c.address || '—')}</td>
     <td style="font-size:.82rem;color:#7A9879;">${new Date(c.created_at).toLocaleDateString('vi-VN')}</td>
-    <td class="actions"><button class="btn-edit" onclick="viewCustomerOrders(${c.id})">Xem đơn</button></td>
+    <td class="actions"><button class="btn-icon i-view" title="Xem đơn của khách" onclick="viewCustomerOrders(${c.id})">👁</button></td>
   </tr>`).join('')}</tbody>
 </table>`
 }

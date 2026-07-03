@@ -681,6 +681,10 @@ async function loadRelated(category, excludeId) {
 // ─── Init ─────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   initNav();
+  // Năm © tự cập nhật (khỏi lỗi thời)
+  document.querySelectorAll('.footer-bottom').forEach(el => {
+    el.textContent = el.textContent.replace(/©\s*\d{4}/, '© ' + new Date().getFullYear());
+  });
   await loadContact();
   loadBanner();
   loadHeroPriceHint();

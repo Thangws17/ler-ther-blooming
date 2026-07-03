@@ -38,9 +38,9 @@ h3 { font-size:1.15rem; }
 
 /* ─── Utility ────────────────────────────────────────────── */
 .container { max-width:1180px; margin:0 auto; padding:0 20px; }
-section    { padding:80px 0; }
+section    { padding:64px 0; }
 
-.section-header { text-align:center; margin-bottom:48px; }
+.section-header { text-align:center; margin-bottom:36px; }
 .section-header h2 { color:var(--text); margin-bottom:10px; }
 .section-header p  { color:var(--text-mid); font-size:1.05rem; max-width:520px; margin:0 auto; }
 
@@ -308,6 +308,9 @@ section    { padding:80px 0; }
 .c-item span {
   font-family:'Nunito',sans-serif; font-weight:700; font-size:1.08rem; color:var(--text);
 }
+/* Link trong thẻ thông tin liên hệ (gom style lặp inline) */
+.c-item a { color:var(--green); }
+.c-item a:hover { text-decoration:underline; }
 
 .contact-cta {
   background:linear-gradient(135deg,#2E7D32 0%,#1B5E20 100%);
@@ -639,7 +642,7 @@ section    { padding:80px 0; }
 }
 
 @media (max-width:640px) {
-  section { padding:56px 0; }
+  section { padding:44px 0; }
 
   /* nav mobile */
   .menu-toggle { display:block; }
