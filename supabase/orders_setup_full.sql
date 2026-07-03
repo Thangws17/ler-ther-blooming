@@ -28,8 +28,13 @@ create table if not exists orders (
   created_at timestamptz default now()
 );
 
--- Cột khu vực giao (P1) — thêm nếu chưa có
+-- Cột bổ sung (P1) — thêm nếu chưa có
 alter table orders add column if not exists delivery_area text;
+alter table orders add column if not exists customer_name text;                 -- snapshot tên khách trên đơn
+alter table orders add column if not exists unit_price   numeric;              -- đơn giá admin chốt
+alter table orders add column if not exists shipping_fee numeric default 0;
+alter table orders add column if not exists total numeric
+  generated always as (coalesce(unit_price, 0) * quantity + coalesce(shipping_fee, 0)) stored;
 
 -- ── 2. Bật RLS ───────────────────────────────────────────────────
 alter table customers enable row level security;
@@ -37,6 +42,7 @@ alter table orders    enable row level security;
 
 -- ── 3. Policy (drop trước rồi tạo lại — chạy nhiều lần không lỗi) ──
 drop policy if exists "Admin read customers"   on customers;
+drop policy if exists "Admin insert customers" on customers;
 drop policy if exists "Admin update customers" on customers;
 drop policy if exists "Admin delete customers" on customers;
 drop policy if exists "Admin read orders"      on orders;
@@ -44,17 +50,21 @@ drop policy if exists "Admin update orders"    on orders;
 drop policy if exists "Admin delete orders"    on orders;
 
 create policy "Admin read customers"   on customers for select using (auth.role() = 'authenticated');
+create policy "Admin insert customers" on customers for insert with check (auth.role() = 'authenticated');
 create policy "Admin update customers" on customers for update using (auth.role() = 'authenticated');
 create policy "Admin delete customers" on customers for delete using (auth.role() = 'authenticated');
 create policy "Admin read orders"   on orders for select using (auth.role() = 'authenticated');
 create policy "Admin update orders" on orders for update using (auth.role() = 'authenticated');
 create policy "Admin delete orders" on orders for delete using (auth.role() = 'authenticated');
+-- Lưu ý: KHÔNG có policy insert cho anon trên orders/customers — khách đặt hàng
+-- đi qua RPC place_order (security definer) nên vẫn tạo được đơn mà bảng vẫn khóa.
 
 -- ── 4. Function đặt hàng ──────────────────────────────────────────
 -- Drop cả 2 phiên bản (9 và 10 tham số) để tránh hàm trùng tên lẫn lộn
 drop function if exists place_order(text, text, text, bigint, text, int, date, text, text);
 drop function if exists place_order(text, text, text, bigint, text, int, date, text, text, text);
 
+-- SĐT tùy chọn · KHÔNG ghi đè thông tin khách đã có · chặn số lượng ≤ 0
 create function place_order(
   p_phone text,
   p_name text,
@@ -74,20 +84,29 @@ as $$
 declare
   v_customer_id bigint;
   v_order_id bigint;
+  v_qty int := greatest(coalesce(p_quantity, 1), 1);
 begin
-  select id into v_customer_id from customers where phone = p_phone;
-
-  if v_customer_id is null then
-    insert into customers (phone, name, address)
-    values (p_phone, p_name, p_address)
-    returning id into v_customer_id;
+  if p_phone is not null and length(trim(p_phone)) > 0 then
+    select id into v_customer_id from customers where phone = p_phone;
+    if v_customer_id is null then
+      insert into customers (phone, name, address)
+      values (p_phone, p_name, p_address)
+      returning id into v_customer_id;
+    else
+      -- Khách đã có: không đè tên/địa chỉ; chỉ điền địa chỉ nếu đang trống
+      update customers
+        set address    = coalesce(nullif(address, ''), p_address),
+            updated_at = now()
+      where id = v_customer_id;
+    end if;
   else
-    update customers set name = p_name, address = coalesce(p_address, address), updated_at = now()
-    where id = v_customer_id;
+    v_customer_id := null;
   end if;
 
-  insert into orders (customer_id, product_id, product_name, quantity, delivery_address, delivery_area, delivery_date, message_card, note)
-  values (v_customer_id, p_product_id, p_product_name, p_quantity, p_address, p_delivery_area, p_delivery_date, p_message_card, p_note)
+  insert into orders (customer_id, customer_name, product_id, product_name, quantity,
+                      delivery_address, delivery_area, delivery_date, message_card, note)
+  values (v_customer_id, p_name, p_product_id, p_product_name, v_qty,
+          p_address, p_delivery_area, p_delivery_date, p_message_card, p_note)
   returning id into v_order_id;
 
   return v_order_id;

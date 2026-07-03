@@ -4,6 +4,11 @@ const SUPABASE_URL = 'https://oijcwborkebjpavzyisl.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_vDRAF-LBS3nOpw1GHBchvw_xYuMfdqP'
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
+// Escape để chèn an toàn vào HTML (text hoặc thuộc tính bọc dấu ")
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))
+// Chuỗi an toàn để nhúng vào onclick="fn('...')" — escape lớp JS rồi lớp HTML
+const jsAttr = s => esc(String(s ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"))
+
 // ─── Nav ─────────────────────────────────────────────────
 function initNav() {
   const toggle = document.getElementById('menuToggle');
@@ -67,21 +72,21 @@ function catStyle(cat) { return CAT[cat] || CAT_DEFAULT; }
 function productCardHTML(p) {
   const s = catStyle(p.category);
   const img = p.image
-    ? `<img src="${p.image}" alt="${p.name}" loading="lazy">`
+    ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy">`
     : `<div class="product-img-ph" style="background:${s.bg}">${s.emoji}</div>`;
-  const nameEsc = p.name.replace(/'/g, "\\'");
+  const nameAttr = jsAttr(p.name);
   return `
-<div class="product-card reveal" data-category="${p.category}">
+<div class="product-card reveal" data-category="${esc(p.category)}">
   <a href="san-pham-chi-tiet.html?id=${p.id}" class="product-img">${img}</a>
   <div class="product-info">
-    <span class="product-cat">${p.category}</span>
+    <span class="product-cat">${esc(p.category)}</span>
     <div class="product-name">
-      <a href="san-pham-chi-tiet.html?id=${p.id}" style="color:inherit">${p.name}</a>
+      <a href="san-pham-chi-tiet.html?id=${p.id}" style="color:inherit">${esc(p.name)}</a>
     </div>
-    <div class="product-desc">${p.description}</div>
+    <div class="product-desc">${esc(p.description)}</div>
     <div class="product-footer">
-      <span class="product-price">${p.price}</span>
-      <button type="button" class="product-btn" onclick="openOrderModal(${p.id}, '${nameEsc}')">
+      <span class="product-price">${esc(p.price)}</span>
+      <button type="button" class="product-btn" onclick="openOrderModal(${p.id}, '${nameAttr}')">
         🌸 Đặt ngay
       </button>
     </div>
@@ -190,7 +195,6 @@ async function loadGallery() {
 function buildGalleryFilterTabs() {
   const wrap = document.getElementById('galleryFilters');
   if (!wrap) return;
-  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   const tabs = galleryCats
     .filter(c => galleryAll.some(ph => ph.category === c.name))
     .map(c => `<button class="filter-tab gallery-filter-tab" data-category="${esc(c.name)}">${esc(c.emoji || '📷')} ${esc(c.name)}</button>`)
@@ -222,8 +226,9 @@ function renderGalleryPage() {
   }
 
   grid.innerHTML = page.map((ph, i) => `
-<div class="gallery-item" style="animation-delay:${(i * 0.04).toFixed(2)}s" onclick="openLightbox('${ph.url}','${(ph.caption||'').replace(/'/g,"\\'")}')">
-  <img src="${ph.url}" alt="${ph.caption || 'Ảnh hoa ' + (start + i + 1)}" loading="lazy">
+<div class="gallery-item" style="animation-delay:${(i * 0.04).toFixed(2)}s"
+     data-url="${esc(ph.url)}" data-caption="${esc(ph.caption || '')}" onclick="openLightboxFromEl(this)">
+  <img src="${esc(ph.url)}" alt="${esc(ph.caption || 'Ảnh hoa ' + (start + i + 1))}" loading="lazy">
 </div>`).join('');
 
   renderGalleryPagination(filtered.length);
@@ -262,13 +267,27 @@ function initGalleryFilters() {
   });
 }
 
+function openLightboxFromEl(el) {
+  openLightbox(el.dataset.url, el.dataset.caption || '');
+}
+
 function openLightbox(url, caption) {
   const el = document.createElement('div');
   el.className = 'lightbox';
-  el.innerHTML =
-    `<img src="${url}" alt="${caption}">` +
-    (caption ? `<p class="lightbox-caption">${caption}</p>` : '') +
-    `<p class="lightbox-hint">Nhấn bất kỳ đâu hoặc phím Esc để đóng</p>`;
+  // Dựng bằng DOM + textContent → an toàn với mọi ký tự trong chú thích/URL
+  const img = document.createElement('img');
+  img.src = url; img.alt = caption;
+  el.appendChild(img);
+  if (caption) {
+    const cap = document.createElement('p');
+    cap.className = 'lightbox-caption';
+    cap.textContent = caption;
+    el.appendChild(cap);
+  }
+  const hint = document.createElement('p');
+  hint.className = 'lightbox-hint';
+  hint.textContent = 'Nhấn bất kỳ đâu hoặc phím Esc để đóng';
+  el.appendChild(hint);
   const close = () => {
     el.classList.remove('show');
     document.removeEventListener('keydown', onKey);
@@ -419,7 +438,7 @@ function openOrderModal(productId, productName) {
   _orderProduct = { id: productId, name: productName };
   document.getElementById('orderModalBody').innerHTML = `
 <h3>Đặt hàng</h3>
-<span class="order-product-name">🌸 ${productName}</span>
+<span class="order-product-name">🌸 ${esc(productName)}</span>
 <div class="order-reassure">🚚 Nội thành miễn phí · 💳 COD / Chuyển khoản · 🌸 Gửi ảnh duyệt trước khi giao · <a href="chinh-sach.html" target="_blank">Xem chính sách</a></div>
 <form id="orderForm" onsubmit="submitOrder(event)">
   <div class="order-field">
@@ -505,8 +524,8 @@ async function submitOrder(event) {
   <div class="o-icon">🌸</div>
   <h3>Đã nhận đơn của bạn!</h3>
   <p style="color:var(--text-mid);margin-top:10px;line-height:1.75;">
-    Đơn đặt <strong>${_orderProduct.name}</strong> đã được ghi nhận.<br>
-    Chúng mình sẽ liên hệ số <strong>${phone}</strong> qua Zalo/điện thoại
+    Đơn đặt <strong>${esc(_orderProduct.name)}</strong> đã được ghi nhận.<br>
+    Chúng mình sẽ liên hệ số <strong>${esc(phone)}</strong> qua Zalo/điện thoại
     trong <strong>15–30 phút</strong> để xác nhận và báo phí giao (nếu có).
   </p>
   <div style="display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap;">
@@ -623,12 +642,12 @@ async function loadProductDetail() {
   ${imgSection}
   <div class="detail-info">
     <a href="san-pham.html" class="detail-back">← Quay lại sản phẩm</a>
-    <span class="detail-cat">${p.category}</span>
-    <h1 class="detail-name">${p.name}</h1>
-    <div class="detail-price">${p.price}</div>
-    <p class="detail-desc">${p.description}</p>
+    <span class="detail-cat">${esc(p.category)}</span>
+    <h1 class="detail-name">${esc(p.name)}</h1>
+    <div class="detail-price">${esc(p.price)}</div>
+    <p class="detail-desc">${esc(p.description)}</p>
     <div class="detail-actions">
-      <button type="button" class="btn btn-primary" style="font-size:1rem;" onclick="openOrderModal(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
+      <button type="button" class="btn btn-primary" style="font-size:1rem;" onclick="openOrderModal(${p.id}, '${jsAttr(p.name)}')">
         🌸 Đặt hàng ngay
       </button>
       <a href="#" class="btn btn-outline order-btn" data-product="${encodeURIComponent(p.name)}">

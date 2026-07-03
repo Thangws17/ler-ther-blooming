@@ -204,11 +204,18 @@
 
     /* ── Gallery admin grid ───────────────────── */
     .gallery-admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 8px; }
-    .gallery-admin-item { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.07); }
+    .gallery-admin-item { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.07); transition: outline .12s, opacity .12s; }
     .gallery-admin-item img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
     .gallery-admin-info { padding: 8px; display: flex; gap: 6px; align-items: center; }
     .caption-input { flex: 1; border: 1px solid #e0e0e0; border-radius: 6px; padding: 5px 8px; font-size: .8rem; outline: none; }
     .caption-input:focus { border-color: #2E7D32; }
+    /* Kéo-thả sắp xếp */
+    .gallery-drag { position: relative; cursor: grab; }
+    .gallery-drag:active { cursor: grabbing; }
+    .drag-grip { position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,.55); color: #fff; font-size: .7rem; font-weight: 600; padding: 2px 8px; border-radius: 50px; pointer-events: none; opacity: 0; transition: opacity .15s; }
+    .gallery-admin-item:hover .drag-grip { opacity: 1; }
+    .gallery-admin-item.dragging { opacity: .35; }
+    .gallery-admin-item.drag-over { outline: 2px dashed #2E7D32; outline-offset: 2px; }
 
     /* ── Contact form ─────────────────────────── */
     .contact-form { background: #fff; border-radius: 12px; padding: 28px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
@@ -1146,10 +1153,10 @@ function renderProducts() {
   </tr></thead>
   <tbody>${products.map(p => `
   <tr>
-    <td><div class="thumb">${p.image ? `<img src="${p.image}" alt="">` : '🌸'}</div></td>
-    <td><strong>${p.name}</strong></td>
-    <td><span class="cat-badge">${p.category}</span></td>
-    <td>${p.price}</td>
+    <td><div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="">` : '🌸'}</div></td>
+    <td><strong>${esc(p.name)}</strong></td>
+    <td><span class="cat-badge">${esc(p.category)}</span></td>
+    <td>${esc(p.price)}</td>
     <td><button class="toggle-btn ${p.featured ? 'on' : ''}" onclick="toggleFeatured(${p.id},${p.featured})">${p.featured ? '✓ Có' : '— Không'}</button></td>
     <td>${p.order_index}</td>
     <td class="actions">
@@ -1377,20 +1384,29 @@ async function loadGallery() {
   const { data } = await sb.from('gallery').select('*').order('order_index')
   galleryItems = data || []
   renderGalleryCatManager()
+  renderGalleryGrid()
+}
+
+function renderGalleryGrid() {
   const grid = document.getElementById('galleryGrid')
   if (!galleryItems.length) {
     grid.innerHTML = '<div class="empty-state">Chưa có ảnh nào. Upload ảnh ở trên.</div>'
     return
   }
+  const names = galleryCats.map(c => c.name)
   grid.innerHTML = galleryItems.map(ph => {
-    const names = galleryCats.map(c => c.name)
     const opts = ph.category && !names.includes(ph.category) ? [ph.category, ...names] : names
     const catOpts = opts.map(c =>
       `<option value="${esc(c)}" ${ph.category === c ? 'selected' : ''}>${esc(c)}</option>`
     ).join('')
     return `
-<div class="gallery-admin-item">
-  <img src="${ph.url}" alt="${ph.caption || ''}">
+<div class="gallery-admin-item" data-id="${ph.id}"
+     ondragover="galleryDragOver(event)" ondragleave="galleryDragLeave(event)" ondrop="galleryDrop(event, ${ph.id})">
+  <div class="gallery-drag" draggable="true" title="Kéo để sắp xếp"
+       ondragstart="galleryDragStart(event, ${ph.id})" ondragend="galleryDragEnd(event)">
+    <img src="${ph.url}" alt="${ph.caption || ''}" draggable="false">
+    <span class="drag-grip">⠿ Kéo để sắp xếp</span>
+  </div>
   <div class="gallery-admin-info" style="flex-direction:column;gap:4px;">
     <input class="caption-input" value="${(ph.caption||'').replace(/"/g,'&quot;')}"
       placeholder="Chú thích…" onblur="updateCaption(${ph.id}, this.value)">
@@ -1403,6 +1419,62 @@ async function loadGallery() {
   }).join('')
 }
 
+// ── Kéo-thả sắp xếp ảnh ──
+let galleryDragId = null
+
+function galleryDragStart(e, id) {
+  galleryDragId = id
+  e.dataTransfer.effectAllowed = 'move'
+  e.target.closest('.gallery-admin-item')?.classList.add('dragging')
+}
+
+function galleryDragEnd() {
+  galleryDragId = null
+  document.querySelectorAll('.gallery-admin-item').forEach(el => el.classList.remove('dragging', 'drag-over'))
+}
+
+function galleryDragOver(e) {
+  if (galleryDragId == null) return
+  e.preventDefault()
+  e.dataTransfer.dropEffect = 'move'
+  const card = e.target.closest('.gallery-admin-item')
+  if (card && String(card.dataset.id) !== String(galleryDragId)) card.classList.add('drag-over')
+}
+
+function galleryDragLeave(e) {
+  const card = e.target.closest('.gallery-admin-item')
+  if (card && !card.contains(e.relatedTarget)) card.classList.remove('drag-over')
+}
+
+async function galleryDrop(e, targetId) {
+  e.preventDefault()
+  if (galleryDragId == null || galleryDragId === targetId) return
+  const from = galleryItems.findIndex(x => x.id === galleryDragId)
+  const origTo = galleryItems.findIndex(x => x.id === targetId)
+  if (from < 0 || origTo < 0) return
+  const [moved] = galleryItems.splice(from, 1)
+  let idx = galleryItems.findIndex(x => x.id === targetId)
+  if (from < origTo) idx += 1   // kéo xuống → thả sau ảnh đích
+  galleryItems.splice(idx, 0, moved)
+  galleryDragId = null
+  renderGalleryGrid()
+  await persistGalleryOrder()
+}
+
+async function persistGalleryOrder() {
+  const updates = []
+  galleryItems.forEach((ph, i) => {
+    if (ph.order_index !== i) { ph.order_index = i; updates.push({ id: ph.id, order_index: i }) }
+  })
+  if (!updates.length) return
+  const results = await Promise.all(
+    updates.map(u => sb.from('gallery').update({ order_index: u.order_index }).eq('id', u.id))
+  )
+  const failed = results.find(r => r.error)
+  if (failed) { showToast('Lỗi lưu thứ tự: ' + failed.error.message, 'error'); return }
+  showToast('Đã lưu thứ tự ảnh!')
+}
+
 async function handleGalleryUpload(files) {
   if (!files.length) return
   const category = document.getElementById('galleryCategory').value
@@ -1411,13 +1483,15 @@ async function handleGalleryUpload(files) {
   const text     = document.getElementById('progressText')
   progress.style.display = 'block'
 
+  // Ảnh mới thêm vào CUỐI (sau ảnh có order_index lớn nhất hiện tại)
+  let nextOrder = galleryItems.reduce((m, ph) => Math.max(m, ph.order_index ?? 0), -1) + 1
   let done = 0
   for (const file of Array.from(files)) {
     const path = `gallery/${Date.now()}_${file.name.replace(/\s/g, '_')}`
     const { error } = await sb.storage.from('images').upload(path, file)
     if (!error) {
       const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
-      await sb.from('gallery').insert({ url: publicUrl, caption: '', category, order_index: done })
+      await sb.from('gallery').insert({ url: publicUrl, caption: '', category, order_index: nextOrder++ })
     }
     done++
     fill.style.width = `${(done / files.length) * 100}%`
@@ -1520,9 +1594,9 @@ function renderTestimonials() {
   <thead><tr><th>Tên khách</th><th>Nội dung</th><th>Dịp</th><th>Hiển thị</th><th></th></tr></thead>
   <tbody>${testimonials.map(t => `
   <tr>
-    <td><strong>${t.name}</strong></td>
-    <td style="max-width:300px;color:#555;font-size:.88rem;">${t.content.slice(0, 80)}${t.content.length > 80 ? '…' : ''}</td>
-    <td style="font-size:.85rem;color:#7A9879;">${t.context || '—'}</td>
+    <td><strong>${esc(t.name)}</strong></td>
+    <td style="max-width:300px;color:#555;font-size:.88rem;">${esc(t.content.slice(0, 80))}${t.content.length > 80 ? '…' : ''}</td>
+    <td style="font-size:.85rem;color:#7A9879;">${esc(t.context || '—')}</td>
     <td><button class="toggle-btn ${t.active ? 'on' : ''}" onclick="toggleTestimonial(${t.id},${t.active})">${t.active ? '✓ Có' : '— Không'}</button></td>
     <td class="actions">
       <button class="btn-edit" onclick="openTestimonialModal(${t.id})">Sửa</button>
