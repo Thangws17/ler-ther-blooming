@@ -128,6 +128,17 @@
     .filter-select:focus { border-color: #2E7D32; background: #fff; }
     .btn-clear { padding: 9px 14px; border: 1.5px solid #ddd; border-radius: 8px; background: #fff; color: #777; font-size: .85rem; font-weight: 600; cursor: pointer; }
     .btn-clear:hover { border-color: #E64A19; color: #E64A19; }
+    /* Điều hướng tháng (Sổ chi phí) */
+    .month-nav { display: inline-flex; align-items: center; gap: 6px; }
+    .month-arrow { width: 34px; height: 36px; border-radius: 8px; border: 1.5px solid #ddd; background: #fff; color: #2E7D32; font-size: 1.15rem; font-weight: 800; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all .15s; }
+    .month-arrow:hover { border-color: #2E7D32; background: #E8F5E9; }
+    .month-input { padding: 8px 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: .9rem; font-weight: 700; color: #2E7D32; background: #fafafa; outline: none; }
+    .month-input:focus { border-color: #2E7D32; background: #fff; }
+    .chip-thismonth { padding: 8px 16px; border-radius: 50px; border: 1.5px solid #2E7D32; background: #fff; color: #2E7D32; font-weight: 700; font-size: .85rem; cursor: pointer; transition: all .15s; }
+    .chip-thismonth:hover { background: #E8F5E9; }
+    .chip-thismonth.active { background: #2E7D32; color: #fff; cursor: default; }
+    .month-label { color: #7A9879; font-size: .9rem; font-weight: 600; margin-left: auto; }
+    @media (max-width: 600px) { .month-label { margin-left: 0; flex: 1 1 100%; } }
     /* Nút thao tác dạng icon gọn */
     .btn-icon { width: 32px; height: 30px; padding: 0; border: none; border-radius: 6px; cursor: pointer; font-size: .92rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; transition: background .15s; }
     .btn-icon.i-view { background: #E3F2FD; }
@@ -405,10 +416,16 @@
     <div id="panelExpenses" class="panel" style="display:none">
       <div class="panel-topbar">
         <h1>Sổ chi phí</h1>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <input type="month" id="expenseMonth" onchange="loadExpenses()" style="padding:8px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:.88rem;background:#fafafa;outline:none;">
-          <button class="btn-green" onclick="openExpenseModal()">+ Thêm chi phí</button>
+        <button class="btn-green" onclick="openExpenseModal()">+ Thêm chi phí</button>
+      </div>
+      <div class="filter-bar">
+        <div class="month-nav">
+          <button type="button" class="month-arrow" onclick="expenseStepMonth(-1)" title="Tháng trước">‹</button>
+          <input type="month" id="expenseMonth" class="month-input" onchange="loadExpenses()">
+          <button type="button" class="month-arrow" onclick="expenseStepMonth(1)" title="Tháng sau">›</button>
         </div>
+        <button type="button" id="expenseThisMonthBtn" class="chip-thismonth" onclick="expenseSetThisMonth()">Tháng này</button>
+        <span id="expenseMonthLabel" class="month-label"></span>
       </div>
       <div id="expenseSummary"></div>
       <div id="expensesTable" style="margin-top:18px;"><div class="loading-state">Đang tải…</div></div>
@@ -418,7 +435,10 @@
     <div id="panelCustomers" class="panel" style="display:none">
       <div class="panel-topbar">
         <h1>Khách hàng</h1>
-        <input type="text" id="customerSearch" placeholder="Tìm theo tên hoặc SĐT…" oninput="renderCustomers()" style="padding:9px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:.88rem;width:240px;outline:none;">
+        <button class="btn-green" onclick="openCustomerModal()">+ Thêm khách</button>
+      </div>
+      <div class="filter-bar">
+        <input type="search" id="customerSearch" class="filter-search" placeholder="🔍 Tìm theo tên hoặc SĐT…" oninput="renderCustomers()">
       </div>
       <div id="customersTable"><div class="loading-state">Đang tải…</div></div>
     </div>
@@ -796,6 +816,39 @@
   </div>
 </div>
 
+<!-- Thêm/Sửa khách hàng -->
+<div id="customerModal" class="modal-overlay" style="display:none" onclick="closeCustomerModalOutside(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="customerModalTitle">Thêm khách</h2>
+      <button class="modal-close" onclick="closeCustomerModal()">✕</button>
+    </div>
+    <form id="customerForm" onsubmit="saveCustomer(event)">
+      <input type="hidden" id="cuId">
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field-group">
+            <label>Tên khách *</label>
+            <input type="text" id="cuName" required placeholder="VD: Chị Lan">
+          </div>
+          <div class="field-group">
+            <label>Số điện thoại *</label>
+            <input type="tel" id="cuPhone" required placeholder="VD: 0912345678">
+          </div>
+          <div class="field-group full">
+            <label>Địa chỉ <span style="font-weight:400;color:#7A9879;">(tùy chọn)</span></label>
+            <input type="text" id="cuAddress" placeholder="Số nhà, ngõ, đường, phường…">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" onclick="closeCustomerModal()">Hủy</button>
+        <button type="submit" class="btn-green" id="saveCustomerBtn">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Thêm/Sửa chi phí -->
 <div id="expenseModal" class="modal-overlay" style="display:none" onclick="closeExpenseModalOutside(event)">
   <div class="modal-box">
@@ -1025,13 +1078,32 @@ async function loadDelivery() {
 let expenses = []
 const EXPENSE_CATS = ['Hoa', 'Phụ kiện', 'Vận chuyển', 'Khác']
 
+const curMonthStr = () => new Date().toLocaleDateString('sv-SE').slice(0, 7)
+
+function expenseStepMonth(delta) {
+  const input = document.getElementById('expenseMonth')
+  if (!input.value) input.value = curMonthStr()
+  const [y, m] = input.value.split('-').map(Number)
+  input.value = new Date(y, m - 1 + delta, 1).toLocaleDateString('sv-SE').slice(0, 7)
+  loadExpenses()
+}
+
+function expenseSetThisMonth() {
+  document.getElementById('expenseMonth').value = curMonthStr()
+  loadExpenses()
+}
+
 async function loadExpenses() {
   const input = document.getElementById('expenseMonth')
-  if (!input.value) input.value = new Date().toLocaleDateString('sv-SE').slice(0, 7)
+  if (!input.value) input.value = curMonthStr()
   const month = input.value                       // YYYY-MM
   const start = month + '-01'
   const [y, m] = month.split('-').map(Number)
   const nextStart = new Date(y, m, 1).toLocaleDateString('sv-SE')  // đầu tháng kế
+
+  // Nhãn tháng dễ đọc + đánh dấu nút "Tháng này"
+  document.getElementById('expenseMonthLabel').textContent = `Đang xem: Tháng ${m}/${y}`
+  document.getElementById('expenseThisMonthBtn').classList.toggle('active', month === curMonthStr())
 
   const { data: exp } = await sb.from('expenses').select('*')
     .gte('expense_date', start).lt('expense_date', nextStart)
@@ -2022,6 +2094,43 @@ async function loadCustomers() {
   renderCustomers()
 }
 
+function openCustomerModal(id) {
+  const c = id ? customers.find(x => x.id === id) : null
+  document.getElementById('customerModalTitle').textContent = c ? 'Sửa khách' : 'Thêm khách'
+  document.getElementById('cuId').value = c ? c.id : ''
+  document.getElementById('cuName').value = c?.name || ''
+  document.getElementById('cuPhone').value = c?.phone || ''
+  document.getElementById('cuAddress').value = c?.address || ''
+  document.getElementById('customerModal').style.display = 'flex'
+}
+function closeCustomerModal() { document.getElementById('customerModal').style.display = 'none' }
+function closeCustomerModalOutside(e) { if (e.target.id === 'customerModal') closeCustomerModal() }
+
+async function saveCustomer(e) {
+  e.preventDefault()
+  const btn = document.getElementById('saveCustomerBtn')
+  btn.textContent = 'Đang lưu…'; btn.disabled = true
+  const id = document.getElementById('cuId').value
+  const data = {
+    name:    document.getElementById('cuName').value.trim(),
+    phone:   document.getElementById('cuPhone').value.trim(),
+    address: document.getElementById('cuAddress').value.trim() || null,
+  }
+  const res = id
+    ? await sb.from('customers').update(data).eq('id', parseInt(id))
+    : await sb.from('customers').insert(data)
+  btn.textContent = 'Lưu'; btn.disabled = false
+  if (res.error) {
+    const msg = res.error.code === '23505'
+      ? 'Số điện thoại này đã có khách khác dùng.'
+      : res.error.message
+    showToast('Lỗi: ' + msg, 'error'); return
+  }
+  showToast(id ? 'Đã cập nhật khách!' : 'Đã thêm khách!')
+  closeCustomerModal()
+  loadCustomers()
+}
+
 function renderCustomers() {
   const el = document.getElementById('customersTable')
   const q = document.getElementById('customerSearch').value.trim().toLowerCase()
@@ -2039,7 +2148,10 @@ function renderCustomers() {
     <td>${esc(c.phone)}</td>
     <td style="max-width:280px;color:#555;font-size:.88rem;">${esc(c.address || '—')}</td>
     <td style="font-size:.82rem;color:#7A9879;">${new Date(c.created_at).toLocaleDateString('vi-VN')}</td>
-    <td class="actions"><button class="btn-icon i-view" title="Xem đơn của khách" onclick="viewCustomerOrders(${c.id})">👁</button></td>
+    <td class="actions">
+      <button class="btn-edit" onclick="openCustomerModal(${c.id})">✏️ Sửa</button>
+      <button class="btn-edit" onclick="viewCustomerOrders(${c.id})">📦 Xem đơn</button>
+    </td>
   </tr>`).join('')}</tbody>
 </table>`
 }
