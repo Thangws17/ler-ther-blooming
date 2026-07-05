@@ -341,10 +341,10 @@ async function loadContact() {
   }
 
   const SOCIALS = [
-    { key:'facebook',  cItem:'cFbItem', cLink:'cFbLink', footer:'fbLink', cls:'btn-fb', label:'📘 Facebook'  },
-    { key:'instagram', cItem:'cIgItem', cLink:'cIgLink', footer:'igLink', cls:'btn-ig', label:'📸 Instagram' },
-    { key:'tiktok',    cItem:'cTtItem', cLink:'cTtLink', footer:'ttLink', cls:'btn-tt', label:'🎵 TikTok'    },
-    { key:'threads',   cItem:'cThItem', cLink:'cThLink', footer:'thLink', cls:'btn-th', label:'🧵 Threads'   },
+    { key:'facebook',  cItem:'cFbItem', cLink:'cFbLink', footer:'fbLink', cls:'btn-fb', label:'Facebook'  },
+    { key:'instagram', cItem:'cIgItem', cLink:'cIgLink', footer:'igLink', cls:'btn-ig', label:'Instagram' },
+    { key:'tiktok',    cItem:'cTtItem', cLink:'cTtLink', footer:'ttLink', cls:'btn-tt', label:'TikTok'    },
+    { key:'threads',   cItem:'cThItem', cLink:'cThLink', footer:'thLink', cls:'btn-th', label:'Threads'   },
   ];
   const ctaRow     = document.getElementById('ctaSocialRow');
   const ctaSection = document.getElementById('ctaSocialSection');
@@ -354,9 +354,14 @@ async function loadContact() {
     const url = contactInfo[s.key];
     if (!url) return;
     hasSocial = true;
+    const icon = SOCIAL_ICONS[s.key] || '';
     const cItem = document.getElementById(s.cItem);
     const cLink = document.getElementById(s.cLink);
-    if (cItem) cItem.style.display = 'flex';
+    if (cItem) {
+      cItem.style.display = 'flex';
+      const iconEl = cItem.querySelector('.c-icon');
+      if (iconEl) iconEl.innerHTML = icon;
+    }
     if (cLink) cLink.href = url;
     const footerEl = document.getElementById(s.footer);
     if (footerEl) { footerEl.href = url; footerEl.style.display = 'inline'; }
@@ -364,12 +369,20 @@ async function loadContact() {
       const btn = document.createElement('a');
       btn.href = url; btn.target = '_blank';
       btn.className = `btn-social ${s.cls}`;
-      btn.textContent = s.label;
+      btn.innerHTML = `${icon}<span>${s.label}</span>`;
       ctaRow.appendChild(btn);
     }
   });
   if (ctaSection && hasSocial) ctaSection.style.display = 'block';
 }
+
+// Logo SVG chính thức của các nền tảng (dùng để dẫn link) — fill trắng theo màu nền
+const SOCIAL_ICONS = {
+  facebook: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.41 0 12.07c0 6.02 4.39 11.01 10.13 11.93v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.49 0-1.96.93-1.96 1.87v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.08 24 18.09 24 12.07z"/></svg>',
+  instagram: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.43.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.43-.36-1.06-.41-2.23-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16M12 0C8.74 0 8.33.01 7.05.07c-1.28.06-2.15.26-2.91.56-.79.3-1.46.72-2.12 1.38C1.36 2.67.94 3.34.63 4.14c-.3.76-.5 1.63-.56 2.91C.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.28.26 2.15.56 2.91.3.79.72 1.46 1.38 2.12.66.66 1.33 1.08 2.12 1.38.76.3 1.63.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.28-.06 2.15-.26 2.91-.56.79-.3 1.46-.72 2.12-1.38.66-.66 1.08-1.33 1.38-2.12.3-.76.5-1.63.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.28-.26-2.15-.56-2.91-.3-.79-.72-1.46-1.38-2.12-.66-.66-1.33-1.08-2.12-1.38-.76-.3-1.63-.5-2.91-.56C15.67.01 15.26 0 12 0zm0 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zM12 16a4 4 0 1 1 4-4 4 4 0 0 1-4 4zm6.41-10.85a1.44 1.44 0 1 0 1.44 1.44 1.44 1.44 0 0 0-1.44-1.44z"/></svg>',
+  tiktok: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 5.82a4.28 4.28 0 0 1-1.06-2.82h-3.4v13.67a2.6 2.6 0 0 1-2.6 2.5 2.6 2.6 0 0 1-2.15-4.06 2.6 2.6 0 0 1 3-1.02V8.2a6 6 0 0 0-5.2 9.87A6 6 0 0 0 15.9 15.6V9.01a7.66 7.66 0 0 0 4.48 1.43V7.05a4.28 4.28 0 0 1-3.78-1.23z"/></svg>',
+  threads: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.93 11.14c-.09-.04-.18-.08-.27-.12-.16-2.9-1.75-4.56-4.41-4.58h-.04c-1.6 0-2.92.68-3.74 1.91l1.47 1.01c.61-.92 1.57-1.12 2.27-1.12h.03c.87 0 1.53.26 1.96.75.31.36.52.86.63 1.49-.81-.14-1.68-.18-2.62-.12-2.64.15-4.34 1.69-4.22 3.83.06 1.08.6 2.02 1.52 2.62.78.52 1.78.77 2.83.72 1.38-.08 2.46-.6 3.22-1.56.57-.72.94-1.66 1.1-2.85.66.4 1.15.93 1.42 1.56.46 1.08.49 2.85-.96 4.29-1.27 1.27-2.79 1.81-5.09 1.83-2.55-.02-4.48-.84-5.73-2.43C5.13 16.18 4.5 14.05 4.48 12c.02-2.05.65-4.18 1.85-5.72 1.25-1.6 3.18-2.42 5.73-2.43 2.57.02 4.54.84 5.85 2.44.64.79 1.13 1.78 1.45 2.94l1.72-.46c-.39-1.42-1-2.65-1.84-3.68C17.55 3.06 15.09 2.02 11.87 2h-.01c-3.21.02-5.65 1.07-7.24 3.11C3.14 6.9 2.4 9.4 2.38 11.99v.02c.02 2.59.76 5.09 2.24 6.88 1.59 2.04 4.03 3.09 7.24 3.11h.01c2.85-.02 4.86-.77 6.51-2.42 2.16-2.16 2.1-4.86 1.39-6.52-.51-1.19-1.48-2.16-2.84-2.82zm-4.55 5.5c-1.16.07-2.37-.46-2.43-1.55-.04-.81.58-1.71 2.5-1.82.22-.01.43-.02.65-.02.7 0 1.35.07 1.94.2-.22 2.75-1.51 3.13-2.66 3.19z"/></svg>',
+};
 
 function setText(id, val) {
   const el = document.getElementById(id);
@@ -437,49 +450,52 @@ const HANOI_AREAS = [
 function openOrderModal(productId, productName) {
   _orderProduct = { id: productId, name: productName };
   document.getElementById('orderModalBody').innerHTML = `
-<h3>Đặt hàng</h3>
-<span class="order-product-name">🌸 ${esc(productName)}</span>
-<div class="order-reassure">🚚 Nội thành miễn phí · 💳 COD / Chuyển khoản · 🌸 Gửi ảnh duyệt trước khi giao · <a href="chinh-sach.html" target="_blank">Xem chính sách</a></div>
+<div class="order-head">
+  <h3>Đặt hoa 🌸</h3>
+  <span class="order-product-name">${esc(productName)}</span>
+</div>
+<div class="order-reassure">🚚 Nội thành miễn phí · 💳 COD / Chuyển khoản · 📸 Gửi ảnh duyệt trước khi giao · <a href="chinh-sach.html" target="_blank">Xem chính sách</a></div>
 <form id="orderForm" onsubmit="submitOrder(event)">
-  <div class="order-field">
-    <label>Họ tên người đặt *</label>
-    <input type="text" id="orderName" required>
-  </div>
-  <div class="order-row">
+  <div class="order-grid">
+    <div class="order-field">
+      <label>Họ tên người đặt *</label>
+      <input type="text" id="orderName" required placeholder="VD: Minh Anh">
+    </div>
     <div class="order-field">
       <label>Số điện thoại *</label>
-      <input type="tel" id="orderPhone" required>
+      <input type="tel" id="orderPhone" required placeholder="VD: 0912 345 678">
+    </div>
+    <div class="order-field">
+      <label>Khu vực giao *</label>
+      <select id="orderArea" required>
+        <option value="">— Chọn khu vực —</option>
+        ${HANOI_AREAS.map(a => `<option value="${a}">${a}</option>`).join('')}
+        <option value="Khu vực khác">Khu vực khác (ngoại thành / tỉnh khác)</option>
+      </select>
     </div>
     <div class="order-field">
       <label>Số lượng</label>
       <input type="number" id="orderQty" min="1" value="1">
     </div>
+    <div class="order-field of-full">
+      <label>Địa chỉ giao hàng *</label>
+      <input type="text" id="orderAddress" required placeholder="Số nhà, ngõ, đường, phường…">
+    </div>
+    <div class="order-field of-full">
+      <label>Ngày giao mong muốn</label>
+      <input type="date" id="orderDate">
+      <p class="order-hint">🌸 Nên đặt trước 1–2 ngày để shop chọn hoa tươi và chuẩn bị chu đáo nhất cho bạn nhé!</p>
+    </div>
+    <div class="order-field">
+      <label>Lời nhắn trên thiếp</label>
+      <textarea id="orderMessage" placeholder="VD: Chúc mừng sinh nhật..."></textarea>
+    </div>
+    <div class="order-field">
+      <label>Ghi chú thêm</label>
+      <textarea id="orderNote" placeholder="Yêu cầu khác (nếu có)"></textarea>
+    </div>
   </div>
-  <div class="order-field">
-    <label>Khu vực giao *</label>
-    <select id="orderArea" required>
-      <option value="">— Chọn khu vực —</option>
-      ${HANOI_AREAS.map(a => `<option value="${a}">${a}</option>`).join('')}
-      <option value="Khu vực khác">Khu vực khác (ngoại thành / tỉnh khác)</option>
-    </select>
-  </div>
-  <div class="order-field">
-    <label>Địa chỉ giao hàng *</label>
-    <input type="text" id="orderAddress" required placeholder="Số nhà, ngõ, đường, phường…">
-  </div>
-  <div class="order-field">
-    <label>Ngày giao mong muốn</label>
-    <input type="date" id="orderDate">
-  </div>
-  <div class="order-field">
-    <label>Lời nhắn trên thiếp</label>
-    <textarea id="orderMessage" placeholder="VD: Chúc mừng sinh nhật..."></textarea>
-  </div>
-  <div class="order-field">
-    <label>Ghi chú thêm</label>
-    <textarea id="orderNote" placeholder="Yêu cầu khác (nếu có)"></textarea>
-  </div>
-  <button type="submit" class="btn btn-primary order-submit" id="orderSubmitBtn">Gửi đơn đặt hàng</button>
+  <button type="submit" class="btn btn-primary order-submit" id="orderSubmitBtn">🌸 Gửi đơn đặt hàng</button>
 </form>`;
   document.getElementById('orderOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -679,14 +695,26 @@ async function loadRelated(category, excludeId) {
 }
 
 // ─── Init ─────────────────────────────────────────────────
+function injectZaloIcons() {
+  // Logo Zalo chính thức (images/zalo.svg)
+  const img = '<img src="images/zalo.svg" alt="Zalo">';
+  const ci = document.getElementById('zaloIcon'); if (ci) ci.innerHTML = img;
+  const bi = document.querySelector('#zaloBtn .zi'); if (bi) bi.innerHTML = img;
+  document.querySelectorAll('.zalo-float').forEach(fl => {
+    const ic = fl.querySelector('span:not(.zalo-label)');
+    if (ic) ic.innerHTML = img;
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   initNav();
+  injectZaloIcons();
   // Năm © tự cập nhật (khỏi lỗi thời)
   document.querySelectorAll('.footer-bottom').forEach(el => {
     el.textContent = el.textContent.replace(/©\s*\d{4}/, '© ' + new Date().getFullYear());
   });
-  await loadContact();
-  loadBanner();
+  // Tải song song cho nhanh: contact chạy nền, nội dung chính không phải chờ
+  const contactReady = loadContact();
   loadHeroPriceHint();
   loadFeatured();
   loadProducts();
@@ -694,4 +722,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadTestimonials();
   loadProductDetail();
   initScrollReveal();
+  await contactReady;
+  loadBanner();          // cần dữ liệu contact
+  wireOrderButtons();    // nối lại link Zalo sau khi contact sẵn sàng
 });

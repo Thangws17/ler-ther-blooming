@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap');
+/* Fonts nạp qua <link> trong <head> từng trang (nhanh hơn @import) */
 
 /* ─── Variables ──────────────────────────────────────────── */
 :root {
@@ -357,24 +357,33 @@ section    { padding:64px 0; }
 .btn-fb { background:#1877F2; color:#fff; }
 .btn-ig { background:linear-gradient(135deg,#f09433,#dc2743,#bc1888); color:#fff; }
 .btn-tt { background:#010101; color:#fff; }
-.btn-th { background:#1C1C1C; color:#fff; }
-.c-icon.fb { background:#E7F0FD; }
-.c-icon.ig { background:#FDE7F6; }
-.c-icon.tt { background:#EBEBEB; }
-.c-icon.th { background:#EBEBEB; }
+.btn-th { background:#000; color:#fff; }
+.btn-social svg { width:17px; height:17px; }
+/* Icon liên hệ: nền màu thương hiệu, logo SVG trắng */
+.c-icon.fb { background:#1877F2; color:#fff; }
+.c-icon.ig { background:linear-gradient(135deg,#f09433,#dc2743,#bc1888); color:#fff; }
+.c-icon.tt { background:#010101; color:#fff; }
+.c-icon.th { background:#000; color:#fff; }
+/* Logo Zalo chính thức: tự có nền, không cần nền tự chế */
+.c-icon.zalo { background:transparent; }
+.c-icon.zalo img { width:48px; height:48px; border-radius:12px; }
+.c-icon svg { width:24px; height:24px; }
+.zalo-float img { width:26px; height:26px; border-radius:6px; display:block; }
+.btn-zalo .zi { display:inline-flex; align-items:center; }
+.btn-zalo .zi img { width:22px; height:22px; border-radius:5px; }
 
 /* ─── Zalo Float ─────────────────────────────────────────── */
 .zalo-float {
   position:fixed; bottom:28px; right:28px; z-index:999;
   display:flex; align-items:center; gap:10px;
-  background:#0068FF; color:#fff;
-  padding:13px 22px; border-radius:50px;
+  background:#fff; color:#0068FF; border:2px solid #0068FF;
+  padding:11px 20px; border-radius:50px;
   font-family:'Nunito',sans-serif; font-weight:700; font-size:.95rem;
-  box-shadow:0 4px 20px rgba(0,104,255,.40);
+  box-shadow:0 4px 20px rgba(0,104,255,.25);
   transition:var(--t);
   animation:floatpulse 2.5s ease-in-out infinite;
 }
-.zalo-float:hover { transform:scale(1.06); box-shadow:0 8px 32px rgba(0,104,255,.55); }
+.zalo-float:hover { transform:scale(1.06); box-shadow:0 8px 32px rgba(0,104,255,.40); }
 @keyframes floatpulse {
   0%,100% { box-shadow:0 4px 20px rgba(0,104,255,.40); }
   50%      { box-shadow:0 4px 32px rgba(0,104,255,.70); }
@@ -528,12 +537,20 @@ section    { padding:64px 0; }
 }
 .order-overlay.open { display:flex; }
 .order-modal {
-  background:var(--white); border-radius:var(--radius);
-  max-width:480px; width:100%; max-height:90vh; overflow-y:auto;
-  padding:32px; box-shadow:var(--shadow-lg); position:relative;
+  background:var(--white); border-radius:20px;
+  max-width:640px; width:100%; max-height:92vh; overflow-y:auto;
+  padding:30px 34px; box-shadow:var(--shadow-lg); position:relative;
 }
-.order-modal h3 { font-size:1.3rem; color:var(--text); margin-bottom:4px; }
-.order-modal .order-product-name { color:var(--green); font-weight:700; margin-bottom:14px; display:block; }
+.order-head { margin-bottom:14px; }
+.order-modal h3 { font-size:1.35rem; color:var(--text); margin-bottom:8px; }
+.order-modal .order-product-name {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--green-pale); color:var(--green);
+  font-weight:700; font-size:.92rem;
+  padding:6px 16px; border-radius:50px;
+}
+.order-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px 16px; }
+.order-grid .of-full { grid-column:1 / -1; }
 .order-reassure {
   background:var(--green-pale); border-radius:var(--radius-sm);
   padding:10px 14px; font-size:.82rem; color:var(--text-mid);
@@ -557,7 +574,7 @@ section    { padding:64px 0; }
 }
 .order-field input:focus, .order-field textarea:focus, .order-field select:focus { border-color:var(--green-light); background:var(--white); }
 .order-field textarea { resize:vertical; min-height:64px; }
-.order-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.order-hint { font-size:.8rem; color:var(--text-light); margin-top:6px; line-height:1.55; }
 .order-submit { width:100%; margin-top:6px; padding:13px; font-size:1rem; }
 .order-success { text-align:center; padding:20px 0; }
 .order-success .o-icon { font-size:3rem; margin-bottom:12px; }
@@ -671,4 +688,8 @@ section    { padding:64px 0; }
   /* float */
   .zalo-float .zalo-label { display:none; }
   .zalo-float { padding:14px; border-radius:50%; width:54px; height:54px; justify-content:center; }
+
+  /* form đặt hàng: về 1 cột trên điện thoại */
+  .order-grid { grid-template-columns:1fr; }
+  .order-modal { padding:24px 20px; }
 }

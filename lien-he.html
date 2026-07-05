@@ -12,8 +12,12 @@
   <meta property="og:description" content="Đặt hoa tươi qua Zalo hoặc điện thoại — phản hồi nhanh, giao tận nơi.">
   <meta property="og:image"       content="">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://oijcwborkebjpavzyisl.supabase.co">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -66,7 +70,7 @@
         </div>
 
         <div class="c-item">
-          <div class="c-icon o">💬</div>
+          <div class="c-icon zalo" id="zaloIcon"></div>
           <div>
             <label>Zalo</label>
             <span>
@@ -94,28 +98,28 @@
         </div>
 
         <div class="c-item" id="cFbItem" style="display:none">
-          <div class="c-icon fb">📘</div>
+          <div class="c-icon fb"></div>
           <div>
             <label>Facebook</label>
             <span><a id="cFbLink" href="#" target="_blank">Xem trang Facebook</a></span>
           </div>
         </div>
         <div class="c-item" id="cIgItem" style="display:none">
-          <div class="c-icon ig">📸</div>
+          <div class="c-icon ig"></div>
           <div>
             <label>Instagram</label>
             <span><a id="cIgLink" href="#" target="_blank">Xem Instagram</a></span>
           </div>
         </div>
         <div class="c-item" id="cTtItem" style="display:none">
-          <div class="c-icon tt">🎵</div>
+          <div class="c-icon tt"></div>
           <div>
             <label>TikTok</label>
             <span><a id="cTtLink" href="#" target="_blank">Xem TikTok</a></span>
           </div>
         </div>
         <div class="c-item" id="cThItem" style="display:none">
-          <div class="c-icon th">🧵</div>
+          <div class="c-icon th"></div>
           <div>
             <label>Threads</label>
             <span><a id="cThLink" href="#" target="_blank">Xem Threads</a></span>
@@ -133,7 +137,7 @@
         <div class="response-badge">⏱ Thường phản hồi trong 15–30 phút</div>
         <div class="contact-cta-btns">
           <a href="#" class="btn-zalo" id="zaloBtn" target="_blank">
-            💬 Nhắn Zalo ngay
+            <span class="zi"></span> Nhắn Zalo ngay
           </a>
           <a href="#" class="btn-call" id="callBtn">
             📞 Gọi điện
@@ -194,6 +198,6 @@
   </div>
 </footer>
 
-<script src="js/main.js"></script>
+<script defer src="js/main.js"></script>
 </body>
 </html>
