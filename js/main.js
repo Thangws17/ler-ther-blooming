@@ -9,6 +9,12 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&l
 // Chuỗi an toàn để nhúng vào onclick="fn('...')" — escape lớp JS rồi lớp HTML
 const jsAttr = s => esc(String(s ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"))
 
+// Giá hiển thị đẹp: "550000" / "550,000 đ" → "550.000đ"; giá dạng chữ ("Liên hệ") giữ nguyên
+function fmtPrice(raw) {
+  const n = parseInt(String(raw ?? '').replace(/[^\d]/g, ''), 10)
+  return n >= 1000 ? n.toLocaleString('vi-VN') + 'đ' : String(raw ?? '')
+}
+
 // ─── Nav ─────────────────────────────────────────────────
 function initNav() {
   const toggle = document.getElementById('menuToggle');
@@ -85,7 +91,7 @@ function productCardHTML(p) {
     </div>
     <div class="product-desc">${esc(p.description)}</div>
     <div class="product-footer">
-      <span class="product-price">${esc(p.price)}</span>
+      <span class="product-price">${esc(fmtPrice(p.price))}</span>
       <button type="button" class="product-btn" onclick="openOrderModal(${p.id}, '${nameAttr}')">
         🌸 Đặt ngay
       </button>
@@ -660,7 +666,7 @@ async function loadProductDetail() {
     <a href="san-pham.html" class="detail-back">← Quay lại sản phẩm</a>
     <span class="detail-cat">${esc(p.category)}</span>
     <h1 class="detail-name">${esc(p.name)}</h1>
-    <div class="detail-price">${esc(p.price)}</div>
+    <div class="detail-price">${esc(fmtPrice(p.price))}</div>
     <p class="detail-desc">${esc(p.description)}</p>
     <div class="detail-actions">
       <button type="button" class="btn btn-primary" style="font-size:1rem;" onclick="openOrderModal(${p.id}, '${jsAttr(p.name)}')">

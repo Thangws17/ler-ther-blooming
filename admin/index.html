@@ -1239,7 +1239,7 @@ function renderProducts() {
     <td><div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="">` : '🌸'}</div></td>
     <td><strong>${esc(p.name)}</strong></td>
     <td><span class="cat-badge">${esc(p.category)}</span></td>
-    <td>${esc(p.price)}</td>
+    <td>${fmtPriceText(p.price)}</td>
     <td><button class="toggle-btn ${p.featured ? 'on' : ''}" onclick="toggleFeatured(${p.id},${p.featured})">${p.featured ? '✓ Có' : '— Không'}</button></td>
     <td>${p.order_index}</td>
     <td class="actions">
@@ -1785,6 +1785,11 @@ async function compressImage(file, maxDim = 1600, quality = 0.82) {
 // Mã đơn dễ đọc + định dạng tiền
 const orderCode = id => '#LT-' + String(id).padStart(4, '0')
 const fmtVnd = n => (Number(n) || 0).toLocaleString('vi-VN') + 'đ'
+// Giá sản phẩm lưu dạng text tự do → hiển thị chuẩn "550.000đ" (giá chữ giữ nguyên)
+const fmtPriceText = raw => {
+  const n = parseInt(String(raw ?? '').replace(/[^\d]/g, ''), 10)
+  return n >= 1000 ? fmtVnd(n) : esc(String(raw ?? ''))
+}
 const orderTotalLabel = o => (o.unit_price == null ? '<span style="color:#E65100">Chưa định giá</span>' : '<strong>' + fmtVnd(o.total) + '</strong>')
 // Tên/SĐT khách: ưu tiên khách đã ghép, fallback sang tên snapshot trên đơn (đã escape)
 const orderCustomerName = o => esc(o.customers?.name || o.customer_name || '—')
@@ -1943,7 +1948,7 @@ function openOrderEditModal(id) {
   const listedNum = listed ? parseInt(String(listed).replace(/[^\d]/g, ''), 10) : null
   const up = document.getElementById('oeUnitPrice')
   up.value = o.unit_price ?? ''
-  up.placeholder = listedNum ? `Giá niêm yết: ${listedNum}` : 'VD: 350000'
+  up.placeholder = listedNum ? `Giá niêm yết: ${fmtVnd(listedNum)}` : 'VD: 350000'
   document.getElementById('oeShipping').value = o.shipping_fee ?? 0
   document.getElementById('oeArea').value = o.delivery_area || ''
   document.getElementById('oeDate').value = o.delivery_date || ''
@@ -2048,7 +2053,7 @@ function openNewOrderModal() {
   // Danh sách sản phẩm để chọn nhanh
   document.getElementById('noProductPick').innerHTML =
     '<option value="">— Nhập tay —</option>' +
-    products.map(p => `<option value="${p.id}">${p.name} (${p.price || ''})</option>`).join('')
+    products.map(p => `<option value="${p.id}">${esc(p.name)} (${fmtPriceText(p.price)})</option>`).join('')
   document.getElementById('noStatus').innerHTML =
     ORDER_STATUSES.map(s => `<option ${s === 'Đã xác nhận' ? 'selected' : ''}>${s}</option>`).join('')
   ;['noUnitPrice', 'noQuantity', 'noShipping'].forEach(fid =>
