@@ -166,6 +166,7 @@
     .dash-num { font-size: 2.1rem; font-weight: 800; line-height: 1.1; }
     .dash-label { margin-top: 8px; color: #7A9879; font-size: .9rem; font-weight: 600; }
     @media (max-width: 720px) { .dash-cards { grid-template-columns: 1fr; } }
+    .optimizer-box { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; justify-content: space-between; margin-top: 32px; padding: 20px 22px; background: #FFF8E1; border: 1.5px solid #FFE082; border-radius: 14px; }
 
     /* ── Lịch giao ────────────────────────────── */
     .deliv-group { margin-bottom: 26px; }
@@ -328,6 +329,24 @@
       <div id="dashboardCards" class="dash-cards"></div>
       <h2 style="margin:28px 0 14px;font-size:1.15rem;">📅 Giao hôm nay</h2>
       <div id="dashboardToday"><div class="loading-state">Đang tải…</div></div>
+
+      <!-- Công cụ tối ưu ảnh cũ -->
+      <div class="optimizer-box">
+        <div>
+          <strong>⚡ Tối ưu ảnh cũ cho web nhanh hơn</strong>
+          <p style="font-size:.85rem;color:#7A9879;margin-top:4px;max-width:640px;">
+            Nén nhỏ + bật cache cho các ảnh sản phẩm & gallery đã tải lên trước đây (giúp web tải nhanh, đỡ "xoay xoay").
+            Ảnh gốc vẫn được giữ lại, chạy an toàn. Chỉ cần bấm 1 lần.
+          </p>
+        </div>
+        <button class="btn-green" id="optimizeBtn" onclick="optimizeOldImages()">Bắt đầu tối ưu</button>
+        <div id="optimizeProgress" style="display:none;flex:1 1 100%;margin-top:6px;">
+          <div class="progress-bar" style="height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden;">
+            <div id="optProgFill" style="height:100%;width:0;background:#2E7D32;transition:width .2s;"></div>
+          </div>
+          <p id="optProgText" style="font-size:.85rem;color:#555;margin-top:6px;"></p>
+        </div>
+      </div>
     </div>
 
     <!-- Lịch giao -->
@@ -1318,7 +1337,7 @@ async function handleProductImagesUpload(input) {
   for (const raw of files) {
     const file = await compressImage(raw)
     const path = `products/${Date.now()}_${file.name.replace(/\s/g, '_')}`
-    const { error } = await sb.storage.from('images').upload(path, file)
+    const { error } = await sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })
     if (error) { showToast('Lỗi: ' + error.message, 'error'); continue }
     const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
     newImages.push(publicUrl)
@@ -1573,7 +1592,7 @@ async function handleGalleryUpload(files) {
   for (const raw of Array.from(files)) {
     const file = await compressImage(raw)
     const path = `gallery/${Date.now()}_${file.name.replace(/\s/g, '_')}`
-    const { error } = await sb.storage.from('images').upload(path, file)
+    const { error } = await sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })
     if (!error) {
       const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
       await sb.from('gallery').insert({ url: publicUrl, caption: '', category, order_index: nextOrder++ })
@@ -1780,6 +1799,52 @@ async function compressImage(file, maxDim = 1600, quality = 0.82) {
     const name = file.name.replace(/\.\w+$/, '') + '.jpg'
     return new File([blob], name, { type: 'image/jpeg' })
   } catch { return file }  // trình duyệt cũ / ảnh lỗi → upload bản gốc
+}
+
+// Tối ưu 1 lần toàn bộ ảnh cũ: tải về → nén → up lại (cache 1 năm) → cập nhật link.
+// Ảnh gốc giữ nguyên (không xóa). Bỏ qua ảnh đã tối ưu (link chứa "_opt").
+async function optimizeOldImages() {
+  if (!confirm('Tối ưu toàn bộ ảnh cũ? Có thể mất vài phút — đừng đóng tab cho tới khi xong.')) return
+  const btn  = document.getElementById('optimizeBtn')
+  const box  = document.getElementById('optimizeProgress')
+  const fill = document.getElementById('optProgFill')
+  const text = document.getElementById('optProgText')
+  btn.disabled = true; btn.textContent = 'Đang chạy…'
+  box.style.display = 'block'
+  text.textContent = 'Đang lấy danh sách ảnh…'
+
+  const [{ data: prods }, { data: gals }] = await Promise.all([
+    sb.from('products').select('id,image').not('image', 'is', null),
+    sb.from('gallery').select('id,url'),
+  ])
+  const jobs = []
+  ;(prods || []).forEach(p => { if (p.image && p.image.includes('/images/') && !p.image.includes('_opt')) jobs.push({ table: 'products', col: 'image', id: p.id, url: p.image }) })
+  ;(gals  || []).forEach(g => { if (g.url && g.url.includes('/images/') && !g.url.includes('_opt')) jobs.push({ table: 'gallery', col: 'url', id: g.id, url: g.url }) })
+
+  if (!jobs.length) { text.textContent = 'Tất cả ảnh đã được tối ưu rồi 👍'; btn.textContent = 'Đã tối ưu'; return }
+
+  let done = 0, ok = 0, fail = 0, saved = 0
+  for (const job of jobs) {
+    try {
+      const blob = await (await fetch(job.url)).blob()
+      const orig = blob.size
+      const folder = job.table === 'products' ? 'products' : 'gallery'
+      const file = await compressImage(new File([blob], 'x.jpg', { type: blob.type || 'image/jpeg' }))
+      const path = `${folder}/${Date.now()}_opt_${job.id}.jpg`
+      const { error: upErr } = await sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })
+      if (upErr) throw upErr
+      const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
+      const { error: dbErr } = await sb.from(job.table).update({ [job.col]: publicUrl }).eq('id', job.id)
+      if (dbErr) throw dbErr
+      ok++; saved += Math.max(0, orig - file.size)
+    } catch (e) { fail++ }
+    done++
+    fill.style.width = `${Math.round(done / jobs.length * 100)}%`
+    text.textContent = `Đã xử lý ${done}/${jobs.length} · OK ${ok}${fail ? ' · lỗi ' + fail : ''} · tiết kiệm ~${(saved / 1048576).toFixed(1)}MB`
+  }
+  btn.textContent = 'Tối ưu xong 🎉'
+  text.textContent = `Hoàn tất! ${ok}/${jobs.length} ảnh đã tối ưu, tiết kiệm ~${(saved / 1048576).toFixed(1)}MB.${fail ? ' ' + fail + ' ảnh lỗi (bỏ qua, ảnh gốc vẫn còn).' : ''} Tải lại web sẽ thấy nhanh hơn.`
+  showToast('Tối ưu ảnh xong!')
 }
 
 // Mã đơn dễ đọc + định dạng tiền
