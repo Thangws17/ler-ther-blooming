@@ -65,6 +65,7 @@ drop function if exists place_order(text, text, text, bigint, text, int, date, t
 drop function if exists place_order(text, text, text, bigint, text, int, date, text, text, text);
 
 -- SĐT tùy chọn · KHÔNG ghi đè thông tin khách đã có · chặn số lượng ≤ 0
+-- · TỰ điền giá từ giá niêm yết sản phẩm (tách số từ chuỗi giá text)
 create function place_order(
   p_phone text,
   p_name text,
@@ -85,6 +86,7 @@ declare
   v_customer_id bigint;
   v_order_id bigint;
   v_qty int := greatest(coalesce(p_quantity, 1), 1);
+  v_unit_price numeric;
 begin
   if p_phone is not null and length(trim(p_phone)) > 0 then
     select id into v_customer_id from customers where phone = p_phone;
@@ -103,9 +105,19 @@ begin
     v_customer_id := null;
   end if;
 
+  -- Giá niêm yết của sản phẩm → unit_price (không tách được số thì để trống)
+  if p_product_id is not null then
+    select nullif(regexp_replace(coalesce(price, ''), '[^0-9]', '', 'g'), '')::numeric
+      into v_unit_price
+    from products
+    where id = p_product_id;
+  end if;
+
   insert into orders (customer_id, customer_name, product_id, product_name, quantity,
+                      unit_price,
                       delivery_address, delivery_area, delivery_date, message_card, note)
   values (v_customer_id, p_name, p_product_id, p_product_name, v_qty,
+          v_unit_price,
           p_address, p_delivery_area, p_delivery_date, p_message_card, p_note)
   returning id into v_order_id;
 
