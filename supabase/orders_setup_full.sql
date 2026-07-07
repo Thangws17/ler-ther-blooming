@@ -31,6 +31,7 @@ create table if not exists orders (
 -- Cột bổ sung (P1) — thêm nếu chưa có
 alter table orders add column if not exists delivery_area text;
 alter table orders add column if not exists customer_name text;                 -- snapshot tên khách trên đơn
+alter table orders add column if not exists image text;                         -- ảnh riêng của đơn (mặc định dùng ảnh sản phẩm)
 alter table orders add column if not exists unit_price   numeric;              -- đơn giá admin chốt
 alter table orders add column if not exists shipping_fee numeric default 0;
 alter table orders add column if not exists total numeric
