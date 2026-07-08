@@ -10,8 +10,12 @@ create table if not exists expenses (
   unit_price numeric,                       -- đơn giá (tùy chọn)
   amount numeric not null default 0,        -- thành tiền (bắt buộc)
   note text,
+  image text,                               -- ảnh hoá đơn/mặt hàng (tùy chọn)
   created_at timestamptz default now()
 );
+
+-- Thêm cột image nếu bảng đã tồn tại từ trước
+alter table expenses add column if not exists image text;
 
 alter table expenses enable row level security;
 

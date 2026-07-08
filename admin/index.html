@@ -1016,6 +1016,15 @@
             <label>Ghi chú</label>
             <textarea id="exNote" rows="2"></textarea>
           </div>
+          <div class="field-group full">
+            <label>Ảnh <span style="font-weight:400;color:#7A9879;text-transform:none;">(tùy chọn — chụp hoá đơn / mặt hàng)</span></label>
+            <div id="exImagePreview" style="margin-bottom:8px;"></div>
+            <div class="img-upload-area" onclick="document.getElementById('exImgInput').click()">
+              <input type="file" id="exImgInput" accept="image/*" style="display:none" onchange="handleExpenseImageUpload(this)">
+              📷 Chụp / chọn ảnh từ thiết bị
+            </div>
+            <input type="hidden" id="exImage">
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -1276,9 +1285,10 @@ function renderExpenses(revenueActual, revenueProjected) {
   el.innerHTML = !expenses.length
     ? '<div class="empty-state">Chưa có chi phí nào trong tháng này. Nhấn "+ Thêm chi phí".</div>'
     : `<table class="data-table">
-<thead><tr><th>Ngày</th><th>Loại</th><th>Mặt hàng</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th><th>Ghi chú</th><th></th></tr></thead>
+<thead><tr><th></th><th>Ngày</th><th>Loại</th><th>Mặt hàng</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th><th>Ghi chú</th><th></th></tr></thead>
 <tbody>${expenses.map(e => `
 <tr>
+  <td><div class="thumb">${e.image ? `<img src="${esc(e.image)}" alt="" loading="lazy" style="cursor:pointer" onclick="openImageViewer('${esc(e.image)}')">` : '🧾'}</div></td>
   <td>${e.expense_date.split('-').reverse().join('/')}</td>
   <td><span class="cat-badge">${esc(e.category)}</span></td>
   <td>${esc(e.item || '—')}</td>
@@ -1293,10 +1303,44 @@ function renderExpenses(revenueActual, revenueProjected) {
 </tr>`).join('')}</tbody></table>`
 }
 
+// Xem ảnh phóng to (dùng chung cho chi phí / đơn)
+function openImageViewer(url) {
+  const el = document.createElement('div')
+  el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out'
+  el.innerHTML = `<img src="${esc(url)}" alt="" style="max-width:100%;max-height:100%;border-radius:8px;">`
+  el.onclick = () => el.remove()
+  document.body.appendChild(el)
+}
+
 function exUpdateAmount() {
   const q = parseFloat(document.getElementById('exQty').value)
   const p = parseFloat(document.getElementById('exUnitPrice').value)
   if (!isNaN(q) && !isNaN(p)) document.getElementById('exAmount').value = q * p
+}
+
+function setExpenseImagePreview(url) {
+  document.getElementById('exImage').value = url || ''
+  document.getElementById('exImagePreview').innerHTML = url
+    ? `<div style="position:relative;display:inline-block;">
+         <img src="${esc(url)}" alt="" style="width:120px;height:120px;object-fit:cover;border-radius:10px;display:block;">
+         <button type="button" class="btn-delete-sm" style="position:absolute;top:6px;right:6px;" title="Bỏ ảnh"
+           onclick="setExpenseImagePreview('')">✕</button>
+       </div>`
+    : ''
+}
+
+async function handleExpenseImageUpload(input) {
+  const raw = input.files[0]
+  if (!raw) return
+  showToast('Đang tải ảnh lên…')
+  const file = await compressImage(raw)
+  const path = `expenses/${Date.now()}_${file.name.replace(/\s/g, '_')}`
+  const { error } = await sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })
+  input.value = ''
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
+  setExpenseImagePreview(publicUrl)
+  showToast('Đã tải ảnh lên!')
 }
 
 function openExpenseModal(id = null) {
@@ -1314,9 +1358,11 @@ function openExpenseModal(id = null) {
     document.getElementById('exUnitPrice').value = e.unit_price ?? ''
     document.getElementById('exAmount').value = e.amount ?? ''
     document.getElementById('exNote').value = e.note || ''
+    setExpenseImagePreview(e.image || '')
   } else {
     document.getElementById('expenseModalTitle').textContent = 'Thêm chi phí'
     document.getElementById('exDate').value = new Date().toLocaleDateString('sv-SE')
+    setExpenseImagePreview('')
   }
   document.getElementById('expenseModal').style.display = 'flex'
 }
@@ -1339,6 +1385,7 @@ async function saveExpense(e) {
     unit_price:   p === '' ? null : parseFloat(p),
     amount:       parseFloat(document.getElementById('exAmount').value) || 0,
     note:         document.getElementById('exNote').value.trim() || null,
+    image:        document.getElementById('exImage').value || null,
   }
   const { error } = id
     ? await sb.from('expenses').update(data).eq('id', id)
