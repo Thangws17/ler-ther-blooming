@@ -132,8 +132,7 @@
     .month-nav { display: inline-flex; align-items: center; gap: 6px; }
     .month-arrow { width: 34px; height: 36px; border-radius: 8px; border: 1.5px solid #ddd; background: #fff; color: #2E7D32; font-size: 1.15rem; font-weight: 800; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all .15s; }
     .month-arrow:hover { border-color: #2E7D32; background: #E8F5E9; }
-    .month-input { padding: 8px 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: .9rem; font-weight: 700; color: #2E7D32; background: #fafafa; outline: none; }
-    .month-input:focus { border-color: #2E7D32; background: #fff; }
+    .month-display { padding: 8px 16px; border: 1.5px solid #ddd; border-radius: 8px; font-size: .9rem; font-weight: 700; color: #2E7D32; background: #fff; min-width: 128px; text-align: center; display: inline-block; }
     .chip-thismonth { padding: 8px 16px; border-radius: 50px; border: 1.5px solid #2E7D32; background: #fff; color: #2E7D32; font-weight: 700; font-size: .85rem; cursor: pointer; transition: all .15s; }
     .chip-thismonth:hover { background: #E8F5E9; }
     .chip-thismonth.active { background: #2E7D32; color: #fff; cursor: default; }
@@ -168,6 +167,77 @@
     .dash-label { margin-top: 8px; color: #7A9879; font-size: .9rem; font-weight: 600; }
     @media (max-width: 720px) { .dash-cards { grid-template-columns: 1fr; } }
     .optimizer-box { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; justify-content: space-between; margin-top: 32px; padding: 20px 22px; background: #FFF8E1; border: 1.5px solid #FFE082; border-radius: 14px; }
+
+    /* ── Lịch giao: lịch tháng mini ───────────── */
+    .deliv-calendar { background: #fff; border: 1px solid #eef3ee; border-radius: 14px; padding: 14px 14px 10px; margin-bottom: 22px; box-shadow: 0 1px 6px rgba(0,0,0,.04); }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-dow { text-align: center; font-size: .72rem; font-weight: 700; color: #7A9879; text-transform: uppercase; padding: 4px 0 8px; }
+    .cal-day {
+      position: relative; aspect-ratio: 1; max-height: 52px; border-radius: 10px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: .88rem; font-weight: 600; color: #555; border: 1.5px solid transparent;
+    }
+    .cal-day.cal-empty { visibility: hidden; }
+    .cal-day.cal-past { color: #c5cfc5; }
+    .cal-day.cal-today { border-color: #2E7D32; color: #2E7D32; font-weight: 800; }
+    .cal-day.cal-has { background: #E8F5E9; color: #1B5E20; cursor: pointer; font-weight: 800; }
+    .cal-day.cal-has:hover { background: #C8E6C9; }
+    .cal-day.cal-overdue { background: #FFEBEE; color: #C62828; }
+    .cal-day.cal-overdue:hover { background: #FFCDD2; }
+    .cal-day.cal-selected { border-color: #2E7D32; box-shadow: 0 0 0 2px rgba(46,125,50,.25); }
+    .cal-count {
+      position: absolute; top: 3px; right: 3px; min-width: 17px; height: 17px; padding: 0 4px;
+      background: #2E7D32; color: #fff; border-radius: 50px;
+      font-size: .66rem; font-weight: 800; display: flex; align-items: center; justify-content: center;
+    }
+    .cal-day.cal-overdue .cal-count { background: #C62828; }
+    @media (max-width: 520px) { .cal-day { font-size: .8rem; border-radius: 8px; } .cal-count { min-width: 15px; height: 15px; font-size: .6rem; } }
+
+    /* ── Bộ chọn ngày (popover lịch, dùng ở màn Đơn hàng) ── */
+    .date-pick-wrap { position: relative; }
+    .date-pop {
+      position: absolute; top: calc(100% + 6px); left: 0; z-index: 600;
+      background: #fff; border: 1px solid #e0e8e0; border-radius: 14px;
+      box-shadow: 0 10px 32px rgba(0,0,0,.16); padding: 12px;
+      width: 302px; max-width: calc(100vw - 40px);
+    }
+    .date-pop-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .date-pop-title { font-weight: 800; color: #2E7D32; font-size: .92rem; }
+    .date-pop .cal-day { cursor: pointer; max-height: 40px; }
+    .date-pop .cal-day:hover { background: #E8F5E9; }
+    .date-pop .cal-day.cal-selected { background: #2E7D32; color: #fff; border-color: #2E7D32; }
+    .cal-dot { position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: #2E7D32; }
+    .date-pop .cal-day.cal-selected .cal-dot { background: #fff; }
+    .date-clear-btn { width: 100%; margin-top: 8px; padding: 8px; border: 1.5px solid #ddd; background: #fff; border-radius: 8px; color: #777; font-size: .85rem; font-weight: 600; cursor: pointer; }
+    .date-clear-btn:hover { border-color: #E64A19; color: #E64A19; }
+    /* Nhật ký cập nhật */
+    .cl-card { background: #fff; border: 1px solid #eef3ee; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 1px 6px rgba(0,0,0,.04); }
+    .cl-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .cl-date { background: #E8F5E9; color: #2E7D32; font-weight: 800; font-size: .8rem; padding: 4px 12px; border-radius: 50px; white-space: nowrap; }
+    .cl-title { flex: 1; min-width: 200px; font-size: 1.02rem; }
+    .cl-actions { display: flex; gap: 6px; }
+    .cl-details { white-space: pre-line; color: #555; font-size: .9rem; line-height: 1.7; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e8f0e8; }
+    .cl-note { margin-top: 12px; background: #FFF8E1; border: 1px solid #FFE082; border-radius: 10px; padding: 10px 12px; }
+    .cl-note label { display: block; font-size: .76rem; font-weight: 700; color: #B27B00; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+    .cl-note textarea { width: 100%; border: none; background: transparent; resize: vertical; font-size: .9rem; color: #5d4037; outline: none; min-height: 40px; }
+
+    /* Gợi ý nguyên liệu (autocomplete) + danh sách nguyên liệu */
+    .suggest-pop { width: 100%; max-height: 250px; overflow-y: auto; padding: 6px; }
+    .suggest-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; font-size: .9rem; }
+    .suggest-row:hover { background: #E8F5E9; }
+    .suggest-row .s-cat { color: #7A9879; font-size: .78rem; }
+    .suggest-row .s-price { color: #2E7D32; font-weight: 700; font-size: .85rem; white-space: nowrap; }
+    .suggest-add { color: #2E7D32; font-weight: 700; }
+    .mt-name { flex: 1; min-width: 0; font-weight: 700; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mt-price { color: #2E7D32; font-weight: 700; font-size: .85rem; white-space: nowrap; }
+    .mt-history { background: #f8faf8; border: 1px solid #eef3ee; border-radius: 8px; padding: 8px 12px; margin: -2px 0 8px; font-size: .83rem; color: #555; }
+    .mt-history .h-row { padding: 3px 0; border-bottom: 1px dashed #e8f0e8; display: flex; justify-content: space-between; gap: 10px; }
+    .mt-history .h-row:last-child { border-bottom: none; }
+
+    /* Điện thoại: popover lịch nổi giữa màn hình, không bị tràn mép (trừ gợi ý autocomplete — neo theo ô nhập) */
+    @media (max-width: 600px) {
+      .date-pop:not(.suggest-pop) { position: fixed; left: 16px; right: 16px; top: 50%; transform: translateY(-50%); width: auto; max-width: none; z-index: 1200; }
+    }
 
     /* ── Lịch giao ────────────────────────────── */
     .deliv-group { margin-bottom: 26px; }
@@ -391,6 +461,7 @@
       <button class="nav-item" data-tab="Products" onclick="switchTab(this)">🛍️ Sản phẩm</button>
       <button class="nav-item" data-tab="Gallery" onclick="switchTab(this)">📸 Gallery</button>
       <button class="nav-item" data-tab="Testimonials" onclick="switchTab(this)">💬 Đánh giá</button>
+      <button class="nav-item" data-tab="Changelog" onclick="switchTab(this)">📝 Cập nhật</button>
       <button class="nav-item" data-tab="Contact" onclick="switchTab(this)">⚙️ Liên hệ</button>
     </nav>
     <div class="sidebar-bottom">
@@ -438,6 +509,17 @@
     <!-- Lịch giao -->
     <div id="panelDelivery" class="panel" style="display:none">
       <div class="panel-topbar"><h1>Lịch giao hàng</h1></div>
+      <div class="filter-bar">
+        <div class="month-nav">
+          <button type="button" class="month-arrow" onclick="delivStepMonth(-1)" title="Tháng trước">‹</button>
+          <input type="hidden" id="delivMonth">
+          <span id="delivMonthDisplay" class="month-display">—</span>
+          <button type="button" class="month-arrow" onclick="delivStepMonth(1)" title="Tháng sau">›</button>
+        </div>
+        <button type="button" id="delivThisMonthBtn" class="chip-thismonth" onclick="delivSetThisMonth()">Tháng này</button>
+        <span id="delivSelectedLabel" class="month-label"></span>
+      </div>
+      <div id="delivCalendar" class="deliv-calendar"></div>
       <div id="deliveryList"><div class="loading-state">Đang tải…</div></div>
     </div>
 
@@ -501,7 +583,13 @@
           <option>Hoàn thành</option>
           <option>Đã hủy</option>
         </select>
-        <input type="date" id="orderDateFilter" onchange="renderOrders()" class="filter-select" title="Lọc theo ngày giao">
+        <button type="button" id="ordTodayChip" class="chip-thismonth" onclick="orderQuickDate(0)">Giao hôm nay</button>
+        <button type="button" id="ordTomoChip" class="chip-thismonth" onclick="orderQuickDate(1)">Ngày mai</button>
+        <div class="date-pick-wrap">
+          <button type="button" id="orderDateBtn" class="filter-select" onclick="toggleOrderDatePicker()">📅 Chọn ngày giao</button>
+          <div id="orderDatePicker" class="date-pop" style="display:none"></div>
+        </div>
+        <input type="hidden" id="orderDateFilter">
         <button type="button" class="btn-clear" onclick="clearOrderFilters()">Xóa lọc</button>
       </div>
       <div id="ordersTable"><div class="loading-state">Đang tải…</div></div>
@@ -511,16 +599,19 @@
     <div id="panelExpenses" class="panel" style="display:none">
       <div class="panel-topbar">
         <h1>Sổ chi phí</h1>
-        <button class="btn-green" onclick="openExpenseModal()">+ Thêm chi phí</button>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-outline" onclick="openMaterialsModal()">🧺 Nguyên liệu</button>
+          <button class="btn-green" onclick="openExpenseModal()">+ Thêm chi phí</button>
+        </div>
       </div>
       <div class="filter-bar">
         <div class="month-nav">
           <button type="button" class="month-arrow" onclick="expenseStepMonth(-1)" title="Tháng trước">‹</button>
-          <input type="month" id="expenseMonth" class="month-input" onchange="loadExpenses()">
+          <input type="hidden" id="expenseMonth">
+          <span id="expenseMonthDisplay" class="month-display">—</span>
           <button type="button" class="month-arrow" onclick="expenseStepMonth(1)" title="Tháng sau">›</button>
         </div>
         <button type="button" id="expenseThisMonthBtn" class="chip-thismonth" onclick="expenseSetThisMonth()">Tháng này</button>
-        <span id="expenseMonthLabel" class="month-label"></span>
       </div>
       <div id="expenseSummary"></div>
       <div id="expensesTable" style="margin-top:18px;"><div class="loading-state">Đang tải…</div></div>
@@ -536,6 +627,18 @@
         <input type="search" id="customerSearch" class="filter-search" placeholder="🔍 Tìm theo tên hoặc SĐT…" oninput="renderCustomers()">
       </div>
       <div id="customersTable"><div class="loading-state">Đang tải…</div></div>
+    </div>
+
+    <!-- Nhật ký cập nhật -->
+    <div id="panelChangelog" class="panel" style="display:none">
+      <div class="panel-topbar">
+        <h1>📝 Nhật ký cập nhật</h1>
+        <button class="btn-green" onclick="openChangelogModal()">+ Thêm bản cập nhật</button>
+      </div>
+      <p style="font-size:.85rem;color:#7A9879;margin:-14px 0 18px;">
+        Ghi lại mỗi lần website lên bản mới. Cả hai admin xem được — góp ý trực tiếp vào ô 💬 dưới từng bản (tự lưu khi bấm ra ngoài).
+      </p>
+      <div id="changelogList"><div class="loading-state">Đang tải…</div></div>
     </div>
 
     <!-- Liên hệ -->
@@ -972,6 +1075,109 @@
   </div>
 </div>
 
+<!-- Thêm/Sửa bản cập nhật -->
+<div id="changelogModal" class="modal-overlay" style="display:none" onclick="if(event.target.id==='changelogModal')closeChangelogModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="clModalTitle">Thêm bản cập nhật</h2>
+      <button class="modal-close" onclick="closeChangelogModal()">✕</button>
+    </div>
+    <form id="changelogForm" onsubmit="saveChangelog(event)">
+      <input type="hidden" id="clId">
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field-group">
+            <label>Ngày uplive *</label>
+            <input type="date" id="clDate" required>
+          </div>
+          <div class="field-group full">
+            <label>Tóm tắt *</label>
+            <input type="text" id="clTitle" required placeholder="VD: Thêm sổ nguyên liệu + lịch giao trực quan">
+          </div>
+          <div class="field-group full">
+            <label>Chi tiết <span style="font-weight:400;color:#7A9879;text-transform:none;">(mỗi dòng 1 mục, bắt đầu bằng "- ")</span></label>
+            <textarea id="clDetails" rows="6" placeholder="- Việc 1&#10;- Việc 2…"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" onclick="closeChangelogModal()">Hủy</button>
+        <button type="submit" class="btn-green" id="saveChangelogBtn">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Quản lý nguyên liệu -->
+<div id="materialsModal" class="modal-overlay" style="display:none" onclick="if(event.target.id==='materialsModal')closeMaterialsModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>🧺 Nguyên liệu</h2>
+      <button class="modal-close" onclick="closeMaterialsModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.83rem;color:#7A9879;margin-bottom:12px;">
+        Danh sách để gợi ý nhanh khi lên chi phí. Bấm vào tên nguyên liệu để xem các lần nhập.
+      </p>
+      <div class="cat-add-row" style="margin-bottom:12px;">
+        <input type="text" id="mtNewName" placeholder="Tên nguyên liệu mới…" style="flex:1;" onkeydown="if(event.key==='Enter')addMaterial()">
+        <select id="mtNewCat" style="padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;background:#fafafa;">
+          <option>Hoa</option><option>Phụ kiện</option><option>Vận chuyển</option><option selected>Khác</option>
+        </select>
+        <input type="number" id="mtNewPrice" placeholder="Giá" min="0" step="any" style="width:90px;">
+        <button class="btn-green" onclick="addMaterial()">+ Thêm</button>
+      </div>
+      <input type="search" id="mtSearch" class="filter-search" placeholder="🔍 Tìm nguyên liệu…" oninput="renderMaterialsList()" style="width:100%;margin-bottom:12px;">
+      <div id="materialsList" class="cat-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Sửa nguyên liệu + lịch sử giá nhập -->
+<div id="materialEditModal" class="modal-overlay" style="display:none;z-index:1150;" onclick="if(event.target.id==='materialEditModal')closeMaterialEditModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="mtEditTitle">Sửa nguyên liệu</h2>
+      <button class="modal-close" onclick="closeMaterialEditModal()">✕</button>
+    </div>
+    <form id="materialEditForm" onsubmit="saveMaterialEdit(event)">
+      <input type="hidden" id="meId">
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field-group full">
+            <label>Tên nguyên liệu *</label>
+            <input type="text" id="meName" required>
+            <p style="font-size:.78rem;color:#7A9879;margin-top:4px;">Đổi tên chỉ áp dụng cho gợi ý về sau — các dòng chi phí đã ghi giữ nguyên tên cũ.</p>
+          </div>
+          <div class="field-group">
+            <label>Loại</label>
+            <select id="meCat">
+              <option>Hoa</option><option>Phụ kiện</option><option>Vận chuyển</option><option>Khác</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label>Giá gần nhất (đ)</label>
+            <input type="number" id="mePrice" min="0" step="any" placeholder="Tự cập nhật khi lên chi phí">
+          </div>
+          <div class="field-group full">
+            <label>📜 Lịch sử giá các lần nhập</label>
+            <div id="meHistory" class="mt-history" style="margin:0;max-height:220px;overflow-y:auto;">
+              <div style="color:#7A9879;">Đang tải…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex;justify-content:space-between;gap:10px;">
+        <button type="button" class="btn-delete" onclick="deleteMaterialFromEdit()">🗑 Xóa</button>
+        <div style="display:flex;gap:10px;">
+          <button type="button" class="btn-outline" onclick="closeMaterialEditModal()">Hủy</button>
+          <button type="submit" class="btn-green" id="saveMaterialBtn">Lưu</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Thêm/Sửa chi phí -->
 <div id="expenseModal" class="modal-overlay" style="display:none" onclick="closeExpenseModalOutside(event)">
   <div class="modal-box">
@@ -997,8 +1203,12 @@
             </select>
           </div>
           <div class="field-group full">
-            <label>Mặt hàng <span style="font-weight:400;color:#7A9879;">(tùy chọn)</span></label>
-            <input type="text" id="exItem" placeholder="VD: Hồng đỏ, Ruy băng, Túi giấy…">
+            <label>Mặt hàng <span style="font-weight:400;color:#7A9879;">(gõ để gợi ý nguyên liệu)</span></label>
+            <div class="date-pick-wrap">
+              <input type="text" id="exItem" placeholder="VD: Hồng đỏ, Ruy băng, Túi giấy…" autocomplete="off"
+                oninput="showExItemSuggest()" onfocus="showExItemSuggest()">
+              <div id="exItemSuggestPop" class="date-pop suggest-pop" style="display:none"></div>
+            </div>
           </div>
           <div class="field-group">
             <label>Số lượng</label>
@@ -1110,6 +1320,7 @@ function switchTab(btn) {
   if (tab === 'Gallery')       loadGallery()
   if (tab === 'Customers')     loadCustomers()
   if (tab === 'Testimonials')  loadTestimonials()
+  if (tab === 'Changelog')     loadChangelog()
   if (tab === 'Contact')       loadContact()
 }
 
@@ -1176,24 +1387,79 @@ async function loadDashboard() {
 }
 
 // ── Lịch giao ─────────────────────────────────────
+let delivActive = []          // đơn đang hoạt động (chưa hủy / chưa hoàn thành)
+let delivSelectedDate = null  // ngày đang chọn trên lịch (null = xem tất cả)
+
 async function loadDelivery() {
   const { data } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('delivery_date', { ascending: true })
   orders = data || []
   // Ẩn đơn đã hủy & đã hoàn thành (đã giao xong, không cần trong lịch nữa)
-  const active = orders.filter(o => o.status !== 'Đã hủy' && o.status !== 'Hoàn thành')
+  delivActive = orders.filter(o => o.status !== 'Đã hủy' && o.status !== 'Hoàn thành')
+  const input = document.getElementById('delivMonth')
+  if (!input.value) input.value = curMonthStr()
+  delivSelectedDate = null
+  renderDelivCalendar()
+  renderDeliveryList()
+}
+
+function delivStepMonth(delta) {
+  const input = document.getElementById('delivMonth')
+  if (!input.value) input.value = curMonthStr()
+  const [y, m] = input.value.split('-').map(Number)
+  input.value = new Date(y, m - 1 + delta, 1).toLocaleDateString('sv-SE').slice(0, 7)
+  renderDelivCalendar()
+}
+
+function delivSetThisMonth() {
+  document.getElementById('delivMonth').value = curMonthStr()
+  renderDelivCalendar()
+}
+
+function delivPickDate(ds) {
+  delivSelectedDate = (delivSelectedDate === ds) ? null : ds   // bấm lại = bỏ chọn
+  renderDelivCalendar()
+  renderDeliveryList()
+}
+
+// Lịch tháng: ngày có đơn → nền xanh + số đơn; trễ hạn → đỏ; bấm để lọc
+function renderDelivCalendar() {
+  const input = document.getElementById('delivMonth')
+  if (!input.value) input.value = curMonthStr()
+  const monthKey = input.value
+  const [y, m] = monthKey.split('-').map(Number)
+  const today = todayStr()
+  document.getElementById('delivMonthDisplay').textContent = `Tháng ${m}/${y}`
+  document.getElementById('delivThisMonthBtn').classList.toggle('active', monthKey === curMonthStr())
+
+  const byDate = {}
+  delivActive.forEach(o => {
+    if (o.delivery_date && o.delivery_date.startsWith(monthKey)) (byDate[o.delivery_date] ||= []).push(o)
+  })
+
+  const daysInMonth = new Date(y, m, 0).getDate()
+  const firstDow = (new Date(y, m - 1, 1).getDay() + 6) % 7   // Thứ 2 = cột đầu
+  let cells = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(d => `<div class="cal-dow">${d}</div>`).join('')
+  for (let i = 0; i < firstDow; i++) cells += '<div class="cal-day cal-empty"></div>'
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${monthKey}-${String(d).padStart(2, '0')}`
+    const n = byDate[ds]?.length || 0
+    const cls = ['cal-day']
+    if (ds === today) cls.push('cal-today')
+    if (ds < today) cls.push('cal-past')
+    if (n) cls.push(ds < today ? 'cal-overdue' : 'cal-has')
+    if (ds === delivSelectedDate) cls.push('cal-selected')
+    cells += `<div class="${cls.join(' ')}"${n ? ` onclick="delivPickDate('${ds}')" title="${n} đơn"` : ''}>${d}${n ? `<span class="cal-count">${n}</span>` : ''}</div>`
+  }
+  document.getElementById('delivCalendar').innerHTML = `<div class="cal-grid">${cells}</div>`
+  document.getElementById('delivSelectedLabel').textContent = delivSelectedDate
+    ? `Đang xem ngày ${delivSelectedDate.split('-').reverse().slice(0, 2).join('/')} — bấm lại ô ngày để bỏ chọn`
+    : ''
+}
+
+function renderDeliveryList() {
+  const active = delivActive
   const today = todayStr()
   const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE')
-
-  const noDate  = active.filter(o => !o.delivery_date)
-  const dated   = active.filter(o => o.delivery_date)
-  const overdue = dated.filter(o => o.delivery_date < today)
-  const todayG  = dated.filter(o => o.delivery_date === today)
-  const tomoG   = dated.filter(o => o.delivery_date === tomorrow)
-  const future  = dated.filter(o => o.delivery_date > tomorrow)
-
-  // Nhóm "Sắp tới" theo từng ngày
-  const futureByDate = {}
-  future.forEach(o => { (futureByDate[o.delivery_date] ||= []).push(o) })
 
   const row = o => `
 <div class="deliv-row" onclick="viewOrderDetail(${o.id})">
@@ -1204,11 +1470,32 @@ async function loadDelivery() {
   <span class="status-select ${STATUS_CLASS[o.status] || ''}" style="cursor:pointer">${o.status}</span>
 </div>`
 
-  const fmtDay = ds => { const [y,m,d] = ds.split('-'); return `${d}/${m}` }
+  const fmtDay = ds => { const [y, m, d] = ds.split('-'); return `${d}/${m}` }
   const group = (title, items) => !items.length ? '' :
     `<div class="deliv-group"><h3 class="deliv-head">${title} <span class="deliv-count">${items.length} đơn</span></h3>${items.map(row).join('')}</div>`
 
   const el = document.getElementById('deliveryList')
+
+  // Đang chọn 1 ngày trên lịch → chỉ hiện đơn ngày đó
+  if (delivSelectedDate) {
+    const picked = active.filter(o => o.delivery_date === delivSelectedDate)
+    const title = delivSelectedDate === today ? '📅 Hôm nay'
+                : delivSelectedDate === tomorrow ? '📅 Ngày mai'
+                : '📅 Ngày ' + fmtDay(delivSelectedDate)
+    el.innerHTML = group(title, picked) || '<div class="empty-state">Ngày này không có đơn.</div>'
+    return
+  }
+
+  const noDate  = active.filter(o => !o.delivery_date)
+  const dated   = active.filter(o => o.delivery_date)
+  const overdue = dated.filter(o => o.delivery_date < today)
+  const todayG  = dated.filter(o => o.delivery_date === today)
+  const tomoG   = dated.filter(o => o.delivery_date === tomorrow)
+  const future  = dated.filter(o => o.delivery_date > tomorrow)
+
+  const futureByDate = {}
+  future.forEach(o => { (futureByDate[o.delivery_date] ||= []).push(o) })
+
   let html = ''
   if (overdue.length) html += `<div class="deliv-group deliv-overdue"><h3 class="deliv-head" style="color:#C62828">🔴 Trễ hạn <span class="deliv-count" style="background:#FFEBEE;color:#C62828">${overdue.length} đơn</span></h3>${overdue.map(o => row(o).replace('<span class="deliv-name">', `<span class="deliv-area" style="color:#C62828">${fmtDay(o.delivery_date)}</span><span class="deliv-name">`)).join('')}</div>`
   html += group('📅 Hôm nay', todayG)
@@ -1216,6 +1503,302 @@ async function loadDelivery() {
   Object.keys(futureByDate).sort().forEach(ds => { html += group('📅 ' + fmtDay(ds), futureByDate[ds]) })
   html += group('❓ Chưa hẹn ngày', noDate)
   el.innerHTML = html || '<div class="empty-state">Chưa có đơn nào cần giao.</div>'
+}
+
+// ── Nhật ký cập nhật (changelog) ──────────────────
+let changelogs = []
+
+async function loadChangelog() {
+  const { data } = await sb.from('changelog').select('*')
+    .order('release_date', { ascending: false }).order('id', { ascending: false })
+  changelogs = data || []
+  renderChangelog()
+}
+
+function renderChangelog() {
+  const el = document.getElementById('changelogList')
+  if (!changelogs.length) {
+    el.innerHTML = '<div class="empty-state">Chưa có bản cập nhật nào. Chạy file changelog_setup.sql để nạp lịch sử, hoặc nhấn "+ Thêm bản cập nhật".</div>'
+    return
+  }
+  el.innerHTML = changelogs.map(c => `
+<div class="cl-card">
+  <div class="cl-head">
+    <span class="cl-date">${c.release_date.split('-').reverse().join('/')}</span>
+    <strong class="cl-title">${esc(c.title)}</strong>
+    <span class="cl-actions">
+      <button class="btn-edit" onclick="openChangelogModal(${c.id})">✏️ Sửa</button>
+      <button class="btn-delete" onclick="deleteChangelog(${c.id})">🗑</button>
+    </span>
+  </div>
+  ${c.details ? `<div class="cl-details">${esc(c.details)}</div>` : ''}
+  <div class="cl-note">
+    <label>💬 Góp ý / ghi chú</label>
+    <textarea rows="2" placeholder="Ler ơi thấy sao, ghi vào đây nhé…" onblur="saveChangelogNote(${c.id}, this.value)">${esc(c.note || '')}</textarea>
+  </div>
+</div>`).join('')
+}
+
+function openChangelogModal(id = null) {
+  const c = id ? changelogs.find(x => x.id === id) : null
+  document.getElementById('clModalTitle').textContent = c ? 'Sửa bản cập nhật' : 'Thêm bản cập nhật'
+  document.getElementById('clId').value = c ? c.id : ''
+  document.getElementById('clDate').value = c ? c.release_date : new Date().toLocaleDateString('sv-SE')
+  document.getElementById('clTitle').value = c?.title || ''
+  document.getElementById('clDetails').value = c?.details || ''
+  document.getElementById('changelogModal').style.display = 'flex'
+}
+function closeChangelogModal() { document.getElementById('changelogModal').style.display = 'none' }
+
+async function saveChangelog(e) {
+  e.preventDefault()
+  const btn = document.getElementById('saveChangelogBtn')
+  btn.textContent = 'Đang lưu…'; btn.disabled = true
+  const id = document.getElementById('clId').value
+  const data = {
+    release_date: document.getElementById('clDate').value,
+    title:        document.getElementById('clTitle').value.trim(),
+    details:      document.getElementById('clDetails').value.trim() || null,
+  }
+  const { error } = id
+    ? await sb.from('changelog').update(data).eq('id', parseInt(id))
+    : await sb.from('changelog').insert(data)
+  btn.textContent = 'Lưu'; btn.disabled = false
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  closeChangelogModal()
+  showToast(id ? 'Đã cập nhật!' : 'Đã thêm bản cập nhật!')
+  loadChangelog()
+}
+
+async function saveChangelogNote(id, value) {
+  const c = changelogs.find(x => x.id === id)
+  if (!c || (c.note || '') === value.trim()) return   // không đổi thì thôi
+  const { error } = await sb.from('changelog').update({ note: value.trim() || null }).eq('id', id)
+  if (error) { showToast('Lỗi lưu góp ý: ' + error.message, 'error'); return }
+  c.note = value.trim()
+  showToast('Đã lưu góp ý!')
+}
+
+async function deleteChangelog(id) {
+  if (!confirm('Xóa bản cập nhật này khỏi nhật ký?')) return
+  await sb.from('changelog').delete().eq('id', id)
+  showToast('Đã xóa')
+  loadChangelog()
+}
+
+// ── Nguyên liệu (sổ tay điền nhanh cho chi phí) ───
+let materials = []
+
+async function loadMaterials() {
+  const { data } = await sb.from('materials').select('*').order('name')
+  materials = data || []
+}
+
+// Autocomplete ô "Mặt hàng" trong form chi phí
+function showExItemSuggest() {
+  const pop = document.getElementById('exItemSuggestPop')
+  const q = document.getElementById('exItem').value.trim().toLowerCase()
+  const list = (q
+    ? materials.filter(mt => mt.name.toLowerCase().includes(q))
+    : materials
+  ).slice(0, 8)
+
+  const exact = q && materials.some(mt => mt.name.toLowerCase() === q)
+  let html = list.map(mt => `
+<div class="suggest-row" onclick="pickMaterial(${mt.id})">
+  <span>${esc(mt.name)} <span class="s-cat">· ${esc(mt.category)}</span></span>
+  ${mt.last_price != null ? `<span class="s-price">${fmtVnd(mt.last_price)}</span>` : ''}
+</div>`).join('')
+  if (q && !exact) {
+    html += `<div class="suggest-row suggest-add" onclick="addMaterialFromInput()">➕ Thêm "${esc(document.getElementById('exItem').value.trim())}" vào nguyên liệu</div>`
+  }
+  if (!html) { pop.style.display = 'none'; return }
+  pop.innerHTML = html
+  pop.style.display = 'block'
+}
+
+function hideExItemSuggest() { document.getElementById('exItemSuggestPop').style.display = 'none' }
+
+function pickMaterial(id) {
+  const mt = materials.find(x => x.id === id)
+  if (!mt) return
+  document.getElementById('exItem').value = mt.name
+  document.getElementById('exCategory').value = mt.category
+  if (mt.last_price != null) document.getElementById('exUnitPrice').value = mt.last_price
+  exUpdateAmount()
+  hideExItemSuggest()
+  document.getElementById('exQty').focus()
+}
+
+// Thêm nhanh nguyên liệu mới ngay từ ô gõ (khi tìm không thấy)
+async function addMaterialFromInput() {
+  const name = document.getElementById('exItem').value.trim()
+  if (!name) return
+  const category = document.getElementById('exCategory').value
+  const { data, error } = await sb.from('materials').insert({ name, category }).select().single()
+  hideExItemSuggest()
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  materials.push(data)
+  materials.sort((a, b) => a.name.localeCompare(b.name, 'vi'))
+  showToast(`Đã thêm "${name}" vào nguyên liệu!`)
+  document.getElementById('exQty').focus()
+}
+
+// Sau khi lưu chi phí: tự đồng bộ nguyên liệu (thêm mới nếu chưa có, cập nhật giá gần nhất)
+async function syncMaterialFromExpense(item, category, unitPrice) {
+  if (!item) return
+  const found = materials.find(mt => mt.name.toLowerCase() === item.toLowerCase())
+  if (found) {
+    const patch = {}
+    if (unitPrice != null && unitPrice !== found.last_price) patch.last_price = unitPrice
+    if (category && category !== found.category) patch.category = category
+    if (Object.keys(patch).length) {
+      await sb.from('materials').update(patch).eq('id', found.id)
+      Object.assign(found, patch)
+    }
+  } else {
+    const { data } = await sb.from('materials').insert({ name: item, category, last_price: unitPrice }).select().single()
+    if (data) { materials.push(data); materials.sort((a, b) => a.name.localeCompare(b.name, 'vi')) }
+  }
+}
+
+// ── Modal quản lý nguyên liệu ──
+async function openMaterialsModal() {
+  if (!materials.length) await loadMaterials()
+  document.getElementById('mtSearch').value = ''
+  renderMaterialsList()
+  document.getElementById('materialsModal').style.display = 'flex'
+}
+function closeMaterialsModal() { document.getElementById('materialsModal').style.display = 'none' }
+
+function renderMaterialsList() {
+  const el = document.getElementById('materialsList')
+  const q = document.getElementById('mtSearch').value.trim().toLowerCase()
+  const list = q ? materials.filter(mt => mt.name.toLowerCase().includes(q)) : materials
+  if (!list.length) {
+    el.innerHTML = '<div style="color:#7A9879;font-size:.88rem;padding:8px 0;">Chưa có nguyên liệu nào. Thêm ở ô phía trên, hoặc cứ lên chi phí — mặt hàng sẽ tự được lưu lại.</div>'
+    return
+  }
+  el.innerHTML = list.map(mt => `
+<div class="cat-row">
+  <span class="mt-name" onclick="openMaterialEditModal(${mt.id})" title="Sửa / xem lịch sử giá">${esc(mt.name)}</span>
+  <span class="cat-badge">${esc(mt.category)}</span>
+  <span class="mt-price">${mt.last_price != null ? fmtVnd(mt.last_price) : '—'}</span>
+  <button class="cat-move" title="Sửa / lịch sử giá" onclick="openMaterialEditModal(${mt.id})">✏️</button>
+  <button class="btn-delete-sm" title="Xóa" onclick="deleteMaterial(${mt.id})">✕</button>
+</div>`).join('')
+}
+
+// ── Modal sửa nguyên liệu + lịch sử giá nhập ──
+function openMaterialEditModal(id) {
+  const mt = materials.find(x => x.id === id)
+  if (!mt) return
+  document.getElementById('mtEditTitle').textContent = `🧺 ${mt.name}`
+  document.getElementById('meId').value = mt.id
+  document.getElementById('meName').value = mt.name
+  document.getElementById('meCat').value = mt.category
+  document.getElementById('mePrice').value = mt.last_price ?? ''
+  document.getElementById('meHistory').innerHTML = '<div style="color:#7A9879;">Đang tải…</div>'
+  document.getElementById('materialEditModal').style.display = 'flex'
+  loadMaterialHistory(mt.name)
+}
+
+function closeMaterialEditModal() { document.getElementById('materialEditModal').style.display = 'none' }
+
+// Lịch sử các lần nhập (lấy từ Sổ chi phí theo tên, mới nhất trước)
+async function loadMaterialHistory(name) {
+  const box = document.getElementById('meHistory')
+  const { data } = await sb.from('expenses')
+    .select('expense_date, quantity, unit_price, amount')
+    .ilike('item', name)
+    .order('expense_date', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(50)
+  if (!data?.length) {
+    box.innerHTML = '<div style="color:#7A9879;">Chưa có lần nhập nào trong Sổ chi phí.</div>'
+    return
+  }
+  box.innerHTML = data.map((e, i) => {
+    // So giá với lần nhập TRƯỚC ĐÓ (dòng kế tiếp trong danh sách desc) để thấy tăng/giảm
+    const prev = data[i + 1]
+    let trend = ''
+    if (e.unit_price != null && prev?.unit_price != null && e.unit_price !== prev.unit_price) {
+      trend = e.unit_price > prev.unit_price
+        ? ' <span style="color:#C62828;font-size:.75rem;">▲</span>'
+        : ' <span style="color:#2E7D32;font-size:.75rem;">▼</span>'
+    }
+    return `
+<div class="h-row">
+  <span>${e.expense_date.split('-').reverse().join('/')}</span>
+  <span>${e.quantity != null ? e.quantity + ' × ' : ''}${e.unit_price != null ? '<strong>' + fmtVnd(e.unit_price) + '</strong>' + trend : '—'}</span>
+  <span>${fmtVnd(e.amount)}</span>
+</div>`
+  }).join('')
+}
+
+async function saveMaterialEdit(e) {
+  e.preventDefault()
+  const btn = document.getElementById('saveMaterialBtn')
+  btn.textContent = 'Đang lưu…'; btn.disabled = true
+  const id = parseInt(document.getElementById('meId').value)
+  const mt = materials.find(x => x.id === id)
+  const name = document.getElementById('meName').value.trim()
+  if (materials.some(x => x.id !== id && x.name.toLowerCase() === name.toLowerCase())) {
+    btn.textContent = 'Lưu'; btn.disabled = false
+    showToast('Đã có nguyên liệu trùng tên', 'error'); return
+  }
+  const priceVal = document.getElementById('mePrice').value
+  const patch = {
+    name,
+    category: document.getElementById('meCat').value,
+    last_price: priceVal === '' ? null : parseFloat(priceVal),
+  }
+  const { error } = await sb.from('materials').update(patch).eq('id', id)
+  btn.textContent = 'Lưu'; btn.disabled = false
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  Object.assign(mt, patch)
+  materials.sort((a, b) => a.name.localeCompare(b.name, 'vi'))
+  closeMaterialEditModal()
+  renderMaterialsList()
+  showToast('Đã cập nhật nguyên liệu!')
+}
+
+async function deleteMaterialFromEdit() {
+  const id = parseInt(document.getElementById('meId').value)
+  closeMaterialEditModal()
+  deleteMaterial(id)
+}
+
+async function addMaterial() {
+  const nameEl = document.getElementById('mtNewName')
+  const name = nameEl.value.trim()
+  if (!name) { showToast('Nhập tên nguyên liệu', 'error'); return }
+  if (materials.some(mt => mt.name.toLowerCase() === name.toLowerCase())) {
+    showToast('Nguyên liệu này đã có', 'error'); return
+  }
+  const priceVal = document.getElementById('mtNewPrice').value
+  const { data, error } = await sb.from('materials').insert({
+    name,
+    category: document.getElementById('mtNewCat').value,
+    last_price: priceVal === '' ? null : parseFloat(priceVal),
+  }).select().single()
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  materials.push(data)
+  materials.sort((a, b) => a.name.localeCompare(b.name, 'vi'))
+  nameEl.value = ''; document.getElementById('mtNewPrice').value = ''
+  renderMaterialsList()
+  showToast('Đã thêm nguyên liệu!')
+}
+
+async function deleteMaterial(id) {
+  const mt = materials.find(x => x.id === id)
+  if (!mt) return
+  if (!confirm(`Xóa "${mt.name}" khỏi danh sách gợi ý?\n(Các dòng chi phí đã ghi KHÔNG bị ảnh hưởng)`)) return
+  const { error } = await sb.from('materials').delete().eq('id', id)
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  materials = materials.filter(x => x.id !== id)
+  renderMaterialsList()
+  showToast('Đã xóa nguyên liệu')
 }
 
 // ── Sổ chi phí ────────────────────────────────────
@@ -1238,6 +1821,7 @@ function expenseSetThisMonth() {
 }
 
 async function loadExpenses() {
+  loadMaterials()   // nạp nguyên liệu song song cho autocomplete
   const input = document.getElementById('expenseMonth')
   if (!input.value) input.value = curMonthStr()
   const month = input.value                       // YYYY-MM
@@ -1246,7 +1830,7 @@ async function loadExpenses() {
   const nextStart = new Date(y, m, 1).toLocaleDateString('sv-SE')  // đầu tháng kế
 
   // Nhãn tháng dễ đọc + đánh dấu nút "Tháng này"
-  document.getElementById('expenseMonthLabel').textContent = `Đang xem: Tháng ${m}/${y}`
+  document.getElementById('expenseMonthDisplay').textContent = `Tháng ${m}/${y}`
   document.getElementById('expenseThisMonthBtn').classList.toggle('active', month === curMonthStr())
 
   const { data: exp } = await sb.from('expenses').select('*')
@@ -1392,6 +1976,8 @@ async function saveExpense(e) {
     : await sb.from('expenses').insert(data)
   btn.textContent = 'Lưu'; btn.disabled = false
   if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  // Đồng bộ sổ nguyên liệu: thêm mới nếu chưa có, nhớ giá lần mua này
+  syncMaterialFromExpense(data.item, data.category, data.unit_price)
   showToast(id ? 'Đã cập nhật chi phí!' : 'Đã thêm chi phí!')
   closeExpenseModal()
   loadExpenses()
@@ -2074,11 +2660,112 @@ function clearOrderFilters() {
   renderOrders()
 }
 
+// Chip lọc nhanh theo ngày giao (bấm lại = bỏ lọc)
+function orderQuickDate(offset) {
+  const ds = new Date(Date.now() + offset * 86400000).toLocaleDateString('sv-SE')
+  const input = document.getElementById('orderDateFilter')
+  input.value = (input.value === ds) ? '' : ds
+  renderOrders()
+}
+
+// ── Bộ chọn ngày giao (popover lịch, thay input date thô) ──
+let ordPickMonth = null
+
+function toggleOrderDatePicker() {
+  const pop = document.getElementById('orderDatePicker')
+  if (pop.style.display === 'none') {
+    ordPickMonth = (document.getElementById('orderDateFilter').value || todayStr()).slice(0, 7)
+    renderOrderDatePicker()
+    pop.style.display = 'block'
+    // Desktop: nếu tràn mép phải màn hình thì neo sang phải (mobile đã fixed giữa màn qua CSS)
+    if (window.innerWidth > 600) {
+      pop.style.left = '0'; pop.style.right = 'auto'
+      if (pop.getBoundingClientRect().right > window.innerWidth - 8) {
+        pop.style.left = 'auto'; pop.style.right = '0'
+      }
+    }
+  } else {
+    pop.style.display = 'none'
+  }
+}
+
+function ordPickStepMonth(delta) {
+  const [y, m] = ordPickMonth.split('-').map(Number)
+  ordPickMonth = new Date(y, m - 1 + delta, 1).toLocaleDateString('sv-SE').slice(0, 7)
+  renderOrderDatePicker()
+}
+
+function ordPickDay(ds) {
+  const input = document.getElementById('orderDateFilter')
+  input.value = (input.value === ds) ? '' : ds   // bấm lại ngày đang chọn = bỏ lọc
+  document.getElementById('orderDatePicker').style.display = 'none'
+  renderOrders()
+}
+
+function ordPickClear() {
+  document.getElementById('orderDateFilter').value = ''
+  document.getElementById('orderDatePicker').style.display = 'none'
+  renderOrders()
+}
+
+function renderOrderDatePicker() {
+  const [y, m] = ordPickMonth.split('-').map(Number)
+  const selected = document.getElementById('orderDateFilter').value
+  const today = todayStr()
+  // Chấm xanh: ngày có đơn (chưa hủy) hẹn giao
+  const has = {}
+  orders.forEach(o => { if (o.delivery_date?.startsWith(ordPickMonth) && o.status !== 'Đã hủy') has[o.delivery_date] = true })
+
+  const daysInMonth = new Date(y, m, 0).getDate()
+  const firstDow = (new Date(y, m - 1, 1).getDay() + 6) % 7
+  let cells = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(d => `<div class="cal-dow">${d}</div>`).join('')
+  for (let i = 0; i < firstDow; i++) cells += '<div class="cal-day cal-empty"></div>'
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${ordPickMonth}-${String(d).padStart(2, '0')}`
+    const cls = ['cal-day']
+    if (ds === today) cls.push('cal-today')
+    if (ds === selected) cls.push('cal-selected')
+    cells += `<div class="${cls.join(' ')}" onclick="ordPickDay('${ds}')">${d}${has[ds] ? '<span class="cal-dot"></span>' : ''}</div>`
+  }
+  document.getElementById('orderDatePicker').innerHTML = `
+<div class="date-pop-head">
+  <button type="button" class="month-arrow" onclick="ordPickStepMonth(-1)">‹</button>
+  <span class="date-pop-title">Tháng ${m}/${y}</span>
+  <button type="button" class="month-arrow" onclick="ordPickStepMonth(1)">›</button>
+</div>
+<div class="cal-grid">${cells}</div>
+${selected ? '<button type="button" class="date-clear-btn" onclick="ordPickClear()">✕ Bỏ lọc ngày</button>' : ''}`
+}
+
+// Bấm ra ngoài thì đóng popover (lịch chọn ngày + gợi ý nguyên liệu)
+document.addEventListener('click', e => {
+  if (!e.target.closest('.date-pick-wrap')) {
+    const pop = document.getElementById('orderDatePicker')
+    if (pop && pop.style.display !== 'none') pop.style.display = 'none'
+    const sug = document.getElementById('exItemSuggestPop')
+    if (sug && sug.style.display !== 'none') sug.style.display = 'none'
+  }
+})
+
 function renderOrders() {
   const el = document.getElementById('ordersTable')
   const status = document.getElementById('orderStatusFilter').value
   const date   = document.getElementById('orderDateFilter').value
   const q      = document.getElementById('orderSearch').value.trim().toLowerCase()
+
+  // Đồng bộ trạng thái sáng của chip ngày + nhãn nút chọn ngày
+  const _today = todayStr()
+  const _tomo  = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE')
+  document.getElementById('ordTodayChip')?.classList.toggle('active', date === _today)
+  document.getElementById('ordTomoChip')?.classList.toggle('active', date === _tomo)
+  const dateBtn = document.getElementById('orderDateBtn')
+  if (dateBtn) {
+    // Mặc định hiển thị ngày hôm nay (mờ); khi đang lọc thì xanh đậm kèm ngày lọc
+    dateBtn.textContent = '📅 ' + (date || _today).split('-').reverse().join('/')
+    dateBtn.style.borderColor = date ? '#2E7D32' : ''
+    dateBtn.style.color = date ? '#2E7D32' : '#999'
+    dateBtn.style.fontWeight = date ? '700' : ''
+  }
 
   const list = orders.filter(o => {
     if (status && o.status !== status) return false
