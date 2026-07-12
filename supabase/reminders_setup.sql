@@ -44,7 +44,7 @@ begin
     into v_count, v_lines
   from orders
   where delivery_date = v_tomorrow
-    and status not in ('Đã hủy', 'Hoàn thành');
+    and status not in ('Đã hủy', 'Giao thành công', 'Hoàn thành');
 
   if coalesce(v_count, 0) = 0 then
     return;  -- ngày mai không có đơn → không gửi

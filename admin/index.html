@@ -150,6 +150,7 @@
     .status-select.s-moi        { background: #FFF3E0; color: #E65100; border-color: #FFCC80; }
     .status-select.s-xacnhan    { background: #E3F2FD; color: #1565C0; border-color: #90CAF9; }
     .status-select.s-danggiao   { background: #F3E5F5; color: #6A1B9A; border-color: #CE93D8; }
+    .status-select.s-giaotc     { background: #E0F2F1; color: #00695C; border-color: #80CBC4; }
     .status-select.s-hoanthanh  { background: #E8F5E9; color: #2E7D32; border-color: #A5D6A7; }
     .status-select.s-huy        { background: #FFEBEE; color: #C62828; border-color: #EF9A9A; }
 
@@ -1292,7 +1293,11 @@ function showApp() {
   document.getElementById('loginWrap').style.display = 'none'
   document.getElementById('appWrap').style.display = 'flex'
   loadProducts()   // nạp sẵn để modal Sửa đơn gợi ý giá niêm yết
-  loadDashboard()
+  // F5 mở lại đúng tab đang xem (tab lưu trong URL dạng #Expenses)
+  const saved = location.hash.slice(1)
+  const savedBtn = saved && document.querySelector(`.nav-item[data-tab="${saved}"]`)
+  if (savedBtn) switchTab(savedBtn)
+  else loadDashboard()
 }
 
 // ── Tabs ─────────────────────────────────────────
@@ -1312,6 +1317,7 @@ function switchTab(btn) {
   const tab = btn.dataset.tab
   document.querySelectorAll('.panel').forEach(p => p.style.display = 'none')
   document.getElementById('panel' + tab).style.display = 'block'
+  history.replaceState(null, '', '#' + tab)   // lưu tab vào URL để F5 quay lại đúng chỗ
   closeSidebar()   // chọn xong tự đóng menu trên điện thoại
   if (tab === 'Dashboard')     loadDashboard()
   if (tab === 'Orders')        loadOrders()
@@ -1333,16 +1339,17 @@ async function loadDashboard() {
   const today = todayStr()
   const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE')
   const now = new Date()
-  const active = all.filter(o => o.status !== 'Đã hủy' && o.status !== 'Hoàn thành')
+  const active = all.filter(o => !DONE_STATUSES.includes(o.status))
 
   const newCount   = all.filter(o => o.status === 'Mới').length
   const todayOrders = active.filter(o => o.delivery_date === today)
   const tomorrowOrders = active.filter(o => o.delivery_date === tomorrow)
   const monthKey = today.slice(0, 7)
-  const inMonth = o => (o.created_at || '').slice(0, 7) === monthKey
-  // Doanh thu dự kiến: đơn đã chốt giá, chưa hủy. Thực tế: chỉ đơn đã Hoàn thành.
+  // Doanh thu ghi nhận theo NGÀY GIAO (đơn không hẹn ngày mới tính theo ngày tạo)
+  const inMonth = o => (o.delivery_date || (o.created_at || '').slice(0, 10)).slice(0, 7) === monthKey
+  // Doanh thu dự kiến: đơn chưa hủy. Thực tế: đã GIAO THÀNH CÔNG (hoặc Hoàn thành).
   const revenueProjected = all.filter(o => o.status !== 'Đã hủy' && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
-  const revenueActual = all.filter(o => o.status === 'Hoàn thành' && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
+  const revenueActual = all.filter(o => REVENUE_STATUSES.includes(o.status) && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
 
   // Chi phí tháng này → lãi gộp thực tế = doanh thu thực tế − chi phí
   const { data: expData } = await sb.from('expenses').select('amount, expense_date')
@@ -1393,8 +1400,8 @@ let delivSelectedDate = null  // ngày đang chọn trên lịch (null = xem t�
 async function loadDelivery() {
   const { data } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('delivery_date', { ascending: true })
   orders = data || []
-  // Ẩn đơn đã hủy & đã hoàn thành (đã giao xong, không cần trong lịch nữa)
-  delivActive = orders.filter(o => o.status !== 'Đã hủy' && o.status !== 'Hoàn thành')
+  // Ẩn đơn đã hủy / đã giao thành công / hoàn thành (xong việc giao, không cần trong lịch)
+  delivActive = orders.filter(o => !DONE_STATUSES.includes(o.status))
   const input = document.getElementById('delivMonth')
   if (!input.value) input.value = curMonthStr()
   delivSelectedDate = null
@@ -1839,10 +1846,11 @@ async function loadExpenses() {
   expenses = exp || []
 
   // Doanh thu cùng tháng: dự kiến (đã chốt giá, chưa hủy) vs thực tế (đã Hoàn thành)
-  const { data: ord } = await sb.from('orders').select('total, created_at, status')
-  const inMonth = o => (o.created_at || '').slice(0, 7) === month
+  // Ghi nhận theo NGÀY GIAO (đơn không hẹn ngày mới tính theo ngày tạo) — đồng bộ với Tổng quan
+  const { data: ord } = await sb.from('orders').select('total, created_at, delivery_date, status')
+  const inMonth = o => (o.delivery_date || (o.created_at || '').slice(0, 10)).slice(0, 7) === month
   const revenueProjected = (ord || []).filter(o => o.status !== 'Đã hủy' && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
-  const revenueActual = (ord || []).filter(o => o.status === 'Hoàn thành' && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
+  const revenueActual = (ord || []).filter(o => REVENUE_STATUSES.includes(o.status) && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
 
   renderExpenses(revenueActual, revenueProjected)
 }
@@ -2545,8 +2553,12 @@ async function saveTestimonial(e) {
 
 // ── Orders ────────────────────────────────────────
 let orders = []
-const ORDER_STATUSES = ['Mới', 'Đã xác nhận', 'Đang giao', 'Hoàn thành', 'Đã hủy']
-const STATUS_CLASS = { 'Mới': 's-moi', 'Đã xác nhận': 's-xacnhan', 'Đang giao': 's-danggiao', 'Hoàn thành': 's-hoanthanh', 'Đã hủy': 's-huy' }
+const ORDER_STATUSES = ['Mới', 'Đã xác nhận', 'Đang giao', 'Giao thành công', 'Hoàn thành', 'Đã hủy']
+const STATUS_CLASS = { 'Mới': 's-moi', 'Đã xác nhận': 's-xacnhan', 'Đang giao': 's-danggiao', 'Giao thành công': 's-giaotc', 'Hoàn thành': 's-hoanthanh', 'Đã hủy': 's-huy' }
+// Mốc ghi nhận doanh thu thực tế: đã giao hàng thành công (hoặc đã đóng đơn)
+const REVENUE_STATUSES = ['Giao thành công', 'Hoàn thành']
+// Đơn coi như xong việc giao (không hiện ở Lịch giao / Cần giao hôm nay)
+const DONE_STATUSES = ['Giao thành công', 'Hoàn thành', 'Đã hủy']
 
 // Chống XSS: escape dữ liệu do khách/người dùng nhập trước khi đưa vào innerHTML
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))
