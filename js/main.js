@@ -72,7 +72,12 @@ const CAT = {
 };
 const CAT_DEFAULT = { bg:'linear-gradient(135deg,#A5D6A7,#4CAF50)', emoji:'🌸' };
 
-function catStyle(cat) { return CAT[cat] || CAT_DEFAULT; }
+function catStyle(cat) {
+  const base = CAT[cat] || CAT_DEFAULT;
+  // Emoji ưu tiên lấy từ danh mục chung trong DB (nếu đã tải) để khớp cấu hình admin
+  const dbCat = Array.isArray(galleryCats) ? galleryCats.find(c => c.name === cat) : null;
+  return dbCat?.emoji ? { bg: base.bg, emoji: dbCat.emoji } : base;
+}
 
 // ─── Build product card HTML ──────────────────────────────
 function productCardHTML(p) {
@@ -109,14 +114,36 @@ async function loadProducts() {
 
   grid.innerHTML = '<div class="loading"><div class="l-icon">🌸</div><p>Đang tải sản phẩm…</p></div>';
 
-  const { data, error } = await sb.from('products').select('*').order('order_index');
-  if (error || !data) {
+  // Danh mục dùng CHUNG với Gallery (bảng gallery_categories) → tab lọc tự theo cấu hình trong admin
+  const [prodRes, catRes] = await Promise.all([
+    sb.from('products').select('*').order('order_index'),
+    sb.from('gallery_categories').select('*').order('order_index'),
+  ]);
+  if (prodRes.error || !prodRes.data) {
     grid.innerHTML = '<div class="loading"><p>Không thể tải sản phẩm, vui lòng thử lại.</p></div>';
     return;
   }
-  allProducts = data;
+  allProducts = prodRes.data;
+  galleryCats = catRes.data || [];
+  buildProductFilterTabs();
   renderProducts(allProducts, grid);
   initFilters();
+}
+
+// Dựng tab lọc sản phẩm từ danh mục chung (chỉ hiện danh mục đang có sản phẩm).
+// Sản phẩm mang danh mục ngoài danh sách (dữ liệu cũ) vẫn có tab riêng để không bị "mất".
+function buildProductFilterTabs() {
+  const wrap = document.getElementById('productFilters');
+  if (!wrap) return;
+  const tabs = galleryCats
+    .filter(c => allProducts.some(p => p.category === c.name))
+    .map(c => `<button class="filter-tab" data-category="${esc(c.name)}">${esc(c.emoji || '🌸')} ${esc(c.name)}</button>`)
+    .join('');
+  const known = new Set(galleryCats.map(c => c.name));
+  const extras = [...new Set(allProducts.map(p => p.category).filter(c => c && !known.has(c)))]
+    .map(c => `<button class="filter-tab" data-category="${esc(c)}">🌸 ${esc(c)}</button>`)
+    .join('');
+  wrap.innerHTML = `<button class="filter-tab active" data-category="all">🌸 Tất cả</button>${tabs}${extras}`;
 }
 
 function renderProducts(list, grid) {
@@ -274,7 +301,104 @@ function initGalleryFilters() {
 }
 
 function openLightboxFromEl(el) {
+  // Trang Gallery: mở theo vị trí trong bộ lọc hiện tại để chuyển ảnh ← → được
+  const list = getFilteredPhotos();
+  const idx = list.findIndex(ph => ph.url === el.dataset.url);
+  if (idx >= 0) { openGalleryLightbox(idx); return; }
   openLightbox(el.dataset.url, el.dataset.caption || '');
+}
+
+// Lightbox Gallery: chuyển ảnh bằng nút ‹ › / phím mũi tên / vuốt ngang, đếm ảnh, nút đặt mẫu.
+// Dựng bằng DOM + textContent → an toàn với mọi ký tự trong chú thích/URL.
+function openGalleryLightbox(startIdx) {
+  const list = getFilteredPhotos();
+  if (!list.length) return;
+  let idx = startIdx;
+
+  const el = document.createElement('div');
+  el.className = 'lightbox lightbox-nav-mode';
+
+  const img = document.createElement('img');
+  const cap = document.createElement('p');
+  cap.className = 'lightbox-caption';
+  const counter = document.createElement('span');
+  counter.className = 'lightbox-counter';
+
+  const mkBtn = (cls, text, label) => {
+    const b = document.createElement('button');
+    b.className = cls; b.textContent = text;
+    b.setAttribute('aria-label', label);
+    return b;
+  };
+  const btnPrev  = mkBtn('lightbox-nav lightbox-prev', '‹', 'Ảnh trước');
+  const btnNext  = mkBtn('lightbox-nav lightbox-next', '›', 'Ảnh sau');
+  const btnClose = mkBtn('lightbox-close', '✕', 'Đóng');
+  const btnOrder = mkBtn('btn btn-primary lightbox-order', '🌸 Đặt mẫu này', 'Đặt hoa theo mẫu này');
+
+  const show = (i) => {
+    idx = (i + list.length) % list.length;   // xoay vòng đầu ↔ cuối
+    const ph = list[idx];
+    img.src = ph.url;
+    img.alt = ph.caption || 'Ảnh hoa';
+    cap.textContent = ph.caption || '';
+    cap.style.display = ph.caption ? '' : 'none';
+    counter.textContent = (idx + 1) + ' / ' + list.length;
+  };
+  const close = () => {
+    el.classList.remove('show');
+    document.removeEventListener('keydown', onKey);
+    setTimeout(() => el.remove(), 260);
+  };
+  const onKey = (e) => {
+    if (e.key === 'Escape') close();
+    if (e.key === 'ArrowLeft') show(idx - 1);
+    if (e.key === 'ArrowRight') show(idx + 1);
+  };
+
+  btnPrev.onclick  = (e) => { e.stopPropagation(); show(idx - 1); };
+  btnNext.onclick  = (e) => { e.stopPropagation(); show(idx + 1); };
+  btnClose.onclick = (e) => { e.stopPropagation(); close(); };
+  btnOrder.onclick = (e) => { e.stopPropagation(); const ph = list[idx]; close(); orderFromGalleryPhoto(ph); };
+  img.onclick      = (e) => e.stopPropagation();   // chạm vào ảnh không đóng (để vuốt thoải mái)
+  el.onclick = close;                              // chạm nền tối mới đóng
+
+  // Vuốt ngang trên điện thoại để chuyển ảnh
+  let touchX = null, touchY = null;
+  el.addEventListener('touchstart', (e) => {
+    touchX = e.touches[0].clientX; touchY = e.touches[0].clientY;
+  }, { passive: true });
+  el.addEventListener('touchend', (e) => {
+    if (touchX == null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    const dy = e.changedTouches[0].clientY - touchY;
+    touchX = touchY = null;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) show(dx < 0 ? idx + 1 : idx - 1);
+  }, { passive: true });
+
+  const bar = document.createElement('div');
+  bar.className = 'lightbox-bar';
+  bar.onclick = (e) => e.stopPropagation();
+  bar.appendChild(counter);
+  bar.appendChild(btnOrder);
+
+  el.appendChild(btnClose);
+  el.appendChild(btnPrev);
+  el.appendChild(img);
+  el.appendChild(btnNext);
+  el.appendChild(cap);
+  el.appendChild(bar);
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(el);
+  show(idx);
+  requestAnimationFrame(() => el.classList.add('show'));
+}
+
+// Đặt hoa theo mẫu ảnh Gallery → mở form đặt hàng, ghi chú tự kèm link ảnh mẫu cho shop
+function orderFromGalleryPhoto(ph) {
+  if (!document.getElementById('orderModalBody')) return;
+  openOrderModal(null, ph.caption ? `Mẫu Gallery: ${ph.caption}` : 'Mẫu trong Gallery');
+  const note = document.getElementById('orderNote');
+  if (note) note.value = `Đặt theo mẫu ảnh: ${ph.url}`;
 }
 
 function openLightbox(url, caption) {

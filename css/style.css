@@ -283,6 +283,37 @@ section    { padding:64px 0; }
 .lightbox.show img { transform:scale(1); }
 .lightbox-caption { color:#fff; font-family:'Nunito',sans-serif; font-size:1.1rem; }
 .lightbox-hint { color:rgba(255,255,255,.45); font-size:.85rem; }
+
+/* Lightbox có điều hướng (trang Gallery) */
+.lightbox-nav-mode { cursor:default; }
+.lightbox-nav-mode img { max-height:68vh; }
+.lightbox-nav {
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:52px; height:52px; border-radius:50%; border:none; cursor:pointer;
+  background:rgba(255,255,255,.14); color:#fff; font-size:2rem; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .15s ease;
+}
+.lightbox-nav:hover { background:rgba(255,255,255,.32); }
+.lightbox-prev { left:18px; }
+.lightbox-next { right:18px; }
+.lightbox-close {
+  position:absolute; top:16px; right:16px;
+  width:42px; height:42px; border-radius:50%; border:none; cursor:pointer;
+  background:rgba(255,255,255,.14); color:#fff; font-size:1.1rem;
+  display:flex; align-items:center; justify-content:center;
+}
+.lightbox-close:hover { background:rgba(255,255,255,.32); }
+.lightbox-bar { display:flex; align-items:center; gap:18px; }
+.lightbox-counter { color:rgba(255,255,255,.75); font-family:'Nunito',sans-serif; font-weight:700; font-size:.95rem; }
+.lightbox-order { padding:11px 22px; font-size:.95rem; }
+@media (max-width:600px) {
+  .lightbox-nav { width:44px; height:44px; font-size:1.6rem; }
+  .lightbox-prev { left:8px; }
+  .lightbox-next { right:8px; }
+  .lightbox-nav-mode img { max-height:58vh; max-width:96vw; }
+  .lightbox-bar { flex-direction:column; gap:10px; }
+}
 .gallery-empty .e-icon { font-size:4rem; margin-bottom:16px; opacity:.5; }
 .gallery-empty p { font-size:1.05rem; }
 

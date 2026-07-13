@@ -167,6 +167,25 @@
     .dash-num { font-size: 2.1rem; font-weight: 800; line-height: 1.1; }
     .dash-label { margin-top: 8px; color: #7A9879; font-size: .9rem; font-weight: 600; }
     @media (max-width: 720px) { .dash-cards { grid-template-columns: 1fr; } }
+
+    /* Thẻ chỉ số bấm được → modal đối soát */
+    .dash-card.clickable { cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+    .dash-card.clickable:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.11); }
+    .dash-hint { margin-top: 6px; font-size: .72rem; color: #B7C9B7; font-weight: 600; }
+    .stat-explain { background: #F1F8F1; border: 1px solid #DCEBDC; border-radius: 10px; padding: 10px 14px; font-size: .85rem; color: #4E6B4E; margin-bottom: 14px; line-height: 1.5; }
+    .stat-row { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border: 1px solid #eef3ee; border-radius: 10px; margin-bottom: 8px; cursor: pointer; background: #fff; transition: background .12s, border-color .12s; }
+    .stat-row:hover { background: #F7FBF7; border-color: #CDE3CD; }
+    .stat-row-main { flex: 1; min-width: 0; }
+    .stat-row-main .sr-code { font-weight: 800; color: #2E7D32; }
+    .stat-row-main .sr-sub { font-size: .82rem; color: #7A9879; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .stat-row-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+    .stat-row-side .sr-total { font-weight: 800; }
+    .sr-date { font-size: .74rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #E8F1E8; color: #4E6B4E; }
+    .sr-date.sr-fallback { background: #FFF3E0; color: #E65100; }
+    .stat-total-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding: 12px 14px; background: #2E7D32; color: #fff; border-radius: 10px; font-weight: 700; }
+    .stat-total-bar strong { font-size: 1.1rem; }
+    .profit-line { display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; border-bottom: 1px dashed #DCEBDC; font-size: .95rem; }
+    .profit-line strong { font-size: 1.05rem; }
     .optimizer-box { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; justify-content: space-between; margin-top: 32px; padding: 20px 22px; background: #FFF8E1; border: 1.5px solid #FFE082; border-radius: 14px; }
 
     /* ── Lịch giao: lịch tháng mini ───────────── */
@@ -294,6 +313,9 @@
     .progress-text { font-size: .85rem; color: #7A9879; }
 
     /* ── Gallery admin grid ───────────────────── */
+    .gal-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+    .gal-cat-badge { position: absolute; top: 6px; left: 6px; background: rgba(46,125,50,.88); color: #fff; font-size: .68rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; pointer-events: none; max-width: calc(100% - 12px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .gallery-drag { position: relative; }
     .gallery-admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 8px; }
     .gallery-admin-item { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.07); transition: outline .12s, opacity .12s; }
     .gallery-admin-item img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
@@ -540,8 +562,8 @@
       <!-- Quản lý danh mục -->
       <div class="cat-manager">
         <div class="cat-manager-head">
-          <strong>Danh mục ảnh</strong>
-          <span style="font-size:.82rem;color:#7A9879;">Thêm / sửa / xóa — trang Gallery sẽ hiển thị theo danh mục</span>
+          <strong>🏷️ Danh mục chung (Sản phẩm &amp; Gallery)</strong>
+          <span style="font-size:.82rem;color:#7A9879;">Thêm / sửa / xóa một chỗ — form Sản phẩm, trang Sản phẩm và trang Gallery đều dùng bộ này</span>
         </div>
         <div id="galleryCatList" class="cat-list"></div>
         <div class="cat-add-row">
@@ -565,6 +587,7 @@
         <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
         <p class="progress-text" id="progressText"></p>
       </div>
+      <div id="galleryFilterChips" class="gal-chips"></div>
       <div id="galleryGrid" class="gallery-admin-grid"></div>
     </div>
 
@@ -581,6 +604,7 @@
           <option>Mới</option>
           <option>Đã xác nhận</option>
           <option>Đang giao</option>
+          <option>Giao thành công</option>
           <option>Hoàn thành</option>
           <option>Đã hủy</option>
         </select>
@@ -754,13 +778,9 @@
             <input type="text" id="fPrice" required placeholder="VD: 250,000đ">
           </div>
           <div class="field-group">
-            <label>Danh mục *</label>
+            <label>Danh mục * <span style="font-weight:400;color:#7A9879;">(dùng chung với Gallery — quản lý ở tab Gallery)</span></label>
             <select id="fCategory" required>
               <option value="">-- Chọn danh mục --</option>
-              <option value="Hoa bó">🌹 Hoa bó</option>
-              <option value="Giỏ hoa">🌻 Giỏ hoa</option>
-              <option value="Hoa để bàn">💐 Hoa để bàn</option>
-              <option value="Hoa cưới">👰 Hoa cưới</option>
             </select>
           </div>
           <div class="field-group full">
@@ -858,6 +878,17 @@
       <button class="modal-close" onclick="closeCustomerOrdersModal()">✕</button>
     </div>
     <div class="modal-body" id="customerOrdersBody"></div>
+  </div>
+</div>
+
+<!-- Đối soát chỉ số: bấm thẻ số liệu → danh sách đơn được tính (z thấp hơn chi tiết đơn để mở đè lên được) -->
+<div id="statDetailModal" class="modal-overlay" style="display:none;z-index:950;" onclick="if(event.target.id==='statDetailModal')closeStatDetail()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="statDetailTitle">Đối soát</h2>
+      <button class="modal-close" onclick="closeStatDetail()">✕</button>
+    </div>
+    <div class="modal-body" id="statDetailBody"></div>
   </div>
 </div>
 
@@ -1352,11 +1383,13 @@ async function loadDashboard() {
   const revenueActual = all.filter(o => REVENUE_STATUSES.includes(o.status) && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
 
   // Chi phí tháng này → lãi gộp thực tế = doanh thu thực tế − chi phí
-  const { data: expData } = await sb.from('expenses').select('amount, expense_date')
-  const monthExpense = (expData || [])
-    .filter(e => (e.expense_date || '').slice(0, 7) === monthKey)
-    .reduce((s, e) => s + (Number(e.amount) || 0), 0)
+  const { data: expData } = await sb.from('expenses').select('amount, expense_date, category')
+  const monthExpenses = (expData || []).filter(e => (e.expense_date || '').slice(0, 7) === monthKey)
+  const monthExpense = monthExpenses.reduce((s, e) => s + (Number(e.amount) || 0), 0)
   const profit = revenueActual - monthExpense
+
+  // Ngữ cảnh cho modal đối soát (bấm thẻ số liệu)
+  _statCtx = { orders: all, monthKey, expenses: monthExpenses }
 
   // ⚠️ Cảnh báo chuẩn bị hàng cho ngày mai
   const [, tm, td] = tomorrow.split('-')
@@ -1368,12 +1401,13 @@ async function loadDashboard() {
       </div>
     </div>`
 
+  const hint = '<div class="dash-hint">👆 Bấm xem chi tiết</div>'
   document.getElementById('dashboardCards').innerHTML = `
-    <div class="dash-card"><div class="dash-num" style="color:#E65100">${newCount}</div><div class="dash-label">Đơn mới chờ xử lý</div></div>
-    <div class="dash-card"><div class="dash-num" style="color:#1565C0">${todayOrders.length}</div><div class="dash-label">Cần giao hôm nay</div></div>
-    <div class="dash-card"><div class="dash-num" style="color:#2E7D32">${fmtVnd(revenueActual)}</div><div class="dash-label">Doanh thu thực tế tháng</div></div>
-    <div class="dash-card"><div class="dash-num" style="color:#7A9879">${fmtVnd(revenueProjected)}</div><div class="dash-label">Doanh thu dự kiến tháng</div></div>
-    <div class="dash-card"><div class="dash-num" style="color:${profit >= 0 ? '#1565C0' : '#C62828'}">${fmtVnd(profit)}</div><div class="dash-label">${profit >= 0 ? 'Lãi gộp' : 'Lỗ'} thực tế tháng</div></div>`
+    <div class="dash-card clickable" onclick="openStatDetail('new')"><div class="dash-num" style="color:#E65100">${newCount}</div><div class="dash-label">Đơn mới chờ xử lý</div>${hint}</div>
+    <div class="dash-card clickable" onclick="openStatDetail('today')"><div class="dash-num" style="color:#1565C0">${todayOrders.length}</div><div class="dash-label">Cần giao hôm nay</div>${hint}</div>
+    <div class="dash-card clickable" onclick="openStatDetail('revActual')"><div class="dash-num" style="color:#2E7D32">${fmtVnd(revenueActual)}</div><div class="dash-label">Doanh thu thực tế tháng</div>${hint}</div>
+    <div class="dash-card clickable" onclick="openStatDetail('revProjected')"><div class="dash-num" style="color:#7A9879">${fmtVnd(revenueProjected)}</div><div class="dash-label">Doanh thu dự kiến tháng</div>${hint}</div>
+    <div class="dash-card clickable" onclick="openStatDetail('profit')"><div class="dash-num" style="color:${profit >= 0 ? '#1565C0' : '#C62828'}">${fmtVnd(profit)}</div><div class="dash-label">${profit >= 0 ? 'Lãi gộp' : 'Lỗ'} thực tế tháng</div>${hint}</div>`
 
   // Cho viewOrderDetail/openOrderEditModal dùng được từ Dashboard
   orders = all
@@ -1392,6 +1426,96 @@ async function loadDashboard() {
   <td class="actions"><button class="btn-edit" onclick="viewOrderDetail(${o.id})">👁 Chi tiết</button></td>
 </tr>`).join('')}</tbody></table>`
 }
+
+// ── Đối soát chỉ số: bấm thẻ số liệu → xem đơn nào được tính ──
+let _statCtx = null    // từ Dashboard: { orders, monthKey, expenses }
+let _statCtxEx = null  // từ Sổ chi phí: theo tháng đang lọc
+
+const statMonthLabel = mk => { const [y, m] = mk.split('-'); return `tháng ${Number(m)}/${y}` }
+const statAttrDate = o => o.delivery_date || (o.created_at || '').slice(0, 10)  // ngày ghi nhận doanh thu
+const statDMY = ds => (ds || '').split('-').reverse().slice(0, 2).join('/')
+
+function statDateChip(o) {
+  if (o.delivery_date) return `<span class="sr-date">🚚 giao ${statDMY(o.delivery_date)}</span>`
+  return `<span class="sr-date sr-fallback">chưa hẹn · tính ngày tạo ${statDMY((o.created_at || '').slice(0, 10))}</span>`
+}
+
+function statRowsHTML(list) {
+  return list.map(o => `
+<div class="stat-row" onclick="viewOrderDetail(${o.id})">
+  <div class="stat-row-main">
+    <div><span class="sr-code">${orderCode(o.id)}</span> · ${orderCustomerName(o)}</div>
+    <div class="sr-sub">${esc(o.product_name)} × ${o.quantity}</div>
+  </div>
+  <div class="stat-row-side">
+    ${statDateChip(o)}
+    <span class="status-select ${STATUS_CLASS[o.status] || ''}" style="cursor:pointer;font-size:.72rem;padding:3px 8px;">${o.status}</span>
+    <span class="sr-total">${o.total != null ? fmtVnd(o.total) : '—'}</span>
+  </div>
+</div>`).join('')
+}
+
+function openStatDetail(kind, src) {
+  const ctx = src === 'ex' ? _statCtxEx : _statCtx
+  if (!ctx) return
+  orders = ctx.orders   // để viewOrderDetail tra cứu được từ modal này
+  const mk = ctx.monthKey
+  const inMonth = o => statAttrDate(o).slice(0, 7) === mk
+  const mLabel = statMonthLabel(mk)
+  let title = '', explain = '', list = null, body = ''
+
+  if (kind === 'new') {
+    title = '🆕 Đơn mới chờ xử lý'
+    explain = 'Các đơn đang ở trạng thái <strong>Mới</strong> — chưa xác nhận với khách.'
+    list = ctx.orders.filter(o => o.status === 'Mới')
+  } else if (kind === 'today') {
+    const today = todayStr()
+    title = '🚚 Cần giao hôm nay'
+    explain = `Đơn có ngày giao <strong>hôm nay (${statDMY(today)})</strong>, chưa hủy và chưa giao xong.`
+    list = ctx.orders.filter(o => !DONE_STATUSES.includes(o.status) && o.delivery_date === today)
+  } else if (kind === 'revActual') {
+    title = `💰 Doanh thu thực tế ${mLabel}`
+    explain = `Đơn <strong>Giao thành công</strong> hoặc <strong>Hoàn thành</strong>, tính vào ${mLabel} theo <strong>ngày giao</strong> — đơn chưa hẹn ngày tính theo ngày tạo.`
+    list = ctx.orders.filter(o => REVENUE_STATUSES.includes(o.status) && inMonth(o))
+  } else if (kind === 'revProjected') {
+    title = `📈 Doanh thu dự kiến ${mLabel}`
+    explain = `Tất cả đơn <strong>chưa hủy</strong> tính vào ${mLabel} theo <strong>ngày giao</strong> (kể cả đơn đã ghi nhận doanh thu) — đơn chưa hẹn ngày tính theo ngày tạo.`
+    list = ctx.orders.filter(o => o.status !== 'Đã hủy' && inMonth(o))
+  } else if (kind === 'profit') {
+    // Lãi gộp = doanh thu thực tế − tổng chi phí tháng (Sổ chi phí)
+    const revList = ctx.orders.filter(o => REVENUE_STATUSES.includes(o.status) && inMonth(o))
+    const rev = revList.reduce((s, o) => s + (Number(o.total) || 0), 0)
+    const expTotal = (ctx.expenses || []).reduce((s, e) => s + (Number(e.amount) || 0), 0)
+    const profit = rev - expTotal
+    const byCat = {}
+    ;(ctx.expenses || []).forEach(e => {
+      const c = e.category || 'Khác'
+      byCat[c] = (byCat[c] || 0) + (Number(e.amount) || 0)
+    })
+    title = `${profit >= 0 ? '📊 Lãi gộp' : '📉 Lỗ'} thực tế ${mLabel}`
+    body = `
+<div class="stat-explain">Lãi gộp = <strong>doanh thu thực tế</strong> (đơn Giao thành công / Hoàn thành trong tháng) trừ <strong>tổng chi phí</strong> đã ghi trong Sổ chi phí ${mLabel}.</div>
+<div class="profit-line"><span>💰 Doanh thu thực tế (${revList.length} đơn)</span><strong style="color:#2E7D32">${fmtVnd(rev)}</strong></div>
+${Object.entries(byCat).map(([c, s]) => `<div class="profit-line"><span style="color:#7A9879;padding-left:14px;">− Chi phí ${esc(c)}</span><span style="color:#C62828;font-weight:700;">−${fmtVnd(s)}</span></div>`).join('')}
+<div class="profit-line" style="border-bottom:none;"><span><strong>= ${profit >= 0 ? 'Lãi gộp' : 'Lỗ'}</strong></span><strong style="color:${profit >= 0 ? '#1565C0' : '#C62828'};font-size:1.2rem;">${fmtVnd(profit)}</strong></div>
+<button class="btn-green" style="width:100%;margin-top:14px;" onclick="openStatDetail('revActual'${src === 'ex' ? ", 'ex'" : ''})">Xem ${revList.length} đơn được tính doanh thu →</button>`
+  }
+
+  if (list) {
+    list = list.slice().sort((a, b) => statAttrDate(a) < statAttrDate(b) ? -1 : 1)
+    const total = list.reduce((s, o) => s + (Number(o.total) || 0), 0)
+    body = `
+<div class="stat-explain">${explain}</div>
+${list.length ? statRowsHTML(list) : '<div class="empty-state">Không có đơn nào.</div>'}
+<div class="stat-total-bar"><span>${list.length} đơn — bấm từng đơn để xem chi tiết</span><strong>${fmtVnd(total)}</strong></div>`
+  }
+
+  document.getElementById('statDetailTitle').textContent = title
+  document.getElementById('statDetailBody').innerHTML = body
+  document.getElementById('statDetailModal').style.display = 'flex'
+}
+
+function closeStatDetail() { document.getElementById('statDetailModal').style.display = 'none' }
 
 // ── Lịch giao ─────────────────────────────────────
 let delivActive = []          // đơn đang hoạt động (chưa hủy / chưa hoàn thành)
@@ -1847,11 +1971,13 @@ async function loadExpenses() {
 
   // Doanh thu cùng tháng: dự kiến (đã chốt giá, chưa hủy) vs thực tế (đã Hoàn thành)
   // Ghi nhận theo NGÀY GIAO (đơn không hẹn ngày mới tính theo ngày tạo) — đồng bộ với Tổng quan
-  const { data: ord } = await sb.from('orders').select('total, created_at, delivery_date, status')
+  // Lấy đủ cột để modal đối soát mở được chi tiết từng đơn
+  const { data: ord } = await sb.from('orders').select('*, customers(name, phone), products(image)')
   const inMonth = o => (o.delivery_date || (o.created_at || '').slice(0, 10)).slice(0, 7) === month
   const revenueProjected = (ord || []).filter(o => o.status !== 'Đã hủy' && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
   const revenueActual = (ord || []).filter(o => REVENUE_STATUSES.includes(o.status) && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
 
+  _statCtxEx = { orders: ord || [], monthKey: month, expenses }
   renderExpenses(revenueActual, revenueProjected)
 }
 
@@ -1864,10 +1990,10 @@ function renderExpenses(revenueActual, revenueProjected) {
 
   document.getElementById('expenseSummary').innerHTML = `
     <div class="dash-cards">
-      <div class="dash-card"><div class="dash-num" style="color:#2E7D32">${fmtVnd(revenueActual)}</div><div class="dash-label">Doanh thu thực tế</div></div>
-      <div class="dash-card"><div class="dash-num" style="color:#7A9879">${fmtVnd(revenueProjected)}</div><div class="dash-label">Doanh thu dự kiến</div></div>
+      <div class="dash-card clickable" onclick="openStatDetail('revActual','ex')"><div class="dash-num" style="color:#2E7D32">${fmtVnd(revenueActual)}</div><div class="dash-label">Doanh thu thực tế</div><div class="dash-hint">👆 Bấm xem chi tiết</div></div>
+      <div class="dash-card clickable" onclick="openStatDetail('revProjected','ex')"><div class="dash-num" style="color:#7A9879">${fmtVnd(revenueProjected)}</div><div class="dash-label">Doanh thu dự kiến</div><div class="dash-hint">👆 Bấm xem chi tiết</div></div>
       <div class="dash-card"><div class="dash-num" style="color:#C62828">${fmtVnd(totalExpense)}</div><div class="dash-label">Chi phí tháng</div></div>
-      <div class="dash-card"><div class="dash-num" style="color:${profit >= 0 ? '#1565C0' : '#C62828'}">${fmtVnd(profit)}</div><div class="dash-label">${profit >= 0 ? 'Lãi gộp' : 'Lỗ'} thực tế</div></div>
+      <div class="dash-card clickable" onclick="openStatDetail('profit','ex')"><div class="dash-num" style="color:${profit >= 0 ? '#1565C0' : '#C62828'}">${fmtVnd(profit)}</div><div class="dash-label">${profit >= 0 ? 'Lãi gộp' : 'Lỗ'} thực tế</div><div class="dash-hint">👆 Bấm xem chi tiết</div></div>
     </div>
     ${byCat.length ? `<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;">
       ${byCat.map(x => `<span class="cat-badge" style="font-size:.82rem;padding:5px 12px;">${x.c}: <strong>${fmtVnd(x.sum)}</strong></span>`).join('')}
@@ -2002,9 +2128,26 @@ async function deleteExpense(id) {
 let products = []
 
 async function loadProducts() {
-  const { data } = await sb.from('products').select('*').order('order_index')
-  products = data || []
+  // Danh mục dùng chung với Gallery — nạp song song để đổ vào form sản phẩm
+  const [prodRes] = await Promise.all([
+    sb.from('products').select('*').order('order_index'),
+    loadGalleryCats(),
+  ])
+  products = prodRes.data || []
+  fillProductCategorySelect()
   renderProducts()
+}
+
+// Đổ danh mục chung (gallery_categories) vào select của form sản phẩm.
+// Sản phẩm cũ mang danh mục đã bị xóa khỏi danh sách → vẫn hiện lên đầu để không mất dữ liệu.
+function fillProductCategorySelect(current) {
+  const sel = document.getElementById('fCategory')
+  if (!sel) return
+  const names = galleryCats.map(c => c.name)
+  const extra = current && !names.includes(current) ? [{ name: current, emoji: '🌸' }] : []
+  sel.innerHTML = '<option value="">-- Chọn danh mục --</option>' +
+    [...extra, ...galleryCats].map(c => `<option value="${esc(c.name)}">${esc(c.emoji || '🌸')} ${esc(c.name)}</option>`).join('')
+  sel.value = current || ''
 }
 
 function renderProducts() {
@@ -2096,13 +2239,14 @@ function openModal(id = null) {
     document.getElementById('productId').value   = p.id
     document.getElementById('fName').value        = p.name
     document.getElementById('fPrice').value       = p.price
-    document.getElementById('fCategory').value    = p.category
+    fillProductCategorySelect(p.category)
     document.getElementById('fDesc').value        = p.description || ''
     document.getElementById('fOrder').value       = p.order_index || 0
     document.getElementById('fFeatured').checked  = p.featured
     newImages = p.images?.length ? [...p.images] : (p.image ? [p.image] : [])
   } else {
     document.getElementById('modalTitle').textContent = 'Thêm sản phẩm'
+    fillProductCategorySelect()
   }
   renderProductImagesGrid()
   document.getElementById('modal').style.display = 'flex'
@@ -2219,12 +2363,15 @@ async function saveGalleryCat(id, field, value) {
     if (galleryCats.some(c => c.id !== id && c.name.toLowerCase() === value.toLowerCase())) {
       showToast('Đã có danh mục trùng tên', 'error'); renderGalleryCatManager(); return
     }
-    // Đổi tên: cập nhật cả ảnh đang dùng tên cũ để không mồ côi
+    // Đổi tên: cập nhật cả ảnh + sản phẩm đang dùng tên cũ để không mồ côi (danh mục dùng chung)
     const oldName = cat.name
     const { error } = await sb.from('gallery_categories').update({ name: value }).eq('id', id)
     if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
-    await sb.from('gallery').update({ category: value }).eq('category', oldName)
-    showToast('Đã đổi tên danh mục!')
+    await Promise.all([
+      sb.from('gallery').update({ category: value }).eq('category', oldName),
+      sb.from('products').update({ category: value }).eq('category', oldName),
+    ])
+    showToast('Đã đổi tên danh mục (ảnh + sản phẩm đổi theo)!')
     await loadGalleryCats(); await loadGallery()
     return
   }
@@ -2252,10 +2399,18 @@ async function deleteGalleryCat(id) {
   if (!cat) return
   if (galleryCats.length <= 1) { showToast('Cần giữ ít nhất 1 danh mục', 'error'); return }
   const count = galleryCatCount(cat.name)
+  // Danh mục dùng chung: đếm cả sản phẩm đang gắn danh mục này
+  const { count: prodCount } = await sb.from('products').select('id', { count: 'exact', head: true }).eq('category', cat.name)
   const fallback = galleryCats.find(c => c.id !== id)  // danh mục còn lại đầu tiên
-  if (count > 0) {
-    if (!confirm(`${count} ảnh đang dùng danh mục "${cat.name}" sẽ được chuyển sang "${fallback.name}". Tiếp tục?`)) return
-    await sb.from('gallery').update({ category: fallback.name }).eq('category', cat.name)
+  if (count > 0 || prodCount > 0) {
+    const parts = []
+    if (count > 0) parts.push(`${count} ảnh`)
+    if (prodCount > 0) parts.push(`${prodCount} sản phẩm`)
+    if (!confirm(`${parts.join(' và ')} đang dùng danh mục "${cat.name}" sẽ được chuyển sang "${fallback.name}". Tiếp tục?`)) return
+    await Promise.all([
+      sb.from('gallery').update({ category: fallback.name }).eq('category', cat.name),
+      sb.from('products').update({ category: fallback.name }).eq('category', cat.name),
+    ])
   } else if (!confirm(`Xóa danh mục "${cat.name}"?`)) return
   const { error } = await sb.from('gallery_categories').delete().eq('id', id)
   if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
@@ -2271,14 +2426,45 @@ async function loadGallery() {
   renderGalleryGrid()
 }
 
+// ── Chip lọc danh mục trong lưới ảnh admin ──
+let galleryFilterCat = 'all'
+let _galleryChipList = []
+
+function renderGalleryFilterChips() {
+  const el = document.getElementById('galleryFilterChips')
+  if (!el) return
+  const known = galleryCats.map(c => c.name)
+  // Gồm cả danh mục cũ còn dính trên ảnh nhưng đã bị xóa khỏi danh sách
+  const extras = [...new Set(galleryItems.map(ph => ph.category).filter(c => c && !known.includes(c)))]
+  _galleryChipList = ['all', ...known, ...extras]
+  if (!_galleryChipList.includes(galleryFilterCat)) galleryFilterCat = 'all'
+  el.innerHTML = _galleryChipList.map((name, i) => {
+    const c = galleryCats.find(x => x.name === name)
+    const count = name === 'all' ? galleryItems.length : galleryItems.filter(ph => ph.category === name).length
+    const label = name === 'all' ? `🌸 Tất cả (${count})` : `${esc(c?.emoji || '📷')} ${esc(name)} (${count})`
+    return `<button type="button" class="chip-thismonth ${galleryFilterCat === name ? 'active' : ''}" onclick="pickGalleryChip(${i})">${label}</button>`
+  }).join('')
+}
+
+function pickGalleryChip(i) {
+  galleryFilterCat = _galleryChipList[i] || 'all'
+  renderGalleryGrid()
+}
+
 function renderGalleryGrid() {
+  renderGalleryFilterChips()
   const grid = document.getElementById('galleryGrid')
   if (!galleryItems.length) {
     grid.innerHTML = '<div class="empty-state">Chưa có ảnh nào. Upload ảnh ở trên.</div>'
     return
   }
+  const shown = galleryFilterCat === 'all' ? galleryItems : galleryItems.filter(ph => ph.category === galleryFilterCat)
+  if (!shown.length) {
+    grid.innerHTML = '<div class="empty-state">Chưa có ảnh trong danh mục này.</div>'
+    return
+  }
   const names = galleryCats.map(c => c.name)
-  grid.innerHTML = galleryItems.map(ph => {
+  grid.innerHTML = shown.map(ph => {
     const opts = ph.category && !names.includes(ph.category) ? [ph.category, ...names] : names
     const catOpts = opts.map(c =>
       `<option value="${esc(c)}" ${ph.category === c ? 'selected' : ''}>${esc(c)}</option>`
@@ -2289,6 +2475,7 @@ function renderGalleryGrid() {
   <div class="gallery-drag" draggable="true" title="Kéo để sắp xếp"
        ondragstart="galleryDragStart(event, ${ph.id})" ondragend="galleryDragEnd(event)">
     <img src="${ph.url}" alt="${ph.caption || ''}" draggable="false">
+    <span class="gal-cat-badge">${esc((galleryCats.find(c => c.name === ph.category)?.emoji || '📷') + ' ' + (ph.category || 'Chưa phân loại'))}</span>
     <span class="drag-grip">⠿ Kéo để sắp xếp</span>
   </div>
   <div class="gallery-admin-info" style="flex-direction:column;gap:4px;">
@@ -2395,7 +2582,11 @@ async function updateCaption(id, caption) {
 
 async function updateCategory(id, category) {
   await sb.from('gallery').update({ category }).eq('id', id)
+  const ph = galleryItems.find(x => x.id === id)
+  if (ph) ph.category = category
   showToast('Đã cập nhật danh mục!')
+  renderGalleryGrid()          // chip đếm + badge cập nhật theo
+  renderGalleryCatManager()
 }
 
 async function deleteGalleryItem(id) {
