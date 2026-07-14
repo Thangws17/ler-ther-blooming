@@ -1500,6 +1500,27 @@ function initModalGuards() {
       })
     }
   }, true)
+
+  // Phím Esc: thoát nhanh màn hình/modal đang mở trên cùng (vẫn hỏi nếu đang nhập dở)
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return
+    // Hộp thoại xác nhận đang mở → Esc = "Ở lại"
+    const dd = document.getElementById('discardDialog')
+    if (dd.style.display !== 'none') { hideDiscardDialog(); return }
+    // Xem phóng to ảnh (tạo động) → đóng trước
+    const viewer = document.querySelector('.img-viewer')
+    if (viewer) { viewer.remove(); return }
+    // Gom mọi lớp phủ đang mở, chọn cái z-index cao nhất (trên cùng)
+    const opens = [...document.querySelectorAll('.modal-overlay'), document.getElementById('galleryPicker')]
+      .filter(m => m && m.style.display !== 'none')
+    if (!opens.length) return
+    const top = opens.sort((a, b) => (parseInt(getComputedStyle(a).zIndex) || 0) - (parseInt(getComputedStyle(b).zIndex) || 0)).pop()
+    if (GUARDED_MODALS.includes(top.id) && top.dataset.dirty === '1') {
+      showDiscardDialog(() => { top.dataset.dirty = ''; top.style.display = 'none' })
+    } else {
+      top.style.display = 'none'
+    }
+  })
 }
 
 // Hộp thoại xác nhận thoát (in-page, không dùng confirm mặc định)
@@ -2187,6 +2208,7 @@ function renderExpenses(revenueActual, revenueProjected) {
 // Xem ảnh phóng to (dùng chung cho chi phí / đơn)
 function openImageViewer(url) {
   const el = document.createElement('div')
+  el.className = 'img-viewer'
   el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out'
   el.innerHTML = `<img src="${esc(url)}" alt="" style="max-width:100%;max-height:100%;border-radius:8px;">`
   el.onclick = () => el.remove()

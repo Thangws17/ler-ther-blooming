@@ -647,6 +647,19 @@ function closeOrderModal() {
   document.body.style.overflow = '';
 }
 
+// Phím Esc: đóng nhanh form đặt hoa hoặc menu đang mở (lightbox tự xử lý Esc riêng)
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const overlay = document.getElementById('orderOverlay');
+  if (overlay && overlay.classList.contains('open')) { closeOrderModal(); return; }
+  const links = document.getElementById('navLinks');
+  if (links && links.classList.contains('open')) {
+    links.classList.remove('open');
+    const t = document.getElementById('menuToggle');
+    if (t) t.textContent = '☰';
+  }
+});
+
 async function submitOrder(event) {
   event.preventDefault();
   const btn = document.getElementById('orderSubmitBtn');
