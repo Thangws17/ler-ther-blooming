@@ -52,6 +52,12 @@
     }
     .nav-item:hover { background: rgba(255,255,255,.08); color: #fff; }
     .nav-item.active { background: #2E7D32; color: #fff; }
+    .nav-badge {
+      margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px;
+      border-radius: 10px; background: #E53935; color: #fff;
+      font-size: .74rem; font-weight: 800; line-height: 20px; text-align: center;
+      box-shadow: 0 0 0 2px rgba(229,57,53,.25);
+    }
     .sidebar-bottom { padding: 0 10px; display: flex; flex-direction: column; gap: 8px; }
     .view-site-btn {
       display: block; padding: 10px 14px; border-radius: 10px;
@@ -283,9 +289,16 @@
     .cat-move { background: #eef3ee; border: none; border-radius: 6px; width: 28px; height: 30px; cursor: pointer; color: #2E7D32; font-weight: 800; font-size: .85rem; }
     .cat-move:hover { background: #C8E6C9; }
     .cat-move:disabled { opacity: .35; cursor: not-allowed; }
-    .cat-add-row { display: flex; gap: 8px; align-items: center; }
+    /* flex-wrap + min-width:0 để ô nhập co lại được, không đẩy modal rộng quá màn hình */
+    .cat-add-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .cat-add-row input, .cat-add-row select { min-width: 0; }
     .cat-add-row input { padding: 9px 12px; border: 1.5px solid #ddd; border-radius: 8px; background: #fafafa; }
     .cat-add-row input:focus { border-color: #2E7D32; background: #fff; outline: none; }
+    @media (max-width: 560px) {
+      .cat-add-row > input[type="text"], .cat-add-row > input[type="search"] { flex: 1 1 100%; }
+      .cat-add-row > .btn-green { flex: 1 1 100%; }   /* nút Thêm xuống dòng, dễ bấm */
+      .cat-row { flex-wrap: wrap; }
+    }
     .cat-add-row input#newCatName { flex: 1; }
     @media (max-width: 600px) { .cat-row .cat-count { display: none; } }
 
@@ -359,6 +372,51 @@
     .loading-state, .empty-state { text-align: center; padding: 60px 20px; color: #7A9879; font-size: .95rem; }
     .loading-state { animation: pulse 1.2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* ── Skeleton (khung chờ mềm) ─────────────── */
+    .sk-wrap { padding: 4px 0; }
+    .sk-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 12px; border-bottom: 1px solid #f0f4f0;
+    }
+    .sk-bx { position: relative; overflow: hidden; background: #EAF1E6; border-radius: 8px; }
+    .sk-bx::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent);
+      animation: skShimmer 1.3s infinite;
+    }
+    @keyframes skShimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+    .sk-thumb { width: 46px; height: 46px; border-radius: 10px; flex-shrink: 0; }
+    .sk-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .sk-ln { height: 12px; border-radius: 6px; }
+    .sk-ln.w70 { width: 70%; } .sk-ln.w40 { width: 40%; }
+    @media (prefers-reduced-motion: reduce) { .sk-bx::after { animation: none; } }
+
+    /* ── Hộp thoại xác nhận thoát (thay confirm mặc định) ── */
+    .confirm-overlay {
+      position: fixed; inset: 0; z-index: 3000;
+      background: rgba(20,40,20,.45); backdrop-filter: blur(2px);
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+      animation: cfFade .18s ease;
+    }
+    @keyframes cfFade { from { opacity: 0; } to { opacity: 1; } }
+    .confirm-box {
+      background: #fff; border-radius: 18px; max-width: 380px; width: 100%;
+      padding: 28px 26px 22px; text-align: center;
+      box-shadow: 0 24px 60px rgba(0,0,0,.28); animation: cfPop .22s cubic-bezier(.2,.8,.3,1.1);
+    }
+    @keyframes cfPop { from { transform: translateY(12px) scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
+    .confirm-icon {
+      width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%;
+      background: #FFF3E0; display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+    }
+    .confirm-box h3 { font-size: 1.15rem; color: #1A2E1A; margin-bottom: 8px; }
+    .confirm-box p { font-size: .92rem; color: #5A6B59; line-height: 1.6; margin-bottom: 22px; }
+    .confirm-actions { display: flex; gap: 10px; }
+    .confirm-actions button { flex: 1; padding: 12px 14px; border-radius: 10px; font-weight: 800; font-size: .9rem; cursor: pointer; font-family: inherit; }
+    .btn-discard { background: #E53935; color: #fff; border: none; }
+    .btn-discard:hover { background: #C62828; }
+    @media (max-width: 480px) { .confirm-actions { flex-direction: column-reverse; } }
 
     /* ── Toast ────────────────────────────────── */
     .toast {
@@ -477,7 +535,7 @@
     <div class="sidebar-brand">🌸 Admin</div>
     <nav class="sidebar-nav">
       <button class="nav-item active" data-tab="Dashboard" onclick="switchTab(this)">📊 Tổng quan</button>
-      <button class="nav-item" data-tab="Orders" onclick="switchTab(this)">📦 Đơn hàng</button>
+      <button class="nav-item" data-tab="Orders" onclick="switchTab(this)">📦 Đơn hàng<span id="newOrderBadge" class="nav-badge" style="display:none"></span></button>
       <button class="nav-item" data-tab="Delivery" onclick="switchTab(this)">📅 Lịch giao</button>
       <button class="nav-item" data-tab="Customers" onclick="switchTab(this)">👤 Khách hàng</button>
       <button class="nav-item" data-tab="Expenses" onclick="switchTab(this)">💰 Sổ chi phí</button>
@@ -551,6 +609,9 @@
       <div class="panel-topbar">
         <h1>Sản phẩm</h1>
         <button class="btn-green" onclick="openModal()">+ Thêm sản phẩm</button>
+      </div>
+      <div class="filter-bar">
+        <input type="search" id="productSearch" class="filter-search" placeholder="🔍 Tìm theo tên hoặc danh mục…" oninput="renderProducts()">
       </div>
       <div id="productsTable"><div class="loading-state">Đang tải…</div></div>
     </div>
@@ -1277,6 +1338,19 @@
   </div>
 </div>
 
+<!-- ── Hộp thoại xác nhận thoát (thay confirm mặc định) ── -->
+<div id="discardDialog" class="confirm-overlay" style="display:none">
+  <div class="confirm-box">
+    <div class="confirm-icon">✏️</div>
+    <h3>Thông tin chưa được lưu</h3>
+    <p>Bạn đang nhập dở. Thoát ra thì phần vừa nhập sẽ mất. Bạn có chắc muốn thoát không?</p>
+    <div class="confirm-actions">
+      <button type="button" class="btn-outline" id="discardStay">↩ Ở lại nhập tiếp</button>
+      <button type="button" class="btn-discard" id="discardLeave">Thoát, không lưu</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Toast ──────────────────────────────────────── -->
 <div id="toast" class="toast" style="display:none"></div>
 
@@ -1324,11 +1398,15 @@ function showApp() {
   document.getElementById('loginWrap').style.display = 'none'
   document.getElementById('appWrap').style.display = 'flex'
   loadProducts()   // nạp sẵn để modal Sửa đơn gợi ý giá niêm yết
+  refreshNewOrderBadge()
   // F5 mở lại đúng tab đang xem (tab lưu trong URL dạng #Expenses)
   const saved = location.hash.slice(1)
-  const savedBtn = saved && document.querySelector(`.nav-item[data-tab="${saved}"]`)
-  if (savedBtn) switchTab(savedBtn)
-  else loadDashboard()
+  const startTab = (saved && document.querySelector(`.nav-item[data-tab="${saved}"]`)) ? saved : 'Dashboard'
+  // Lịch sử: luôn có Tổng quan làm mốc nền → nút Back trên điện thoại quay về đúng tab
+  // trước đó (và Tổng quan) thay vì nhảy ra trang trắng
+  history.replaceState({ adminTab: 'Dashboard' }, '', '#Dashboard')
+  if (startTab !== 'Dashboard') history.pushState({ adminTab: startTab }, '', '#' + startTab)
+  applyTab(startTab)
 }
 
 // ── Tabs ─────────────────────────────────────────
@@ -1337,19 +1415,21 @@ function toggleSidebar() {
   document.querySelector('.sidebar').classList.toggle('open')
   document.getElementById('sidebarOverlay').classList.toggle('show')
 }
+function openSidebar() {
+  document.querySelector('.sidebar').classList.add('open')
+  document.getElementById('sidebarOverlay').classList.add('show')
+}
 function closeSidebar() {
   document.querySelector('.sidebar').classList.remove('open')
   document.getElementById('sidebarOverlay').classList.remove('show')
 }
 
-function switchTab(btn) {
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'))
-  btn.classList.add('active')
-  const tab = btn.dataset.tab
+// Đổi giao diện sang tab (không đụng lịch sử) — dùng chung cho click và nút Back
+function applyTab(tab) {
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab))
   document.querySelectorAll('.panel').forEach(p => p.style.display = 'none')
-  document.getElementById('panel' + tab).style.display = 'block'
-  history.replaceState(null, '', '#' + tab)   // lưu tab vào URL để F5 quay lại đúng chỗ
-  closeSidebar()   // chọn xong tự đóng menu trên điện thoại
+  const panel = document.getElementById('panel' + tab)
+  if (panel) panel.style.display = 'block'
   if (tab === 'Dashboard')     loadDashboard()
   if (tab === 'Orders')        loadOrders()
   if (tab === 'Delivery')      loadDelivery()
@@ -1359,6 +1439,78 @@ function switchTab(btn) {
   if (tab === 'Testimonials')  loadTestimonials()
   if (tab === 'Changelog')     loadChangelog()
   if (tab === 'Contact')       loadContact()
+}
+
+// Người dùng bấm 1 tab → thêm 1 mốc lịch sử để Back quay lại được
+function switchTab(btn) {
+  const tab = btn.dataset.tab
+  const cur = (history.state && history.state.adminTab) || 'Dashboard'
+  if (tab !== cur) history.pushState({ adminTab: tab }, '', '#' + tab)
+  closeSidebar()   // chọn xong tự đóng menu trên điện thoại
+  applyTab(tab)
+}
+
+// Nút Back trình duyệt: về tab trước đó; trên điện thoại mở luôn menu để chọn tiếp
+window.addEventListener('popstate', e => {
+  if (document.getElementById('appWrap').style.display === 'none') return  // chưa đăng nhập
+  const tab = (e.state && e.state.adminTab) || 'Dashboard'
+  applyTab(tab)
+  if (window.innerWidth <= 820) openSidebar()
+})
+
+// ── Chống mất dữ liệu: hỏi trước khi đóng modal đang nhập dở ──
+// Các modal có form cần bảo vệ (bấm nhầm ra ngoài / ✕ / Hủy sẽ hỏi lại)
+const GUARDED_MODALS = ['modal', 'testimonialModal', 'orderEditModal', 'orderNewModal', 'customerModal', 'changelogModal', 'expenseModal', 'materialEditModal']
+
+function initModalGuards() {
+  // Nút trong hộp thoại xác nhận thoát
+  document.getElementById('discardStay').onclick = hideDiscardDialog
+  document.getElementById('discardLeave').onclick = () => { const cb = _discardCb; hideDiscardDialog(); cb && cb() }
+  document.getElementById('discardDialog').onclick = e => { if (e.target.id === 'discardDialog') hideDiscardDialog() }
+
+  // Người dùng gõ/chọn trong modal → đánh dấu "đã sửa"
+  const mark = e => {
+    const ov = e.target.closest && e.target.closest('.modal-overlay')
+    if (ov && GUARDED_MODALS.includes(ov.id)) ov.dataset.dirty = '1'
+  }
+  document.addEventListener('input', mark, true)
+  document.addEventListener('change', mark, true)
+
+  // Mỗi lần modal MỞ lại (display khác none) → xoá cờ đã-sửa để bắt đầu sạch
+  GUARDED_MODALS.forEach(id => {
+    const ov = document.getElementById(id)
+    if (!ov) return
+    new MutationObserver(() => { if (ov.style.display !== 'none') ov.dataset.dirty = '' })
+      .observe(ov, { attributes: true, attributeFilter: ['style'] })
+  })
+
+  // Chặn ở pha capture: nếu bấm ✕ / Hủy / nền tối của modal đang sửa dở → hiện hộp thoại xác nhận
+  document.addEventListener('click', e => {
+    const isBackdrop = e.target.classList && e.target.classList.contains('modal-overlay')
+    const overlay = isBackdrop ? e.target : (e.target.closest && e.target.closest('.modal-overlay'))
+    if (!overlay || !GUARDED_MODALS.includes(overlay.id)) return
+    const isClose  = !!(e.target.closest && e.target.closest('.modal-close'))
+    const isCancel = e.target.matches && e.target.matches('.btn-outline') && e.target.textContent.trim() === 'Hủy'
+    if (!(isBackdrop || isClose || isCancel)) return   // click bình thường bên trong → bỏ qua
+    if (overlay.dataset.dirty === '1') {
+      e.stopPropagation(); e.preventDefault()          // chặn đóng ngay, chờ người dùng quyết định
+      showDiscardDialog(() => {                          // chọn "Thoát, không lưu"
+        overlay.dataset.dirty = ''
+        overlay.style.display = 'none'
+      })
+    }
+  }, true)
+}
+
+// Hộp thoại xác nhận thoát (in-page, không dùng confirm mặc định)
+let _discardCb = null
+function showDiscardDialog(onDiscard) {
+  _discardCb = onDiscard
+  document.getElementById('discardDialog').style.display = 'flex'
+}
+function hideDiscardDialog() {
+  document.getElementById('discardDialog').style.display = 'none'
+  _discardCb = null
 }
 
 // ── Dashboard ─────────────────────────────────────
@@ -1381,6 +1533,8 @@ async function loadDashboard() {
   // Doanh thu dự kiến: đơn chưa hủy. Thực tế: đã GIAO THÀNH CÔNG (hoặc Hoàn thành).
   const revenueProjected = all.filter(o => o.status !== 'Đã hủy' && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
   const revenueActual = all.filter(o => REVENUE_STATUSES.includes(o.status) && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
+  // Thu hôm nay: đơn đã giao thành công / hoàn thành, ghi nhận đúng hôm nay
+  const revenueToday = all.filter(o => REVENUE_STATUSES.includes(o.status) && statAttrDate(o) === today).reduce((s, o) => s + (Number(o.total) || 0), 0)
 
   // Chi phí tháng này → lãi gộp thực tế = doanh thu thực tế − chi phí
   const { data: expData } = await sb.from('expenses').select('amount, expense_date, category')
@@ -1405,12 +1559,14 @@ async function loadDashboard() {
   document.getElementById('dashboardCards').innerHTML = `
     <div class="dash-card clickable" onclick="openStatDetail('new')"><div class="dash-num" style="color:#E65100">${newCount}</div><div class="dash-label">Đơn mới chờ xử lý</div>${hint}</div>
     <div class="dash-card clickable" onclick="openStatDetail('today')"><div class="dash-num" style="color:#1565C0">${todayOrders.length}</div><div class="dash-label">Cần giao hôm nay</div>${hint}</div>
+    <div class="dash-card clickable" onclick="openStatDetail('revToday')"><div class="dash-num" style="color:#00897B">${fmtVnd(revenueToday)}</div><div class="dash-label">Doanh thu hôm nay</div>${hint}</div>
     <div class="dash-card clickable" onclick="openStatDetail('revActual')"><div class="dash-num" style="color:#2E7D32">${fmtVnd(revenueActual)}</div><div class="dash-label">Doanh thu thực tế tháng</div>${hint}</div>
     <div class="dash-card clickable" onclick="openStatDetail('revProjected')"><div class="dash-num" style="color:#7A9879">${fmtVnd(revenueProjected)}</div><div class="dash-label">Doanh thu dự kiến tháng</div>${hint}</div>
     <div class="dash-card clickable" onclick="openStatDetail('profit')"><div class="dash-num" style="color:${profit >= 0 ? '#1565C0' : '#C62828'}">${fmtVnd(profit)}</div><div class="dash-label">${profit >= 0 ? 'Lãi gộp' : 'Lỗ'} thực tế tháng</div>${hint}</div>`
 
   // Cho viewOrderDetail/openOrderEditModal dùng được từ Dashboard
   orders = all
+  refreshNewOrderBadge()
   const el = document.getElementById('dashboardToday')
   el.innerHTML = !todayOrders.length
     ? '<div class="empty-state">Hôm nay không có đơn nào cần giao.</div>'
@@ -1473,6 +1629,11 @@ function openStatDetail(kind, src) {
     title = '🚚 Cần giao hôm nay'
     explain = `Đơn có ngày giao <strong>hôm nay (${statDMY(today)})</strong>, chưa hủy và chưa giao xong.`
     list = ctx.orders.filter(o => !DONE_STATUSES.includes(o.status) && o.delivery_date === today)
+  } else if (kind === 'revToday') {
+    const today = todayStr()
+    title = `💰 Doanh thu hôm nay (${statDMY(today)})`
+    explain = `Đơn <strong>Giao thành công</strong> hoặc <strong>Hoàn thành</strong> được ghi nhận <strong>hôm nay</strong> (theo ngày giao; đơn chưa hẹn ngày tính theo ngày tạo).`
+    list = ctx.orders.filter(o => REVENUE_STATUSES.includes(o.status) && statAttrDate(o) === today)
   } else if (kind === 'revActual') {
     title = `💰 Doanh thu thực tế ${mLabel}`
     explain = `Đơn <strong>Giao thành công</strong> hoặc <strong>Hoàn thành</strong>, tính vào ${mLabel} theo <strong>ngày giao</strong> — đơn chưa hẹn ngày tính theo ngày tạo.`
@@ -1952,6 +2113,8 @@ function expenseSetThisMonth() {
 }
 
 async function loadExpenses() {
+  const et = document.getElementById('expensesTable')
+  if (et && !expenses.length) et.innerHTML = skeletonTable(5)
   loadMaterials()   // nạp nguyên liệu song song cho autocomplete
   const input = document.getElementById('expenseMonth')
   if (!input.value) input.value = curMonthStr()
@@ -2128,6 +2291,8 @@ async function deleteExpense(id) {
 let products = []
 
 async function loadProducts() {
+  const pt = document.getElementById('productsTable')
+  if (pt && !products.length) pt.innerHTML = skeletonTable(5)
   // Danh mục dùng chung với Gallery — nạp song song để đổ vào form sản phẩm
   const [prodRes] = await Promise.all([
     sb.from('products').select('*').order('order_index'),
@@ -2156,6 +2321,14 @@ function renderProducts() {
     el.innerHTML = '<div class="empty-state">Chưa có sản phẩm. Nhấn "+ Thêm sản phẩm" để bắt đầu.</div>'
     return
   }
+  const q = (document.getElementById('productSearch')?.value || '').trim().toLowerCase()
+  const list = q
+    ? products.filter(p => `${p.name || ''} ${p.category || ''}`.toLowerCase().includes(q))
+    : products
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state">Không tìm thấy sản phẩm khớp. <a href="#" onclick="document.getElementById(\'productSearch\').value=\'\';renderProducts();return false" style="color:#2E7D32;font-weight:700;">Xóa tìm</a></div>'
+    return
+  }
   el.innerHTML = `
 <div class="table-desktop">
 <table class="data-table">
@@ -2163,7 +2336,7 @@ function renderProducts() {
     <th>Ảnh</th><th>Tên sản phẩm</th><th>Danh mục</th>
     <th>Giá</th><th>Nổi bật</th><th>Thứ tự</th><th></th>
   </tr></thead>
-  <tbody>${products.map(p => `
+  <tbody>${list.map(p => `
   <tr>
     <td><div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="">` : '🌸'}</div></td>
     <td><strong>${esc(p.name)}</strong></td>
@@ -2178,7 +2351,7 @@ function renderProducts() {
   </tr>`).join('')}</tbody>
 </table>
 </div>
-<div class="cards-mobile">${products.map(p => `
+<div class="cards-mobile">${list.map(p => `
   <div class="m-card prod-card">
     <div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="">` : '🌸'}</div>
     <div class="prod-info">
@@ -2744,6 +2917,14 @@ async function saveTestimonial(e) {
 
 // ── Orders ────────────────────────────────────────
 let orders = []
+const ORDERS_PAGE = 30            // số đơn hiện mỗi lần, bấm "Xem thêm" để tải tiếp
+let ordersLimit = ORDERS_PAGE
+
+// Khung chờ skeleton dùng chung cho các bảng trong admin
+function skeletonTable(rows = 6) {
+  const row = `<div class="sk-row"><div class="sk-bx sk-thumb"></div><div class="sk-lines"><div class="sk-bx sk-ln w70"></div><div class="sk-bx sk-ln w40"></div></div></div>`
+  return `<div class="sk-wrap">${Array(rows).fill(row).join('')}</div>`
+}
 const ORDER_STATUSES = ['Mới', 'Đã xác nhận', 'Đang giao', 'Giao thành công', 'Hoàn thành', 'Đã hủy']
 const STATUS_CLASS = { 'Mới': 's-moi', 'Đã xác nhận': 's-xacnhan', 'Đang giao': 's-danggiao', 'Giao thành công': 's-giaotc', 'Hoàn thành': 's-hoanthanh', 'Đã hủy': 's-huy' }
 // Mốc ghi nhận doanh thu thực tế: đã giao hàng thành công (hoặc đã đóng đơn)
@@ -2893,9 +3074,22 @@ const orderCustomerName = o => esc(o.customers?.name || o.customer_name || '—'
 const orderCustomerPhone = o => esc(o.customers?.phone || '—')
 
 async function loadOrders() {
+  const el = document.getElementById('ordersTable')
+  if (el && !orders.length) el.innerHTML = skeletonTable(6)
   const { data } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('created_at', { ascending: false })
   orders = data || []
+  ordersLimit = ORDERS_PAGE   // về lại 30 đơn đầu mỗi lần tải mới
   renderOrders()
+  refreshNewOrderBadge()
+}
+
+// Chấm đỏ số đơn "Mới" trên menu — liếc là biết có đơn chờ xử lý (hiện ở mọi tab)
+async function refreshNewOrderBadge() {
+  const badge = document.getElementById('newOrderBadge')
+  if (!badge) return
+  const { count } = await sb.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'Mới')
+  if (count > 0) { badge.textContent = count; badge.style.display = '' }
+  else badge.style.display = 'none'
 }
 
 // Sau khi sửa/xóa/tạo đơn từ modal: refresh đúng tab đang mở (Dashboard/Lịch giao/Đơn hàng)
@@ -3044,14 +3238,21 @@ function renderOrders() {
     return
   }
   const fmtDayShort = d => d ? d.slice(8, 10) + '/' + d.slice(5, 7) : ''
+  const shown = list.slice(0, ordersLimit)   // chỉ vẽ tối đa ordersLimit đơn cho nhẹ
+  const moreBtn = list.length > ordersLimit
+    ? `<div style="text-align:center;margin-top:16px;">
+         <button class="btn-outline" onclick="showMoreOrders()">Xem thêm ${list.length - ordersLimit} đơn nữa ▾</button>
+       </div>`
+    : ''
   el.innerHTML = `
+<div class="orders-count" style="font-size:.85rem;color:#7A9879;margin-bottom:10px;">Hiển thị ${shown.length}/${list.length} đơn</div>
 <div class="orders-desktop">
 <table class="data-table">
   <thead><tr>
     <th></th><th>Mã đơn</th><th>Khách hàng</th><th>Sản phẩm</th><th>SL</th><th>Tổng tiền</th>
     <th>Khu vực</th><th>Ngày giao</th><th>Trạng thái</th><th></th>
   </tr></thead>
-  <tbody>${list.map(o => `
+  <tbody>${shown.map(o => `
   <tr>
     <td>${orderThumbHTML(o)}</td>
     <td><strong style="color:#2E7D32">${orderCode(o.id)}</strong></td>
@@ -3074,7 +3275,7 @@ function renderOrders() {
   </tr>`).join('')}</tbody>
 </table>
 </div>
-<div class="orders-cards">${list.map(o => `
+<div class="orders-cards">${shown.map(o => `
   <div class="order-card" onclick="viewOrderDetail(${o.id})">
     <div class="oc-wrap">
       ${orderThumbHTML(o)}
@@ -3091,7 +3292,13 @@ function renderOrders() {
         </div>
       </div>
     </div>
-  </div>`).join('')}</div>`
+  </div>`).join('')}</div>
+${moreBtn}`
+}
+
+function showMoreOrders() {
+  ordersLimit += ORDERS_PAGE
+  renderOrders()
 }
 
 async function updateOrderStatus(id, status) {
@@ -3100,6 +3307,7 @@ async function updateOrderStatus(id, status) {
   const o = orders.find(x => x.id === id)
   if (o) o.status = status
   renderOrders()
+  refreshNewOrderBadge()
   showToast('Đã cập nhật trạng thái!')
 }
 
@@ -3183,6 +3391,7 @@ async function deleteOrder(id) {
   await sb.from('orders').delete().eq('id', id)
   showToast('Đã xóa đơn hàng')
   reloadActiveOrderViews()
+  refreshNewOrderBadge()
 }
 
 // ── Sửa đơn ───────────────────────────────────────
@@ -3387,6 +3596,8 @@ async function saveNewOrder(e) {
 let customers = []
 
 async function loadCustomers() {
+  const ct = document.getElementById('customersTable')
+  if (ct && !customers.length) ct.innerHTML = skeletonTable(5)
   const { data } = await sb.from('customers').select('*').order('created_at', { ascending: false })
   customers = data || []
   renderCustomers()
@@ -3559,6 +3770,7 @@ function showToast(msg, type = 'success') {
 }
 
 init()
+initModalGuards()
 </script>
 </body>
 </html>
