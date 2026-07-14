@@ -453,15 +453,14 @@ async function loadContact() {
   setText('policyPayment',  contactInfo.policy_payment  || 'Liên hệ shop để biết thêm chi tiết.');
   setText('policyQuality',  contactInfo.policy_quality  || 'Liên hệ shop để biết thêm chi tiết.');
 
-  // Hero background photo
+  // Hero background photo — primeHero() đã hiện bản tạm; ở đây thay bản chính thức
+  // và nhớ URL vào máy để lần sau hiện ngay không chờ query
   const heroBg = document.getElementById('heroBg');
   if (heroBg && contactInfo.hero_image) {
     heroBg.style.backgroundImage = `url('${contactInfo.hero_image}')`;
     heroBg.style.display = 'block';
     requestAnimationFrame(() => heroBg.classList.add('loaded'));
-    // update OG image for sharing
-    const ogImg = document.querySelector('meta[property="og:image"]');
-    if (ogImg) ogImg.content = contactInfo.hero_image;
+    try { localStorage.setItem('heroImageUrl', contactInfo.hero_image); } catch {}
   }
 
   // Google Maps embed
@@ -836,9 +835,21 @@ function injectZaloIcons() {
   });
 }
 
+// Hero hiện NGAY không chờ query: lần đầu dùng ảnh tĩnh trong repo,
+// từ lần 2 dùng URL đã nhớ trong máy (localStorage) — loadContact() sẽ thay bản mới nếu đổi
+function primeHero() {
+  const heroBg = document.getElementById('heroBg');
+  if (!heroBg) return;
+  const cached = (localStorage.getItem('heroImageUrl') || '').replace(/['"()]/g, '');
+  heroBg.style.backgroundImage = `url('${cached || 'images/og-cover.jpg'}')`;
+  heroBg.style.display = 'block';
+  requestAnimationFrame(() => heroBg.classList.add('loaded'));
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   initNav();
   injectZaloIcons();
+  primeHero();
   // Năm © tự cập nhật (khỏi lỗi thời)
   document.querySelectorAll('.footer-bottom').forEach(el => {
     el.textContent = el.textContent.replace(/©\s*\d{4}/, '© ' + new Date().getFullYear());

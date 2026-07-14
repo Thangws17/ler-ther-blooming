@@ -1401,7 +1401,7 @@ async function loadDashboard() {
       </div>
     </div>`
 
-  const hint = '<div class="dash-hint">👆 Bấm xem chi tiết</div>'
+  const hint = '<div class="dash-hint">Bấm xem chi tiết</div>'
   document.getElementById('dashboardCards').innerHTML = `
     <div class="dash-card clickable" onclick="openStatDetail('new')"><div class="dash-num" style="color:#E65100">${newCount}</div><div class="dash-label">Đơn mới chờ xử lý</div>${hint}</div>
     <div class="dash-card clickable" onclick="openStatDetail('today')"><div class="dash-num" style="color:#1565C0">${todayOrders.length}</div><div class="dash-label">Cần giao hôm nay</div>${hint}</div>
@@ -1990,10 +1990,10 @@ function renderExpenses(revenueActual, revenueProjected) {
 
   document.getElementById('expenseSummary').innerHTML = `
     <div class="dash-cards">
-      <div class="dash-card clickable" onclick="openStatDetail('revActual','ex')"><div class="dash-num" style="color:#2E7D32">${fmtVnd(revenueActual)}</div><div class="dash-label">Doanh thu thực tế</div><div class="dash-hint">👆 Bấm xem chi tiết</div></div>
-      <div class="dash-card clickable" onclick="openStatDetail('revProjected','ex')"><div class="dash-num" style="color:#7A9879">${fmtVnd(revenueProjected)}</div><div class="dash-label">Doanh thu dự kiến</div><div class="dash-hint">👆 Bấm xem chi tiết</div></div>
+      <div class="dash-card clickable" onclick="openStatDetail('revActual','ex')"><div class="dash-num" style="color:#2E7D32">${fmtVnd(revenueActual)}</div><div class="dash-label">Doanh thu thực tế</div><div class="dash-hint">Bấm xem chi tiết</div></div>
+      <div class="dash-card clickable" onclick="openStatDetail('revProjected','ex')"><div class="dash-num" style="color:#7A9879">${fmtVnd(revenueProjected)}</div><div class="dash-label">Doanh thu dự kiến</div><div class="dash-hint">Bấm xem chi tiết</div></div>
       <div class="dash-card"><div class="dash-num" style="color:#C62828">${fmtVnd(totalExpense)}</div><div class="dash-label">Chi phí tháng</div></div>
-      <div class="dash-card clickable" onclick="openStatDetail('profit','ex')"><div class="dash-num" style="color:${profit >= 0 ? '#1565C0' : '#C62828'}">${fmtVnd(profit)}</div><div class="dash-label">${profit >= 0 ? 'Lãi gộp' : 'Lỗ'} thực tế</div><div class="dash-hint">👆 Bấm xem chi tiết</div></div>
+      <div class="dash-card clickable" onclick="openStatDetail('profit','ex')"><div class="dash-num" style="color:${profit >= 0 ? '#1565C0' : '#C62828'}">${fmtVnd(profit)}</div><div class="dash-label">${profit >= 0 ? 'Lãi gộp' : 'Lỗ'} thực tế</div><div class="dash-hint">Bấm xem chi tiết</div></div>
     </div>
     ${byCat.length ? `<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;">
       ${byCat.map(x => `<span class="cat-badge" style="font-size:.82rem;padding:5px 12px;">${x.c}: <strong>${fmtVnd(x.sum)}</strong></span>`).join('')}
@@ -2756,7 +2756,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&l
 
 // ── Nén ảnh trước khi upload (giảm 5-10 lần dung lượng, web tải nhanh hơn) ──
 // Thu về tối đa 1600px cạnh dài, JPEG chất lượng 82%. Ảnh nhỏ/GIF/SVG giữ nguyên.
-async function compressImage(file, maxDim = 1600, quality = 0.82) {
+async function compressImage(file, maxDim = 1600, quality = 0.78) {
   if (!/^image\/(jpeg|png|webp)$/i.test(file.type) || file.size < 300 * 1024) return file
   try {
     const bitmap = await createImageBitmap(file)
@@ -2769,18 +2769,25 @@ async function compressImage(file, maxDim = 1600, quality = 0.82) {
     canvas.width = w; canvas.height = h
     canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h)
     bitmap.close()
-    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality))
+    // WebP nhẹ hơn JPEG ~30-40%, mọi trình duyệt hiện nay đều đọc được;
+    // trình duyệt không xuất được WebP thì toBlob trả null → dùng JPEG
+    let blob = await new Promise(res => canvas.toBlob(res, 'image/webp', quality))
+    let ext = '.webp', type = 'image/webp'
+    if (!blob) {
+      blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality))
+      ext = '.jpg'; type = 'image/jpeg'
+    }
     if (!blob || blob.size >= file.size) return file   // nén không lợi → giữ gốc
-    // Giữ tên nhưng đổi đuôi .jpg cho đúng định dạng
-    const name = file.name.replace(/\.\w+$/, '') + '.jpg'
-    return new File([blob], name, { type: 'image/jpeg' })
+    const name = file.name.replace(/\.\w+$/, '') + ext
+    return new File([blob], name, { type })
   } catch { return file }  // trình duyệt cũ / ảnh lỗi → upload bản gốc
 }
 
-// Tối ưu 1 lần toàn bộ ảnh cũ: tải về → nén → up lại (cache 1 năm) → cập nhật link.
-// Ảnh gốc giữ nguyên (không xóa). Bỏ qua ảnh đã tối ưu (link chứa "_opt").
+// Tối ưu 1 lần toàn bộ ảnh cũ: tải về → nén WebP → up lại (cache 1 năm) → cập nhật link.
+// Quét: ảnh đại diện SP + ẢNH PHỤ carousel (images[]) + gallery + hero trang chủ.
+// Ảnh gốc giữ nguyên (không xóa). Bỏ qua ảnh đã tối ưu WebP (link chứa "_optw_" / đuôi .webp).
 async function optimizeOldImages() {
-  if (!confirm('Tối ưu toàn bộ ảnh cũ? Có thể mất vài phút — đừng đóng tab cho tới khi xong.')) return
+  if (!confirm('Tối ưu toàn bộ ảnh cũ (chuyển sang WebP nhẹ hơn)? Có thể mất vài phút — đừng đóng tab cho tới khi xong.')) return
   const btn  = document.getElementById('optimizeBtn')
   const box  = document.getElementById('optimizeProgress')
   const fill = document.getElementById('optProgFill')
@@ -2789,35 +2796,78 @@ async function optimizeOldImages() {
   box.style.display = 'block'
   text.textContent = 'Đang lấy danh sách ảnh…'
 
-  const [{ data: prods }, { data: gals }] = await Promise.all([
-    sb.from('products').select('id,image').not('image', 'is', null),
+  const [{ data: prods }, { data: gals }, { data: contact }] = await Promise.all([
+    sb.from('products').select('id,image,images'),
     sb.from('gallery').select('id,url'),
+    sb.from('contact').select('id,hero_image').eq('id', 1).single(),
   ])
+  const needsOpt = u => !!u && u.includes('/images/') && !u.includes('_optw_') && !/\.webp(\?|$)/i.test(u)
+
+  let saved = 0
+  // Nén 1 URL → up bản mới → trả URL mới (ném lỗi nếu thất bại)
+  const optimizeUrl = async (url, folder, tag, maxDim = 1600) => {
+    const blob = await (await fetch(url)).blob()
+    const file = await compressImage(new File([blob], 'x.jpg', { type: blob.type || 'image/jpeg' }), maxDim)
+    const ext = file.type === 'image/webp' ? 'webp' : 'jpg'
+    const path = `${folder}/${Date.now()}_optw_${tag}.${ext}`
+    const { error } = await sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })
+    if (error) throw error
+    saved += Math.max(0, blob.size - file.size)
+    return sb.storage.from('images').getPublicUrl(path).data.publicUrl
+  }
+
+  // Gom việc: mỗi việc = 1 URL cần nén + cách ghi link mới vào DB
   const jobs = []
-  ;(prods || []).forEach(p => { if (p.image && p.image.includes('/images/') && !p.image.includes('_opt')) jobs.push({ table: 'products', col: 'image', id: p.id, url: p.image }) })
-  ;(gals  || []).forEach(g => { if (g.url && g.url.includes('/images/') && !g.url.includes('_opt')) jobs.push({ table: 'gallery', col: 'url', id: g.id, url: g.url }) })
+  ;(prods || []).forEach(p => {
+    const urls = [...new Set([p.image, ...(p.images || [])])].filter(needsOpt)
+    urls.forEach((u, k) => jobs.push({
+      url: u, folder: 'products', tag: `p${p.id}_${k}`,
+      apply: async (newUrl) => {
+        const patch = {}
+        if (p.image === u) { patch.image = newUrl; p.image = newUrl }
+        if (Array.isArray(p.images) && p.images.includes(u)) {
+          p.images = p.images.map(x => x === u ? newUrl : x)
+          patch.images = p.images
+        }
+        const { error } = await sb.from('products').update(patch).eq('id', p.id)
+        if (error) throw error
+      },
+    }))
+  })
+  ;(gals || []).forEach(g => {
+    if (!needsOpt(g.url)) return
+    jobs.push({
+      url: g.url, folder: 'gallery', tag: `g${g.id}`,
+      apply: async (newUrl) => {
+        const { error } = await sb.from('gallery').update({ url: newUrl }).eq('id', g.id)
+        if (error) throw error
+      },
+    })
+  })
+  if (contact && needsOpt(contact.hero_image)) {
+    jobs.push({
+      url: contact.hero_image, folder: 'hero', tag: 'hero', maxDim: 1920,
+      apply: async (newUrl) => {
+        const { error } = await sb.from('contact').update({ hero_image: newUrl }).eq('id', 1)
+        if (error) throw error
+      },
+    })
+  }
 
   if (!jobs.length) { text.textContent = 'Tất cả ảnh đã được tối ưu rồi 👍'; btn.textContent = 'Đã tối ưu'; return }
 
-  let done = 0, ok = 0, fail = 0, saved = 0
+  let done = 0, ok = 0, fail = 0
   for (const job of jobs) {
     try {
-      const blob = await (await fetch(job.url)).blob()
-      const orig = blob.size
-      const folder = job.table === 'products' ? 'products' : 'gallery'
-      const file = await compressImage(new File([blob], 'x.jpg', { type: blob.type || 'image/jpeg' }))
-      const path = `${folder}/${Date.now()}_opt_${job.id}.jpg`
-      const { error: upErr } = await sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })
-      if (upErr) throw upErr
-      const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
-      const { error: dbErr } = await sb.from(job.table).update({ [job.col]: publicUrl }).eq('id', job.id)
-      if (dbErr) throw dbErr
-      ok++; saved += Math.max(0, orig - file.size)
+      const newUrl = await optimizeUrl(job.url, job.folder, job.tag, job.maxDim)
+      await job.apply(newUrl)
+      ok++
     } catch (e) { fail++ }
     done++
     fill.style.width = `${Math.round(done / jobs.length * 100)}%`
     text.textContent = `Đã xử lý ${done}/${jobs.length} · OK ${ok}${fail ? ' · lỗi ' + fail : ''} · tiết kiệm ~${(saved / 1048576).toFixed(1)}MB`
   }
+  btn.disabled = false
   btn.textContent = 'Tối ưu xong 🎉'
   text.textContent = `Hoàn tất! ${ok}/${jobs.length} ảnh đã tối ưu, tiết kiệm ~${(saved / 1048576).toFixed(1)}MB.${fail ? ' ' + fail + ' ảnh lỗi (bỏ qua, ảnh gốc vẫn còn).' : ''} Tải lại web sẽ thấy nhanh hơn.`
   showToast('Tối ưu ảnh xong!')
