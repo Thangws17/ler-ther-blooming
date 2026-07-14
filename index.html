@@ -49,35 +49,44 @@
 
 <!-- ── Hero ───────────────────────────────────────────── -->
 <section class="hero">
-  <div id="heroBg" class="hero-img" style="display:none"></div>
-  <div class="container">
+  <div class="container hero-grid">
     <div class="hero-content">
-      <div class="hero-badge">🌿 Hoa tươi mỗi ngày</div>
+      <div class="hero-badge">Shop hoa tươi · Hà Nội</div>
       <h1>Gửi yêu thương<br>qua từng <em>bông hoa</em></h1>
       <p>
-        Ler &amp; Ther Blooming mang đến những bó hoa tươi thắm,
-        được chọn lọc kỹ càng và cắm nghệ thuật.
-        Phù hợp cho mọi dịp — sinh nhật, tình yêu, khai trương hay lễ cưới.
+        Mỗi bó hoa được chọn và cắm thủ công trong ngày —
+        giao nội thành miễn phí, gửi ảnh duyệt trước khi giao.
       </p>
       <div class="hero-cta">
-        <a href="san-pham.html" class="btn btn-white">🌺 Xem sản phẩm</a>
-        <a href="lien-he.html"  class="btn btn-outline" style="border-color:rgba(255,255,255,.6);color:#fff;">📞 Liên hệ ngay</a>
+        <a href="san-pham.html" class="btn btn-white">Đặt hoa 🌸</a>
+        <a href="gallery.html" class="btn btn-outline" style="border-color:rgba(255,255,255,.6);color:#fff;">Xem mẫu</a>
       </div>
       <p class="hero-price-hint" id="heroPriceHint" style="display:none"></p>
     </div>
+    <div class="hero-photo">
+      <!-- Cụm 3 ảnh so le: ảnh chính = ảnh hero (admin > Liên hệ); 2 ảnh phụ = 2 ảnh đầu Gallery -->
+      <div class="hero-collage">
+        <div id="heroBg" class="hc-main"></div>
+        <div id="heroSide1" class="hc-top"></div>
+        <div id="heroSide2" class="hc-bot"></div>
+      </div>
+    </div>
   </div>
-  <div class="hero-deco">🌸</div>
 </section>
 
 <!-- ── Featured Products ─────────────────────────────── -->
 <section style="background:#fff;">
   <div class="container">
     <div class="section-header reveal">
+      <span class="sec-kicker">Bộ sưu tập</span>
       <h2>Sản phẩm nổi bật</h2>
       <p>Những mẫu hoa được yêu thích nhất tại Ler &amp; Ther Blooming</p>
     </div>
     <div class="products-grid" id="featuredGrid">
-      <div class="loading"><div class="l-icon">🌸</div><p>Đang tải…</p></div>
+      <div class="sk-card"><div class="sk-box sk-img"></div><div class="sk-box sk-line w60"></div><div class="sk-box sk-line w35"></div></div>
+      <div class="sk-card"><div class="sk-box sk-img"></div><div class="sk-box sk-line w60"></div><div class="sk-box sk-line w35"></div></div>
+      <div class="sk-card"><div class="sk-box sk-img"></div><div class="sk-box sk-line w60"></div><div class="sk-box sk-line w35"></div></div>
+      <div class="sk-card"><div class="sk-box sk-img"></div><div class="sk-box sk-line w60"></div><div class="sk-box sk-line w35"></div></div>
     </div>
     <div style="text-align:center;margin-top:40px;">
       <a href="san-pham.html" class="btn btn-primary">Xem tất cả sản phẩm →</a>
@@ -89,6 +98,7 @@
 <section class="whyus">
   <div class="container">
     <div class="section-header reveal">
+      <span class="sec-kicker">Vì sao chọn shop</span>
       <h2>Tại sao chọn chúng tôi?</h2>
       <p>Chúng tôi không chỉ bán hoa — chúng tôi gửi đi cảm xúc</p>
     </div>
@@ -116,6 +126,7 @@
 <section class="testimonials">
   <div class="container">
     <div class="section-header reveal">
+      <span class="sec-kicker">Đánh giá</span>
       <h2>Khách hàng nói gì</h2>
       <p>Những chia sẻ thật từ người đã nhận hoa</p>
     </div>

@@ -80,6 +80,8 @@ function catStyle(cat) {
 }
 
 // ─── Build product card HTML ──────────────────────────────
+// Thẻ tập trung vào sản phẩm: ảnh 4:5 chiếm phần lớn, chỉ còn tên + giá + nút Đặt ngay.
+// Mô tả + danh mục vẫn xem đầy đủ ở trang chi tiết.
 function productCardHTML(p) {
   const s = catStyle(p.category);
   const img = p.image
@@ -90,19 +92,30 @@ function productCardHTML(p) {
 <div class="product-card reveal" data-category="${esc(p.category)}">
   <a href="san-pham-chi-tiet.html?id=${p.id}" class="product-img">${img}</a>
   <div class="product-info">
-    <span class="product-cat">${esc(p.category)}</span>
     <div class="product-name">
       <a href="san-pham-chi-tiet.html?id=${p.id}" style="color:inherit">${esc(p.name)}</a>
     </div>
-    <div class="product-desc">${esc(p.description)}</div>
     <div class="product-footer">
       <span class="product-price">${esc(fmtPrice(p.price))}</span>
-      <button type="button" class="product-btn" onclick="openOrderModal(${p.id}, '${nameAttr}')">
-        🌸 Đặt ngay
-      </button>
+      <button type="button" class="product-btn" onclick="openOrderModal(${p.id}, '${nameAttr}')">Đặt ngay</button>
     </div>
   </div>
 </div>`;
+}
+
+// ─── Skeleton loading (khung chờ mềm thay chữ "Đang tải…") ─
+function skeletonCards(n = 6) {
+  return Array(n).fill(`
+<div class="sk-card">
+  <div class="sk-box sk-img"></div>
+  <div class="sk-box sk-line w60"></div>
+  <div class="sk-box sk-line w35"></div>
+</div>`).join('');
+}
+function skeletonTiles(n = 8) {
+  const hs = [230, 170, 260, 200, 180, 250, 210, 190];
+  return Array.from({ length: n }, (_, i) =>
+    `<div class="sk-box sk-tile" style="height:${hs[i % hs.length]}px"></div>`).join('');
 }
 
 // ─── Products page ────────────────────────────────────────
@@ -112,7 +125,7 @@ async function loadProducts() {
   const grid = document.getElementById('productsGrid');
   if (!grid) return;
 
-  grid.innerHTML = '<div class="loading"><div class="l-icon">🌸</div><p>Đang tải sản phẩm…</p></div>';
+  grid.innerHTML = skeletonCards(6);
 
   // Danh mục dùng CHUNG với Gallery (bảng gallery_categories) → tab lọc tự theo cấu hình trong admin
   const [prodRes, catRes] = await Promise.all([
@@ -192,6 +205,7 @@ async function loadFeatured() {
   const grid = document.getElementById('featuredGrid');
   if (!grid) return;
 
+  grid.innerHTML = skeletonCards(4);
   const { data } = await sb.from('products').select('*').eq('featured', true).order('order_index').limit(4);
   if (!data?.length) { grid.closest('section')?.remove(); return; }
   grid.innerHTML = data.map(productCardHTML).join('');
@@ -211,6 +225,7 @@ async function loadGallery() {
   const grid = document.getElementById('galleryGrid');
   if (!grid) return;
 
+  grid.innerHTML = skeletonTiles(8);
   const [galRes, catRes] = await Promise.all([
     sb.from('gallery').select('*').order('order_index'),
     sb.from('gallery_categories').select('*').order('order_index'),
@@ -453,13 +468,10 @@ async function loadContact() {
   setText('policyPayment',  contactInfo.policy_payment  || 'Liên hệ shop để biết thêm chi tiết.');
   setText('policyQuality',  contactInfo.policy_quality  || 'Liên hệ shop để biết thêm chi tiết.');
 
-  // Hero background photo — primeHero() đã hiện bản tạm; ở đây thay bản chính thức
+  // Ảnh chính cụm hero — primeHero() đã hiện bản tạm; ở đây thay bản chính thức
   // và nhớ URL vào máy để lần sau hiện ngay không chờ query
-  const heroBg = document.getElementById('heroBg');
-  if (heroBg && contactInfo.hero_image) {
-    heroBg.style.backgroundImage = `url('${contactInfo.hero_image}')`;
-    heroBg.style.display = 'block';
-    requestAnimationFrame(() => heroBg.classList.add('loaded'));
+  if (contactInfo.hero_image) {
+    _setHeroImg('heroBg', contactInfo.hero_image);
     try { localStorage.setItem('heroImageUrl', contactInfo.hero_image); } catch {}
   }
 
@@ -836,14 +848,32 @@ function injectZaloIcons() {
 }
 
 // Hero hiện NGAY không chờ query: lần đầu dùng ảnh tĩnh trong repo,
-// từ lần 2 dùng URL đã nhớ trong máy (localStorage) — loadContact() sẽ thay bản mới nếu đổi
+// từ lần 2 dùng URL đã nhớ trong máy (localStorage) — dữ liệu thật tải về sẽ thay nếu đổi
+function _setHeroImg(id, url) {
+  const el = document.getElementById(id);
+  if (!el || !url) return;
+  const safe = String(url).replace(/['"()]/g, '');
+  el.style.backgroundImage = `url('${safe}')`;
+  requestAnimationFrame(() => el.classList.add('loaded'));
+}
 function primeHero() {
-  const heroBg = document.getElementById('heroBg');
-  if (!heroBg) return;
-  const cached = (localStorage.getItem('heroImageUrl') || '').replace(/['"()]/g, '');
-  heroBg.style.backgroundImage = `url('${cached || 'images/og-cover.jpg'}')`;
-  heroBg.style.display = 'block';
-  requestAnimationFrame(() => heroBg.classList.add('loaded'));
+  if (!document.getElementById('heroBg')) return;
+  _setHeroImg('heroBg', localStorage.getItem('heroImageUrl') || 'images/og-cover.jpg');
+  _setHeroImg('heroSide1', localStorage.getItem('heroSide1Url'));
+  _setHeroImg('heroSide2', localStorage.getItem('heroSide2Url'));
+}
+
+// 2 ảnh phụ của cụm hero = 2 ảnh ĐẦU Gallery (kéo thả sắp xếp Gallery trong admin để đổi)
+async function loadHeroSides() {
+  if (!document.getElementById('heroSide1')) return;
+  const { data } = await sb.from('gallery').select('url').order('order_index').limit(2);
+  if (!data?.length) return;
+  _setHeroImg('heroSide1', data[0]?.url);
+  _setHeroImg('heroSide2', data[1]?.url);
+  try {
+    if (data[0]?.url) localStorage.setItem('heroSide1Url', data[0].url);
+    if (data[1]?.url) localStorage.setItem('heroSide2Url', data[1].url);
+  } catch {}
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -856,6 +886,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   // Tải song song cho nhanh: contact chạy nền, nội dung chính không phải chờ
   const contactReady = loadContact();
+  loadHeroSides();
   loadHeroPriceHint();
   loadFeatured();
   loadProducts();
