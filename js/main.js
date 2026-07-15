@@ -474,6 +474,8 @@ async function loadContact() {
     _setHeroImg('heroBg', contactInfo.hero_image);
     try { localStorage.setItem('heroImageUrl', contactInfo.hero_image); } catch {}
   }
+  // 2 ảnh phụ của cụm hero: ưu tiên ảnh admin chọn, bỏ trống thì lấy 2 ảnh đầu Gallery
+  applyHeroSides(contactInfo);
 
   // Google Maps embed
   const mapEl = document.getElementById('contactMap');
@@ -877,16 +879,18 @@ function primeHero() {
 }
 
 // 2 ảnh phụ của cụm hero = 2 ảnh ĐẦU Gallery (kéo thả sắp xếp Gallery trong admin để đổi)
-async function loadHeroSides() {
+// 2 ảnh phụ cụm hero: ưu tiên ảnh admin đã chọn (contact.hero_side1/2);
+// ô nào bỏ trống thì lấy ảnh đầu Gallery (giữ tương thích như trước)
+async function applyHeroSides(c) {
   if (!document.getElementById('heroSide1')) return;
-  const { data } = await sb.from('gallery').select('url').order('order_index').limit(2);
-  if (!data?.length) return;
-  _setHeroImg('heroSide1', data[0]?.url);
-  _setHeroImg('heroSide2', data[1]?.url);
-  try {
-    if (data[0]?.url) localStorage.setItem('heroSide1Url', data[0].url);
-    if (data[1]?.url) localStorage.setItem('heroSide2Url', data[1].url);
-  } catch {}
+  let s1 = c && c.hero_side1, s2 = c && c.hero_side2;
+  if (!s1 || !s2) {
+    const { data } = await sb.from('gallery').select('url').order('order_index').limit(2);
+    s1 = s1 || data?.[0]?.url;
+    s2 = s2 || data?.[1]?.url;
+  }
+  if (s1) { _setHeroImg('heroSide1', s1); try { localStorage.setItem('heroSide1Url', s1); } catch {} }
+  if (s2) { _setHeroImg('heroSide2', s2); try { localStorage.setItem('heroSide2Url', s2); } catch {} }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -898,8 +902,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     el.textContent = el.textContent.replace(/©\s*\d{4}/, '© ' + new Date().getFullYear());
   });
   // Tải song song cho nhanh: contact chạy nền, nội dung chính không phải chờ
+  // (ảnh phụ hero do loadContact gọi applyHeroSides xử lý)
   const contactReady = loadContact();
-  loadHeroSides();
   loadHeroPriceHint();
   loadFeatured();
   loadProducts();
