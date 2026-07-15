@@ -215,7 +215,8 @@ async function loadFeatured() {
 }
 
 // ─── Gallery ──────────────────────────────────────────────
-const GALLERY_PER_PAGE   = 10;
+// 12 ảnh/trang — chia đẹp cho 3 cột (máy tính) lẫn 2 cột (tablet), mỗi cột đầy đặn hơn
+const GALLERY_PER_PAGE   = 12;
 let galleryAll           = [];
 let galleryCats          = [];
 let galleryPage          = 0;
@@ -255,7 +256,31 @@ function getFilteredPhotos() {
   return galleryAll.filter(ph => ph.category === galleryActiveCategory);
 }
 
-function renderGalleryPage() {
+// Số cột theo bề rộng màn hình
+function galleryColumnCount() {
+  const w = window.innerWidth;
+  return w <= 520 ? 1 : w <= 860 ? 2 : 3;
+}
+
+// Tỷ lệ cao/rộng của ảnh — đo 1 lần rồi nhớ, phân trang qua lại là tức thì
+const _imgRatioCache = new Map();
+function getImageRatio(url) {
+  if (_imgRatioCache.has(url)) return Promise.resolve(_imgRatioCache.get(url));
+  return new Promise(resolve => {
+    const im = new Image();
+    im.onload = () => {
+      const r = (im.naturalHeight / im.naturalWidth) || 1.25;
+      _imgRatioCache.set(url, r);
+      resolve(r);
+    };
+    im.onerror = () => resolve(1.25);
+    im.src = url;
+  });
+}
+
+let _galRenderToken = 0;
+
+async function renderGalleryPage() {
   const grid = document.getElementById('galleryGrid');
   if (!grid) return;
 
@@ -273,14 +298,48 @@ function renderGalleryPage() {
     return;
   }
 
-  grid.innerHTML = page.map((ph, i) => `
-<div class="gallery-item" style="animation-delay:${(i * 0.04).toFixed(2)}s"
-     data-url="${esc(ph.url)}" data-caption="${esc(ph.caption || '')}" onclick="openLightboxFromEl(this)">
-  <img src="${esc(ph.url)}" alt="${esc(ph.caption || 'Ảnh hoa ' + (start + i + 1))}" loading="lazy">
+  const token = ++_galRenderToken;
+  if (page.some(ph => !_imgRatioCache.has(ph.url))) {
+    // khung chờ xếp theo cột cho khớp bố cục
+    grid.innerHTML = Array.from({ length: galleryColumnCount() }, () =>
+      `<div class="gallery-col">${skeletonTiles(2)}</div>`).join('');
+  }
+  const ratios = await Promise.all(page.map(ph => getImageRatio(ph.url)));
+  if (token !== _galRenderToken) return;   // đã bấm sang trang khác trong lúc đo
+
+  // Chia ảnh vào cột đang ngắn nhất (giữ thứ tự tương đối, các cột cân nhau)
+  const cols = galleryColumnCount();
+  const colH = Array(cols).fill(0);
+  const colItems = Array.from({ length: cols }, () => []);
+  page.forEach((ph, i) => {
+    let k = 0;
+    for (let j = 1; j < cols; j++) if (colH[j] < colH[k]) k = j;
+    colItems[k].push({ ph, r: ratios[i], i });
+    colH[k] += ratios[i];
+  });
+
+  // Trang ĐỦ ảnh → "fit": ảnh giữ tỷ lệ thật nhưng co giãn nhẹ để 3 cột cùng đáy.
+  // Trang cuối thiếu ảnh → để tự nhiên (chấp nhận hụt).
+  const fit = cols > 1 && page.length === GALLERY_PER_PAGE;
+  grid.innerHTML = colItems.map(items => `
+<div class="gallery-col ${fit ? 'fit' : ''}">
+  ${items.map(({ ph, r, i }) => `
+  <div class="gallery-item" style="--ar:1/${r.toFixed(4)};--g:${r.toFixed(4)};animation-delay:${(i * 0.04).toFixed(2)}s"
+       data-url="${esc(ph.url)}" data-caption="${esc(ph.caption || '')}" onclick="openLightboxFromEl(this)">
+    <img src="${esc(ph.url)}" alt="${esc(ph.caption || 'Ảnh hoa ' + (start + i + 1))}" loading="lazy">
+  </div>`).join('')}
 </div>`).join('');
 
   renderGalleryPagination(filtered.length);
 }
+
+// Đổi cỡ cửa sổ → tính lại số cột
+let _galResizeT;
+window.addEventListener('resize', () => {
+  if (!document.getElementById('galleryGrid')) return;
+  clearTimeout(_galResizeT);
+  _galResizeT = setTimeout(renderGalleryPage, 150);
+});
 
 function renderGalleryPagination(total) {
   const el = document.getElementById('galleryPagination');
