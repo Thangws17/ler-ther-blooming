@@ -1424,8 +1424,18 @@ function closeSidebar() {
   document.getElementById('sidebarOverlay').classList.remove('show')
 }
 
+// Đóng sạch mọi lớp phủ đang mở (modal / chọn ảnh / hộp thoại / xem ảnh)
+// → tránh modal cũ còn "đè" lên khi chuyển tab, nhất là khi bấm nút Back trên điện thoại
+function closeAllModals() {
+  document.querySelectorAll('.modal-overlay').forEach(m => { m.style.display = 'none'; m.dataset.dirty = '' })
+  const gp = document.getElementById('galleryPicker'); if (gp) gp.style.display = 'none'
+  const dd = document.getElementById('discardDialog'); if (dd) dd.style.display = 'none'
+  document.querySelectorAll('.img-viewer').forEach(v => v.remove())
+}
+
 // Đổi giao diện sang tab (không đụng lịch sử) — dùng chung cho click và nút Back
 function applyTab(tab) {
+  closeAllModals()   // dọn lớp phủ của tab cũ trước khi hiện tab mới
   document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab))
   document.querySelectorAll('.panel').forEach(p => p.style.display = 'none')
   const panel = document.getElementById('panel' + tab)
