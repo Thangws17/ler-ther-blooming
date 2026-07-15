@@ -160,6 +160,26 @@
     .status-select.s-hoanthanh  { background: #E8F5E9; color: #2E7D32; border-color: #A5D6A7; }
     .status-select.s-huy        { background: #FFEBEE; color: #C62828; border-color: #EF9A9A; }
 
+    /* Chip lọc trạng thái đơn — chọn được nhiều, sáng màu khi được chọn */
+    .status-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .status-filter .lbl { font-size: .8rem; color: #7A9879; font-weight: 700; margin-right: 2px; }
+    /* các chip nằm trong span này → phải cho flex + gap thì chúng mới cách nhau */
+    #orderStatusChips { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .st-chip {
+      padding: 8px 16px; border-radius: 50px; border: 1.5px solid #e2e2e2;
+      background: #fff; color: #888; font-weight: 700; font-size: .82rem;
+      cursor: pointer; transition: all .13s; line-height: 1.4;
+    }
+    .st-chip:hover { border-color: #bdbdbd; color: #555; }
+    .st-chip.on { border-width: 2px; padding: 7px 15px; }
+    .st-all.on { background: #2E7D32; border-color: #2E7D32; color: #fff; }
+    .st-chip.s-moi.on       { background: #FFF3E0; color: #E65100; border-color: #E65100; }
+    .st-chip.s-xacnhan.on   { background: #E3F2FD; color: #1565C0; border-color: #1565C0; }
+    .st-chip.s-danggiao.on  { background: #F3E5F5; color: #6A1B9A; border-color: #6A1B9A; }
+    .st-chip.s-giaotc.on    { background: #E0F2F1; color: #00695C; border-color: #00695C; }
+    .st-chip.s-hoanthanh.on { background: #E8F5E9; color: #2E7D32; border-color: #2E7D32; }
+    .st-chip.s-huy.on       { background: #FFEBEE; color: #C62828; border-color: #C62828; }
+
     /* ── Cảnh báo chuẩn bị hàng ───────────────── */
     .prep-alert { background: #FFF8E1; border: 1.5px solid #FFCC80; border-left: 5px solid #FB8C00; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; }
     .prep-alert-head { font-size: 1.02rem; font-weight: 700; color: #E65100; margin-bottom: 12px; }
@@ -670,15 +690,6 @@
       </div>
       <div class="filter-bar">
         <input type="search" id="orderSearch" class="filter-search" placeholder="🔍 Tìm mã đơn / tên khách / SĐT / sản phẩm…" oninput="renderOrders()">
-        <select id="orderStatusFilter" onchange="renderOrders()" class="filter-select">
-          <option value="">Tất cả trạng thái</option>
-          <option>Mới</option>
-          <option>Đã xác nhận</option>
-          <option>Đang giao</option>
-          <option>Giao thành công</option>
-          <option>Hoàn thành</option>
-          <option>Đã hủy</option>
-        </select>
         <button type="button" id="ordTodayChip" class="chip-thismonth" onclick="orderQuickDate(0)">Giao hôm nay</button>
         <button type="button" id="ordTomoChip" class="chip-thismonth" onclick="orderQuickDate(1)">Ngày mai</button>
         <div class="date-pick-wrap">
@@ -688,6 +699,8 @@
         <input type="hidden" id="orderDateFilter">
         <button type="button" class="btn-clear" onclick="clearOrderFilters()">Xóa lọc</button>
       </div>
+      <!-- Lọc trạng thái: chip bấm chọn NHIỀU trạng thái, tô màu theo từng loại -->
+      <div class="status-filter"><span class="lbl">Trạng thái:</span><span id="orderStatusChips"></span></div>
       <div id="ordersTable"><div class="loading-state">Đang tải…</div></div>
     </div>
 
@@ -3034,6 +3047,30 @@ function skeletonTable(rows = 6) {
 }
 const ORDER_STATUSES = ['Mới', 'Đã xác nhận', 'Đang giao', 'Giao thành công', 'Hoàn thành', 'Đã hủy']
 const STATUS_CLASS = { 'Mới': 's-moi', 'Đã xác nhận': 's-xacnhan', 'Đang giao': 's-danggiao', 'Giao thành công': 's-giaotc', 'Hoàn thành': 's-hoanthanh', 'Đã hủy': 's-huy' }
+
+// Lọc trạng thái đa lựa chọn (rỗng = tất cả)
+let orderStatusSet = new Set()
+
+function renderStatusFilterChips() {
+  const el = document.getElementById('orderStatusChips')
+  if (!el) return
+  const all = orderStatusSet.size === 0
+  const chips = ORDER_STATUSES.map((s, i) =>
+    `<button type="button" class="st-chip ${STATUS_CLASS[s]} ${orderStatusSet.has(s) ? 'on' : ''}" onclick="toggleStatusFilter(${i})">${orderStatusSet.has(s) ? '✓ ' : ''}${s}</button>`
+  ).join('')
+  el.innerHTML = `<button type="button" class="st-chip st-all ${all ? 'on' : ''}" onclick="clearStatusFilter()">Tất cả</button>${chips}`
+}
+function toggleStatusFilter(i) {
+  const s = ORDER_STATUSES[i]
+  orderStatusSet.has(s) ? orderStatusSet.delete(s) : orderStatusSet.add(s)
+  renderStatusFilterChips()
+  renderOrders()
+}
+function clearStatusFilter() {
+  orderStatusSet.clear()
+  renderStatusFilterChips()
+  renderOrders()
+}
 // Mốc ghi nhận doanh thu thực tế: đã giao hàng thành công (hoặc đã đóng đơn)
 const REVENUE_STATUSES = ['Giao thành công', 'Hoàn thành']
 // Đơn coi như xong việc giao (không hiện ở Lịch giao / Cần giao hôm nay)
@@ -3186,6 +3223,7 @@ async function loadOrders() {
   const { data } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('created_at', { ascending: false })
   orders = data || []
   ordersLimit = ORDERS_PAGE   // về lại 30 đơn đầu mỗi lần tải mới
+  renderStatusFilterChips()
   renderOrders()
   refreshNewOrderBadge()
 }
@@ -3209,8 +3247,9 @@ function reloadActiveOrderViews() {
 
 function clearOrderFilters() {
   document.getElementById('orderSearch').value = ''
-  document.getElementById('orderStatusFilter').value = ''
   document.getElementById('orderDateFilter').value = ''
+  orderStatusSet.clear()
+  renderStatusFilterChips()
   renderOrders()
 }
 
@@ -3303,7 +3342,6 @@ document.addEventListener('click', e => {
 
 function renderOrders() {
   const el = document.getElementById('ordersTable')
-  const status = document.getElementById('orderStatusFilter').value
   const date   = document.getElementById('orderDateFilter').value
   const q      = document.getElementById('orderSearch').value.trim().toLowerCase()
 
@@ -3322,7 +3360,7 @@ function renderOrders() {
   }
 
   const list = orders.filter(o => {
-    if (status && o.status !== status) return false
+    if (orderStatusSet.size && !orderStatusSet.has(o.status)) return false
     if (date && o.delivery_date !== date) return false
     if (q) {
       const hay = [
@@ -3341,7 +3379,12 @@ function renderOrders() {
     return
   }
   if (!list.length) {
-    el.innerHTML = '<div class="empty-state">Không tìm thấy đơn khớp bộ lọc. <a href="#" onclick="clearOrderFilters();return false" style="color:#2E7D32;font-weight:700;">Xóa lọc</a></div>'
+    const parts = []
+    if (orderStatusSet.size) parts.push('trạng thái <strong>' + [...orderStatusSet].join(', ') + '</strong>')
+    if (date) parts.push('ngày giao <strong>' + date.split('-').reverse().join('/') + '</strong>')
+    if (q) parts.push('từ khoá “<strong>' + esc(q) + '</strong>”')
+    const desc = parts.length ? ' ở ' + parts.join(' · ') : ''
+    el.innerHTML = `<div class="empty-state">Chưa có đơn nào${desc}. <a href="#" onclick="clearOrderFilters();return false" style="color:#2E7D32;font-weight:700;">Xem tất cả đơn</a></div>`
     return
   }
   const fmtDayShort = d => d ? d.slice(8, 10) + '/' + d.slice(5, 7) : ''
