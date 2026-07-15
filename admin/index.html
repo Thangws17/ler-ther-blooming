@@ -74,7 +74,7 @@
     .logout-btn:hover { background: rgba(255,112,67,.25); color: #FF7043; }
 
     /* ── Main content ─────────────────────────── */
-    .content { flex: 1; overflow-y: auto; padding: 32px 36px; }
+    .content { flex: 1; min-width: 0; overflow-y: auto; padding: 32px 36px; }
     .panel { max-width: 100%; }
     .panel-topbar {
       display: flex; align-items: center; justify-content: space-between;
@@ -168,9 +168,10 @@
     .prep-chip:hover { background: #FB8C00; color: #fff; border-color: #FB8C00; }
 
     /* ── Dashboard ────────────────────────────── */
-    .dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 18px; }
-    .dash-card { background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,.06); text-align: center; }
-    .dash-num { font-size: 2.1rem; font-weight: 800; line-height: 1.1; }
+    .dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 16px; }
+    .dash-card { background: #fff; border-radius: 14px; padding: 20px 16px; box-shadow: 0 2px 12px rgba(0,0,0,.06); text-align: center; min-width: 0; overflow: hidden; }
+    /* cỡ chữ co giãn theo bề rộng thẻ để số tiền lớn không tràn ra ngoài */
+    .dash-num { font-size: clamp(1.35rem, 1.05rem + 1vw, 1.9rem); font-weight: 800; line-height: 1.15; overflow-wrap: break-word; }
     .dash-label { margin-top: 8px; color: #7A9879; font-size: .9rem; font-weight: 600; }
     @media (max-width: 720px) { .dash-cards { grid-template-columns: 1fr; } }
 
