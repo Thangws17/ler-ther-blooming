@@ -231,6 +231,10 @@ async function loadGallery() {
     sb.from('gallery').select('*').order('order_index'),
     sb.from('gallery_categories').select('*').order('order_index'),
   ]);
+  if (galRes.error) {
+    grid.innerHTML = '<div class="gallery-empty"><div class="e-icon">📶</div><p>Không tải được ảnh — mạng có thể đang chập chờn.<br><button class="page-btn" style="margin-top:14px;" onclick="loadGallery()">↻ Thử lại</button></p></div>';
+    return;
+  }
   galleryAll = galRes.data || [];
   galleryCats = catRes.data || [];
   galleryPage = 0;
@@ -696,6 +700,11 @@ function openOrderModal(productId, productName) {
       <label>Ghi chú thêm</label>
       <textarea id="orderNote" placeholder="Yêu cầu khác (nếu có)"></textarea>
     </div>
+    <!-- Bẫy bot: người thật không thấy ô này; bot tự điền là bị loại -->
+    <div class="hp-field" aria-hidden="true">
+      <label>Website</label>
+      <input type="text" id="orderWebsite" tabindex="-1" autocomplete="off">
+    </div>
   </div>
   <button type="submit" class="btn btn-primary order-submit" id="orderSubmitBtn">🌸 Gửi đơn đặt hàng</button>
 </form>`;
@@ -726,6 +735,13 @@ async function submitOrder(event) {
   const btn = document.getElementById('orderSubmitBtn');
   btn.disabled = true;
   btn.textContent = 'Đang gửi…';
+
+  // Bẫy bot: ô ẩn có giá trị nghĩa là bot điền → giả vờ thành công, không tạo đơn
+  if (document.getElementById('orderWebsite')?.value) {
+    document.getElementById('orderModalBody').innerHTML = `
+<div class="order-success"><div class="o-icon">🌸</div><h3>Đã nhận đơn của bạn!</h3></div>`;
+    return;
+  }
 
   const phone = document.getElementById('orderPhone').value.trim();
 
@@ -790,10 +806,10 @@ async function loadTestimonials() {
   if (!data?.length) { grid.closest('section')?.remove(); return; }
   grid.innerHTML = data.map(t => `
 <div class="testimonial-card reveal">
-  <p class="testimonial-quote">${t.content}</p>
+  <p class="testimonial-quote">${esc(t.content)}</p>
   <div class="testimonial-author">
-    <span class="testimonial-name">${t.name}</span>
-    ${t.context ? `<span class="testimonial-context">— ${t.context}</span>` : ''}
+    <span class="testimonial-name">${esc(t.name)}</span>
+    ${t.context ? `<span class="testimonial-context">— ${esc(t.context)}</span>` : ''}
   </div>
 </div>`).join('');
   staggerReveal(grid.querySelectorAll('.reveal'));

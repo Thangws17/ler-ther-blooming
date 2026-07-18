@@ -645,6 +645,8 @@ section    { padding:64px 0; }
 .order-field input:focus, .order-field textarea:focus, .order-field select:focus { border-color:var(--green-light); background:var(--white); }
 .order-field textarea { resize:vertical; min-height:64px; }
 .order-hint { font-size:.8rem; color:var(--text-light); margin-top:6px; line-height:1.55; }
+/* Bẫy bot: giấu hẳn khỏi mắt người + trình đọc màn hình, bot vẫn "thấy" trong HTML */
+.hp-field { position:absolute; left:-9999px; top:-9999px; height:0; overflow:hidden; }
 .order-submit { width:100%; margin-top:6px; padding:13px; font-size:1rem; }
 .order-success { text-align:center; padding:20px 0; }
 .order-success .o-icon { font-size:3rem; margin-bottom:12px; }

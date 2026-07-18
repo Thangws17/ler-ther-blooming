@@ -465,8 +465,13 @@
     .cards-mobile { display: none; }
     .sheet-actions { display: none; }
     @media (max-width: 820px) {
-      /* Khách hàng + Sản phẩm + Đánh giá: bảng → thẻ */
-      #customersTable .table-desktop, #productsTable .table-desktop, #testimonialsList .table-desktop { display: none; }
+      /* Khách hàng + Sản phẩm + Đánh giá + Sổ chi phí + Giao hôm nay: bảng → thẻ */
+      #customersTable .table-desktop, #productsTable .table-desktop, #testimonialsList .table-desktop,
+      #expensesTable .table-desktop, #dashboardToday .table-desktop { display: none; }
+      /* thẻ có ảnh bên trái (chi phí, giao hôm nay) */
+      .exp-card { display: flex; gap: 12px; }
+      .exp-card .thumb { width: 56px; height: 56px; flex-shrink: 0; }
+      .exp-card .exp-info { flex: 1; min-width: 0; }
       .cards-mobile { display: flex; flex-direction: column; gap: 10px; }
       .m-card { background: #fff; border: 1px solid #eef3ee; border-radius: 14px; padding: 13px 15px; box-shadow: 0 1px 6px rgba(0,0,0,.05); }
       .mc-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -1412,6 +1417,19 @@
   </div>
 </div>
 
+<!-- ── Hộp thoại xác nhận chung (thay confirm mặc định của trình duyệt) ── -->
+<div id="confirmDialog" class="confirm-overlay" style="display:none">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="cfIcon">🗑</div>
+    <h3 id="cfTitle">Xác nhận</h3>
+    <p id="cfMsg" style="white-space:pre-line;"></p>
+    <div class="confirm-actions">
+      <button type="button" class="btn-outline" onclick="_cfDone(false)">Hủy</button>
+      <button type="button" class="btn-discard" id="cfOk" onclick="_cfDone(true)">Xóa</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Toast ──────────────────────────────────────── -->
 <div id="toast" class="toast" style="display:none"></div>
 
@@ -1491,6 +1509,7 @@ function closeAllModals() {
   document.querySelectorAll('.modal-overlay').forEach(m => { m.style.display = 'none'; m.dataset.dirty = '' })
   const gp = document.getElementById('galleryPicker'); if (gp) gp.style.display = 'none'
   const dd = document.getElementById('discardDialog'); if (dd) dd.style.display = 'none'
+  if (_confirmResolve) _cfDone(false)   // hộp xác nhận đang chờ → coi như Hủy
   document.querySelectorAll('.img-viewer').forEach(v => v.remove())
 }
 
@@ -1575,7 +1594,9 @@ function initModalGuards() {
   // Phím Esc: thoát nhanh màn hình/modal đang mở trên cùng (vẫn hỏi nếu đang nhập dở)
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return
-    // Hộp thoại xác nhận đang mở → Esc = "Ở lại"
+    // Hộp thoại xác nhận đang mở → Esc = "Hủy" / "Ở lại"
+    const cf = document.getElementById('confirmDialog')
+    if (cf.style.display !== 'none') { _cfDone(false); return }
     const dd = document.getElementById('discardDialog')
     if (dd.style.display !== 'none') { hideDiscardDialog(); return }
     // Xem phóng to ảnh (tạo động) → đóng trước
@@ -1605,11 +1626,30 @@ function hideDiscardDialog() {
   _discardCb = null
 }
 
+// Hộp thoại xác nhận chung (thay confirm mặc định): await askConfirm({...}) → true/false
+let _confirmResolve = null
+function askConfirm({ title = 'Xác nhận', message = '', okLabel = 'Xóa', icon = '🗑' } = {}) {
+  return new Promise(resolve => {
+    _confirmResolve = resolve
+    document.getElementById('cfIcon').textContent = icon
+    document.getElementById('cfTitle').textContent = title
+    document.getElementById('cfMsg').textContent = message
+    document.getElementById('cfOk').textContent = okLabel
+    document.getElementById('confirmDialog').style.display = 'flex'
+  })
+}
+function _cfDone(ok) {
+  document.getElementById('confirmDialog').style.display = 'none'
+  const r = _confirmResolve; _confirmResolve = null
+  if (r) r(ok)
+}
+
 // ── Dashboard ─────────────────────────────────────
 const todayStr = () => new Date().toLocaleDateString('sv-SE')  // YYYY-MM-DD theo giờ địa phương
 
 async function loadDashboard() {
-  const { data } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('created_at', { ascending: false })
+  const { data, error } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('created_at', { ascending: false })
+  if (error) { document.getElementById('dashboardToday').innerHTML = loadErrorHTML('loadDashboard'); return }
   const all = data || []
   const today = todayStr()
   const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE')
@@ -1662,7 +1702,8 @@ async function loadDashboard() {
   const el = document.getElementById('dashboardToday')
   el.innerHTML = !todayOrders.length
     ? '<div class="empty-state">Hôm nay không có đơn nào cần giao.</div>'
-    : `<table class="data-table">
+    : `<div class="table-desktop">
+<table class="data-table">
 <thead><tr><th>Mã đơn</th><th>Khách</th><th>Khu vực</th><th>Sản phẩm</th><th>Trạng thái</th><th></th></tr></thead>
 <tbody>${todayOrders.map(o => `
 <tr>
@@ -1672,7 +1713,20 @@ async function loadDashboard() {
   <td>${esc(o.product_name)}</td>
   <td><span class="status-select ${STATUS_CLASS[o.status] || ''}" style="cursor:default">${o.status}</span></td>
   <td class="actions"><button class="btn-edit" onclick="viewOrderDetail(${o.id})">👁 Chi tiết</button></td>
-</tr>`).join('')}</tbody></table>`
+</tr>`).join('')}</tbody></table>
+</div>
+<div class="cards-mobile">${todayOrders.map(o => `
+  <div class="m-card exp-card" onclick="viewOrderDetail(${o.id})" style="cursor:pointer;">
+    ${orderThumbHTML(o)}
+    <div class="exp-info">
+      <div class="mc-row">
+        <span class="mc-title" style="color:#2E7D32;">${orderCode(o.id)}</span>
+        <span class="status-select ${STATUS_CLASS[o.status] || ''}" style="cursor:default;font-size:.72rem;padding:3px 8px;">${o.status}</span>
+      </div>
+      <div class="mc-sub">${orderCustomerName(o)} · ${orderCustomerPhone(o)}</div>
+      <div class="mc-sub">${esc(o.product_name)}${o.delivery_area ? ' · 📍 ' + esc(o.delivery_area) : ''}</div>
+    </div>
+  </div>`).join('')}</div>`
 }
 
 // ── Đối soát chỉ số: bấm thẻ số liệu → xem đơn nào được tính ──
@@ -1775,7 +1829,8 @@ let delivActive = []          // đơn đang hoạt động (chưa hủy / chưa
 let delivSelectedDate = null  // ngày đang chọn trên lịch (null = xem tất cả)
 
 async function loadDelivery() {
-  const { data } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('delivery_date', { ascending: true })
+  const { data, error } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('delivery_date', { ascending: true })
+  if (error) { document.getElementById('deliveryList').innerHTML = loadErrorHTML('loadDelivery'); return }
   orders = data || []
   // Ẩn đơn đã hủy / đã giao thành công / hoàn thành (xong việc giao, không cần trong lịch)
   delivActive = orders.filter(o => !DONE_STATUSES.includes(o.status))
@@ -1893,9 +1948,11 @@ function renderDeliveryList() {
 let changelogs = []
 
 async function loadChangelog() {
-  const { data } = await sb.from('changelog').select('*')
+  const { data, error } = await sb.from('changelog').select('*')
     .order('release_date', { ascending: false }).order('id', { ascending: false })
+  if (error) { document.getElementById('changelogList').innerHTML = loadErrorHTML('loadChangelog'); return }
   changelogs = data || []
+  resetListLimit('changelog')
   renderChangelog()
 }
 
@@ -1905,7 +1962,8 @@ function renderChangelog() {
     el.innerHTML = '<div class="empty-state">Chưa có bản cập nhật nào. Chạy file changelog_setup.sql để nạp lịch sử, hoặc nhấn "+ Thêm bản cập nhật".</div>'
     return
   }
-  el.innerHTML = changelogs.map(c => `
+  const { shown, more } = limitList('changelog', changelogs)
+  el.innerHTML = shown.map(c => `
 <div class="cl-card">
   <div class="cl-head">
     <span class="cl-date">${c.release_date.split('-').reverse().join('/')}</span>
@@ -1920,7 +1978,7 @@ function renderChangelog() {
     <label>💬 Góp ý / ghi chú</label>
     <textarea rows="2" placeholder="Ler ơi thấy sao, ghi vào đây nhé…" onblur="saveChangelogNote(${c.id}, this.value)">${esc(c.note || '')}</textarea>
   </div>
-</div>`).join('')
+</div>`).join('') + moreBtnHTML('changelog', more, 'renderChangelog', 'bản')
 }
 
 function openChangelogModal(id = null) {
@@ -1964,7 +2022,7 @@ async function saveChangelogNote(id, value) {
 }
 
 async function deleteChangelog(id) {
-  if (!confirm('Xóa bản cập nhật này khỏi nhật ký?')) return
+  if (!(await askConfirm({ title: 'Xóa bản cập nhật?', message: 'Bản ghi này sẽ bị xóa khỏi nhật ký.', okLabel: 'Xóa' }))) return
   await sb.from('changelog').delete().eq('id', id)
   showToast('Đã xóa')
   loadChangelog()
@@ -2063,14 +2121,15 @@ function renderMaterialsList() {
     el.innerHTML = '<div style="color:#7A9879;font-size:.88rem;padding:8px 0;">Chưa có nguyên liệu nào. Thêm ở ô phía trên, hoặc cứ lên chi phí — mặt hàng sẽ tự được lưu lại.</div>'
     return
   }
-  el.innerHTML = list.map(mt => `
+  const { shown, more } = limitList('materials', list)
+  el.innerHTML = shown.map(mt => `
 <div class="cat-row">
   <span class="mt-name" onclick="openMaterialEditModal(${mt.id})" title="Sửa / xem lịch sử giá">${esc(mt.name)}</span>
   <span class="cat-badge">${esc(mt.category)}</span>
   <span class="mt-price">${mt.last_price != null ? fmtVnd(mt.last_price) : '—'}</span>
   <button class="cat-move" title="Sửa / lịch sử giá" onclick="openMaterialEditModal(${mt.id})">✏️</button>
   <button class="btn-delete-sm" title="Xóa" onclick="deleteMaterial(${mt.id})">✕</button>
-</div>`).join('')
+</div>`).join('') + moreBtnHTML('materials', more, 'renderMaterialsList')
 }
 
 // ── Modal sửa nguyên liệu + lịch sử giá nhập ──
@@ -2177,7 +2236,7 @@ async function addMaterial() {
 async function deleteMaterial(id) {
   const mt = materials.find(x => x.id === id)
   if (!mt) return
-  if (!confirm(`Xóa "${mt.name}" khỏi danh sách gợi ý?\n(Các dòng chi phí đã ghi KHÔNG bị ảnh hưởng)`)) return
+  if (!(await askConfirm({ title: `Xóa "${mt.name}"?`, message: 'Chỉ xóa khỏi danh sách gợi ý — các dòng chi phí đã ghi KHÔNG bị ảnh hưởng.', okLabel: 'Xóa' }))) return
   const { error } = await sb.from('materials').delete().eq('id', id)
   if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
   materials = materials.filter(x => x.id !== id)
@@ -2219,10 +2278,12 @@ async function loadExpenses() {
   document.getElementById('expenseMonthDisplay').textContent = `Tháng ${m}/${y}`
   document.getElementById('expenseThisMonthBtn').classList.toggle('active', month === curMonthStr())
 
-  const { data: exp } = await sb.from('expenses').select('*')
+  const { data: exp, error: expErr } = await sb.from('expenses').select('*')
     .gte('expense_date', start).lt('expense_date', nextStart)
     .order('expense_date', { ascending: false })
+  if (expErr) { if (et) et.innerHTML = loadErrorHTML('loadExpenses'); return }
   expenses = exp || []
+  resetListLimit('expenses')
 
   // Doanh thu cùng tháng: dự kiến (đã chốt giá, chưa hủy) vs thực tế (đã Hoàn thành)
   // Ghi nhận theo NGÀY GIAO (đơn không hẹn ngày mới tính theo ngày tạo) — đồng bộ với Tổng quan
@@ -2236,7 +2297,9 @@ async function loadExpenses() {
   renderExpenses(revenueActual, revenueProjected)
 }
 
+let _lastRevActual = 0, _lastRevProjected = 0   // cho nút "Xem thêm" vẽ lại không cần query
 function renderExpenses(revenueActual, revenueProjected) {
+  _lastRevActual = revenueActual; _lastRevProjected = revenueProjected
   const totalExpense = expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0)
   const profit = revenueActual - totalExpense
   const byCat = EXPENSE_CATS.map(c => ({
@@ -2255,11 +2318,13 @@ function renderExpenses(revenueActual, revenueProjected) {
     </div>` : ''}`
 
   const el = document.getElementById('expensesTable')
+  const { shown: expShown, more: expMore } = limitList('expenses', expenses)
   el.innerHTML = !expenses.length
     ? '<div class="empty-state">Chưa có chi phí nào trong tháng này. Nhấn "+ Thêm chi phí".</div>'
-    : `<table class="data-table">
+    : `<div class="table-desktop">
+<table class="data-table">
 <thead><tr><th></th><th>Ngày</th><th>Loại</th><th>Mặt hàng</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th><th>Ghi chú</th><th></th></tr></thead>
-<tbody>${expenses.map(e => `
+<tbody>${expShown.map(e => `
 <tr>
   <td><div class="thumb">${e.image ? `<img src="${esc(e.image)}" alt="" loading="lazy" style="cursor:pointer" onclick="openImageViewer('${esc(e.image)}')">` : '🧾'}</div></td>
   <td>${e.expense_date.split('-').reverse().join('/')}</td>
@@ -2273,7 +2338,29 @@ function renderExpenses(revenueActual, revenueProjected) {
     <button class="btn-edit" onclick="openExpenseModal(${e.id})">✏️ Sửa</button>
     <button class="btn-delete" onclick="deleteExpense(${e.id})">🗑 Xóa</button>
   </td>
-</tr>`).join('')}</tbody></table>`
+</tr>`).join('')}</tbody></table>
+</div>
+<div class="cards-mobile">${expShown.map(e => `
+  <div class="m-card exp-card">
+    <div class="thumb">${e.image ? `<img src="${esc(e.image)}" alt="" loading="lazy" onclick="openImageViewer('${esc(e.image)}')">` : '🧾'}</div>
+    <div class="exp-info">
+      <div class="mc-row">
+        <span class="mc-title">${esc(e.item || '—')}</span>
+        <strong>${fmtVnd(e.amount)}</strong>
+      </div>
+      <div class="mc-sub">${e.expense_date.split('-').reverse().join('/')} · <span class="cat-badge">${esc(e.category)}</span>${e.quantity != null ? ` · ${e.quantity} × ${e.unit_price != null ? fmtVnd(e.unit_price) : '—'}` : ''}</div>
+      ${e.note ? `<div class="mc-sub" style="color:#555;">${esc(e.note)}</div>` : ''}
+      <div class="mc-actions">
+        <button class="btn-edit" onclick="openExpenseModal(${e.id})">✏️ Sửa</button>
+        <button class="btn-delete" onclick="deleteExpense(${e.id})">🗑 Xóa</button>
+      </div>
+    </div>
+  </div>`).join('')}</div>${moreBtnHTML('expenses', expMore, 'renderExpensesKeep')}`
+}
+
+// Xem thêm chi phí: vẽ lại với số liệu doanh thu đang có (không query lại)
+function renderExpensesKeep() {
+  renderExpenses(_lastRevActual, _lastRevProjected)
 }
 
 // Xem ảnh phóng to (dùng chung cho chi phí / đơn)
@@ -2374,7 +2461,7 @@ async function saveExpense(e) {
 }
 
 async function deleteExpense(id) {
-  if (!confirm('Xóa dòng chi phí này?')) return
+  if (!(await askConfirm({ title: 'Xóa dòng chi phí?', message: 'Số tiền này sẽ không còn được tính vào tổng chi tháng.', okLabel: 'Xóa' }))) return
   await sb.from('expenses').delete().eq('id', id)
   showToast('Đã xóa chi phí')
   loadExpenses()
@@ -2391,7 +2478,9 @@ async function loadProducts() {
     sb.from('products').select('*').order('order_index'),
     loadGalleryCats(),
   ])
+  if (prodRes.error) { if (pt) pt.innerHTML = loadErrorHTML('loadProducts'); return }
   products = prodRes.data || []
+  resetListLimit('products')
   fillProductCategorySelect()
   renderProducts()
 }
@@ -2422,6 +2511,7 @@ function renderProducts() {
     el.innerHTML = '<div class="empty-state">Không tìm thấy sản phẩm khớp. <a href="#" onclick="document.getElementById(\'productSearch\').value=\'\';renderProducts();return false" style="color:#2E7D32;font-weight:700;">Xóa tìm</a></div>'
     return
   }
+  const { shown: prodShown, more: prodMore } = limitList('products', list)
   el.innerHTML = `
 <div class="table-desktop">
 <table class="data-table">
@@ -2429,7 +2519,7 @@ function renderProducts() {
     <th>Ảnh</th><th>Tên sản phẩm</th><th>Danh mục</th>
     <th>Giá</th><th>Nổi bật</th><th>Thứ tự</th><th></th>
   </tr></thead>
-  <tbody>${list.map(p => `
+  <tbody>${prodShown.map(p => `
   <tr>
     <td><div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="">` : '🌸'}</div></td>
     <td><strong>${esc(p.name)}</strong></td>
@@ -2444,7 +2534,7 @@ function renderProducts() {
   </tr>`).join('')}</tbody>
 </table>
 </div>
-<div class="cards-mobile">${list.map(p => `
+<div class="cards-mobile">${prodShown.map(p => `
   <div class="m-card prod-card">
     <div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="">` : '🌸'}</div>
     <div class="prod-info">
@@ -2456,7 +2546,7 @@ function renderProducts() {
         <button class="btn-delete" onclick="deleteProduct(${p.id})">🗑</button>
       </div>
     </div>
-  </div>`).join('')}</div>`
+  </div>`).join('')}</div>${moreBtnHTML('products', prodMore, 'renderProducts', 'sản phẩm')}`
 }
 
 async function toggleFeatured(id, current) {
@@ -2465,7 +2555,7 @@ async function toggleFeatured(id, current) {
 }
 
 async function deleteProduct(id) {
-  if (!confirm('Xóa sản phẩm này?')) return
+  if (!(await askConfirm({ title: 'Xóa sản phẩm?', message: 'Sản phẩm sẽ biến mất khỏi website. Đơn hàng cũ không bị ảnh hưởng.', okLabel: 'Xóa sản phẩm' }))) return
   await sb.from('products').delete().eq('id', id)
   showToast('Đã xóa sản phẩm')
   loadProducts()
@@ -2672,12 +2762,12 @@ async function deleteGalleryCat(id) {
     const parts = []
     if (count > 0) parts.push(`${count} ảnh`)
     if (prodCount > 0) parts.push(`${prodCount} sản phẩm`)
-    if (!confirm(`${parts.join(' và ')} đang dùng danh mục "${cat.name}" sẽ được chuyển sang "${fallback.name}". Tiếp tục?`)) return
+    if (!(await askConfirm({ title: `Xóa danh mục "${cat.name}"?`, message: `${parts.join(' và ')} đang dùng danh mục này sẽ được chuyển sang "${fallback.name}".`, okLabel: 'Xóa & chuyển', icon: '🏷️' }))) return
     await Promise.all([
       sb.from('gallery').update({ category: fallback.name }).eq('category', cat.name),
       sb.from('products').update({ category: fallback.name }).eq('category', cat.name),
     ])
-  } else if (!confirm(`Xóa danh mục "${cat.name}"?`)) return
+  } else if (!(await askConfirm({ title: `Xóa danh mục "${cat.name}"?`, message: 'Danh mục trống, xóa không ảnh hưởng gì.', okLabel: 'Xóa', icon: '🏷️' }))) return
   const { error } = await sb.from('gallery_categories').delete().eq('id', id)
   if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
   showToast('Đã xóa danh mục!')
@@ -2686,8 +2776,10 @@ async function deleteGalleryCat(id) {
 
 async function loadGallery() {
   await loadGalleryCats()
-  const { data } = await sb.from('gallery').select('*').order('order_index')
+  const { data, error } = await sb.from('gallery').select('*').order('order_index')
+  if (error) { document.getElementById('galleryGrid').innerHTML = loadErrorHTML('loadGallery'); return }
   galleryItems = data || []
+  resetListLimit('gallery')
   renderGalleryCatManager()
   renderGalleryGrid()
 }
@@ -2724,11 +2816,12 @@ function renderGalleryGrid() {
     grid.innerHTML = '<div class="empty-state">Chưa có ảnh nào. Upload ảnh ở trên.</div>'
     return
   }
-  const shown = galleryFilterCat === 'all' ? galleryItems : galleryItems.filter(ph => ph.category === galleryFilterCat)
-  if (!shown.length) {
+  const filtered = galleryFilterCat === 'all' ? galleryItems : galleryItems.filter(ph => ph.category === galleryFilterCat)
+  if (!filtered.length) {
     grid.innerHTML = '<div class="empty-state">Chưa có ảnh trong danh mục này.</div>'
     return
   }
+  const { shown, more: gMore } = limitList('gallery', filtered)
   const names = galleryCats.map(c => c.name)
   grid.innerHTML = shown.map(ph => {
     const opts = ph.category && !names.includes(ph.category) ? [ph.category, ...names] : names
@@ -2740,7 +2833,7 @@ function renderGalleryGrid() {
      ondragover="galleryDragOver(event)" ondragleave="galleryDragLeave(event)" ondrop="galleryDrop(event, ${ph.id})">
   <div class="gallery-drag" draggable="true" title="Kéo để sắp xếp"
        ondragstart="galleryDragStart(event, ${ph.id})" ondragend="galleryDragEnd(event)">
-    <img src="${ph.url}" alt="${ph.caption || ''}" draggable="false">
+    <img src="${esc(ph.url)}" alt="${esc(ph.caption || '')}" draggable="false">
     <span class="gal-cat-badge">${esc((galleryCats.find(c => c.name === ph.category)?.emoji || '📷') + ' ' + (ph.category || 'Chưa phân loại'))}</span>
     <span class="drag-grip">⠿ Kéo để sắp xếp</span>
   </div>
@@ -2753,7 +2846,7 @@ function renderGalleryGrid() {
     </div>
   </div>
 </div>`
-  }).join('')
+  }).join('') + (gMore > 0 ? `<div style="grid-column:1/-1;">${moreBtnHTML('gallery', gMore, 'renderGalleryGrid', 'ảnh')}</div>` : '')
 }
 
 // ── Kéo-thả sắp xếp ảnh ──
@@ -2856,7 +2949,7 @@ async function updateCategory(id, category) {
 }
 
 async function deleteGalleryItem(id) {
-  if (!confirm('Xóa ảnh này?')) return
+  if (!(await askConfirm({ title: 'Xóa ảnh này?', message: 'Ảnh sẽ bị xóa khỏi Gallery và kho lưu trữ.', okLabel: 'Xóa ảnh' }))) return
   const ph = galleryItems.find(x => x.id === id)
   if (ph?.url) {
     const storagePath = ph.url.replace(SUPABASE_URL + '/storage/v1/object/public/images/', '')
@@ -2934,8 +3027,10 @@ let testimonials = []
 async function loadTestimonials() {
   const tl = document.getElementById('testimonialsList')
   if (tl && !testimonials.length) tl.innerHTML = skeletonTable(4)
-  const { data } = await sb.from('testimonials').select('*').order('order_index')
+  const { data, error } = await sb.from('testimonials').select('*').order('order_index')
+  if (error) { if (tl) tl.innerHTML = loadErrorHTML('loadTestimonials'); return }
   testimonials = data || []
+  resetListLimit('testimonials')
   renderTestimonials()
 }
 
@@ -2945,11 +3040,12 @@ function renderTestimonials() {
     el.innerHTML = '<div class="empty-state">Chưa có đánh giá nào. Thêm đánh giá đầu tiên!</div>'
     return
   }
+  const { shown: tShown, more: tMore } = limitList('testimonials', testimonials)
   el.innerHTML = `
 <div class="table-desktop">
 <table class="data-table">
   <thead><tr><th>Tên khách</th><th>Nội dung</th><th>Dịp</th><th>Hiển thị</th><th></th></tr></thead>
-  <tbody>${testimonials.map(t => `
+  <tbody>${tShown.map(t => `
   <tr>
     <td><strong>${esc(t.name)}</strong></td>
     <td style="max-width:300px;color:#555;font-size:.88rem;">${esc(t.content.slice(0, 80))}${t.content.length > 80 ? '…' : ''}</td>
@@ -2962,7 +3058,7 @@ function renderTestimonials() {
   </tr>`).join('')}</tbody>
 </table>
 </div>
-<div class="cards-mobile">${testimonials.map(t => `
+<div class="cards-mobile">${tShown.map(t => `
   <div class="m-card">
     <div class="mc-row">
       <span class="mc-title">${esc(t.name)}</span>
@@ -2974,7 +3070,7 @@ function renderTestimonials() {
       <button class="btn-edit" onclick="openTestimonialModal(${t.id})">✏️ Sửa</button>
       <button class="btn-delete" onclick="deleteTestimonial(${t.id})">🗑 Xóa</button>
     </div>
-  </div>`).join('')}</div>`
+  </div>`).join('')}</div>${moreBtnHTML('testimonials', tMore, 'renderTestimonials', 'đánh giá')}`
 }
 
 async function toggleTestimonial(id, current) {
@@ -2983,7 +3079,7 @@ async function toggleTestimonial(id, current) {
 }
 
 async function deleteTestimonial(id) {
-  if (!confirm('Xóa đánh giá này?')) return
+  if (!(await askConfirm({ title: 'Xóa đánh giá?', message: 'Đánh giá sẽ biến mất khỏi trang chủ.', okLabel: 'Xóa' }))) return
   await sb.from('testimonials').delete().eq('id', id)
   showToast('Đã xóa đánh giá')
   loadTestimonials()
@@ -3038,14 +3134,36 @@ async function saveTestimonial(e) {
 
 // ── Orders ────────────────────────────────────────
 let orders = []
-const ORDERS_PAGE = 30            // số đơn hiện mỗi lần, bấm "Xem thêm" để tải tiếp
+const ORDERS_PAGE = 20            // số đơn hiện mỗi lần, bấm "Xem thêm" để tải tiếp
 let ordersLimit = ORDERS_PAGE
+
+// ── Phân trang dùng chung: mục nào quá 20 dòng → hiện 20 + nút "Xem thêm" ──
+const LIST_PAGE = 20
+const _listLimits = {}
+function limitList(key, list) {
+  const lim = _listLimits[key] || LIST_PAGE
+  return { shown: list.slice(0, lim), more: Math.max(0, list.length - lim) }
+}
+function showMoreList(key, renderFn) {
+  _listLimits[key] = (_listLimits[key] || LIST_PAGE) + LIST_PAGE
+  window[renderFn]()
+}
+function resetListLimit(key) { _listLimits[key] = LIST_PAGE }
+function moreBtnHTML(key, more, renderFn, unit = 'dòng') {
+  return more > 0
+    ? `<div style="text-align:center;margin-top:16px;"><button class="btn-outline" onclick="showMoreList('${key}','${renderFn}')">Xem thêm ${more} ${unit} nữa ▾</button></div>`
+    : ''
+}
 
 // Khung chờ skeleton dùng chung cho các bảng trong admin
 function skeletonTable(rows = 6) {
   const row = `<div class="sk-row"><div class="sk-bx sk-thumb"></div><div class="sk-lines"><div class="sk-bx sk-ln w70"></div><div class="sk-bx sk-ln w40"></div></div></div>`
   return `<div class="sk-wrap">${Array(rows).fill(row).join('')}</div>`
 }
+
+// Lỗi mạng ≠ chưa có dữ liệu — báo rõ ràng kèm nút thử lại
+const loadErrorHTML = fnName => `<div class="empty-state">📶 Không tải được dữ liệu — mạng có thể đang chập chờn.<br>
+  <button class="btn-outline" style="margin-top:12px;" onclick="${fnName}()">↻ Thử lại</button></div>`
 const ORDER_STATUSES = ['Mới', 'Đã xác nhận', 'Đang giao', 'Giao thành công', 'Hoàn thành', 'Đã hủy']
 const STATUS_CLASS = { 'Mới': 's-moi', 'Đã xác nhận': 's-xacnhan', 'Đang giao': 's-danggiao', 'Giao thành công': 's-giaotc', 'Hoàn thành': 's-hoanthanh', 'Đã hủy': 's-huy' }
 
@@ -3113,7 +3231,7 @@ async function compressImage(file, maxDim = 1600, quality = 0.78) {
 // Quét: ảnh đại diện SP + ẢNH PHỤ carousel (images[]) + gallery + hero trang chủ.
 // Ảnh gốc giữ nguyên (không xóa). Bỏ qua ảnh đã tối ưu WebP (link chứa "_optw_" / đuôi .webp).
 async function optimizeOldImages() {
-  if (!confirm('Tối ưu toàn bộ ảnh cũ (chuyển sang WebP nhẹ hơn)? Có thể mất vài phút — đừng đóng tab cho tới khi xong.')) return
+  if (!(await askConfirm({ title: 'Tối ưu toàn bộ ảnh cũ?', message: 'Ảnh sẽ được nén sang WebP nhẹ hơn. Có thể mất vài phút — đừng đóng tab cho tới khi xong.', okLabel: 'Bắt đầu tối ưu', icon: '⚡' }))) return
   const btn  = document.getElementById('optimizeBtn')
   const box  = document.getElementById('optimizeProgress')
   const fill = document.getElementById('optProgFill')
@@ -3221,7 +3339,8 @@ const orderCustomerPhone = o => esc(o.customers?.phone || '—')
 async function loadOrders() {
   const el = document.getElementById('ordersTable')
   if (el && !orders.length) el.innerHTML = skeletonTable(6)
-  const { data } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('created_at', { ascending: false })
+  const { data, error } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('created_at', { ascending: false })
+  if (error) { if (el) el.innerHTML = loadErrorHTML('loadOrders'); return }
   orders = data || []
   ordersLimit = ORDERS_PAGE   // về lại 30 đơn đầu mỗi lần tải mới
   renderStatusFilterChips()
@@ -3538,7 +3657,7 @@ function openGalleryPickerForOrder(prefix) {
 }
 
 async function deleteOrder(id) {
-  if (!confirm('Xóa đơn hàng này?')) return
+  if (!(await askConfirm({ title: 'Xóa đơn hàng?', message: 'Đơn sẽ bị xóa vĩnh viễn, doanh thu tính lại tương ứng.', okLabel: 'Xóa đơn' }))) return
   await sb.from('orders').delete().eq('id', id)
   showToast('Đã xóa đơn hàng')
   reloadActiveOrderViews()
@@ -3749,8 +3868,10 @@ let customers = []
 async function loadCustomers() {
   const ct = document.getElementById('customersTable')
   if (ct && !customers.length) ct.innerHTML = skeletonTable(5)
-  const { data } = await sb.from('customers').select('*').order('created_at', { ascending: false })
+  const { data, error } = await sb.from('customers').select('*').order('created_at', { ascending: false })
+  if (error) { if (ct) ct.innerHTML = loadErrorHTML('loadCustomers'); return }
   customers = data || []
+  resetListLimit('customers')
   renderCustomers()
 }
 
@@ -3799,11 +3920,12 @@ function renderCustomers() {
     el.innerHTML = '<div class="empty-state">Chưa có khách hàng nào.</div>'
     return
   }
+  const { shown: cuShown, more: cuMore } = limitList('customers', list)
   el.innerHTML = `
 <div class="table-desktop">
 <table class="data-table">
   <thead><tr><th>Tên</th><th>SĐT</th><th>Địa chỉ</th><th>Ngày tạo</th><th></th></tr></thead>
-  <tbody>${list.map(c => `
+  <tbody>${cuShown.map(c => `
   <tr>
     <td><strong>${esc(c.name)}</strong></td>
     <td>${esc(c.phone)}</td>
@@ -3816,7 +3938,7 @@ function renderCustomers() {
   </tr>`).join('')}</tbody>
 </table>
 </div>
-<div class="cards-mobile">${list.map(c => `
+<div class="cards-mobile">${cuShown.map(c => `
   <div class="m-card">
     <div class="mc-row">
       <span class="mc-title">${esc(c.name)}</span>
@@ -3827,7 +3949,7 @@ function renderCustomers() {
       <button class="btn-edit" onclick="openCustomerModal(${c.id})">✏️ Sửa</button>
       <button class="btn-edit" onclick="viewCustomerOrders(${c.id})">📦 Xem đơn</button>
     </div>
-  </div>`).join('')}</div>`
+  </div>`).join('')}</div>${moreBtnHTML('customers', cuMore, 'renderCustomers', 'khách')}`
 }
 
 async function viewCustomerOrders(id) {
@@ -3835,18 +3957,20 @@ async function viewCustomerOrders(id) {
   if (!c) return
   const { data } = await sb.from('orders').select('*').eq('customer_id', id).order('created_at', { ascending: false })
   document.getElementById('customerOrdersTitle').textContent = `Lịch sử đơn — ${c.name}`
+  // Dòng linh hoạt thay bảng ngang → không tràn trên điện thoại, thêm mã đơn + tổng tiền
   document.getElementById('customerOrdersBody').innerHTML = !data?.length
     ? '<div class="empty-state">Khách này chưa có đơn nào.</div>'
-    : `<table class="data-table">
-<thead><tr><th>Sản phẩm</th><th>SL</th><th>Trạng thái</th><th>Ngày đặt</th></tr></thead>
-<tbody>${data.map(o => `
-<tr>
-  <td>${esc(o.product_name)}</td>
-  <td>${o.quantity}</td>
-  <td><span class="toggle-btn on">${o.status}</span></td>
-  <td style="font-size:.82rem;color:#7A9879;">${new Date(o.created_at).toLocaleDateString('vi-VN')}</td>
-</tr>`).join('')}</tbody>
-</table>`
+    : data.map(o => `
+<div class="stat-row" style="cursor:default;">
+  <div class="stat-row-main">
+    <div><span class="sr-code">${orderCode(o.id)}</span> · ${esc(o.product_name)} ×${o.quantity}</div>
+    <div class="sr-sub">Đặt ngày ${new Date(o.created_at).toLocaleDateString('vi-VN')}</div>
+  </div>
+  <div class="stat-row-side">
+    <span class="status-select ${STATUS_CLASS[o.status] || ''}" style="cursor:default;font-size:.72rem;padding:3px 8px;">${o.status}</span>
+    <span class="sr-total">${o.total != null ? fmtVnd(o.total) : '—'}</span>
+  </div>
+</div>`).join('')
   document.getElementById('customerOrdersModal').style.display = 'flex'
 }
 
@@ -3873,9 +3997,9 @@ async function openGalleryPicker() {
     return
   }
   grid.innerHTML = data.map(ph => `
-<div onclick="selectGalleryImage('${ph.url}')" style="cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid transparent;transition:border-color .15s;" onmouseover="this.style.borderColor='#2E7D32'" onmouseout="this.style.borderColor='transparent'">
-  <img src="${ph.url}" alt="${ph.caption||''}" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;">
-  ${ph.caption ? `<p style="font-size:.75rem;padding:4px 6px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ph.caption}</p>` : ''}
+<div onclick="selectGalleryImage('${esc(ph.url)}')" style="cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid transparent;transition:border-color .15s;" onmouseover="this.style.borderColor='#2E7D32'" onmouseout="this.style.borderColor='transparent'">
+  <img src="${esc(ph.url)}" alt="${esc(ph.caption||'')}" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;">
+  ${ph.caption ? `<p style="font-size:.75rem;padding:4px 6px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ph.caption)}</p>` : ''}
 </div>`).join('')
 }
 
