@@ -448,6 +448,28 @@
     .btn-discard:hover { background: #C62828; }
     @media (max-width: 480px) { .confirm-actions { flex-direction: column-reverse; } }
 
+    /* ── Nút ↑ quay lại đầu trang ─────────────── */
+    .back-top {
+      position: fixed; right: 24px; bottom: 88px; z-index: 950;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      border: 2px solid #2E7D32; cursor: pointer;
+      background: #fff; color: #2E7D32;
+      padding: 11px 20px; border-radius: 50px;
+      font-weight: 700; font-size: .92rem; line-height: 1;
+      box-shadow: 0 4px 20px rgba(46,125,50,.25);
+      visibility: hidden; transform: translateX(calc(100% + 32px));  /* nấp ngoài mép phải */
+      transition: transform .35s cubic-bezier(.25,.8,.35,1), visibility .35s, background .15s, color .15s;
+    }
+    .back-top svg { width: 17px; height: 17px; flex-shrink: 0; }
+    .back-top.show { visibility: visible; transform: none; }
+    .back-top:hover { background: #2E7D32; color: #fff; }
+    @media (max-width: 820px) {
+      /* thu tròn trên điện thoại — chỉ còn mũi tên */
+      .back-top { right: 16px; bottom: 84px; width: 50px; height: 50px; padding: 0; border-radius: 50%; }
+      .back-top span { display: none; }
+      .back-top svg { width: 22px; height: 22px; }
+    }
+
     /* ── Toast ────────────────────────────────── */
     .toast {
       position: fixed; bottom: 28px; right: 28px; z-index: 9999;
@@ -1516,6 +1538,7 @@ function closeAllModals() {
 // Đổi giao diện sang tab (không đụng lịch sử) — dùng chung cho click và nút Back
 function applyTab(tab) {
   closeAllModals()   // dọn lớp phủ của tab cũ trước khi hiện tab mới
+  document.querySelector('.content')?.scrollTo(0, 0)   // tab mới bắt đầu từ đầu trang
   document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab))
   document.querySelectorAll('.panel').forEach(p => p.style.display = 'none')
   const panel = document.getElementById('panel' + tab)
@@ -1658,7 +1681,6 @@ async function loadDashboard() {
 
   const newCount   = all.filter(o => o.status === 'Mới').length
   const todayOrders = active.filter(o => o.delivery_date === today)
-  const tomorrowOrders = active.filter(o => o.delivery_date === tomorrow)
   const monthKey = today.slice(0, 7)
   // Doanh thu ghi nhận theo NGÀY GIAO (đơn không hẹn ngày mới tính theo ngày tạo)
   const inMonth = o => (o.delivery_date || (o.created_at || '').slice(0, 10)).slice(0, 7) === monthKey
@@ -1677,13 +1699,15 @@ async function loadDashboard() {
   // Ngữ cảnh cho modal đối soát (bấm thẻ số liệu)
   _statCtx = { orders: all, monthKey, expenses: monthExpenses }
 
-  // ⚠️ Cảnh báo chuẩn bị hàng cho ngày mai
-  const [, tm, td] = tomorrow.split('-')
-  document.getElementById('prepAlert').innerHTML = !tomorrowOrders.length ? '' : `
+  // ⚠️ Cảnh báo chuẩn bị hàng cho 2 NGÀY TỚI (ngày mai + ngày kia)
+  const dayAfter = new Date(Date.now() + 2 * 86400000).toLocaleDateString('sv-SE')
+  const prepOrders = active.filter(o => o.delivery_date === tomorrow || o.delivery_date === dayAfter)
+  const dmy = d => d.slice(8, 10) + '/' + d.slice(5, 7)
+  document.getElementById('prepAlert').innerHTML = !prepOrders.length ? '' : `
     <div class="prep-alert">
-      <div class="prep-alert-head">⚠️ Chuẩn bị hàng — ngày mai (${td}/${tm}) cần giao <strong>${tomorrowOrders.length} đơn</strong></div>
+      <div class="prep-alert-head">⚠️ Chuẩn bị hàng — 2 ngày tới (${dmy(tomorrow)} & ${dmy(dayAfter)}) cần giao <strong>${prepOrders.length} đơn</strong></div>
       <div class="prep-alert-list">
-        ${tomorrowOrders.map(o => `<span class="prep-chip" onclick="viewOrderDetail(${o.id})">${orderCode(o.id)} · ${orderCustomerName(o)} · ${esc(o.product_name)}${o.delivery_area ? ' · ' + esc(o.delivery_area) : ''}</span>`).join('')}
+        ${prepOrders.map(o => `<span class="prep-chip" onclick="viewOrderDetail(${o.id})">📅 ${dmy(o.delivery_date)} · ${orderCode(o.id)} · ${orderCustomerName(o)} · ${esc(o.product_name)}${o.delivery_area ? ' · ' + esc(o.delivery_area) : ''}</span>`).join('')}
       </div>
     </div>`
 
@@ -3595,6 +3619,7 @@ function viewOrderDetail(id) {
 ${detailImg ? `<img src="${esc(detailImg)}" alt="" style="width:100%;max-height:230px;object-fit:cover;border-radius:12px;margin-bottom:16px;">` : ''}
 <div class="form-grid">
   <p><strong>Khách:</strong> ${orderCustomerName(o)} — ${orderCustomerPhone(o)}</p>
+  ${o.customer_email ? `<p><strong>Email:</strong> ${esc(o.customer_email)}</p>` : ''}
   <p><strong>Sản phẩm:</strong> ${esc(o.product_name)} × ${o.quantity}</p>
   ${priceRows}
   <p><strong>Khu vực giao:</strong> ${esc(o.delivery_area || '—')}</p>
@@ -4044,8 +4069,25 @@ function showToast(msg, type = 'success') {
   t._timer = setTimeout(() => t.style.display = 'none', 3000)
 }
 
+// Nút ↑ quay lại đầu trang — admin cuộn trong khung .content nên theo dõi khung đó
+function initBackToTop() {
+  const content = document.querySelector('.content')
+  if (!content) return
+  const btn = document.createElement('button')
+  btn.className = 'back-top'
+  btn.setAttribute('aria-label', 'Lên đầu trang')
+  // Mũi tên SVG nét dày; trên điện thoại thu tròn chỉ hiện mũi tên
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M5 12l7-7 7 7"/></svg><span>Trang đầu</span>'
+  btn.onclick = () => content.scrollTo({ top: 0, behavior: 'smooth' })
+  document.body.appendChild(btn)
+  content.addEventListener('scroll', () => {
+    btn.classList.toggle('show', content.scrollTop > 500)
+  }, { passive: true })
+}
+
 init()
 initModalGuards()
+initBackToTop()
 </script>
 </body>
 </html>

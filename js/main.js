@@ -671,6 +671,10 @@ function openOrderModal(productId, productName) {
       <label>Số điện thoại *</label>
       <input type="tel" id="orderPhone" required placeholder="VD: 0912 345 678">
     </div>
+    <div class="order-field of-full">
+      <label>Email <span style="font-weight:400;color:var(--text-light);">(không bắt buộc — để nhận xác nhận đơn)</span></label>
+      <input type="email" id="orderEmail" placeholder="VD: minhanh@gmail.com">
+    </div>
     <div class="order-field">
       <label>Khu vực giao *</label>
       <select id="orderArea" required>
@@ -744,6 +748,15 @@ async function submitOrder(event) {
   }
 
   const phone = document.getElementById('orderPhone').value.trim();
+  const email = (document.getElementById('orderEmail')?.value || '').trim();
+
+  // Email không bắt buộc — nhưng đã điền thì phải đúng định dạng
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    btn.disabled = false;
+    btn.textContent = 'Gửi đơn đặt hàng';
+    showMiniToast('✉️ Email chưa đúng định dạng, bạn xem lại giúp nhé');
+    return;
+  }
 
   const { error } = await sb.rpc('place_order', {
     p_phone: phone,
@@ -756,6 +769,7 @@ async function submitOrder(event) {
     p_message_card: document.getElementById('orderMessage').value.trim() || null,
     p_note: document.getElementById('orderNote').value.trim() || null,
     p_delivery_area: document.getElementById('orderArea').value || null,
+    p_email: email || null,
   });
 
   if (error) {
@@ -774,6 +788,7 @@ async function submitOrder(event) {
     Đơn đặt <strong>${esc(_orderProduct.name)}</strong> đã được ghi nhận.<br>
     Chúng mình sẽ liên hệ số <strong>${esc(phone)}</strong> qua Zalo/điện thoại
     trong <strong>15–30 phút</strong> để xác nhận và báo phí giao (nếu có).
+    ${email ? `<br>💌 Xác nhận đơn đã được gửi tới <strong>${esc(email)}</strong>.` : ''}
   </p>
   <div style="display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap;">
     <a href="${zalo}" target="_blank" class="btn btn-primary">💬 Nhắn Zalo luôn</a>
@@ -968,10 +983,25 @@ async function applyHeroSides(c) {
   if (s2) { _setHeroImg('heroSide2', s2); try { localStorage.setItem('heroSide2Url', s2); } catch {} }
 }
 
+// Nút ↑ quay lại đầu trang — chỉ hiện khi đã cuộn xuống đủ xa
+function initBackToTop() {
+  const btn = document.createElement('button');
+  btn.className = 'back-top';
+  btn.setAttribute('aria-label', 'Lên đầu trang');
+  // Mũi tên SVG nét dày (ký tự ↑ quá mảnh); trên điện thoại chỉ hiện mũi tên
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M5 12l7-7 7 7"/></svg><span>Trang đầu</span>';
+  btn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.body.appendChild(btn);
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('show', window.scrollY > 600);
+  }, { passive: true });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   initNav();
   injectZaloIcons();
   primeHero();
+  initBackToTop();
   // Năm © tự cập nhật (khỏi lỗi thời)
   document.querySelectorAll('.footer-bottom').forEach(el => {
     el.textContent = el.textContent.replace(/©\s*\d{4}/, '© ' + new Date().getFullYear());

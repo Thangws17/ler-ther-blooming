@@ -32,6 +32,7 @@ create table if not exists orders (
 alter table orders add column if not exists delivery_area text;
 alter table orders add column if not exists customer_name text;                 -- snapshot tên khách trên đơn
 alter table orders add column if not exists image text;                         -- ảnh riêng của đơn (mặc định dùng ảnh sản phẩm)
+alter table orders add column if not exists customer_email text;                -- email khách (không bắt buộc, nhận mail xác nhận)
 alter table orders add column if not exists unit_price   numeric;              -- đơn giá admin chốt
 alter table orders add column if not exists shipping_fee numeric default 0;
 alter table orders add column if not exists total numeric
@@ -61,6 +62,8 @@ create policy "Admin delete orders" on orders for delete using (auth.role() = 'a
 -- đi qua RPC place_order (security definer) nên vẫn tạo được đơn mà bảng vẫn khóa.
 
 -- ── 4. Function đặt hàng ──────────────────────────────────────────
+-- ⚠️ BẢN MỚI NHẤT của place_order nằm ở notifications_v2.sql (thêm p_email,
+--    báo shop + mail xác nhận khách). Setup mới thì chạy file đó SAU file này.
 -- Drop cả 2 phiên bản (9 và 10 tham số) để tránh hàm trùng tên lẫn lộn
 drop function if exists place_order(text, text, text, bigint, text, int, date, text, text);
 drop function if exists place_order(text, text, text, bigint, text, int, date, text, text, text);
