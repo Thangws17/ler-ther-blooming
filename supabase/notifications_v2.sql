@@ -1,49 +1,48 @@
 -- ════════════════════════════════════════════════════════════════
 -- THÔNG BÁO v2 — chạy trong Supabase SQL editor, chạy lại nhiều lần không lỗi.
 --
--- Gồm 3 việc:
---  1) ĐƠN MỚI: khách đặt hàng thành công → gửi Telegram + Email cho SHOP ngay lập tức
---  2) NHẮC LỊCH GIAO: 8:30 sáng mỗi ngày, nhắc các đơn giao trong 2 NGÀY TỚI
---     (trước đây chỉ nhắc trước 1 ngày)
---  3) VÁ BẢO MẬT: khóa quyền gọi công khai hàm nhắc lịch (trước đây ai cầm
---     key public cũng kích hoạt được → có thể bị spam)
+-- Gồm 4 việc (tất cả email đi qua BREVO — không dùng Telegram/Resend nữa):
+--  1) ĐƠN MỚI: khách đặt hàng thành công → EMAIL báo SHOP ngay lập tức
+--  2) MAIL XÁC NHẬN cho KHÁCH (nếu khách để lại email — không bắt buộc)
+--  3) NHẮC LỊCH GIAO: 8:30 sáng mỗi ngày, nhắc các đơn giao trong 2 NGÀY TỚI
+--  4) VÁ BẢO MẬT: khóa quyền gọi công khai các hàm gửi tin
 --
 -- Cần chạy reminders_setup.sql trước (đã chạy từ trước — bảng app_settings).
--- Token Telegram/Resend điền ở cuối file nếu chưa điền.
+-- Cấu hình Brevo + email nhận báo điền ở cuối file.
 -- ════════════════════════════════════════════════════════════════
 
--- ── Hàm gửi tin cho SHOP (Telegram + Email) — dùng chung ─────────
+-- ── Hàm gửi tin cho SHOP — qua EMAIL (Brevo), gửi tới các địa chỉ trong
+--    reminder_email (nhiều mail cách nhau dấu phẩy). Không dùng Telegram/Resend. ──
 create or replace function notify_shop(p_text text, p_subject text, p_html text)
 returns void
 language plpgsql security definer set search_path = public as $$
 declare
   s app_settings;
+  v_to jsonb;
 begin
   select * into s from app_settings where id = 1;
-
-  if s.telegram_bot_token is not null and s.telegram_chat_id is not null then
-    perform net.http_post(
-      url     := 'https://api.telegram.org/bot' || s.telegram_bot_token || '/sendMessage',
-      headers := jsonb_build_object('Content-Type', 'application/json'),
-      body    := jsonb_build_object('chat_id', s.telegram_chat_id, 'text', p_text)
-    );
+  if s.brevo_api_key is null or s.brevo_from_email is null or s.reminder_email is null then
+    return;   -- chưa cấu hình → bỏ qua êm ái
   end if;
 
-  if s.resend_api_key is not null and s.reminder_email is not null then
-    perform net.http_post(
-      url     := 'https://api.resend.com/emails',
-      headers := jsonb_build_object('Authorization', 'Bearer ' || s.resend_api_key,
-                                    'Content-Type', 'application/json'),
-      body    := jsonb_build_object(
-        'from',    coalesce(s.reminder_from, 'onboarding@resend.dev'),
-        'to',      (select coalesce(jsonb_agg(trim(e)), '[]'::jsonb)
-                    from unnest(string_to_array(s.reminder_email, ',')) e
-                    where length(trim(e)) > 0),
-        'subject', p_subject,
-        'html',    p_html
-      )
-    );
-  end if;
+  -- reminder_email có thể nhiều địa chỉ (cách nhau dấu phẩy) → mảng người nhận Brevo
+  select coalesce(jsonb_agg(jsonb_build_object('email', trim(e))), '[]'::jsonb)
+    into v_to
+  from unnest(string_to_array(s.reminder_email, ',')) e
+  where length(trim(e)) > 0;
+  if v_to = '[]'::jsonb then return; end if;
+
+  perform net.http_post(
+    url     := 'https://api.brevo.com/v3/smtp/email',
+    headers := jsonb_build_object('api-key', s.brevo_api_key, 'Content-Type', 'application/json'),
+    body    := jsonb_build_object(
+      'sender',      jsonb_build_object('email', s.brevo_from_email,
+                                        'name', coalesce(s.brevo_from_name, 'Ler & Ther Blooming')),
+      'to',          v_to,
+      'subject',     p_subject,
+      'htmlContent', p_html
+    )
+  );
 end;
 $$;
 
@@ -255,20 +254,19 @@ end $$;
 select cron.schedule('daily-delivery-reminder', '30 1 * * *', $$select send_delivery_reminders();$$);
 
 -- ════════════════════════════════════════════════════════════════
--- SAU KHI CHẠY: điền token (thay giá trị thật, dòng nào chưa có thì bỏ qua):
+-- SAU KHI CHẠY: cấu hình (thay giá trị thật nếu chưa điền):
 -- ════════════════════════════════════════════════════════════════
 -- update app_settings set
---   -- Báo SHOP qua Telegram (khuyên dùng — miễn phí, tức thì):
---   telegram_bot_token = 'PASTE_BOT_TOKEN',      -- tạo bot: nhắn @BotFather trên Telegram
---   telegram_chat_id   = 'PASTE_CHAT_ID',        -- lấy id: nhắn @userinfobot
---   -- Báo SHOP qua email (tùy chọn, Resend chỉ gửi về email chủ tài khoản khi chưa có tên miền):
---   resend_api_key     = 're_PASTE_API_KEY',     -- key MỚI (key cũ từng lộ, phải thu hồi)
---   reminder_email     = 'email_cua_ban@gmail.com',
---   -- Mail XÁC NHẬN cho KHÁCH qua Brevo (brevo.com — miễn phí 300 mail/ngày):
---   -- đăng ký Brevo → Senders: thêm + xác minh email người gửi → SMTP & API: tạo API key
---   brevo_api_key      = 'xkeysib-PASTE_KEY',
---   brevo_from_email   = 'email_da_xac_minh@gmail.com',
---   brevo_from_name    = 'Ler & Ther Blooming'
+--   -- Brevo (brevo.com — dùng cho CẢ mail khách lẫn mail báo shop):
+--   brevo_api_key      = 'xkeysib-PASTE_KEY',     -- SMTP & API → API Keys
+--   brevo_from_email   = 'email_da_xac_minh',     -- Senders: email đã xác minh
+--   brevo_from_name    = 'Ler & Ther Blooming',
+--   -- Email NHẬN thông báo của shop (nhiều mail cách nhau dấu phẩy):
+--   reminder_email     = 'thangvh@sapo.vn, lept2@sapo.vn',
+--   -- Không dùng Telegram/Resend nữa → dọn sạch:
+--   telegram_bot_token = null,
+--   telegram_chat_id   = null,
+--   resend_api_key     = null
 -- where id = 1;
 --
 -- Test nhắc lịch ngay không cần chờ 8:30 (SQL editor chạy quyền admin nên gọi được):
