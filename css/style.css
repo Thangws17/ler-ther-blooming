@@ -480,6 +480,9 @@ section    { padding:64px 0; }
 .footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr; gap:40px; margin-bottom:44px; }
 .footer .logo { color:#fff; margin-bottom:14px; }
 .footer-brand p { font-size:.9rem; line-height:1.8; opacity:.6; }
+.footer-contact { margin-top:16px; display:flex; flex-direction:column; gap:8px; }
+.footer-contact .foot-line { font-size:.9rem; color:rgba(255,255,255,.7); text-decoration:none; }
+.footer-contact a.foot-line:hover { color:var(--green-light); }
 .footer-col h4 {
   font-family:'Nunito',sans-serif; font-size:.95rem; color:#fff;
   margin-bottom:16px; font-weight:700;
@@ -622,8 +625,6 @@ section    { padding:64px 0; }
   font-weight:700; font-size:.92rem;
   padding:6px 16px; border-radius:50px;
 }
-.order-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px 16px; }
-.order-grid .of-full { grid-column:1 / -1; }
 .order-reassure {
   background:var(--green-pale); border-radius:var(--radius-sm);
   padding:10px 14px; font-size:.82rem; color:var(--text-mid);
@@ -634,19 +635,65 @@ section    { padding:64px 0; }
   position:absolute; top:16px; right:16px; background:none; border:none;
   font-size:1.3rem; color:var(--text-light); cursor:pointer; line-height:1;
 }
-.order-field { margin-bottom:16px; }
+.order-field { margin-bottom:14px; }
+/* Nhãn chữ thường (bỏ IN HOA) — dễ đọc, bớt "nhập nhèng" */
 .order-field label {
-  display:block; font-size:.82rem; font-weight:700; color:var(--text-mid);
-  margin-bottom:6px; text-transform:uppercase; letter-spacing:.03em;
+  display:block; font-family:'Nunito',sans-serif; font-size:.86rem; font-weight:700;
+  color:var(--text); margin-bottom:5px;
 }
+.order-field label .lbl-opt { font-weight:400; color:var(--text-light); font-size:.78rem; }
+/* Ô nhập nền TRẮNG, bấm vào mới sáng viền xanh — bỏ nền xanh mọi ô gây rối */
 .order-field input, .order-field textarea, .order-field select {
-  width:100%; padding:11px 14px; border:1.5px solid var(--border);
-  border-radius:var(--radius-sm); font-family:'Open Sans',sans-serif;
-  font-size:.95rem; color:var(--text); outline:none; transition:var(--t);
-  background:var(--bg);
+  width:100%; padding:11px 13px; border:1.5px solid var(--border);
+  border-radius:10px; font-family:'Open Sans',sans-serif;
+  font-size:.95rem; color:var(--text); outline:none;
+  background:var(--white); transition:border-color .15s, box-shadow .15s;
 }
-.order-field input:focus, .order-field textarea:focus, .order-field select:focus { border-color:var(--green-light); background:var(--white); }
-.order-field textarea { resize:vertical; min-height:64px; }
+.order-field input:focus, .order-field textarea:focus, .order-field select:focus {
+  border-color:var(--green-mid); box-shadow:0 0 0 3px rgba(76,175,80,.12);
+}
+.order-field input::placeholder, .order-field textarea::placeholder { color:#B6C4B2; }
+.order-field textarea { resize:vertical; min-height:56px; }
+
+/* ── Form đặt hoa bố cục mới: header ngữ cảnh + chip + 3 nhóm ── */
+.om-top { display:flex; gap:14px; align-items:center; padding-bottom:14px; border-bottom:1px solid var(--border); }
+.om-top img, .om-ph {
+  width:58px; height:58px; border-radius:12px; object-fit:cover; flex-shrink:0;
+  background:var(--green-pale); display:flex; align-items:center; justify-content:center; font-size:1.6rem;
+}
+.om-eyebrow { font-size:.7rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text-light); margin-bottom:2px; }
+.om-name { font-family:'Nunito',sans-serif; font-weight:900; font-size:1.08rem; line-height:1.3; }
+.om-price { color:var(--green); font-weight:800; font-size:.92rem; margin-top:2px; }
+.om-chips { display:flex; flex-wrap:wrap; gap:7px; padding:12px 0 4px; }
+.om-chip {
+  display:inline-flex; align-items:center; gap:5px;
+  background:var(--green-pale); color:var(--green); border-radius:50px;
+  padding:5px 11px; font-size:.74rem; font-weight:700;
+}
+.om-chip-link:hover { background:var(--green); color:#fff; }
+.om-group { padding-top:14px; }
+.om-group + .om-group { border-top:1px solid var(--border); margin-top:6px; }
+.g-title { display:flex; align-items:center; gap:7px; font-family:'Nunito',sans-serif; font-weight:800; font-size:.92rem; margin-bottom:12px; }
+.g-title .lbl-opt { font-weight:400; color:var(--text-light); font-size:.8rem; }
+.g-num {
+  width:20px; height:20px; border-radius:50%; background:var(--green); color:#fff;
+  font-size:.72rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.om-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.om-foot-note { text-align:center; font-size:.76rem; color:var(--text-light); margin-top:10px; }
+
+/* PC: form mở RỘNG NGANG 2 cột — khách không phải cuộn dài */
+@media (min-width:900px) {
+  .order-modal:has(.om-groups) { max-width:920px; }
+  .om-groups { display:grid; grid-template-columns:1fr 1fr; column-gap:0;
+    grid-template-areas:"g1 g2" "g3 g2"; grid-template-rows:auto 1fr; }
+  .om-g1 { grid-area:g1; padding-right:26px; }
+  .om-g2 { grid-area:g2; border-left:1px solid var(--border); padding-left:26px; }
+  .om-g3 { grid-area:g3; padding-right:26px; }
+  .om-group + .om-group { border-top:none; margin-top:0; }
+  .om-g3 { border-top:1px solid var(--border); margin-top:6px; }
+}
+.order-success { max-width:520px; margin:0 auto; }
 .order-hint { font-size:.8rem; color:var(--text-light); margin-top:6px; line-height:1.55; }
 /* Bẫy bot: giấu hẳn khỏi mắt người + trình đọc màn hình, bot vẫn "thấy" trong HTML */
 .hp-field { position:absolute; left:-9999px; top:-9999px; height:0; overflow:hidden; }
@@ -796,6 +843,6 @@ section    { padding:64px 0; }
   .zalo-float { padding:14px; border-radius:50%; width:54px; height:54px; justify-content:center; }
 
   /* form đặt hàng: về 1 cột trên điện thoại */
-  .order-grid { grid-template-columns:1fr; }
+  .om-row { grid-template-columns:1fr; gap:0; }
   .order-modal { padding:24px 20px; }
 }

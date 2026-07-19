@@ -83,6 +83,7 @@ function catStyle(cat) {
 // Thẻ tập trung vào sản phẩm: ảnh 4:5 chiếm phần lớn, chỉ còn tên + giá + nút Đặt ngay.
 // Mô tả + danh mục vẫn xem đầy đủ ở trang chi tiết.
 function productCardHTML(p) {
+  _prodCache[p.id] = { image: p.image, price: p.price };   // cho header form đặt hoa
   const s = catStyle(p.category);
   const img = p.image
     ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy">`
@@ -474,7 +475,7 @@ function openGalleryLightbox(startIdx) {
 // Đặt hoa theo mẫu ảnh Gallery → mở form đặt hàng, ghi chú tự kèm link ảnh mẫu cho shop
 function orderFromGalleryPhoto(ph) {
   if (!document.getElementById('orderModalBody')) return;
-  openOrderModal(null, ph.caption ? `Mẫu Gallery: ${ph.caption}` : 'Mẫu trong Gallery');
+  openOrderModal(null, ph.caption ? `Mẫu Gallery: ${ph.caption}` : 'Mẫu trong Gallery', ph.url);
   const note = document.getElementById('orderNote');
   if (note) note.value = `Đặt theo mẫu ảnh: ${ph.url}`;
 }
@@ -519,6 +520,19 @@ async function loadContact() {
   setText('cPhone',   contactInfo.phone   || '—');
   setText('cAddress', contactInfo.address || '—');
   setText('cHours',   contactInfo.hours   || '—');
+
+  // Chân trang: điền địa chỉ + SĐT tiệm (tận dụng thông tin Liên hệ)
+  const footAddr = document.getElementById('footAddress');
+  if (footAddr && contactInfo.address) {
+    footAddr.querySelector('span').textContent = contactInfo.address;
+    footAddr.style.display = '';
+  }
+  const footPhone = document.getElementById('footPhone');
+  if (footPhone && contactInfo.phone) {
+    footPhone.querySelector('span').textContent = contactInfo.phone;
+    footPhone.href = `tel:${clean(contactInfo.phone)}`;
+    footPhone.style.display = '';
+  }
 
   setHref('zaloBtn', zaloURL(contactInfo.zalo || contactInfo.phone));
   setHref('callBtn', `tel:${clean(contactInfo.phone)}`);
@@ -669,6 +683,8 @@ function showMiniToast(msg) {
 
 // ─── Order Modal ──────────────────────────────────────────
 let _orderProduct = { id: null, name: '' };
+// Nhớ ảnh + giá sản phẩm đã render để hiện trong header form đặt (đủ ngữ cảnh)
+const _prodCache = {};
 
 const HANOI_AREAS = [
   'Hoàn Kiếm', 'Ba Đình', 'Đống Đa', 'Hai Bà Trưng', 'Cầu Giấy',
@@ -676,64 +692,98 @@ const HANOI_AREAS = [
   'Bắc Từ Liêm', 'Nam Từ Liêm',
 ];
 
-function openOrderModal(productId, productName) {
+function openOrderModal(productId, productName, imgOverride) {
   _orderProduct = { id: productId, name: productName };
+  const cached = (productId && _prodCache[productId]) || {};
+  const img = imgOverride || cached.image || '';
+  const price = cached.price ? fmtPrice(cached.price) : '';
+  // Mặc định thân thiện: ngày giao = NGÀY MAI (đặt trước 1 ngày), không chọn được ngày quá khứ
+  const _today = new Date().toLocaleDateString('sv-SE');
+  const _tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE');
+
   document.getElementById('orderModalBody').innerHTML = `
-<div class="order-head">
-  <h3>Đặt hoa 🌸</h3>
-  <span class="order-product-name">${esc(productName)}</span>
+<div class="om-top">
+  ${img ? `<img src="${esc(img)}" alt="${esc(productName)}">` : '<div class="om-ph">🌸</div>'}
+  <div class="om-top-info">
+    <div class="om-eyebrow">Đang đặt</div>
+    <div class="om-name">${esc(productName)}</div>
+    ${price ? `<div class="om-price">${esc(price)}</div>` : ''}
+  </div>
 </div>
-<div class="order-reassure">🚚 Nội thành miễn phí · 💳 COD / Chuyển khoản · 📸 Gửi ảnh duyệt trước khi giao · <a href="chinh-sach.html" target="_blank">Xem chính sách</a></div>
+<div class="om-chips">
+  <span class="om-chip">🚚 Nội thành miễn phí</span>
+  <span class="om-chip">💳 COD / Chuyển khoản</span>
+  <span class="om-chip">📸 Duyệt ảnh trước khi giao</span>
+  <a class="om-chip om-chip-link" href="chinh-sach.html" target="_blank">📋 Chính sách</a>
+</div>
 <form id="orderForm" onsubmit="submitOrder(event)">
-  <div class="order-grid">
-    <div class="order-field">
-      <label>Họ tên người đặt *</label>
-      <input type="text" id="orderName" required placeholder="VD: Minh Anh">
+  <div class="om-groups">
+    <div class="om-group om-g1">
+      <div class="g-title"><span class="g-num">1</span> Thông tin của bạn</div>
+      <div class="om-row">
+        <div class="order-field">
+          <label>Họ tên *</label>
+          <input type="text" id="orderName" required placeholder="VD: Minh Anh">
+        </div>
+        <div class="order-field">
+          <label>Số điện thoại *</label>
+          <input type="tel" id="orderPhone" required placeholder="VD: 0912 345 678">
+        </div>
+      </div>
+      <div class="order-field">
+        <label>Email <span class="lbl-opt">· không bắt buộc, để nhận xác nhận đơn</span></label>
+        <input type="email" id="orderEmail" placeholder="VD: minhanh@gmail.com">
+      </div>
     </div>
-    <div class="order-field">
-      <label>Số điện thoại *</label>
-      <input type="tel" id="orderPhone" required placeholder="VD: 0912 345 678">
+
+    <div class="om-group om-g2">
+      <div class="g-title"><span class="g-num">2</span> Giao đến đâu</div>
+      <div class="om-row">
+        <div class="order-field">
+          <label>Khu vực giao *</label>
+          <select id="orderArea" required>
+            <option value="Nội thành Hà Nội" selected>Nội thành Hà Nội</option>
+            ${HANOI_AREAS.map(a => `<option value="${a}">${a}</option>`).join('')}
+            <option value="Khu vực khác">Khu vực khác (ngoại thành / tỉnh khác)</option>
+          </select>
+        </div>
+        <div class="order-field">
+          <label>Số lượng</label>
+          <input type="number" id="orderQty" min="1" value="1">
+        </div>
+      </div>
+      <div class="order-field">
+        <label>Địa chỉ giao hàng *</label>
+        <input type="text" id="orderAddress" required placeholder="Số nhà, ngõ, đường, phường…">
+      </div>
+      <div class="order-field">
+        <label>Ngày giao mong muốn</label>
+        <input type="date" id="orderDate" value="${_tomorrow}" min="${_today}">
+        <p class="order-hint">🌸 Shop để sẵn ngày mai — đặt trước 1 ngày để hoa tươi và chuẩn bị chu đáo nhất!</p>
+      </div>
     </div>
-    <div class="order-field of-full">
-      <label>Email <span style="font-weight:400;color:var(--text-light);">(không bắt buộc — để nhận xác nhận đơn)</span></label>
-      <input type="email" id="orderEmail" placeholder="VD: minhanh@gmail.com">
-    </div>
-    <div class="order-field">
-      <label>Khu vực giao *</label>
-      <select id="orderArea" required>
-        <option value="">— Chọn khu vực —</option>
-        ${HANOI_AREAS.map(a => `<option value="${a}">${a}</option>`).join('')}
-        <option value="Khu vực khác">Khu vực khác (ngoại thành / tỉnh khác)</option>
-      </select>
-    </div>
-    <div class="order-field">
-      <label>Số lượng</label>
-      <input type="number" id="orderQty" min="1" value="1">
-    </div>
-    <div class="order-field of-full">
-      <label>Địa chỉ giao hàng *</label>
-      <input type="text" id="orderAddress" required placeholder="Số nhà, ngõ, đường, phường…">
-    </div>
-    <div class="order-field of-full">
-      <label>Ngày giao mong muốn</label>
-      <input type="date" id="orderDate">
-      <p class="order-hint">🌸 Nên đặt trước 1–2 ngày để shop chọn hoa tươi và chuẩn bị chu đáo nhất cho bạn nhé!</p>
-    </div>
-    <div class="order-field">
-      <label>Lời nhắn trên thiếp</label>
-      <textarea id="orderMessage" placeholder="VD: Chúc mừng sinh nhật..."></textarea>
-    </div>
-    <div class="order-field">
-      <label>Ghi chú thêm</label>
-      <textarea id="orderNote" placeholder="Yêu cầu khác (nếu có)"></textarea>
-    </div>
-    <!-- Bẫy bot: người thật không thấy ô này; bot tự điền là bị loại -->
-    <div class="hp-field" aria-hidden="true">
-      <label>Website</label>
-      <input type="text" id="orderWebsite" tabindex="-1" autocomplete="off">
+
+    <div class="om-group om-g3">
+      <div class="g-title"><span class="g-num">3</span> Lời nhắn <span class="lbl-opt">(nếu có)</span></div>
+      <div class="om-row">
+        <div class="order-field">
+          <label>Lời nhắn trên thiếp</label>
+          <textarea id="orderMessage" placeholder="VD: Chúc mừng sinh nhật..."></textarea>
+        </div>
+        <div class="order-field">
+          <label>Ghi chú thêm</label>
+          <textarea id="orderNote" placeholder="Yêu cầu khác (nếu có)"></textarea>
+        </div>
+      </div>
     </div>
   </div>
+  <!-- Bẫy bot: người thật không thấy ô này; bot tự điền là bị loại -->
+  <div class="hp-field" aria-hidden="true">
+    <label>Website</label>
+    <input type="text" id="orderWebsite" tabindex="-1" autocomplete="off">
+  </div>
   <button type="submit" class="btn btn-primary order-submit" id="orderSubmitBtn">🌸 Gửi đơn đặt hàng</button>
+  <p class="om-foot-note">Shop sẽ gọi/Zalo xác nhận trong 15–30 phút</p>
 </form>`;
   document.getElementById('orderOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -908,6 +958,7 @@ async function loadProductDetail() {
 
   const { data: p } = await sb.from('products').select('*').eq('id', id).single();
   if (!p) { content.innerHTML = '<div class="loading"><p>Sản phẩm không tồn tại.</p></div>'; return; }
+  _prodCache[p.id] = { image: p.images?.[0] || p.image, price: p.price };   // cho header form đặt
 
   document.title = `${p.name} — Ler & Ther Blooming`;
   const _ogTitle = document.querySelector('meta[property="og:title"]');
