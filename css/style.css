@@ -381,6 +381,9 @@ section    { padding:64px 0; }
 /* Link trong thẻ thông tin liên hệ (gom style lặp inline) */
 .c-item a { color:var(--green); }
 .c-item a:hover { text-decoration:underline; }
+/* Cả dòng (icon + chữ) bấm được — JS gắn class này cho mục có liên kết */
+.c-item.clickable { cursor:pointer; border-radius:12px; transition:background .15s; }
+.c-item.clickable:hover { background:var(--green-pale); }
 
 .contact-cta {
   background:linear-gradient(135deg,#2E7D32 0%,#1B5E20 100%);
@@ -785,8 +788,8 @@ section    { padding:64px 0; }
   /* why-us */
   .whyus-grid { grid-template-columns:1fr; }
 
-  /* footer */
-  .footer-grid { grid-template-columns:1fr; gap:28px; }
+  /* footer: giữ 2 cột trên điện thoại (khối thương hiệu full, Trang | Kết nối cạnh nhau) */
+  .footer-grid { grid-template-columns:1fr 1fr; gap:28px 20px; }
 
   /* float */
   .zalo-float .zalo-label { display:none; }

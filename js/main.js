@@ -580,6 +580,29 @@ async function loadContact() {
     }
   });
   if (ctaSection && hasSocial) ctaSection.style.display = 'block';
+
+  // Mục Điện thoại: bấm là gọi luôn (trước đây chỉ là chữ tĩnh)
+  const phoneItem = document.getElementById('cPhone')?.closest('.c-item');
+  if (phoneItem && contactInfo.phone) phoneItem.dataset.href = `tel:${clean(contactInfo.phone)}`;
+  makeContactItemsClickable();
+}
+
+// Bấm cả DÒNG (icon + nhãn + chữ) trong thẻ liên hệ đều mở liên kết —
+// trước đây icon chỉ là trang trí, phải bấm đúng chữ mới ăn
+function makeContactItemsClickable() {
+  document.querySelectorAll('.contact-card .c-item').forEach(item => {
+    const a = item.querySelector('a[href]');
+    const aHref = a && a.getAttribute('href');
+    const href = (aHref && aHref !== '#') ? aHref : item.dataset.href;
+    if (!href || item.dataset.wired) return;
+    item.dataset.wired = '1';
+    item.classList.add('clickable');
+    item.addEventListener('click', e => {
+      if (e.target.closest('a')) return;               // bấm đúng link thì để mặc định
+      if (a && a.target === '_blank') window.open(href, '_blank');
+      else window.location.href = href;
+    });
+  });
 }
 
 // Logo SVG chính thức của các nền tảng (dùng để dẫn link) — fill trắng theo màu nền
