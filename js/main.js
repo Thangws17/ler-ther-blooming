@@ -426,6 +426,7 @@ function openGalleryLightbox(startIdx) {
   const close = () => {
     el.classList.remove('show');
     document.removeEventListener('keydown', onKey);
+    unlockBodyScroll();
     setTimeout(() => el.remove(), 260);
   };
   const onKey = (e) => {
@@ -468,6 +469,7 @@ function openGalleryLightbox(startIdx) {
   el.appendChild(bar);
   document.addEventListener('keydown', onKey);
   document.body.appendChild(el);
+  lockBodyScroll();
   show(idx);
   requestAnimationFrame(() => el.classList.add('show'));
 }
@@ -500,12 +502,14 @@ function openLightbox(url, caption) {
   const close = () => {
     el.classList.remove('show');
     document.removeEventListener('keydown', onKey);
+    unlockBodyScroll();
     setTimeout(() => el.remove(), 260);
   };
   const onKey = (e) => { if (e.key === 'Escape') close(); };
   el.addEventListener('click', close);
   document.addEventListener('keydown', onKey);
   document.body.appendChild(el);
+  lockBodyScroll();
   requestAnimationFrame(() => el.classList.add('show'));
 }
 
@@ -681,6 +685,32 @@ function showMiniToast(msg) {
   t._t = setTimeout(() => t.style.display = 'none', 3000);
 }
 
+// ─── Khoá cuộn nền khi mở lớp phủ ─────────────────────────
+// iOS Safari PHỚT LỜ `overflow:hidden` trên body → nền vẫn cuộn sau lớp phủ.
+// Cách duy nhất ăn trên iPhone: ghim body bằng position:fixed rồi trả lại vị trí cũ khi đóng.
+let _scrollLockY = 0;
+let _scrollLockCount = 0;   // đếm lớp phủ đang mở (lightbox mở trên form…)
+
+function lockBodyScroll() {
+  if (_scrollLockCount++ > 0) return;          // đã khoá rồi thì thôi
+  _scrollLockY = window.scrollY || window.pageYOffset || 0;
+  const b = document.body.style;
+  b.position = 'fixed';
+  b.top = `-${_scrollLockY}px`;
+  b.left = '0';
+  b.right = '0';
+  b.width = '100%';
+  b.overflow = 'hidden';
+}
+
+function unlockBodyScroll() {
+  if (_scrollLockCount > 0) _scrollLockCount--;
+  if (_scrollLockCount > 0) return;            // còn lớp phủ khác đang mở
+  const b = document.body.style;
+  b.position = ''; b.top = ''; b.left = ''; b.right = ''; b.width = ''; b.overflow = '';
+  window.scrollTo(0, _scrollLockY);            // trả về đúng chỗ khách đang xem
+}
+
 // ─── Order Modal ──────────────────────────────────────────
 let _orderProduct = { id: null, name: '' };
 // Nhớ ảnh + giá sản phẩm đã render để hiện trong header form đặt (đủ ngữ cảnh)
@@ -786,12 +816,12 @@ function openOrderModal(productId, productName, imgOverride) {
   <p class="om-foot-note">Shop sẽ gọi/Zalo xác nhận trong 15–30 phút</p>
 </form>`;
   document.getElementById('orderOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
 }
 
 function closeOrderModal() {
   document.getElementById('orderOverlay')?.classList.remove('open');
-  document.body.style.overflow = '';
+  unlockBodyScroll();
 }
 
 // Phím Esc: đóng nhanh form đặt hoa hoặc menu đang mở (lightbox tự xử lý Esc riêng)

@@ -312,6 +312,7 @@ section    { padding:64px 0; }
   display:flex; align-items:center; justify-content:center; flex-direction:column;
   gap:16px; cursor:pointer; padding:20px;
   opacity:0; transition:opacity .26s ease;
+  overscroll-behavior:contain;   /* iOS: không cuộn lây ra nền (vẫn thu phóng 2 ngón được) */
 }
 .lightbox.show { opacity:1; }
 .lightbox img {
@@ -610,12 +611,17 @@ section    { padding:64px 0; }
   position:fixed; inset:0; background:rgba(26,46,26,.55);
   display:none; align-items:center; justify-content:center;
   z-index:1000; padding:20px; backdrop-filter:blur(2px);
+  overscroll-behavior:contain;   /* chặn cuộn "lây" ra nền phía sau */
+  touch-action:none;             /* iOS: không kéo rê được lớp phủ */
 }
 .order-overlay.open { display:flex; }
 .order-modal {
   background:var(--white); border-radius:20px;
   max-width:640px; width:100%; max-height:92vh; overflow-y:auto;
   padding:30px 34px; box-shadow:var(--shadow-lg); position:relative;
+  overscroll-behavior:contain;            /* cuộn hết form thì dừng, không đẩy nền */
+  -webkit-overflow-scrolling:touch;       /* cuộn mượt trong form trên iOS */
+  touch-action:pan-y;                     /* chỉ cho vuốt dọc trong form */
 }
 .order-head { margin-bottom:14px; }
 .order-modal h3 { font-size:1.35rem; color:var(--text); margin-bottom:8px; }
