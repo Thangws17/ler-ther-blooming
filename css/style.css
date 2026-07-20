@@ -46,10 +46,10 @@ section    { padding:64px 0; }
 
 /* ─── Buttons ────────────────────────────────────────────── */
 .btn {
-  display:inline-flex; align-items:center; gap:8px;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
   padding:13px 28px; border-radius:50px;
   font-family:'Nunito',sans-serif; font-weight:700; font-size:1rem;
-  border:none; cursor:pointer; transition:var(--t);
+  border:none; cursor:pointer; transition:var(--t); text-align:center;
 }
 .btn-primary  { background:var(--green); color:#fff; }
 .btn-primary:hover  { background:#1B5E20; transform:translateY(-2px); box-shadow:var(--shadow-lg); }
@@ -614,14 +614,30 @@ section    { padding:64px 0; }
   overscroll-behavior:contain;   /* chặn cuộn "lây" ra nền phía sau */
   touch-action:none;             /* iOS: không kéo rê được lớp phủ */
 }
-.order-overlay.open { display:flex; }
+.order-overlay.open { display:flex; animation:ovFade .22s ease; }
+/* Mở form: nền mờ dần, khung trồi lên nhẹ — mượt mà, không giật */
+@keyframes ovFade { from { opacity:0; } to { opacity:1; } }
+@keyframes ovBoxIn {
+  from { opacity:0; transform:translateY(18px) scale(.975); }
+  to   { opacity:1; transform:none; }
+}
+.order-overlay.open .order-modal { animation:ovBoxIn .3s cubic-bezier(.2,.8,.3,1); }
+@media (prefers-reduced-motion:reduce) {
+  .order-overlay.open, .order-overlay.open .order-modal { animation:none; }
+}
 .order-modal {
   background:var(--white); border-radius:20px;
-  max-width:640px; width:100%; max-height:92vh; overflow-y:auto;
+  max-width:640px; width:100%;
+  max-height:92vh; max-height:92dvh;      /* dvh: trừ đúng phần thanh địa chỉ trình duyệt */
+  overflow:hidden;                        /* bo góc trọn vẹn, thanh cuộn nằm bên trong */
+  display:flex; flex-direction:column;
   padding:30px 34px; box-shadow:var(--shadow-lg); position:relative;
-  overscroll-behavior:contain;            /* cuộn hết form thì dừng, không đẩy nền */
-  -webkit-overflow-scrolling:touch;       /* cuộn mượt trong form trên iOS */
-  touch-action:pan-y;                     /* chỉ cho vuốt dọc trong form */
+  touch-action:pan-y;
+}
+/* Chỉ phần ruột cuộn → nút ✕ luôn đứng yên, không bị cuộn mất hay bị thanh địa chỉ che */
+#orderModalBody {
+  overflow-y:auto; flex:1; min-height:0;
+  overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
 }
 .order-head { margin-bottom:14px; }
 .order-modal h3 { font-size:1.35rem; color:var(--text); margin-bottom:8px; }
@@ -638,9 +654,14 @@ section    { padding:64px 0; }
 }
 .order-reassure a { color:var(--green); font-weight:700; }
 .order-close {
-  position:absolute; top:16px; right:16px; background:none; border:none;
-  font-size:1.3rem; color:var(--text-light); cursor:pointer; line-height:1;
+  position:absolute; top:12px; right:12px; z-index:5;
+  width:36px; height:36px; border-radius:50%; border:none; cursor:pointer;
+  background:rgba(255,255,255,.92); backdrop-filter:blur(3px);
+  font-size:1.25rem; color:var(--text-mid); line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.08); transition:background .15s, color .15s;
 }
+.order-close:hover { background:var(--green-pale); color:var(--green); }
 .order-field { margin-bottom:14px; }
 /* Nhãn chữ thường (bỏ IN HOA) — dễ đọc, bớt "nhập nhèng" */
 .order-field label {
@@ -660,6 +681,14 @@ section    { padding:64px 0; }
 }
 .order-field input::placeholder, .order-field textarea::placeholder { color:#B6C4B2; }
 .order-field textarea { resize:vertical; min-height:56px; }
+/* iOS tự vẽ ô ngày kiểu riêng (chữ căn giữa, cao hơn) → ép về đúng phom ô khác */
+.order-field input[type="date"] {
+  -webkit-appearance:none; appearance:none;
+  height:44px; min-height:44px; line-height:normal;
+  text-align:left; font-family:'Open Sans',sans-serif; font-size:.95rem;
+}
+.order-field input[type="date"]::-webkit-date-and-time-value { text-align:left; }
+.order-field input[type="date"]::-webkit-calendar-picker-indicator { opacity:.55; cursor:pointer; }
 
 /* ── Form đặt hoa bố cục mới: header ngữ cảnh + chip + 3 nhóm ── */
 .om-top { display:flex; gap:14px; align-items:center; padding-bottom:14px; border-bottom:1px solid var(--border); }
@@ -850,5 +879,6 @@ section    { padding:64px 0; }
 
   /* form đặt hàng: về 1 cột trên điện thoại */
   .om-row { grid-template-columns:1fr; gap:0; }
-  .order-modal { padding:24px 20px; }
+  .order-modal { padding:22px 18px; max-height:88dvh; }
+  .order-overlay { padding:14px; }
 }

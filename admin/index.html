@@ -386,8 +386,26 @@
       position: fixed; inset: 0; background: rgba(0,0,0,.45);
       display: flex; align-items: center; justify-content: center;
       z-index: 1000; padding: 20px;
+      overscroll-behavior: contain;
+      animation: mvFade .2s ease;              /* nền mờ dần */
     }
-    .modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,.2); }
+    /* Mở modal: khung trồi lên nhẹ (điện thoại dùng sheetUp trượt từ dưới) */
+    .modal-box { animation: mvBoxIn .28s cubic-bezier(.2,.8,.3,1); }
+    @keyframes mvFade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes mvBoxIn { from { opacity: 0; transform: translateY(16px) scale(.975); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) {
+      .modal-overlay, .modal-box { animation: none; }
+    }
+    /* overflow:hidden ở khung ngoài → bo góc TRỌN VẸN cả phía có thanh cuộn;
+       chỉ phần thân cuộn nên tiêu đề + nút Lưu/Hủy luôn nhìn thấy */
+    .modal-box {
+      background: #fff; border-radius: 16px; width: 100%; max-width: 580px;
+      max-height: 90vh; max-height: 90dvh;
+      overflow: hidden; display: flex; flex-direction: column;
+      box-shadow: 0 24px 64px rgba(0,0,0,.2);
+    }
+    .modal-box > form { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+    .modal-body { overflow-y: auto; flex: 1; min-height: 0; overscroll-behavior: contain; }
     .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
     .modal-header h2 { font-size: 1.2rem; }
     .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #999; padding: 4px 8px; border-radius: 6px; }
@@ -558,7 +576,7 @@
       .panel-topbar h1 { font-size: 1.3rem; }
       .form-grid { grid-template-columns: 1fr; gap: 4px 0; }
       .modal-overlay { padding: 0; align-items: flex-end; }
-      .modal-box { max-width: 100%; max-height: 92vh; border-radius: 16px 16px 0 0; }
+      .modal-box { max-width: 100%; max-height: 92vh; max-height: 92dvh; border-radius: 16px 16px 0 0; }
       .filter-bar { gap: 8px; }
       .filter-search { min-width: 0; }
       .optimizer-box { flex-direction: column; align-items: flex-start; }
@@ -927,7 +945,7 @@
             <input type="text" id="fPrice" required placeholder="VD: 250,000đ">
           </div>
           <div class="field-group">
-            <label>Danh mục * <span style="font-weight:400;color:#7A9879;">(dùng chung với Gallery — quản lý ở tab Gallery)</span></label>
+            <label>Danh mục *</label>
             <select id="fCategory" required>
               <option value="">-- Chọn danh mục --</option>
             </select>
