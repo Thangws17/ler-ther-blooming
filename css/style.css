@@ -879,6 +879,18 @@ section    { padding:64px 0; }
 
   /* form đặt hàng: về 1 cột trên điện thoại */
   .om-row { grid-template-columns:1fr; gap:0; }
-  .order-modal { padding:22px 18px; max-height:88dvh; }
-  .order-overlay { padding:14px; }
+  /* ⚠️ iOS Safari TỰ PHÓNG TO trang khi bấm ô nhập có chữ < 16px → layout lệch,
+     nút gửi trôi khỏi màn hình. Ép 16px để iOS không zoom. */
+  .order-field input, .order-field select, .order-field textarea { font-size:16px; }
+  button, a, select { touch-action:manipulation; }   /* bỏ trễ 300ms khi chạm */
+  /* Neo lớp phủ theo vùng nhìn thấy THẬT (JS cập nhật --vvh/--vvtop) → bàn phím
+     không che nút "Gửi đơn đặt hàng" */
+  .order-overlay {
+    padding:12px; backdrop-filter:none;
+    top:var(--vvtop, 0px); height:var(--vvh, 100%); bottom:auto;
+  }
+  .order-modal {
+    padding:20px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    max-height:calc(var(--vvh, 88vh) - 8px);
+  }
 }

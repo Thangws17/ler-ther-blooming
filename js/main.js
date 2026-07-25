@@ -1101,11 +1101,27 @@ function initBackToTop() {
   }, { passive: true });
 }
 
+// iOS: bàn phím mở làm vùng nhìn thấy co lại, nhưng lớp phủ position:fixed vẫn neo theo
+// màn hình đầy đủ → nút gửi đơn nằm dưới bàn phím. Ghi vùng nhìn thấy THẬT vào biến CSS.
+function initViewportFix() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const apply = () => {
+    const r = document.documentElement.style;
+    r.setProperty('--vvh', vv.height + 'px');
+    r.setProperty('--vvtop', (vv.offsetTop || 0) + 'px');
+  };
+  vv.addEventListener('resize', apply);
+  vv.addEventListener('scroll', apply);
+  apply();
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   initNav();
   injectZaloIcons();
   primeHero();
   initBackToTop();
+  initViewportFix();
   // Năm © tự cập nhật (khỏi lỗi thời)
   document.querySelectorAll('.footer-bottom').forEach(el => {
     el.textContent = el.textContent.replace(/©\s*\d{4}/, '© ' + new Date().getFullYear());

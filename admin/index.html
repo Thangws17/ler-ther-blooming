@@ -34,7 +34,8 @@
     .msg-error { color: #c62828; font-size: .88rem; margin-top: 10px; display: none; }
 
     /* ── App layout ───────────────────────────── */
-    #appWrap { display: none; height: 100vh; }
+    /* dvh: trên iOS, 100vh cao hơn vùng nhìn thấy → đáy trang bị cắt, cuộn 2 tầng gây lag */
+    #appWrap { display: none; height: 100vh; height: 100dvh; }
     .sidebar {
       width: 220px; flex-shrink: 0; background: #162816; color: #fff;
       display: flex; flex-direction: column; padding: 0 0 20px;
@@ -406,12 +407,12 @@
     }
     .modal-box > form { display: flex; flex-direction: column; flex: 1; min-height: 0; }
     .modal-body { overflow-y: auto; flex: 1; min-height: 0; overscroll-behavior: contain; }
-    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; flex-shrink: 0; }
     .modal-header h2 { font-size: 1.2rem; }
     .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #999; padding: 4px 8px; border-radius: 6px; }
     .modal-close:hover { background: #f0f0f0; }
     .modal-body { padding: 20px 24px; }
-    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 0 24px 20px; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 0 24px 20px; flex-shrink: 0; background: #fff; }
     .img-preview-wrap { margin-bottom: 10px; }
     .img-preview-wrap img { max-height: 130px; border-radius: 8px; object-fit: cover; }
     .img-preview-wrap button { margin-top: 6px; font-size: .8rem; color: #E64A19; background: none; border: none; cursor: pointer; font-weight: 600; }
@@ -577,6 +578,27 @@
       .form-grid { grid-template-columns: 1fr; gap: 4px 0; }
       .modal-overlay { padding: 0; align-items: flex-end; }
       .modal-box { max-width: 100%; max-height: 92vh; max-height: 92dvh; border-radius: 16px 16px 0 0; }
+      /* ⚠️ QUAN TRỌNG: iOS Safari TỰ PHÓNG TO trang khi bấm vào ô nhập có chữ < 16px
+         → layout lệch, nút Lưu trôi khỏi màn hình, bấm không trúng.
+         Ép 16px cho MỌI ô nhập trên điện thoại để iOS không zoom. */
+      input, select, textarea,
+      .filter-search, .filter-select, .caption-input, .cl-note textarea, .status-select {
+        font-size: 16px !important;
+      }
+      /* Vùng chạm đủ lớn + bỏ trễ 300ms khi chạm */
+      button, .nav-item, select, a { touch-action: manipulation; }
+      .modal-close { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; padding: 0; }
+      .modal-header { padding: 16px 18px 0; }
+      .modal-body { padding: 16px 18px; }
+      /* Chrome/Safari iOS có thanh công cụ dưới + vạch home → cộng thêm vùng an toàn
+         để nút Lưu/Hủy không nằm sát mép hay bị thanh công cụ chạm vào */
+      .modal-footer { padding: 12px 18px calc(16px + env(safe-area-inset-bottom, 0px)); gap: 10px; }
+      .modal-footer button { flex: 1; padding: 13px 12px; }
+      .sheet-actions { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+      /* Bàn phím iOS đẩy vùng nhìn thấy — neo lớp phủ theo vùng thật (JS cập nhật --vvh/--vvtop)
+         để nút Lưu/Hủy KHÔNG bị bàn phím che */
+      .modal-overlay { top: var(--vvtop, 0px); height: var(--vvh, 100%); bottom: auto; backdrop-filter: none; }
+      .modal-box { max-height: calc(var(--vvh, 92vh) - 10px); }
       .filter-bar { gap: 8px; }
       .filter-search { min-width: 0; }
       .optimizer-box { flex-direction: column; align-items: flex-start; }
@@ -1599,13 +1621,28 @@ function initModalGuards() {
   document.getElementById('discardLeave').onclick = () => { const cb = _discardCb; hideDiscardDialog(); cb && cb() }
   document.getElementById('discardDialog').onclick = e => { if (e.target.id === 'discardDialog') hideDiscardDialog() }
 
-  // Người dùng gõ/chọn trong modal → đánh dấu "đã sửa"
+  // Người dùng gõ/chọn trong modal → đánh dấu "đã sửa".
+  // CHỈ tính khi do người thật thao tác VÀ ô có nội dung → tránh cảnh bấm ✕
+  // lúc nào cũng bị hỏi (iOS tự sửa chính tả / autofill cũng bắn event input).
   const mark = e => {
-    const ov = e.target.closest && e.target.closest('.modal-overlay')
-    if (ov && GUARDED_MODALS.includes(ov.id)) ov.dataset.dirty = '1'
+    if (!e.isTrusted) return
+    const el = e.target
+    if (!el || !el.closest) return
+    const ov = el.closest('.modal-overlay')
+    if (!ov || !GUARDED_MODALS.includes(ov.id)) return
+    if (el.type === 'checkbox' || el.type === 'radio' || el.type === 'file') { ov.dataset.dirty = '1'; return }
+    if (String(el.value || '').trim() !== '') ov.dataset.dirty = '1'
   }
   document.addEventListener('input', mark, true)
   document.addEventListener('change', mark, true)
+
+  // Ô bắt buộc còn trống mà nằm ngoài tầm nhìn → trình duyệt chặn Lưu trong im lặng.
+  // Kéo ô đó vào giữa màn hình + báo rõ để không tưởng "nút Lưu bị hỏng".
+  document.addEventListener('invalid', e => {
+    const el = e.target
+    showToast('Còn ô bắt buộc chưa điền — mình đưa bạn tới ô đó nhé', 'error')
+    setTimeout(() => { try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }) } catch {} }, 30)
+  }, true)
 
   // Mỗi lần modal MỞ lại (display khác none) → xoá cờ đã-sửa để bắt đầu sạch
   GUARDED_MODALS.forEach(id => {
@@ -4103,9 +4140,26 @@ function initBackToTop() {
   }, { passive: true })
 }
 
+// iOS: bàn phím mở làm vùng nhìn thấy co lại, nhưng lớp phủ position:fixed vẫn neo
+// theo màn hình đầy đủ → nửa dưới modal (nút Lưu/Hủy) nằm dưới bàn phím, bấm không tới.
+// Ghi chiều cao + vị trí vùng nhìn thấy THẬT vào biến CSS để modal co theo.
+function initViewportFix() {
+  const vv = window.visualViewport
+  if (!vv) return
+  const apply = () => {
+    const r = document.documentElement.style
+    r.setProperty('--vvh', vv.height + 'px')
+    r.setProperty('--vvtop', (vv.offsetTop || 0) + 'px')
+  }
+  vv.addEventListener('resize', apply)
+  vv.addEventListener('scroll', apply)
+  apply()
+}
+
 init()
 initModalGuards()
 initBackToTop()
+initViewportFix()
 </script>
 </body>
 </html>
