@@ -751,7 +751,7 @@ section    { padding:64px 0; }
 .back-top:hover { background:var(--green); color:#fff; }
 @media (max-width:760px) {
   /* thu tròn như nút Zalo trên điện thoại — chỉ còn mũi tên */
-  .back-top { right:28px; bottom:96px; width:54px; height:54px; padding:0; border-radius:50%; }
+  .back-top { right:28px; bottom:calc(96px + env(safe-area-inset-bottom, 0px)); width:54px; height:54px; padding:0; border-radius:50%; }
   .back-top span { display:none; }
   .back-top svg { width:22px; height:22px; }
 }
@@ -875,7 +875,9 @@ section    { padding:64px 0; }
 
   /* float */
   .zalo-float .zalo-label { display:none; }
-  .zalo-float { padding:14px; border-radius:50%; width:54px; height:54px; justify-content:center; }
+  /* cộng vùng an toàn để nút nổi không đè vạch home / thanh công cụ trình duyệt */
+  .zalo-float { padding:14px; border-radius:50%; width:54px; height:54px; justify-content:center;
+    bottom:calc(28px + env(safe-area-inset-bottom, 0px)); }
 
   /* form đặt hàng: về 1 cột trên điện thoại */
   .om-row { grid-template-columns:1fr; gap:0; }

@@ -34,7 +34,9 @@
     .msg-error { color: #c62828; font-size: .88rem; margin-top: 10px; display: none; }
 
     /* ── App layout ───────────────────────────── */
-    /* dvh: trên iOS, 100vh cao hơn vùng nhìn thấy → đáy trang bị cắt, cuộn 2 tầng gây lag */
+    /* dvh: trên iOS, 100vh cao hơn vùng nhìn thấy → đáy trang bị cắt, cuộn 2 tầng gây lag.
+       Chiều cao đặt Ở ĐÂY, KHÔNG đặt inline trong thẻ — style inline sẽ đè mất 100dvh
+       và đáy khung cuộn lại chui xuống dưới thanh công cụ trình duyệt. */
     #appWrap { display: none; height: 100vh; height: 100dvh; }
     .sidebar {
       width: 220px; flex-shrink: 0; background: #162816; color: #fff;
@@ -484,7 +486,7 @@
     .back-top:hover { background: #2E7D32; color: #fff; }
     @media (max-width: 820px) {
       /* thu tròn trên điện thoại — chỉ còn mũi tên */
-      .back-top { right: 16px; bottom: 84px; width: 50px; height: 50px; padding: 0; border-radius: 50%; }
+      .back-top { right: 16px; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); width: 50px; height: 50px; padding: 0; border-radius: 50%; }
       .back-top span { display: none; }
       .back-top svg { width: 22px; height: 22px; }
     }
@@ -564,6 +566,10 @@
       }
       .sidebar.open { transform: translateX(0); }
       .sidebar-overlay.show { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 1000; }
+      /* Chrome iOS: vì cuộn nằm TRONG khung .content nên thanh công cụ dưới không bao giờ
+         tự thu lại. Lấy chiều cao vùng nhìn thấy thật (JS đo qua visualViewport → --vvh)
+         để đáy khung cuộn dừng ngay trên thanh công cụ. */
+      #appWrap { height: var(--vvh, 100dvh); }
       .content { padding: 0; }
       .admin-topbar {
         display: flex; align-items: center; gap: 12px;
@@ -572,7 +578,9 @@
       }
       .admin-topbar .hamburger { background: none; border: none; color: #fff; font-size: 1.5rem; line-height: 1; cursor: pointer; padding: 2px 8px; }
       .admin-topbar .tb-brand { font-weight: 800; font-size: 1.1rem; }
-      .content > .panel { padding: 16px 14px; }
+      /* Chừa khoảng trống cuối trang: nút "Xem thêm…" ở dòng cuối luôn cuộn lên được
+         khỏi thanh công cụ trình duyệt / vạch home, không bị dính sát mép dưới */
+      .content > .panel { padding: 16px 14px calc(84px + env(safe-area-inset-bottom, 0px)); }
       .panel-topbar { flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
       .panel-topbar h1 { font-size: 1.3rem; }
       .form-grid { grid-template-columns: 1fr; gap: 4px 0; }
@@ -595,6 +603,7 @@
       .modal-footer { padding: 12px 18px calc(16px + env(safe-area-inset-bottom, 0px)); gap: 10px; }
       .modal-footer button { flex: 1; padding: 13px 12px; }
       .sheet-actions { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+      .toast { bottom: calc(24px + env(safe-area-inset-bottom, 0px)); right: 16px; }
       /* Bàn phím iOS đẩy vùng nhìn thấy — neo lớp phủ theo vùng thật (JS cập nhật --vvh/--vvtop)
          để nút Lưu/Hủy KHÔNG bị bàn phím che */
       .modal-overlay { top: var(--vvtop, 0px); height: var(--vvh, 100%); bottom: auto; backdrop-filter: none; }
@@ -628,7 +637,7 @@
 </div>
 
 <!-- ── App ───────────────────────────────────────── -->
-<div id="appWrap" style="display:none; flex; height:100vh;">
+<div id="appWrap" style="display:none">
   <aside class="sidebar">
     <div class="sidebar-brand">🌸 Admin</div>
     <nav class="sidebar-nav">
