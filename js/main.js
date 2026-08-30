@@ -751,6 +751,11 @@ function normalizePhone(raw) {
   return s;
 }
 
+// SĐT Việt Nam luôn 10 số (di động) hoặc 10–11 số (máy bàn), đều bắt đầu bằng 0.
+// Phải chặt tới mức này thì mới bắt được lỗi thiếu 1 số — thứ khiến shop gọi không ai nghe.
+const PHONE_OK = /^0\d{9,10}$/;
+function isValidPhone(raw) { return PHONE_OK.test(normalizePhone(raw)); }
+
 // Báo lỗi xong phải đưa khách TỚI ĐÚNG ô sai — form dài, bắt tự đi tìm là bỏ đơn
 function focusOrderField(id) {
   const el = document.getElementById(id);
@@ -837,7 +842,7 @@ function openOrderModal(productId, productName, imgOverride) {
     <div class="om-group om-g2">
       <div class="g-title"><span class="g-num">2</span> Giao đến đâu</div>
       <!-- Không hỏi "Khu vực giao": địa chỉ đầy đủ đã nói lên tất cả, hỏi thêm là thừa.
-           Admin vẫn có ô khu vực để shop tự điền khi cần xếp lịch giao. -->
+           Admin cũng đã bỏ ô này — hai bên phải giống nhau. -->
       <div class="order-field">
         <label>Địa chỉ giao hàng *</label>
         <input type="text" id="orderAddress" required placeholder="Số nhà, ngõ, đường, phường, quận…">
@@ -951,7 +956,7 @@ async function submitOrder(event) {
   // SĐT là đường shop gọi lại xác nhận — gõ thiếu/thừa số là mất đơn mà không ai biết.
   // Kiểm nới tay: bỏ dấu cách/chấm/gạch/ngoặc rồi mới xét, chấp cả 0… lẫn +84…
   const phoneDigits = normalizePhone(phone);
-  if (!/^0\d{8,10}$/.test(phoneDigits)) {
+  if (!isValidPhone(phone)) {
     btn.disabled = false;
     btn.textContent = '🌸 Gửi đơn đặt hàng';
     showMiniToast('📞 Số điện thoại chưa đúng, bạn xem lại giúp nhé');
@@ -978,7 +983,7 @@ async function submitOrder(event) {
     p_delivery_date: document.getElementById('orderDate').value || null,
     p_message_card: document.getElementById('orderMessage').value.trim() || null,
     p_note: document.getElementById('orderNote').value.trim() || null,
-    p_delivery_area: null,   // bỏ hỏi khách — shop tự điền trong admin nếu cần
+    p_delivery_area: null,   // đã bỏ ô này ở cả web khách lẫn admin
     p_email: email || null,
   });
 

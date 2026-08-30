@@ -31,6 +31,39 @@
     .field-group input:focus, .field-group textarea:focus, .field-group select:focus { border-color: #2E7D32; background: #fff; }
     .field-group input:disabled { background: #f0f0f0; color: #999; cursor: not-allowed; }
     .field-group textarea { resize: vertical; min-height: 80px; }
+
+    /* Ô ngắn (trạng thái, ngày, tiền, SL) không cần kéo hết chiều ngang —
+       để rộng bằng ô địa chỉ trông rất trống trải và khó liếc nhanh.
+       Đặt trên .field-group để cả input lẫn select đều theo. */
+    .fg-sm > input, .fg-sm > select { max-width: 220px; }
+    .fg-sm > input[type="date"] { max-width: 180px; }
+
+    /* Ô Số lượng kiểu −/+ — GIỐNG HỆT web khách để hai bên đồng bộ.
+       Đa số đơn 1-2 bó nên bấm nhanh hơn gõ, và ô hẹp lại đỡ chiếm chỗ. */
+    .qty-step {
+      display: flex; align-items: center; width: 126px;
+      border: 1.5px solid #ddd; border-radius: 8px;
+      background: #fff; overflow: hidden;
+    }
+    .qty-step:focus-within { border-color: #2E7D32; background: #fff; }
+    .qty-step button {
+      flex-shrink: 0; width: 38px; height: 42px; border: none;
+      background: #E8F5E9; color: #2E7D32;
+      font-size: 1.15rem; font-weight: 800; line-height: 1; cursor: pointer;
+      transition: all .2s;
+    }
+    .qty-step button:hover { background: #2E7D32; color: #fff; }
+    .qty-step button:active { transform: scale(.92); }
+    /* Ô giữa: khung ngoài đã lo viền/nền, và bỏ mũi tên xoay mặc định của trình duyệt */
+    .qty-step input[type="number"] {
+      width: 50px; min-width: 0; height: 42px; padding: 0; text-align: center;
+      border: none; border-radius: 0; background: transparent;
+      font-weight: 800; font-size: 1rem;
+      -moz-appearance: textfield; appearance: textfield;
+    }
+    .qty-step input[type="number"]:focus { background: transparent; }
+    .qty-step input::-webkit-outer-spin-button,
+    .qty-step input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .msg-error { color: #c62828; font-size: .88rem; margin-top: 10px; display: none; }
 
     /* ── App layout ───────────────────────────── */
@@ -1131,29 +1164,32 @@
           </div>
           <div class="field-group">
             <label>Số lượng</label>
-            <input type="number" id="oeQuantity" min="1" value="1">
+            <div class="qty-step">
+              <button type="button" onclick="stepQtyAdmin('oeQuantity', -1)" aria-label="Bớt 1">−</button>
+              <input type="number" id="oeQuantity" min="1" max="99" value="1" inputmode="numeric">
+              <button type="button" onclick="stepQtyAdmin('oeQuantity', 1)" aria-label="Thêm 1">+</button>
+            </div>
           </div>
-          <div class="field-group">
+          <div class="field-group fg-sm">
             <label>Trạng thái</label>
             <select id="oeStatus" onchange="oeUpdateCustomerEditable()"></select>
           </div>
-          <div class="field-group">
+          <div class="field-group fg-sm">
             <label>Đơn giá (đ)</label>
             <input type="number" id="oeUnitPrice" min="0" step="1000" placeholder="VD: 350000">
           </div>
-          <div class="field-group">
+          <div class="field-group fg-sm">
             <label>Phí ship (đ)</label>
             <input type="number" id="oeShipping" min="0" step="1000" value="0">
           </div>
+          <!-- Tổng phải đứng NGAY SAU đơn giá + phí ship, đừng chen ô khác vào giữa -->
           <div class="field-group full">
             <label>Tổng tạm tính</label>
             <div id="oeTotalPreview" style="font-size:1.15rem;font-weight:800;color:#2E7D32;padding:6px 0;">—</div>
           </div>
-          <div class="field-group">
-            <label>Khu vực giao</label>
-            <input type="text" id="oeArea" placeholder="VD: Cầu Giấy">
-          </div>
-          <div class="field-group">
+          <!-- Bỏ "Khu vực giao": địa chỉ giao ngay bên dưới đã nói đủ.
+               Web khách cũng đã bỏ ô này — hai bên phải giống nhau. -->
+          <div class="field-group fg-sm">
             <label>Ngày giao</label>
             <input type="date" id="oeDate">
           </div>
@@ -1223,29 +1259,31 @@
           </div>
           <div class="field-group">
             <label>Số lượng</label>
-            <input type="number" id="noQuantity" min="1" value="1">
+            <div class="qty-step">
+              <button type="button" onclick="stepQtyAdmin('noQuantity', -1)" aria-label="Bớt 1">−</button>
+              <input type="number" id="noQuantity" min="1" max="99" value="1" inputmode="numeric">
+              <button type="button" onclick="stepQtyAdmin('noQuantity', 1)" aria-label="Thêm 1">+</button>
+            </div>
           </div>
-          <div class="field-group">
+          <div class="field-group fg-sm">
             <label>Trạng thái</label>
             <select id="noStatus"></select>
           </div>
-          <div class="field-group">
+          <div class="field-group fg-sm">
             <label>Đơn giá (đ)</label>
             <input type="number" id="noUnitPrice" min="0" step="1000" placeholder="VD: 350000">
           </div>
-          <div class="field-group">
+          <div class="field-group fg-sm">
             <label>Phí ship (đ)</label>
             <input type="number" id="noShipping" min="0" step="1000" value="0">
           </div>
+          <!-- Tổng phải đứng NGAY SAU đơn giá + phí ship, đừng chen ô khác vào giữa -->
           <div class="field-group full">
             <label>Tổng tạm tính</label>
             <div id="noTotalPreview" style="font-size:1.15rem;font-weight:800;color:#2E7D32;padding:6px 0;">—</div>
           </div>
-          <div class="field-group">
-            <label>Khu vực giao</label>
-            <input type="text" id="noArea" placeholder="VD: Cầu Giấy">
-          </div>
-          <div class="field-group">
+          <!-- Bỏ "Khu vực giao" — giống web khách, địa chỉ bên dưới là đủ -->
+          <div class="field-group fg-sm">
             <label>Ngày giao</label>
             <input type="date" id="noDate">
           </div>
@@ -1797,7 +1835,7 @@ async function loadDashboard() {
     <div class="prep-alert">
       <div class="prep-alert-head">⚠️ Chuẩn bị hàng — 2 ngày tới (${dmy(tomorrow)} & ${dmy(dayAfter)}) cần giao <strong>${prepOrders.length} đơn</strong></div>
       <div class="prep-alert-list">
-        ${prepOrders.map(o => `<span class="prep-chip" onclick="viewOrderDetail(${o.id})">📅 ${dmy(o.delivery_date)} · ${orderCode(o.id)} · ${orderCustomerName(o)} · ${esc(o.product_name)}${o.delivery_area ? ' · ' + esc(o.delivery_area) : ''}</span>`).join('')}
+        ${prepOrders.map(o => `<span class="prep-chip" onclick="viewOrderDetail(${o.id})">📅 ${dmy(o.delivery_date)} · ${orderCode(o.id)} · ${orderCustomerName(o)} · ${esc(o.product_name)}${o.delivery_address ? ' · ' + esc(o.delivery_address) : ''}</span>`).join('')}
       </div>
     </div>`
 
@@ -1818,12 +1856,12 @@ async function loadDashboard() {
     ? '<div class="empty-state">Hôm nay không có đơn nào cần giao.</div>'
     : `<div class="table-desktop">
 <table class="data-table">
-<thead><tr><th>Mã đơn</th><th>Khách</th><th>Khu vực</th><th>Sản phẩm</th><th>Trạng thái</th><th></th></tr></thead>
+<thead><tr><th>Mã đơn</th><th>Khách</th><th>Địa chỉ giao</th><th>Sản phẩm</th><th>Trạng thái</th><th></th></tr></thead>
 <tbody>${todayOrders.map(o => `
 <tr>
   <td><strong style="color:#2E7D32">${orderCode(o.id)}</strong></td>
   <td>${orderCustomerName(o)}<br><span style="font-size:.8rem;color:#7A9879">${orderCustomerPhone(o)}</span></td>
-  <td style="font-size:.85rem">${esc(o.delivery_area || '—')}</td>
+  <td style="font-size:.85rem">${esc(o.delivery_address || '—')}</td>
   <td>${esc(o.product_name)}</td>
   <td><span class="status-select ${STATUS_CLASS[o.status] || ''}" style="cursor:default">${o.status}</span></td>
   <td class="actions"><button class="btn-edit" onclick="viewOrderDetail(${o.id})">👁 Chi tiết</button></td>
@@ -1838,7 +1876,7 @@ async function loadDashboard() {
         <span class="status-select ${STATUS_CLASS[o.status] || ''}" style="cursor:default;font-size:.72rem;padding:3px 8px;">${o.status}</span>
       </div>
       <div class="mc-sub">${orderCustomerName(o)} · ${orderCustomerPhone(o)}</div>
-      <div class="mc-sub">${esc(o.product_name)}${o.delivery_area ? ' · 📍 ' + esc(o.delivery_area) : ''}</div>
+      <div class="mc-sub">${esc(o.product_name)}${o.delivery_address ? ' · 📍 ' + esc(o.delivery_address) : ''}</div>
     </div>
   </div>`).join('')}</div>`
 }
@@ -2018,7 +2056,7 @@ function renderDeliveryList() {
 <div class="deliv-row" onclick="viewOrderDetail(${o.id})">
   <span class="deliv-code">${orderCode(o.id)}</span>
   <span class="deliv-name">${orderCustomerName(o)}</span>
-  <span class="deliv-area">${esc(o.delivery_area || '—')}</span>
+  <span class="deliv-area">${esc(o.delivery_address || '—')}</span>
   <span class="deliv-prod">${esc(o.product_name)}</span>
   <span class="status-select ${STATUS_CLASS[o.status] || ''}" style="cursor:pointer">${o.status}</span>
 </div>`
@@ -3322,6 +3360,22 @@ function normalizePhone(raw) {
   return s
 }
 
+// SĐT Việt Nam luôn 10 số (di động) hoặc 10–11 số (máy bàn), đều bắt đầu bằng 0.
+// Shop tự lên đơn là chính nên PHẢI kiểm ở đây, không chỉ ở web khách —
+// gõ thiếu 1 số là lúc cần gọi giao hàng mới phát hiện thì đã muộn.
+const PHONE_OK = /^0\d{9,10}$/
+function isValidPhone(raw) { return PHONE_OK.test(normalizePhone(raw)) }
+
+// Báo lỗi kèm đưa thẳng tới ô sai, khỏi phải tự dò trong form dài
+function phoneError(inputId) {
+  showToast('Số điện thoại chưa đúng — cần 10 số, bắt đầu bằng 0', 'error')
+  const el = document.getElementById(inputId)
+  if (el) {
+    try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }) } catch {}
+    setTimeout(() => { try { el.focus({ preventScroll: true }) } catch { el.focus() } }, 120)
+  }
+}
+
 // ── Nén ảnh trước khi upload (giảm 5-10 lần dung lượng, web tải nhanh hơn) ──
 // Thu về tối đa 1600px cạnh dài, JPEG chất lượng 82%. Ảnh nhỏ/GIF/SVG giữ nguyên.
 async function compressImage(file, maxDim = 1600, quality = 0.78) {
@@ -3644,7 +3698,7 @@ function renderOrders() {
 <table class="data-table">
   <thead><tr>
     <th></th><th>Mã đơn</th><th>Khách hàng</th><th>Sản phẩm</th><th>SL</th><th>Tổng tiền</th>
-    <th>Khu vực</th><th>Ngày giao</th><th>Trạng thái</th><th></th>
+    <th>Địa chỉ giao</th><th>Ngày giao</th><th>Trạng thái</th><th></th>
   </tr></thead>
   <tbody>${shown.map(o => `
   <tr>
@@ -3654,7 +3708,7 @@ function renderOrders() {
     <td>${esc(o.product_name)}</td>
     <td>${o.quantity}</td>
     <td style="font-size:.88rem;">${orderTotalLabel(o)}</td>
-    <td style="font-size:.85rem;">${esc(o.delivery_area || '—')}</td>
+    <td style="font-size:.85rem;">${esc(o.delivery_address || '—')}</td>
     <td>${o.delivery_date || '—'}</td>
     <td>
       <select class="status-select ${STATUS_CLASS[o.status] || ''}" onchange="updateOrderStatus(${o.id}, this.value)">
@@ -3684,7 +3738,7 @@ function renderOrders() {
         <div class="oc-prod">${esc(o.product_name)} ×${o.quantity}</div>
         <div class="oc-bottom">
           <span>${orderTotalLabel(o)}</span>
-          <span class="oc-meta">${o.delivery_date ? '📅 ' + fmtDayShort(o.delivery_date) : ''}${o.delivery_area ? ' · ' + esc(o.delivery_area) : ''}</span>
+          <span class="oc-meta">${o.delivery_date ? '📅 ' + fmtDayShort(o.delivery_date) : ''}${o.delivery_address ? ' · ' + esc(o.delivery_address) : ''}</span>
         </div>
       </div>
     </div>
@@ -3695,6 +3749,17 @@ ${moreBtn}`
 function showMoreOrders() {
   ordersLimit += ORDERS_PAGE
   renderOrders()
+}
+
+// Nút −/+ ô Số lượng (giống hệt bên web khách). Bắn sự kiện 'input' để Tổng tạm tính
+// tính lại, và tự đánh dấu "đang nhập dở" vì sự kiện do JS bắn không được guard tính.
+function stepQtyAdmin(id, delta) {
+  const el = document.getElementById(id)
+  if (!el) return
+  el.value = Math.min(99, Math.max(1, (parseInt(el.value, 10) || 1) + delta))
+  el.dispatchEvent(new Event('input', { bubbles: true }))
+  const ov = el.closest('.modal-overlay')
+  if (ov) ov.dataset.dirty = '1'
 }
 
 // ── Đổi nhanh trạng thái: chạm nhãn trên thẻ đơn (điện thoại) → chọn 1 phát là xong,
@@ -3754,7 +3819,6 @@ ${detailImg ? `<img src="${esc(detailImg)}" alt="" style="width:100%;max-height:
   ${o.customer_email ? `<p><strong>Email:</strong> ${esc(o.customer_email)}</p>` : ''}
   <p><strong>Sản phẩm:</strong> ${esc(o.product_name)} × ${o.quantity}</p>
   ${priceRows}
-  <p><strong>Khu vực giao:</strong> ${esc(o.delivery_area || '—')}</p>
   <p><strong>Địa chỉ giao:</strong> ${esc(o.delivery_address || '—')}</p>
   <p><strong>Ngày giao mong muốn:</strong> ${o.delivery_date || '—'}</p>
   <p><strong>Lời nhắn trên thiếp:</strong> ${esc(o.message_card || '—')}</p>
@@ -3857,7 +3921,6 @@ function openOrderEditModal(id) {
   up.value = o.unit_price ?? ''
   up.placeholder = listedNum ? `Giá niêm yết: ${fmtVnd(listedNum)}` : 'VD: 350000'
   document.getElementById('oeShipping').value = o.shipping_fee ?? 0
-  document.getElementById('oeArea').value = o.delivery_area || ''
   document.getElementById('oeDate').value = o.delivery_date || ''
   document.getElementById('oeAddress').value = o.delivery_address || ''
   document.getElementById('oeMessage').value = o.message_card || ''
@@ -3875,6 +3938,9 @@ function closeOrderEditModalOutside(e) { if (e.target.id === 'orderEditModal') c
 
 async function saveOrderEdit(e) {
   e.preventDefault()
+  // Kiểm SĐT TRƯỚC khi đụng vào nút/dữ liệu — có điền thì phải điền cho đúng
+  const oePhoneVal = document.getElementById('oePhone').value.trim()
+  if (oePhoneVal && !isValidPhone(oePhoneVal)) { phoneError('oePhone'); return }
   const btn = document.getElementById('saveOrderEditBtn')
   btn.textContent = 'Đang lưu…'; btn.disabled = true
   const id = parseInt(document.getElementById('oeId').value)
@@ -3886,7 +3952,6 @@ async function saveOrderEdit(e) {
     unit_price:       priceVal === '' ? null : parseFloat(priceVal),
     shipping_fee:     parseFloat(document.getElementById('oeShipping').value) || 0,
     status,
-    delivery_area:    document.getElementById('oeArea').value.trim() || null,
     delivery_date:    document.getElementById('oeDate').value || null,
     delivery_address: document.getElementById('oeAddress').value.trim() || null,
     message_card:     document.getElementById('oeMessage').value.trim() || null,
@@ -3977,6 +4042,8 @@ function closeNewOrderModalOutside(e) { if (e.target.id === 'orderNewModal') clo
 
 async function saveNewOrder(e) {
   e.preventDefault()
+  const noPhoneVal = document.getElementById('noPhone').value.trim()
+  if (noPhoneVal && !isValidPhone(noPhoneVal)) { phoneError('noPhone'); return }
   const btn = document.getElementById('saveNewOrderBtn')
   btn.textContent = 'Đang tạo…'; btn.disabled = true
 
@@ -3994,7 +4061,7 @@ async function saveNewOrder(e) {
     p_delivery_date: document.getElementById('noDate').value || null,
     p_message_card:  document.getElementById('noMessage').value.trim() || null,
     p_note:          document.getElementById('noNote').value.trim() || null,
-    p_delivery_area: document.getElementById('noArea').value.trim() || null,
+    p_delivery_area: null,   // đã bỏ ô này ở cả web khách lẫn admin
   })
 
   if (error) {
@@ -4046,6 +4113,8 @@ function closeCustomerModalOutside(e) { if (e.target.id === 'customerModal') clo
 
 async function saveCustomer(e) {
   e.preventDefault()
+  const cuPhoneVal = document.getElementById('cuPhone').value.trim()
+  if (cuPhoneVal && !isValidPhone(cuPhoneVal)) { phoneError('cuPhone'); return }
   const btn = document.getElementById('saveCustomerBtn')
   btn.textContent = 'Đang lưu…'; btn.disabled = true
   const id = document.getElementById('cuId').value
