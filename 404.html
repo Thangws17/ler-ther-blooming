@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Không tìm thấy trang — Ler &amp; Ther Blooming</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <!-- ⚠️ CSS để THẲNG trong trang, không dùng css/style.css:
+       GitHub Pages trả trang này cho MỌI đường link sai, kể cả link nhiều tầng
+       (…/abc/xyz). Lúc đó đường dẫn tương đối "css/style.css" sẽ trỏ sai chỗ và
+       trang hiện ra trần trụi không có định dạng. Để thẳng ở đây thì luôn đẹp. -->
+  <style>
+    :root {
+      --green:#2E7D32; --green-pale:#E8F5E9; --orange:#FF7043;
+      --bg:#F1F8E9; --text:#1A2E1A; --text-mid:#4A6849; --text-light:#7A9879;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Open Sans',sans-serif; background:var(--bg); color:var(--text);
+      line-height:1.65; min-height:100vh; min-height:100dvh;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      text-align:center; padding:32px 20px;
+    }
+    a { text-decoration:none; color:inherit; }
+
+    .logo {
+      display:inline-flex; align-items:center; gap:9px;
+      font-family:'Nunito',sans-serif; font-weight:800; font-size:1.15rem;
+      color:var(--text); margin-bottom:38px;
+    }
+    .logo-accent { color:var(--green); }
+
+    .petal { font-size:3.6rem; line-height:1; margin-bottom:14px; animation:sway 4s ease-in-out infinite; }
+    @keyframes sway { 0%,100%{transform:rotate(-7deg)} 50%{transform:rotate(7deg)} }
+
+    .code {
+      font-family:'Nunito',sans-serif; font-weight:800; font-size:clamp(3.2rem,12vw,5rem);
+      color:var(--green); line-height:1; letter-spacing:2px; margin-bottom:6px;
+    }
+    h1 {
+      font-family:'Nunito',sans-serif; font-weight:800;
+      font-size:clamp(1.35rem,4vw,1.9rem); margin-bottom:12px;
+    }
+    .sub { color:var(--text-mid); max-width:430px; margin:0 auto 30px; }
+
+    .actions { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+    .btn {
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:13px 28px; border-radius:50px;
+      font-family:'Nunito',sans-serif; font-weight:700; font-size:1rem;
+      border:2px solid transparent; transition:all .28s ease;
+    }
+    .btn-primary { background:var(--green); color:#fff; }
+    .btn-primary:hover { background:#1B5E20; transform:translateY(-2px); box-shadow:0 8px 32px rgba(46,125,50,.18); }
+    .btn-outline { color:var(--green); border-color:var(--green); }
+    .btn-outline:hover { background:var(--green-pale); transform:translateY(-2px); }
+
+    .links { margin-top:34px; font-size:.92rem; color:var(--text-light); }
+    .links a { color:var(--green); font-weight:600; }
+    .links a:hover { text-decoration:underline; }
+    .links span { margin:0 7px; opacity:.5; }
+
+    @media (max-width:480px) {
+      .actions { flex-direction:column; align-items:stretch; }
+      .btn { width:100%; }
+      .links span { display:block; height:0; margin:6px 0; overflow:hidden; }
+    }
+    @media (prefers-reduced-motion:reduce) { .petal { animation:none; } }
+  </style>
+</head>
+<body>
+
+  <a class="logo" href="#" data-to="index.html">
+    <span>🌸</span>
+    <span>Ler &amp; Ther <span class="logo-accent">Blooming</span></span>
+  </a>
+
+  <div class="petal">🥀</div>
+  <div class="code">404</div>
+  <h1>Trang này đã "héo" mất rồi</h1>
+  <p class="sub">
+    Có thể đường dẫn bị gõ nhầm, hoặc trang đã được dọn đi.
+    Nhưng hoa thì vẫn còn nguyên bên dưới nhé!
+  </p>
+
+  <div class="actions">
+    <a class="btn btn-primary" href="#" data-to="index.html">Về trang chủ 🌸</a>
+    <a class="btn btn-outline" href="#" data-to="san-pham.html">Xem sản phẩm</a>
+  </div>
+
+  <nav class="links">
+    <a href="#" data-to="gallery.html">Gallery</a><span>·</span>
+    <a href="#" data-to="dang-sau-nhung-bo-hoa.html">Câu chuyện</a><span>·</span>
+    <a href="#" data-to="chinh-sach.html">Chính sách</a><span>·</span>
+    <a href="#" data-to="lien-he.html">Liên hệ</a>
+  </nav>
+
+<script>
+  /* Trang 404 được trả về cho MỌI đường link sai, nên không biết trước đang đứng ở
+     tầng nào → phải tự tính gốc website rồi mới gắn link, nếu không các nút sẽ chết.
+     Chạy được cả trên GitHub Pages (/ler-ther-blooming/) lẫn tên miền riêng sau này. */
+  (function () {
+    var repo = '/ler-ther-blooming/';
+    var base = location.pathname.indexOf(repo) === 0 ? repo : '/';
+    document.querySelectorAll('[data-to]').forEach(function (el) {
+      el.setAttribute('href', base + el.getAttribute('data-to'));
+    });
+  })();
+</script>
+</body>
+</html>
