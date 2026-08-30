@@ -37,6 +37,9 @@
        Đặt trên .field-group để cả input lẫn select đều theo. */
     .fg-sm > input, .fg-sm > select { max-width: 220px; }
     .fg-sm > input[type="date"] { max-width: 180px; }
+    /* Máy tính: nằm cạnh nhau như thường. Điện thoại: chiếm trọn hàng
+       (khai báo trong khối ≤820px) để ô gợi ý khách đủ chỗ hiển thị. */
+    .fg-wide { }
 
     /* Ô Số lượng kiểu −/+ — GIỐNG HỆT web khách để hai bên đồng bộ.
        Đa số đơn 1-2 bó nên bấm nhanh hơn gõ, và ô hẹp lại đỡ chiếm chỗ. */
@@ -322,6 +325,30 @@
     .suggest-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; font-size: .9rem; }
     .suggest-row:hover { background: #E8F5E9; }
     .suggest-row .s-cat { color: #7A9879; font-size: .78rem; }
+    /* Dòng gợi ý khách: tên trên, địa chỉ nhỏ bên dưới, SĐT nằm phải */
+    .suggest-row .s-cust { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .suggest-row .s-cust small {
+      color: #7A9879; font-size: .74rem; font-weight: 400;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    /* Gợi ý sản phẩm: có ảnh thật nên nhận ra mẫu hoa ngay, khỏi đọc từng dòng chữ */
+    .prod-pop { max-height: 320px; }
+    .prod-row { gap: 11px; }
+    .prod-row img, .prod-row .prod-ph, .prod-picked img, .prod-picked .prod-ph {
+      width: 42px; height: 42px; border-radius: 8px; object-fit: cover; flex-shrink: 0;
+      background: #E8F5E9; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .prod-row .s-cust { flex: 1; }
+    .prod-row .s-price { white-space: nowrap; font-weight: 800; color: #2E7D32; font-size: .85rem; }
+    /* Thẻ mẫu đã chọn — đứng yên ngay dưới ô tìm, không phải thông báo bay ngang */
+    .prod-picked {
+      display: flex; align-items: center; gap: 11px; margin-top: 8px;
+      padding: 8px 10px; border-radius: 10px;
+      background: #E8F5E9; border: 1.5px solid #A5D6A7;
+    }
+    .prod-picked .pp-info { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+    .prod-picked .pp-info strong { font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .prod-picked .pp-info small { color: #2E7D32; font-weight: 700; font-size: .8rem; }
     .suggest-row .s-price { color: #2E7D32; font-weight: 700; font-size: .85rem; white-space: nowrap; }
     .suggest-add { color: #2E7D32; font-weight: 700; }
     .mt-name { flex: 1; min-width: 0; font-weight: 700; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -545,6 +572,15 @@
     }
     .toast.success { background: #2E7D32; color: #fff; }
     .toast.error   { background: #c62828; color: #fff; }
+    /* Khi đang mở form: nổi lên đỉnh màn hình, giữa, để không đè nút Hủy/Lưu ở đáy */
+    .toast.toast-top {
+      bottom: auto; right: auto;
+      top: calc(20px + var(--vvtop, 0px));
+      left: 50%; transform: translateX(-50%);
+      max-width: calc(100vw - 32px); text-align: center;
+      animation: toastDrop .3s ease;
+    }
+    @keyframes toastDrop { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
     @keyframes slideUp { from{transform:translateY(12px);opacity:0} to{transform:translateY(0);opacity:1} }
 
     /* ── Mobile: sidebar thành menu trượt ─────────── */
@@ -629,7 +665,16 @@
       .content > .panel { padding: 16px 14px calc(84px + env(safe-area-inset-bottom, 0px)); }
       .panel-topbar { flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
       .panel-topbar h1 { font-size: 1.3rem; }
-      .form-grid { grid-template-columns: 1fr; gap: 4px 0; }
+      /* Form trên điện thoại: các ô NGẮN xếp 2 cột cho đỡ dài.
+         Trước đây mọi ô đều chiếm trọn hàng → form đặt hàng dài lê thê,
+         trong khi ô số lượng/ngày chỉ dùng có nửa chiều ngang. */
+      .form-grid { grid-template-columns: 1fr 1fr; gap: 0 12px; }
+      .field-group { margin-bottom: 13px; }
+      .field-group label { margin-bottom: 4px; }
+      /* Ô ngắn đã nằm trong cột hẹp rồi, bỏ trần rộng để nó lấp đầy cột */
+      .fg-sm > input, .fg-sm > select, .fg-sm > input[type="date"] { max-width: none; }
+      .qty-step { width: 100%; max-width: 150px; }
+      .fg-wide { grid-column: 1 / -1; }   /* tên khách + SĐT: cần trọn hàng trên điện thoại */
       .modal-overlay { padding: 0; align-items: flex-end; }
       .modal-box { max-width: 100%; max-height: 92vh; max-height: 92dvh; border-radius: 16px 16px 0 0; }
       /* ⚠️ QUAN TRỌNG: iOS Safari TỰ PHÓNG TO trang khi bấm vào ô nhập có chữ < 16px
@@ -1147,13 +1192,17 @@
       <input type="hidden" id="oeId">
       <div class="modal-body">
         <div class="form-grid">
-          <div class="field-group">
+          <div class="field-group fg-wide">
             <label>Tên khách</label>
-            <input type="text" id="oeCustomerName">
+            <div class="date-pick-wrap">
+              <input type="text" id="oeCustomerName" autocomplete="off"
+                     oninput="showCustSuggest('oe')" onfocus="showCustSuggest('oe')">
+              <div id="oeNameSuggest" class="date-pop suggest-pop" style="display:none"></div>
+            </div>
           </div>
-          <div class="field-group">
+          <div class="field-group fg-wide">
             <label>Số điện thoại</label>
-            <input type="tel" id="oePhone" placeholder="VD: 0912345678">
+            <input type="tel" id="oePhone" placeholder="VD: 0912345678" autocomplete="off">
           </div>
           <div class="field-group full" id="oeCustomerHint" style="display:none;font-size:.8rem;color:#7A9879;margin-top:-10px;">
             Chỉ sửa được tên/SĐT khách khi đơn còn ở trạng thái "Mới" hoặc "Đã xác nhận".
@@ -1239,19 +1288,31 @@
     <form id="orderNewForm" onsubmit="saveNewOrder(event)">
       <div class="modal-body">
         <div class="form-grid">
-          <div class="field-group">
+          <div class="field-group fg-wide">
             <label>Tên khách *</label>
-            <input type="text" id="noName" required placeholder="VD: Chị Lan">
+            <!-- autocomplete="off": chặn ô gợi ý CỦA TRÌNH DUYỆT (lịch sử gõ) đè lên
+                 danh sách khách thật của shop -->
+            <div class="date-pick-wrap">
+              <input type="text" id="noName" required placeholder="Gõ tên để tìm khách cũ…" autocomplete="off"
+                     oninput="showCustSuggest('no')" onfocus="showCustSuggest('no')">
+              <div id="noNameSuggest" class="date-pop suggest-pop" style="display:none"></div>
+            </div>
           </div>
-          <div class="field-group">
+          <div class="field-group fg-wide">
             <label>Số điện thoại <span style="font-weight:400;color:#7A9879;">(nếu có)</span></label>
-            <input type="tel" id="noPhone" placeholder="VD: 0912345678">
+            <input type="tel" id="noPhone" placeholder="VD: 0912345678" autocomplete="off">
           </div>
           <div class="field-group full">
             <label>Chọn sản phẩm <span style="font-weight:400;color:#7A9879;">(hoặc nhập tay bên dưới)</span></label>
-            <select id="noProductPick" onchange="onNewOrderProductPick()">
-              <option value="">— Nhập tay —</option>
-            </select>
+            <!-- Trước đây là ô xổ xuống toàn chữ, hơn 20 mẫu hoa nhìn giống hệt nhau,
+                 phải đọc từng dòng. Giờ gõ tìm + thấy ảnh nên nhận ra mẫu ngay. -->
+            <div class="date-pick-wrap">
+              <input type="text" id="noProdSearch" placeholder="Gõ tên hoa để chọn nhanh…" autocomplete="off"
+                     oninput="showProdSuggest()" onfocus="showProdSuggest()">
+              <div id="noProdSuggest" class="date-pop suggest-pop prod-pop" style="display:none"></div>
+            </div>
+            <input type="hidden" id="noProductPick">
+            <div id="noProdPicked" style="display:none"></div>
           </div>
           <div class="field-group full">
             <label>Tên sản phẩm *</label>
@@ -2186,6 +2247,69 @@ let materials = []
 async function loadMaterials() {
   const { data } = await sb.from('materials').select('*').order('name')
   materials = data || []
+}
+
+// ── Gợi ý khách đã có khi lên đơn tay ─────────────────────────
+// Shop chốt đơn qua Facebook/Zalo rồi mới nhập, khách quen quay lại nhiều —
+// gõ vài chữ là chọn được, khỏi gõ lại SĐT/địa chỉ và khỏi tạo trùng khách.
+const CUST_FIELDS = {
+  no: { pop: 'noNameSuggest', name: 'noName', phone: 'noPhone', addr: 'noAddress' },
+  oe: { pop: 'oeNameSuggest', name: 'oeCustomerName', phone: 'oePhone', addr: 'oeAddress' },
+}
+
+// Bỏ dấu để gõ "chi thoa" vẫn ra "Chị Thoa"
+function noAccent(s) {
+  return String(s ?? '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')   // dải dấu thanh/mũ Unicode
+    .replace(/đ/g, 'd').trim()
+}
+
+function showCustSuggest(key) {
+  const f = CUST_FIELDS[key]
+  const pop = document.getElementById(f.pop)
+  if (!pop) return
+  const raw = document.getElementById(f.name).value.trim()
+  const q = noAccent(raw)
+  if (!q) { pop.style.display = 'none'; return }   // chưa gõ gì thì đừng đổ cả sổ khách ra
+
+  // Xếp theo độ khớp: khớp từ đầu tên > chứa trong tên > khớp số điện thoại
+  const scored = customers.map(c => {
+    const n = noAccent(c.name)
+    const p = (c.phone || '').replace(/\D/g, '')
+    let score = -1
+    if (n.startsWith(q)) score = 0
+    else if (n.includes(q)) score = 1
+    else if (q.length >= 3 && p.includes(q)) score = 2
+    return { c, score }
+  }).filter(x => x.score >= 0)
+    .sort((a, b) => a.score - b.score)
+    .slice(0, 3)                                    // gọn gàng: tối đa 3 người
+
+  if (!scored.length) { pop.style.display = 'none'; return }
+  pop.innerHTML = scored.map(({ c }) => `
+<div class="suggest-row" onclick="pickCustomer('${key}', ${c.id})">
+  <span class="s-cust">${esc(c.name || '(chưa có tên)')}${c.address ? `<small>${esc(c.address)}</small>` : ''}</span>
+  <span class="s-price">${esc(c.phone || '—')}</span>
+</div>`).join('')
+  pop.style.display = 'block'
+}
+
+function hideCustSuggest(key) {
+  const el = document.getElementById(CUST_FIELDS[key].pop)
+  if (el) el.style.display = 'none'
+}
+
+function pickCustomer(key, id) {
+  const f = CUST_FIELDS[key]
+  const c = customers.find(x => x.id === id)
+  if (!c) return
+  document.getElementById(f.name).value = c.name || ''
+  document.getElementById(f.phone).value = c.phone || ''
+  // Địa chỉ chỉ điền hộ khi đang trống — đừng đè địa chỉ giao mà shop vừa gõ
+  const addr = document.getElementById(f.addr)
+  if (addr && !addr.value.trim() && c.address) addr.value = c.address
+  hideCustSuggest(key)
+  showToast(`Đã chọn khách: ${c.name || c.phone}`)
 }
 
 // Autocomplete ô "Mặt hàng" trong form chi phí
@@ -3635,6 +3759,8 @@ document.addEventListener('click', e => {
     if (pop && pop.style.display !== 'none') pop.style.display = 'none'
     const sug = document.getElementById('exItemSuggestPop')
     if (sug && sug.style.display !== 'none') sug.style.display = 'none'
+    hideCustSuggest('no'); hideCustSuggest('oe')
+    hideProdSuggest()
   }
 })
 
@@ -3906,6 +4032,8 @@ function oeUpdateCustomerEditable() {
 function openOrderEditModal(id) {
   const o = orders.find(x => x.id === id)
   if (!o) return
+  if (!customers.length) loadCustomers()   // để ô tên khách gợi ý được
+  hideCustSuggest('oe')
   document.getElementById('orderEditTitle').textContent = `Sửa đơn ${orderCode(o.id)}`
   document.getElementById('oeId').value = o.id
   document.getElementById('oeCustomerName').value = o.customers?.name || o.customer_name || ''
@@ -4011,23 +4139,82 @@ function noUpdateTotalPreview() {
   document.getElementById('noTotalPreview').textContent = price ? fmtVnd(price * qty + ship) : 'Chưa định giá'
 }
 
-function onNewOrderProductPick() {
-  const id = document.getElementById('noProductPick').value
-  if (!id) return
+// ── Chọn sản phẩm CÓ ẢNH khi lên đơn tay ─────────────────────
+// Danh sách hoa toàn tên na ná nhau, chỉ đọc chữ rất dễ chọn nhầm mẫu.
+function showProdSuggest() {
+  const pop = document.getElementById('noProdSuggest')
+  if (!pop) return
+  const q = noAccent(document.getElementById('noProdSearch').value)
+  const list = (q
+    ? products.filter(p => noAccent(p.name).includes(q) || noAccent(p.category).includes(q))
+    : products
+  ).slice(0, 6)
+
+  if (!list.length) {
+    pop.innerHTML = '<div class="suggest-row" style="cursor:default;color:#7A9879">Không tìm thấy — cứ gõ tay tên sản phẩm bên dưới</div>'
+    pop.style.display = 'block'
+    return
+  }
+  pop.innerHTML = list.map(p => `
+<div class="suggest-row prod-row" onclick="pickProduct(${p.id})">
+  ${p.image
+      ? `<img src="${esc(p.image)}" alt="" loading="lazy">`
+      : '<span class="prod-ph">🌸</span>'}
+  <span class="s-cust">${esc(p.name)}<small>${esc(p.category || '')}</small></span>
+  <span class="s-price">${fmtPriceText(p.price)}</span>
+</div>`).join('')
+  pop.style.display = 'block'
+}
+
+function hideProdSuggest() {
+  const el = document.getElementById('noProdSuggest')
+  if (el) el.style.display = 'none'
+}
+
+function pickProduct(id) {
   const p = products.find(x => x.id == id)
   if (!p) return
+  document.getElementById('noProductPick').value = p.id
   document.getElementById('noProductName').value = p.name
   const num = p.price ? parseInt(String(p.price).replace(/[^\d]/g, ''), 10) : null
   if (num) document.getElementById('noUnitPrice').value = num
+  if (p.image) setOrderImagePreview('no', p.image)   // đơn có sẵn ảnh, khỏi phải chụp lại
+  document.getElementById('noProdSearch').value = ''
+  hideProdSuggest()
+  renderPickedProduct(p)
   noUpdateTotalPreview()
+}
+
+// Thẻ xác nhận mẫu đã chọn — thay cho thông báo bay ngang, nó ĐỨNG YÊN
+// ngay tại chỗ vừa chọn nên nhìn là biết đang lên đơn cho mẫu nào.
+function renderPickedProduct(p) {
+  const box = document.getElementById('noProdPicked')
+  if (!box) return
+  if (!p) { box.style.display = 'none'; box.innerHTML = ''; return }
+  box.innerHTML = `
+<div class="prod-picked">
+  ${p.image ? `<img src="${esc(p.image)}" alt="">` : '<span class="prod-ph">🌸</span>'}
+  <span class="pp-info"><strong>${esc(p.name)}</strong><small>${fmtPriceText(p.price)}</small></span>
+  <button type="button" class="btn-delete-sm" title="Bỏ chọn" onclick="clearPickedProduct()">✕</button>
+</div>`
+  box.style.display = 'block'
+}
+
+function clearPickedProduct() {
+  document.getElementById('noProductPick').value = ''
+  renderPickedProduct(null)
 }
 
 function openNewOrderModal() {
   document.getElementById('orderNewForm').reset()
-  // Danh sách sản phẩm để chọn nhanh
-  document.getElementById('noProductPick').innerHTML =
-    '<option value="">— Nhập tay —</option>' +
-    products.map(p => `<option value="${p.id}">${esc(p.name)} (${fmtPriceText(p.price)})</option>`).join('')
+  // Tab Đơn hàng không tự nạp 2 danh sách này — cần cho ô gợi ý khách + sản phẩm
+  if (!customers.length) loadCustomers()
+  if (!products.length) loadProducts()
+  hideCustSuggest('no')
+  hideProdSuggest()
+  document.getElementById('noProdSearch').value = ''
+  document.getElementById('noProductPick').value = ''
+  renderPickedProduct(null)
   document.getElementById('noStatus').innerHTML =
     ORDER_STATUSES.map(s => `<option ${s === 'Đã xác nhận' ? 'selected' : ''}>${s}</option>`).join('')
   ;['noUnitPrice', 'noQuantity', 'noShipping'].forEach(fid =>
@@ -4264,7 +4451,11 @@ function closeGalleryPickerOutside(e) {
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast')
   t.textContent = msg
-  t.className = `toast ${type}`
+  // Đang mở form thì thông báo phải nhảy LÊN TRÊN: ở góc dưới nó đè đúng vào
+  // nút Hủy / Lưu — vừa che mất nút, vừa dễ bấm nhầm vào thông báo.
+  const modalOpen = [...document.querySelectorAll('.modal-overlay')]
+    .some(m => m.style.display !== 'none' && m.style.display !== '')
+  t.className = `toast ${type}${modalOpen ? ' toast-top' : ''}`
   t.style.display = 'block'
   clearTimeout(t._timer)
   t._timer = setTimeout(() => t.style.display = 'none', 3000)
