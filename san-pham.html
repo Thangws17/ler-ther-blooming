@@ -56,6 +56,15 @@
 <!-- ── Products ───────────────────────────────────────── -->
 <section>
   <div class="container">
+    <!-- Ô tìm — khách nhớ tên hoa thì gõ thẳng, khỏi lướt cả trang.
+         Bỏ dấu khi so khớp nên gõ "hoa hong" vẫn ra "Hoa Hồng" -->
+    <div class="prod-search">
+      <span class="ps-icon" aria-hidden="true">🔍</span>
+      <input type="search" id="productSearch" placeholder="Tìm hoa theo tên… (VD: hồng, cưới, sinh nhật)"
+             aria-label="Tìm sản phẩm" autocomplete="off">
+      <button type="button" class="ps-clear" id="productSearchClear" aria-label="Xoá ô tìm">✕</button>
+    </div>
+
     <!-- Filter tabs — dựng động theo danh mục chung cấu hình trong admin -->
     <div class="filter-tabs" id="productFilters">
       <button class="filter-tab active" data-category="all">🌸 Tất cả</button>

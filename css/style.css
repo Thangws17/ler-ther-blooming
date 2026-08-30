@@ -262,6 +262,30 @@ section    { padding:64px 0; }
   opacity:.8; margin-bottom:10px;
 }
 
+/* ─── Ô tìm sản phẩm ─────────────────────────────────────── */
+.prod-search { position:relative; margin-bottom:16px; max-width:460px; }
+.prod-search .ps-icon {
+  position:absolute; left:16px; top:50%; transform:translateY(-50%);
+  font-size:.95rem; pointer-events:none; opacity:.65;
+}
+.prod-search input {
+  width:100%; padding:13px 44px 13px 44px; border-radius:50px;
+  border:2px solid var(--border); background:var(--white); color:var(--text);
+  font-family:'Open Sans',sans-serif; font-size:.95rem; transition:var(--t);
+  -webkit-appearance:none; appearance:none;
+}
+.prod-search input::placeholder { color:var(--text-light); }
+.prod-search input:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 4px rgba(46,125,50,.10); }
+/* Bỏ nút ✕ mặc định của trình duyệt để không đè lên nút ✕ của mình */
+.prod-search input::-webkit-search-cancel-button { -webkit-appearance:none; appearance:none; }
+.prod-search .ps-clear {
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  display:none; align-items:center; justify-content:center;
+  width:32px; height:32px; border:none; border-radius:50%;
+  background:var(--green-pale); color:var(--green); font-size:.8rem; font-weight:700;
+}
+.prod-search .ps-clear:hover { background:var(--green); color:#fff; }
+
 /* ─── Filter Tabs ────────────────────────────────────────── */
 .filter-tabs { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:36px; }
 .filter-tab {
@@ -715,7 +739,54 @@ section    { padding:64px 0; }
   font-size:.72rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
 .om-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+/* Ngày cần rộng, số lượng chỉ cần vừa đủ 2 chữ số → chia lệch chứ không 50/50 */
+.om-row-date-qty { grid-template-columns:1fr auto; align-items:start; }
+
+/* Ô số lượng kiểu −/+ : gọn, bấm được ngay, không cần bàn phím */
+.qty-step {
+  display:flex; align-items:center; width:126px;
+  border:1.5px solid var(--border); border-radius:10px;
+  background:var(--white); overflow:hidden;
+}
+.qty-step:focus-within { border-color:var(--green-mid); box-shadow:0 0 0 3px rgba(76,175,80,.12); }
+.qty-step button {
+  flex-shrink:0; width:38px; height:42px; border:none;
+  background:var(--green-pale); color:var(--green);
+  font-family:'Nunito',sans-serif; font-size:1.15rem; font-weight:800; line-height:1;
+  transition:var(--t);
+}
+.qty-step button:hover { background:var(--green); color:#fff; }
+.qty-step button:active { transform:scale(.92); }
+/* Ô giữa: bỏ viền/nền riêng vì khung ngoài đã lo, và bỏ mũi tên xoay mặc định */
+.qty-step input[type="number"] {
+  width:50px; min-width:0; height:42px; padding:0; text-align:center;
+  border:none; border-radius:0; background:transparent;
+  font-weight:800; font-size:1rem; -moz-appearance:textfield; appearance:textfield;
+}
+.qty-step input[type="number"]:focus { box-shadow:none; }
+.qty-step input::-webkit-outer-spin-button,
+.qty-step input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 .om-foot-note { text-align:center; font-size:.76rem; color:var(--text-light); margin-top:10px; }
+
+/* ── Phần KHÔNG bắt buộc: điện thoại thu lại sau 1 dòng bấm ──
+   Mặc định = thu gọn (điện thoại/tablet). Máy tính ≥900px mở sẵn lại như cũ. */
+.om-more > .g-title { display:none; }
+.om-more-body { display:none; }
+.om-more.open .om-more-body { display:block; animation:omMoreIn .22s ease; }
+@keyframes omMoreIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+.om-more-btn {
+  display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%;
+  margin-top:4px; padding:13px 16px; text-align:left;
+  background:var(--green-pale); border:1.5px dashed var(--border); border-radius:12px;
+  font-family:'Nunito',sans-serif; font-weight:700; font-size:.92rem; color:var(--green);
+  transition:var(--t);
+}
+.om-more-btn:hover { border-color:var(--green-light); background:#dff0e1; }
+.om-more-btn .omb-txt { display:flex; flex-direction:column; gap:2px; }
+.om-more-btn small { font-weight:400; font-size:.76rem; color:var(--text-light); }
+.om-more-btn .omb-caret { flex-shrink:0; font-size:.9rem; transition:transform .22s ease; }
+.om-more.open .om-more-btn { background:transparent; border-style:solid; border-color:var(--border); }
+.om-more.open .omb-caret { transform:rotate(180deg); }
 
 /* PC: form mở RỘNG NGANG 2 cột — khách không phải cuộn dài */
 @media (min-width:900px) {
@@ -727,6 +798,10 @@ section    { padding:64px 0; }
   .om-g3 { grid-area:g3; padding-right:26px; }
   .om-group + .om-group { border-top:none; margin-top:0; }
   .om-g3 { border-top:1px solid var(--border); margin-top:6px; }
+  /* Máy tính đủ rộng → bỏ thu gọn, hiện đủ như trước, không cần dòng bấm */
+  .om-more > .g-title { display:flex; }
+  .om-more-btn { display:none; }
+  .om-more-body { display:block; }
 }
 .order-success { max-width:520px; margin:0 auto; }
 .order-hint { font-size:.8rem; color:var(--text-light); margin-top:6px; line-height:1.55; }
@@ -881,6 +956,9 @@ section    { padding:64px 0; }
 
   /* form đặt hàng: về 1 cột trên điện thoại */
   .om-row { grid-template-columns:1fr; gap:0; }
+  /* Trừ hàng Ngày + Số lượng: nút −/+ đã nhỏ sẵn nên vẫn xếp cạnh nhau,
+     đỡ tốn thêm một tầng cuộn trên màn hình điện thoại */
+  .om-row-date-qty { grid-template-columns:1fr auto; gap:10px; }
   /* ⚠️ iOS Safari TỰ PHÓNG TO trang khi bấm ô nhập có chữ < 16px → layout lệch,
      nút gửi trôi khỏi màn hình. Ép 16px để iOS không zoom. */
   .order-field input, .order-field select, .order-field textarea { font-size:16px; }

@@ -171,18 +171,72 @@ function renderProducts(list, grid) {
   initScrollReveal(grid);
 }
 
+// Bỏ dấu tiếng Việt để tìm kiếm dễ tính: gõ "hoa hong" vẫn ra "Hoa Hồng"
+function noAccent(s) {
+  return String(s ?? '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')   // dải dấu thanh/mũ Unicode
+    .replace(/đ/g, 'd').trim();
+}
+
+let currentProdCat = 'all';
+let prodSearchTerm = '';
+
+// Danh mục và ô tìm cùng lọc trên MỘT danh sách — đổi cái nào cũng gọi lại đây
+function applyProductFilters() {
+  const grid = document.getElementById('productsGrid');
+  if (!grid) return;
+  const q = noAccent(prodSearchTerm);
+  const list = allProducts.filter(p =>
+    (currentProdCat === 'all' || p.category === currentProdCat) &&
+    (!q || noAccent(p.name).includes(q) || noAccent(p.category).includes(q))
+  );
+
+  const clearBtn = document.getElementById('productSearchClear');
+  if (clearBtn) clearBtn.style.display = prodSearchTerm ? 'flex' : 'none';
+
+  // Tìm không ra thì nói rõ đang tìm gì + lối thoát, đừng để khách bơ vơ
+  if (!list.length && q) {
+    grid.innerHTML = `
+<div class="loading">
+  <div class="l-icon">🔍</div>
+  <p>Không tìm thấy hoa nào khớp "<strong>${esc(prodSearchTerm)}</strong>".</p>
+  <button type="button" class="btn btn-outline" style="margin-top:14px" onclick="resetProductSearch()">Xoá tìm kiếm</button>
+</div>`;
+    return;
+  }
+  renderProducts(list, grid);
+}
+
+function resetProductSearch() {
+  prodSearchTerm = '';
+  const input = document.getElementById('productSearch');
+  if (input) input.value = '';
+  applyProductFilters();
+}
+
 function initFilters() {
   const tabs = document.querySelectorAll('.filter-tab');
-  if (!tabs.length) return;
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      const cat  = tab.dataset.category;
-      const list = cat === 'all' ? allProducts : allProducts.filter(p => p.category === cat);
-      renderProducts(list, document.getElementById('productsGrid'));
+      currentProdCat = tab.dataset.category;
+      applyProductFilters();
     });
   });
+
+  const input = document.getElementById('productSearch');
+  if (input) {
+    input.addEventListener('input', () => {
+      prodSearchTerm = input.value.trim();
+      applyProductFilters();
+    });
+    // Esc trong ô tìm = xoá nhanh, không đóng gì khác
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { e.stopPropagation(); resetProductSearch(); }
+    });
+  }
+  document.getElementById('productSearchClear')?.addEventListener('click', resetProductSearch);
 }
 
 // ─── Hero price hint (home page) — tự tính giá thấp nhất ──
@@ -675,7 +729,9 @@ function showMiniToast(msg) {
       'position:fixed;bottom:90px;left:50%;transform:translateX(-50%)',
       'background:rgba(30,30,30,.92);color:#fff;padding:10px 22px',
       'border-radius:50px;font-size:.85rem;font-weight:600',
-      'z-index:9999;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.25)',
+      // KHÔNG dùng nowrap: lời nhắn dài sẽ tràn khỏi màn hình điện thoại nhỏ
+      'z-index:9999;max-width:calc(100vw - 32px);text-align:center;line-height:1.5',
+      'box-shadow:0 4px 16px rgba(0,0,0,.25)',
     ].join(';');
     document.body.appendChild(t);
   }
@@ -683,6 +739,24 @@ function showMiniToast(msg) {
   t.style.display = 'block';
   clearTimeout(t._t);
   t._t = setTimeout(() => t.style.display = 'none', 3000);
+}
+
+// Đưa SĐT về MỘT dạng chuẩn (0…) trước khi lưu.
+// Không có bước này thì cùng một người gõ "0912 345 678" lần này, "+84912345678"
+// lần sau sẽ thành 2 khách khác nhau trong sổ — sổ khách loạn, khó tra lịch sử.
+function normalizePhone(raw) {
+  let s = String(raw ?? '').replace(/[\s.\-()]/g, '');
+  if (s.startsWith('+84')) s = '0' + s.slice(3);
+  else if (s.startsWith('84') && s.length >= 10) s = '0' + s.slice(2);
+  return s;
+}
+
+// Báo lỗi xong phải đưa khách TỚI ĐÚNG ô sai — form dài, bắt tự đi tìm là bỏ đơn
+function focusOrderField(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch {}
+  setTimeout(() => { try { el.focus({ preventScroll: true }); } catch { el.focus(); } }, 120);
 }
 
 // ─── Khoá cuộn nền khi mở lớp phủ ─────────────────────────
@@ -715,12 +789,6 @@ function unlockBodyScroll() {
 let _orderProduct = { id: null, name: '' };
 // Nhớ ảnh + giá sản phẩm đã render để hiện trong header form đặt (đủ ngữ cảnh)
 const _prodCache = {};
-
-const HANOI_AREAS = [
-  'Hoàn Kiếm', 'Ba Đình', 'Đống Đa', 'Hai Bà Trưng', 'Cầu Giấy',
-  'Tây Hồ', 'Thanh Xuân', 'Hoàng Mai', 'Long Biên', 'Hà Đông',
-  'Bắc Từ Liêm', 'Nam Từ Liêm',
-];
 
 function openOrderModal(productId, productName, imgOverride) {
   _orderProduct = { id: productId, name: productName };
@@ -768,41 +836,52 @@ function openOrderModal(productId, productName, imgOverride) {
 
     <div class="om-group om-g2">
       <div class="g-title"><span class="g-num">2</span> Giao đến đâu</div>
-      <div class="om-row">
+      <!-- Không hỏi "Khu vực giao": địa chỉ đầy đủ đã nói lên tất cả, hỏi thêm là thừa.
+           Admin vẫn có ô khu vực để shop tự điền khi cần xếp lịch giao. -->
+      <div class="order-field">
+        <label>Địa chỉ giao hàng *</label>
+        <input type="text" id="orderAddress" required placeholder="Số nhà, ngõ, đường, phường, quận…">
+      </div>
+      <!-- Ngày ăn hết chỗ trống, số lượng chỉ cần vừa đủ: đa số khách đặt 1-2 bó,
+           nên dùng nút −/+ cho nhanh thay vì ô nhập rộng phải gọi bàn phím -->
+      <div class="om-row om-row-date-qty">
         <div class="order-field">
-          <label>Khu vực giao *</label>
-          <select id="orderArea" required>
-            <option value="Nội thành Hà Nội" selected>Nội thành Hà Nội</option>
-            ${HANOI_AREAS.map(a => `<option value="${a}">${a}</option>`).join('')}
-            <option value="Khu vực khác">Khu vực khác (ngoại thành / tỉnh khác)</option>
-          </select>
+          <label>Ngày giao mong muốn</label>
+          <input type="date" id="orderDate" value="${_tomorrow}" min="${_today}">
         </div>
         <div class="order-field">
           <label>Số lượng</label>
-          <input type="number" id="orderQty" min="1" value="1">
+          <div class="qty-step">
+            <button type="button" onclick="stepQty(-1)" aria-label="Bớt 1">−</button>
+            <input type="number" id="orderQty" min="1" max="99" value="1" inputmode="numeric" aria-label="Số lượng">
+            <button type="button" onclick="stepQty(1)" aria-label="Thêm 1">+</button>
+          </div>
         </div>
       </div>
-      <div class="order-field">
-        <label>Địa chỉ giao hàng *</label>
-        <input type="text" id="orderAddress" required placeholder="Số nhà, ngõ, đường, phường…">
-      </div>
-      <div class="order-field">
-        <label>Ngày giao mong muốn</label>
-        <input type="date" id="orderDate" value="${_tomorrow}" min="${_today}">
-        <p class="order-hint">🌸 Shop để sẵn ngày mai — đặt trước 1 ngày để hoa tươi và chuẩn bị chu đáo nhất!</p>
-      </div>
+      <p class="order-hint">🌸 Shop để sẵn ngày mai — đặt trước 1 ngày để hoa tươi và chuẩn bị chu đáo nhất!</p>
     </div>
 
-    <div class="om-group om-g3">
+    <!-- Nhóm 3 KHÔNG bắt buộc → trên điện thoại thu lại sau 1 dòng bấm cho form đỡ rối;
+         trên máy tính (≥900px) vẫn mở sẵn như cũ vì có chỗ rộng, xem CSS .om-more -->
+    <div class="om-group om-g3 om-more" id="omMore">
       <div class="g-title"><span class="g-num">3</span> Lời nhắn <span class="lbl-opt">(nếu có)</span></div>
-      <div class="om-row">
-        <div class="order-field">
-          <label>Lời nhắn trên thiếp</label>
-          <textarea id="orderMessage" placeholder="VD: Chúc mừng sinh nhật..."></textarea>
-        </div>
-        <div class="order-field">
-          <label>Ghi chú thêm</label>
-          <textarea id="orderNote" placeholder="Yêu cầu khác (nếu có)"></textarea>
+      <button type="button" class="om-more-btn" onclick="toggleOrderMore()" aria-expanded="false" aria-controls="omMoreBody">
+        <span class="omb-txt">
+          ✍️ Thêm lời nhắn hoặc yêu cầu khác
+          <small>Thiệp chúc, phụ kiện, giờ giao mong muốn…</small>
+        </span>
+        <span class="omb-caret">▾</span>
+      </button>
+      <div class="om-more-body" id="omMoreBody">
+        <div class="om-row">
+          <div class="order-field">
+            <label>Lời nhắn trên thiếp</label>
+            <textarea id="orderMessage" placeholder="VD: Chúc mừng sinh nhật..."></textarea>
+          </div>
+          <div class="order-field">
+            <label>Ghi chú thêm</label>
+            <textarea id="orderNote" placeholder="VD: kèm thiệp, nơ, giỏ mây… hoặc giờ giao mong muốn"></textarea>
+          </div>
         </div>
       </div>
     </div>
@@ -817,6 +896,22 @@ function openOrderModal(productId, productName, imgOverride) {
 </form>`;
   document.getElementById('orderOverlay').classList.add('open');
   lockBodyScroll();
+}
+
+// Nút −/+ của ô Số lượng. Giữ trong 1–99 để không có đơn 0 bó hay gõ nhầm 1000.
+function stepQty(delta) {
+  const el = document.getElementById('orderQty');
+  if (!el) return;
+  el.value = Math.min(99, Math.max(1, (parseInt(el.value, 10) || 1) + delta));
+}
+
+// Mở/đóng phần không bắt buộc của form đặt hoa (chỉ có tác dụng trên điện thoại)
+function toggleOrderMore() {
+  const box = document.getElementById('omMore');
+  if (!box) return;
+  const open = box.classList.toggle('open');
+  box.querySelector('.om-more-btn')?.setAttribute('aria-expanded', String(open));
+  if (open) box.querySelector('textarea')?.focus({ preventScroll: true });
 }
 
 function closeOrderModal() {
@@ -853,16 +948,28 @@ async function submitOrder(event) {
   const phone = document.getElementById('orderPhone').value.trim();
   const email = (document.getElementById('orderEmail')?.value || '').trim();
 
+  // SĐT là đường shop gọi lại xác nhận — gõ thiếu/thừa số là mất đơn mà không ai biết.
+  // Kiểm nới tay: bỏ dấu cách/chấm/gạch/ngoặc rồi mới xét, chấp cả 0… lẫn +84…
+  const phoneDigits = normalizePhone(phone);
+  if (!/^0\d{8,10}$/.test(phoneDigits)) {
+    btn.disabled = false;
+    btn.textContent = '🌸 Gửi đơn đặt hàng';
+    showMiniToast('📞 Số điện thoại chưa đúng, bạn xem lại giúp nhé');
+    focusOrderField('orderPhone');
+    return;
+  }
+
   // Email không bắt buộc — nhưng đã điền thì phải đúng định dạng
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     btn.disabled = false;
-    btn.textContent = 'Gửi đơn đặt hàng';
+    btn.textContent = '🌸 Gửi đơn đặt hàng';
     showMiniToast('✉️ Email chưa đúng định dạng, bạn xem lại giúp nhé');
+    focusOrderField('orderEmail');
     return;
   }
 
   const { error } = await sb.rpc('place_order', {
-    p_phone: phone,
+    p_phone: phoneDigits,   // lưu dạng đã chuẩn hoá để sổ khách không bị trùng
     p_name: document.getElementById('orderName').value.trim(),
     p_address: document.getElementById('orderAddress').value.trim(),
     p_product_id: _orderProduct.id,
@@ -871,13 +978,13 @@ async function submitOrder(event) {
     p_delivery_date: document.getElementById('orderDate').value || null,
     p_message_card: document.getElementById('orderMessage').value.trim() || null,
     p_note: document.getElementById('orderNote').value.trim() || null,
-    p_delivery_area: document.getElementById('orderArea').value || null,
+    p_delivery_area: null,   // bỏ hỏi khách — shop tự điền trong admin nếu cần
     p_email: email || null,
   });
 
   if (error) {
     btn.disabled = false;
-    btn.textContent = 'Gửi đơn đặt hàng';
+    btn.textContent = '🌸 Gửi đơn đặt hàng';
     showMiniToast('❌ Có lỗi xảy ra, vui lòng thử lại hoặc nhắn Zalo.');
     return;
   }
