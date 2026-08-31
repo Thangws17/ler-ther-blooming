@@ -165,6 +165,7 @@
     .thumb img { width: 100%; height: 100%; object-fit: cover; }
     .cat-badge { background: #E8F5E9; color: #2E7D32; border-radius: 50px; padding: 3px 10px; font-size: .75rem; font-weight: 700; white-space: nowrap; }
     .actions { display: flex; gap: 6px; flex-wrap: nowrap; white-space: nowrap; }
+
     /* Thanh tìm kiếm / lọc */
     .filter-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
     .filter-search { flex: 1; min-width: 220px; padding: 9px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: .9rem; background: #fafafa; outline: none; }
@@ -375,12 +376,26 @@
     @media (max-width: 720px) { .deliv-row { flex-wrap: wrap; gap: 6px 12px; } .deliv-prod { flex: 1 1 100%; } }
 
     /* ── Quản lý danh mục Gallery ─────────────── */
-    .cat-manager { background: #fff; border: 1px solid #e8f0e8; border-radius: 12px; padding: 18px 20px; margin-bottom: 22px; }
+    .cat-manager { background: #fff; border: 1px solid #e8f0e8; border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; }
     .cat-manager-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin-bottom: 14px; }
+    /* Gấp khối danh mục: bình thường chỉ còn 1 dòng, cần sửa mới mở.
+       Khối này trước đây nuốt gần hết màn hình đầu, đẩy ảnh xuống dưới. */
+    .cat-fold {
+      display: flex; align-items: center; gap: 10px; width: 100%;
+      background: none; border: none; padding: 4px 0; cursor: pointer;
+      font-family: inherit; font-size: .98rem; font-weight: 800; color: #2E7D32; text-align: left;
+    }
+    .cat-fold-count { font-weight: 600; color: #7A9879; font-size: .84rem; }
+    .cat-fold-caret { margin-left: auto; color: #7A9879; transition: transform .2s; }
+    .cat-manager.open .cat-fold-caret { transform: rotate(180deg); }
+    .cat-fold-body { display: none; padding-top: 14px; }
+    .cat-manager.open .cat-fold-body { display: block; }
     .cat-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
     .cat-row { display: flex; align-items: center; gap: 8px; background: #f8faf8; border: 1px solid #eef3ee; border-radius: 8px; padding: 7px 10px; }
     .cat-row .cat-emoji { width: 40px; text-align: center; padding: 6px 4px; border: 1.5px solid #ddd; border-radius: 6px; background: #fff; font-size: 1rem; }
-    .cat-row .cat-name { flex: 1; min-width: 100px; padding: 7px 10px; border: 1.5px solid #ddd; border-radius: 6px; background: #fff; font-weight: 600; }
+    /* Tên danh mục ngắn ("Hoa bó") — cho ô vừa đủ chứ đừng kéo hết chiều ngang */
+    .cat-row .cat-name { width: 220px; min-width: 100px; padding: 7px 10px; border: 1.5px solid #ddd; border-radius: 6px; background: #fff; font-weight: 600; }
+    .cat-row .cat-count { margin-right: auto; }
     .cat-row .cat-emoji:focus, .cat-row .cat-name:focus { border-color: #2E7D32; outline: none; }
     .cat-count { font-size: .78rem; color: #7A9879; background: #E8F5E9; border-radius: 50px; padding: 3px 10px; white-space: nowrap; }
     .cat-move { background: #eef3ee; border: none; border-radius: 6px; width: 28px; height: 30px; cursor: pointer; color: #2E7D32; font-weight: 800; font-size: .85rem; }
@@ -438,9 +453,6 @@
     .gallery-admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 8px; }
     .gallery-admin-item { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.07); transition: outline .12s, opacity .12s; }
     .gallery-admin-item img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
-    .gallery-admin-info { padding: 8px; display: flex; gap: 6px; align-items: center; }
-    .caption-input { flex: 1; border: 1px solid #e0e0e0; border-radius: 6px; padding: 5px 8px; font-size: .8rem; outline: none; }
-    .caption-input:focus { border-color: #2E7D32; }
     /* Kéo-thả sắp xếp */
     .gallery-drag { position: relative; cursor: grab; }
     .gallery-drag:active { cursor: grabbing; }
@@ -449,11 +461,88 @@
     .gallery-admin-item.dragging { opacity: .35; }
     .gallery-admin-item.drag-over { outline: 2px dashed #2E7D32; outline-offset: 2px; }
 
+    /* ── Chọn nhiều ảnh ───────────────────────────
+       Bấm vào ảnh là chọn (trước giờ bấm ảnh không làm gì nên không mất tính năng nào).
+       Kéo-thả vẫn chạy: trình duyệt không bắn 'click' sau khi đã kéo. */
+    /* Ô tích: bấm ô này là CHỌN, bấm chỗ khác trên ảnh là MỞ chi tiết */
+    .gal-tick {
+      position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(255,255,255,.92); border: 2px solid #C8E6C9;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .82rem; font-weight: 800; color: #C8E6C9;
+      cursor: pointer; padding: 0; transition: all .15s;
+    }
+    .gal-tick:hover { border-color: #2E7D32; color: #2E7D32; }
+    .gallery-admin-item.gal-sel { outline: 3px solid #2E7D32; outline-offset: -1px; }
+    .gallery-admin-item.gal-sel .gal-tick { background: #2E7D32; border-color: #2E7D32; color: #fff; }
+    /* Nhãn ảnh vừa upload — để biết cái nào cần đặt chú thích */
+    .gallery-admin-item.gal-fresh .gallery-drag::after {
+      content: 'MỚI'; position: absolute; bottom: 6px; right: 6px;
+      background: #FF7043; color: #fff; font-size: .62rem; font-weight: 800;
+      padding: 2px 8px; border-radius: 50px; letter-spacing: .04em; pointer-events: none;
+    }
+
+    /* ── Thanh thao tác hàng loạt ────────────────── */
+    .bulk-bar {
+      position: fixed; left: 50%; bottom: 20px; z-index: 960;
+      transform: translate(-50%, 160%); transition: transform .25s cubic-bezier(.2,.8,.3,1);
+      display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px;
+      background: #162816; color: #fff; border-radius: 14px; padding: 12px 16px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.3); max-width: calc(100vw - 24px);
+    }
+    .bulk-bar.show { transform: translate(-50%, 0); }
+    .bulk-bar b { font-size: .95rem; white-space: nowrap; }
+    .bulk-select { padding: 8px 10px; border-radius: 8px; border: none; font-family: inherit; font-size: .86rem; }
+    .bulk-bar button { border: none; border-radius: 8px; padding: 9px 14px; font-family: inherit; font-weight: 800; font-size: .86rem; cursor: pointer; }
+    .bulk-move { background: #4CAF50; color: #fff; }
+    .bulk-del  { background: #E53935; color: #fff; }
+    .bulk-none { background: rgba(255,255,255,.16); color: #fff; }
+
+    /* ── Chi tiết ảnh: ảnh giữa, hai mũi tên hai bên ── */
+    .gi-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .gi-nav img {
+      flex: 1; min-width: 0; max-height: 240px; object-fit: contain;
+      border-radius: 10px; background: #f4f7f4;
+    }
+    .gi-arrow {
+      flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
+      border: 1.5px solid #C8E6C9; background: #fff; color: #2E7D32;
+      font-size: 1rem; font-weight: 800; cursor: pointer; transition: all .18s;
+    }
+    .gi-arrow:hover:not(:disabled) { background: #2E7D32; border-color: #2E7D32; color: #fff; }
+    .gi-arrow:disabled { opacity: .3; cursor: default; }
+
     /* ── Contact form ─────────────────────────── */
     .contact-form { background: #fff; border-radius: 12px; padding: 28px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; margin-bottom: 24px; }
     .form-grid .full { grid-column: 1 / -1; }
     .check-row { display: flex; align-items: center; gap: 10px; padding-top: 20px; }
+
+    /* ── Ô giá sản phẩm ────────────────────────────
+       Chữ "đ" nằm sẵn trong ô nên khỏi phải gõ, và chỉ hiện khi giá là số
+       (mẫu để "Liên hệ" thì không có "đ" mới đúng). */
+    .price-wrap { position: relative; }
+    .price-wrap .price-suffix {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      color: #7A9879; font-weight: 700; pointer-events: none; display: none;
+    }
+    .price-wrap.has-num .price-suffix { display: block; }
+    .price-wrap.has-num > input { padding-right: 30px; }
+    /* Máy tính: MỘT hàng thẳng, đúng 5 nút — nút thứ 6 ẩn đi vì không đủ chỗ
+       (5 nút ≈ 490px trên 544px khung form; 6 nút sẽ tràn). */
+    .price-chips {
+      display: flex; gap: 8px; overflow-x: auto;
+      padding-bottom: 2px; scrollbar-width: thin;
+    }
+    .price-chip:nth-child(6) { display: none; }
+    .price-chip {
+      flex-shrink: 0;
+      border: 1.5px solid #C8E6C9; background: #fff; color: #2E7D32;
+      border-radius: 50px; padding: 7px 15px;
+      font-family: inherit; font-size: .82rem; font-weight: 700; cursor: pointer;
+      transition: all .18s;
+    }
+    .price-chip:hover { background: #2E7D32; border-color: #2E7D32; color: #fff; }
     .check-row input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; accent-color: #2E7D32; }
     .check-row label { cursor: pointer; font-weight: 600; }
 
@@ -675,13 +764,17 @@
       .fg-sm > input, .fg-sm > select, .fg-sm > input[type="date"] { max-width: none; }
       .qty-step { width: 100%; max-width: 150px; }
       .fg-wide { grid-column: 1 / -1; }   /* tên khách + SĐT: cần trọn hàng trên điện thoại */
+      /* Điện thoại: cho xuống 2 dòng và hiện đủ 6 mức giá — màn hẹp, xếp
+         một hàng thì phải trượt ngang, dễ bỏ sót mức phía sau */
+      .price-chips { flex-wrap: wrap; overflow-x: visible; }
+      .price-chip:nth-child(6) { display: block; }
       .modal-overlay { padding: 0; align-items: flex-end; }
       .modal-box { max-width: 100%; max-height: 92vh; max-height: 92dvh; border-radius: 16px 16px 0 0; }
       /* ⚠️ QUAN TRỌNG: iOS Safari TỰ PHÓNG TO trang khi bấm vào ô nhập có chữ < 16px
          → layout lệch, nút Lưu trôi khỏi màn hình, bấm không trúng.
          Ép 16px cho MỌI ô nhập trên điện thoại để iOS không zoom. */
       input, select, textarea,
-      .filter-search, .filter-select, .caption-input, .cl-note textarea, .status-select {
+      .filter-search, .filter-select, .cl-note textarea, .status-select {
         font-size: 16px !important;
       }
       /* Vùng chạm đủ lớn + bỏ trễ 300ms khi chạm */
@@ -695,6 +788,9 @@
       .modal-footer button { flex: 1; padding: 13px 12px; }
       .sheet-actions { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
       .toast { bottom: calc(24px + env(safe-area-inset-bottom, 0px)); right: 16px; }
+      /* Thanh thao tác hàng loạt: tránh vạch home / thanh công cụ trình duyệt */
+      .bulk-bar { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); gap: 8px; padding: 10px 12px; }
+      .bulk-bar button, .bulk-select { flex: 1 1 auto; }
       /* Bàn phím iOS đẩy vùng nhìn thấy — neo lớp phủ theo vùng thật (JS cập nhật --vvh/--vvtop)
          để nút Lưu/Hủy KHÔNG bị bàn phím che */
       .modal-overlay { top: var(--vvtop, 0px); height: var(--vvh, 100%); bottom: auto; backdrop-filter: none; }
@@ -818,17 +914,23 @@
     <div id="panelGallery" class="panel" style="display:none">
       <div class="panel-topbar"><h1>Gallery</h1></div>
 
-      <!-- Quản lý danh mục -->
-      <div class="cat-manager">
-        <div class="cat-manager-head">
-          <strong>🏷️ Danh mục chung (Sản phẩm &amp; Gallery)</strong>
-          <span style="font-size:.82rem;color:#7A9879;">Thêm / sửa / xóa một chỗ — form Sản phẩm, trang Sản phẩm và trang Gallery đều dùng bộ này</span>
-        </div>
-        <div id="galleryCatList" class="cat-list"></div>
-        <div class="cat-add-row">
-          <input type="text" id="newCatEmoji" maxlength="2" placeholder="🌸" style="width:56px;text-align:center;">
-          <input type="text" id="newCatName" placeholder="Tên danh mục mới…" onkeydown="if(event.key==='Enter')addGalleryCat()">
-          <button class="btn-green" onclick="addGalleryCat()">+ Thêm</button>
+      <!-- Quản lý danh mục — gấp lại cho đỡ chiếm màn hình, ảnh mới là thứ cần thấy trước -->
+      <div class="cat-manager" id="catManager">
+        <button type="button" class="cat-fold" onclick="toggleCatManager()">
+          <span>🏷️</span>
+          <span>Danh mục chung <span id="catFoldCount" class="cat-fold-count"></span></span>
+          <span class="cat-fold-caret">▾</span>
+        </button>
+        <div class="cat-fold-body" id="catFoldBody">
+          <p style="font-size:.82rem;color:#7A9879;margin-bottom:12px;">
+            Thêm / sửa / xóa một chỗ — form Sản phẩm, trang Sản phẩm và trang Gallery đều dùng bộ này
+          </p>
+          <div id="galleryCatList" class="cat-list"></div>
+          <div class="cat-add-row">
+            <input type="text" id="newCatEmoji" maxlength="2" placeholder="🌸" style="width:56px;text-align:center;">
+            <input type="text" id="newCatName" placeholder="Tên danh mục mới…" onkeydown="if(event.key==='Enter')addGalleryCat()">
+            <button class="btn-green" onclick="addGalleryCat()">+ Thêm</button>
+          </div>
         </div>
       </div>
 
@@ -848,6 +950,44 @@
       </div>
       <div id="galleryFilterChips" class="gal-chips"></div>
       <div id="galleryGrid" class="gallery-admin-grid"></div>
+    </div>
+
+    <!-- Chi tiết một ảnh: sửa chú thích + danh mục, sang ảnh kế bằng ← → -->
+    <div id="galItemModal" class="modal-overlay" style="display:none" onclick="if(event.target.id==='galItemModal')closeGalItem()">
+      <div class="modal-box" style="max-width:440px">
+        <div class="modal-header">
+          <h2 id="giTitle">Ảnh</h2>
+          <button class="modal-close" onclick="closeGalItem()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="gi-nav">
+            <button type="button" id="giPrev" class="gi-arrow" onclick="galItemStep(-1)" title="Ảnh trước">←</button>
+            <img id="giImg" alt="">
+            <button type="button" id="giNext" class="gi-arrow" onclick="galItemStep(1)" title="Ảnh sau">→</button>
+          </div>
+          <div class="field-group">
+            <label>Chú thích</label>
+            <input type="text" id="giCaption" placeholder="VD: Bó hồng đỏ mừng sinh nhật" autocomplete="off">
+          </div>
+          <div class="field-group">
+            <label>Danh mục</label>
+            <select id="giCategory"></select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-delete" onclick="deleteGalItemFromDetail()">🗑 Xóa ảnh</button>
+          <button type="button" class="btn-green" onclick="saveGalItem(true)">Lưu</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thanh thao tác hàng loạt — chỉ hiện khi đang chọn ảnh -->
+    <div id="galBulkBar" class="bulk-bar">
+      <b id="galBulkCount">0 ảnh</b>
+      <select id="galBulkCat" class="bulk-select"></select>
+      <button type="button" class="bulk-move" onclick="bulkMoveGallery()">Chuyển</button>
+      <button type="button" class="bulk-del" onclick="bulkDeleteGallery()">🗑 Xóa đã chọn</button>
+      <button type="button" class="bulk-none" onclick="clearGallerySel()">Bỏ chọn</button>
     </div>
 
     <!-- Đơn hàng -->
@@ -1064,13 +1204,25 @@
           </div>
           <div class="field-group">
             <label>Giá *</label>
-            <input type="text" id="fPrice" required placeholder="VD: 250,000đ">
+            <!-- Gõ số trần, dấu chấm hàng nghìn tự chèn. Vẫn gõ chữ được
+                 (vd "Liên hệ") cho mẫu chưa chốt giá. -->
+            <div class="price-wrap">
+              <input type="text" id="fPrice" required placeholder="250.000"
+                     inputmode="numeric" autocomplete="off" oninput="onPriceInput(this)">
+              <span class="price-suffix">đ</span>
+            </div>
           </div>
           <div class="field-group">
             <label>Danh mục *</label>
             <select id="fCategory" required>
               <option value="">-- Chọn danh mục --</option>
             </select>
+          </div>
+          <!-- Dãy giá hay dùng để RIÊNG một hàng đầy đủ: nhét trong cột Giá
+               (chỉ rộng nửa hàng) thì các nút bị bẻ xuống dòng, nhìn rất lệch -->
+          <div class="field-group full" id="fPriceChipsWrap" style="display:none">
+            <label>Giá hay dùng</label>
+            <div id="fPriceChips" class="price-chips"></div>
           </div>
           <div class="field-group full">
             <label>Mô tả</label>
@@ -1712,6 +1864,9 @@ function closeAllModals() {
 // Đổi giao diện sang tab (không đụng lịch sử) — dùng chung cho click và nút Back
 function applyTab(tab) {
   closeAllModals()   // dọn lớp phủ của tab cũ trước khi hiện tab mới
+  // Thanh chọn ảnh hàng loạt là lớp nổi riêng, không nằm trong closeAllModals
+  gallerySel.clear()
+  document.getElementById('galBulkBar')?.classList.remove('show')
   document.querySelector('.content')?.scrollTo(0, 0)   // tab mới bắt đầu từ đầu trang
   document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab))
   document.querySelectorAll('.panel').forEach(p => p.style.display = 'none')
@@ -1747,7 +1902,7 @@ window.addEventListener('popstate', e => {
 
 // ── Chống mất dữ liệu: hỏi trước khi đóng modal đang nhập dở ──
 // Các modal có form cần bảo vệ (bấm nhầm ra ngoài / ✕ / Hủy sẽ hỏi lại)
-const GUARDED_MODALS = ['modal', 'testimonialModal', 'orderEditModal', 'orderNewModal', 'customerModal', 'changelogModal', 'expenseModal', 'materialEditModal']
+const GUARDED_MODALS = ['modal', 'testimonialModal', 'orderEditModal', 'orderNewModal', 'customerModal', 'changelogModal', 'expenseModal', 'materialEditModal', 'galItemModal']
 
 function initModalGuards() {
   // Nút trong hộp thoại xác nhận thoát
@@ -2859,6 +3014,87 @@ function removeProductImage(i) {
   renderProductImagesGrid()
 }
 
+// ── Ô giá sản phẩm: gõ số, tự chèn dấu chấm ───────────────────
+// Giá lưu dạng CHỮ trong CSDL và có mẫu để "Liên hệ" → chỉ định dạng khi
+// người dùng gõ toàn số, gõ chữ thì để nguyên không đụng vào.
+// Chấp cả "đ" lẫn "d" thường vì gõ nhanh hay bỏ dấu
+const _priceIsText = s => /[^\d.,\s đĐdD]/.test(String(s ?? ''))
+
+function onPriceInput(el) {
+  const wrap = el.closest('.price-wrap')
+  if (_priceIsText(el.value)) {          // "Liên hệ" → thôi, khỏi định dạng
+    if (wrap) wrap.classList.remove('has-num')
+    return
+  }
+  // Chưa có chữ số nào mà ô không rỗng (vừa gõ mỗi chữ "d") → đừng xoá của người ta
+  if (!/\d/.test(el.value) && el.value.trim()) {
+    if (wrap) wrap.classList.remove('has-num')
+    return
+  }
+  // Nhớ có BAO NHIÊU CHỮ SỐ đứng trước con trỏ, để đặt lại đúng chỗ sau khi
+  // chèn dấu chấm — nếu không con trỏ sẽ nhảy về cuối mỗi lần gõ giữa chừng.
+  const digitsBefore = el.value.slice(0, el.selectionStart).replace(/\D/g, '').length
+  const digits = el.value.replace(/\D/g, '')
+  el.value = digits ? Number(digits).toLocaleString('vi-VN') : ''
+  if (wrap) wrap.classList.toggle('has-num', !!digits)
+
+  let pos = 0, seen = 0
+  while (pos < el.value.length && seen < digitsBefore) {
+    if (/\d/.test(el.value[pos])) seen++
+    pos++
+  }
+  try { el.setSelectionRange(pos, pos) } catch {}
+}
+
+// Giá từ CSDL → dạng hiển thị trong ô nhập
+function priceToInput(v) {
+  const s = String(v ?? '').trim()
+  if (_priceIsText(s)) return s
+  const d = s.replace(/\D/g, '')
+  return d ? Number(d).toLocaleString('vi-VN') : ''
+}
+
+// Ô nhập → dạng lưu: toàn số thì lưu số trần cho thống nhất, có chữ thì giữ nguyên
+function priceToSave(v) {
+  const s = String(v ?? '').trim()
+  if (_priceIsText(s)) return s
+  return s.replace(/\D/g, '') || s
+}
+
+// Gợi ý các mức giá shop hay dùng — bấm 1 phát khỏi gõ
+function renderPriceChips() {
+  const box = document.getElementById('fPriceChips')
+  if (!box) return
+  const count = {}
+  products.forEach(p => {
+    const d = String(p.price ?? '').replace(/\D/g, '')
+    if (d && +d >= 1000) count[d] = (count[d] || 0) + 1
+  })
+  // HAI bước, đừng gộp làm một:
+  //  1. chọn ra 5 mức hay dùng nhất (để gợi ý đúng thứ shop dùng thật)
+  //  2. rồi mới xếp 5 mức đó theo giá TĂNG DẦN (để mắt đọc theo thứ tự)
+  // Gộp làm một sẽ ra dãy 350 → 450 → 400 → 220, nhìn rất khó dò.
+  const top = Object.entries(count)
+    .sort((a, b) => b[1] - a[1] || +a[0] - +b[0])
+    .slice(0, 6)                       // vẽ 6; máy tính ẩn bớt nút thứ 6 bằng CSS
+    .sort((a, b) => +a[0] - +b[0])
+  box.innerHTML = top.map(([d]) =>
+    `<button type="button" class="price-chip" onclick="setPriceQuick('${d}')">${Number(d).toLocaleString('vi-VN')}đ</button>`
+  ).join('')
+  // Shop chưa có sản phẩm nào thì giấu hẳn, đừng để một ô trống lơ lửng
+  const wrap = document.getElementById('fPriceChipsWrap')
+  if (wrap) wrap.style.display = top.length ? '' : 'none'
+}
+
+function setPriceQuick(digits) {
+  const el = document.getElementById('fPrice')
+  el.value = Number(digits).toLocaleString('vi-VN')
+  onPriceInput(el)
+  const ov = el.closest('.modal-overlay')     // bấm chip cũng là "đang nhập dở"
+  if (ov) ov.dataset.dirty = '1'
+  el.focus()
+}
+
 function openModal(id = null) {
   newImages = []
   document.getElementById('productForm').reset()
@@ -2870,7 +3106,7 @@ function openModal(id = null) {
     document.getElementById('modalTitle').textContent = 'Sửa sản phẩm'
     document.getElementById('productId').value   = p.id
     document.getElementById('fName').value        = p.name
-    document.getElementById('fPrice').value       = p.price
+    document.getElementById('fPrice').value       = priceToInput(p.price)
     fillProductCategorySelect(p.category)
     document.getElementById('fDesc').value        = p.description || ''
     document.getElementById('fOrder').value       = p.order_index || 0
@@ -2881,6 +3117,8 @@ function openModal(id = null) {
     fillProductCategorySelect()
   }
   renderProductImagesGrid()
+  renderPriceChips()
+  onPriceInput(document.getElementById('fPrice'))   // bật/tắt chữ "đ" theo giá đang có
   document.getElementById('modal').style.display = 'flex'
 }
 
@@ -2912,7 +3150,7 @@ async function saveProduct(e) {
   const id   = document.getElementById('productId').value
   const data = {
     name:        document.getElementById('fName').value.trim(),
-    price:       document.getElementById('fPrice').value.trim(),
+    price:       priceToSave(document.getElementById('fPrice').value),
     category:    document.getElementById('fCategory').value,
     description: document.getElementById('fDesc').value.trim(),
     image:       newImages[0] || '',
@@ -2950,9 +3188,20 @@ function galleryCatCount(name) {
   return galleryItems.filter(ph => ph.category === name).length
 }
 
+// Gấp/mở khối danh mục. Chưa có danh mục nào thì tự mở sẵn, vì lúc đó
+// việc cần làm ĐẦU TIÊN chính là tạo danh mục — gấp lại là giấu mất lối đi.
+function toggleCatManager() {
+  document.getElementById('catManager')?.classList.toggle('open')
+}
+
 function renderGalleryCatManager() {
   const el = document.getElementById('galleryCatList')
   if (!el) return
+  const box = document.getElementById('catManager')
+  const cnt = document.getElementById('catFoldCount')
+  if (cnt) cnt.textContent = galleryCats.length ? `— ${galleryCats.length} mục` : ''
+  if (box && !galleryCats.length) box.classList.add('open')
+
   if (!galleryCats.length) {
     el.innerHTML = '<div style="color:#7A9879;font-size:.88rem;">Chưa có danh mục nào. Thêm ở bên dưới.</div>'
     return
@@ -3082,7 +3331,9 @@ function renderGalleryFilterChips() {
 
 function pickGalleryChip(i) {
   galleryFilterCat = _galleryChipList[i] || 'all'
-  renderGalleryGrid()
+  // Đổi bộ lọc thì bỏ chọn: giữ lại sẽ có ảnh đang chọn mà không nhìn thấy,
+  // bấm "Xóa đã chọn" là xóa nhầm cả ảnh ở danh mục khác.
+  clearGallerySel()
 }
 
 function renderGalleryGrid() {
@@ -3092,37 +3343,169 @@ function renderGalleryGrid() {
     grid.innerHTML = '<div class="empty-state">Chưa có ảnh nào. Upload ảnh ở trên.</div>'
     return
   }
-  const filtered = galleryFilterCat === 'all' ? galleryItems : galleryItems.filter(ph => ph.category === galleryFilterCat)
+  const filtered = galleryFilteredList()
   if (!filtered.length) {
     grid.innerHTML = '<div class="empty-state">Chưa có ảnh trong danh mục này.</div>'
     return
   }
   const { shown, more: gMore } = limitList('gallery', filtered)
-  const names = galleryCats.map(c => c.name)
-  grid.innerHTML = shown.map(ph => {
-    const opts = ph.category && !names.includes(ph.category) ? [ph.category, ...names] : names
-    const catOpts = opts.map(c =>
-      `<option value="${esc(c)}" ${ph.category === c ? 'selected' : ''}>${esc(c)}</option>`
-    ).join('')
-    return `
-<div class="gallery-admin-item" data-id="${ph.id}"
+  // Thẻ giờ CHỈ CÒN ẢNH. Chú thích + danh mục + xóa chuyển hết vào màn chi tiết —
+  // để ngoài lưới thì mỗi thẻ cao gấp đôi mà vẫn khó đọc.
+  grid.innerHTML = shown.map(ph => `
+<div class="gallery-admin-item${gallerySel.has(ph.id) ? ' gal-sel' : ''}${_justUploaded.has(ph.id) ? ' gal-fresh' : ''}" data-id="${ph.id}"
      ondragover="galleryDragOver(event)" ondragleave="galleryDragLeave(event)" ondrop="galleryDrop(event, ${ph.id})">
-  <div class="gallery-drag" draggable="true" title="Kéo để sắp xếp"
+  <div class="gallery-drag" draggable="true" title="Bấm để mở · kéo để sắp xếp"
+       onclick="openGalItem(${ph.id})"
        ondragstart="galleryDragStart(event, ${ph.id})" ondragend="galleryDragEnd(event)">
     <img src="${esc(ph.url)}" alt="${esc(ph.caption || '')}" draggable="false">
+    <button type="button" class="gal-tick" aria-label="Chọn ảnh"
+            onclick="event.stopPropagation(); toggleGallerySel(${ph.id})">✓</button>
     <span class="gal-cat-badge">${esc((galleryCats.find(c => c.name === ph.category)?.emoji || '📷') + ' ' + (ph.category || 'Chưa phân loại'))}</span>
     <span class="drag-grip">⠿ Kéo để sắp xếp</span>
   </div>
-  <div class="gallery-admin-info" style="flex-direction:column;gap:4px;">
-    <input class="caption-input" value="${(ph.caption||'').replace(/"/g,'&quot;')}"
-      placeholder="Chú thích…" onblur="updateCaption(${ph.id}, this.value)">
-    <div style="display:flex;gap:4px;align-items:center;">
-      <select class="caption-input" style="flex:1;" onchange="updateCategory(${ph.id}, this.value)">${catOpts}</select>
-      <button class="btn-delete-sm" onclick="deleteGalleryItem(${ph.id})">✕</button>
-    </div>
-  </div>
-</div>`
-  }).join('') + (gMore > 0 ? `<div style="grid-column:1/-1;">${moreBtnHTML('gallery', gMore, 'renderGalleryGrid', 'ảnh')}</div>` : '')
+</div>`).join('') + (gMore > 0 ? `<div style="grid-column:1/-1;">${moreBtnHTML('gallery', gMore, 'renderGalleryGrid', 'ảnh')}</div>` : '')
+}
+
+// Danh sách ảnh đang hiện theo bộ lọc — dùng chung cho lưới và cho nút ← → ở chi tiết
+function galleryFilteredList() {
+  return galleryFilterCat === 'all'
+    ? galleryItems
+    : galleryItems.filter(ph => ph.category === galleryFilterCat)
+}
+
+// ── Chi tiết một ảnh ──────────────────────────────────────────
+let _giId = null
+
+function openGalItem(id) {
+  const ph = galleryItems.find(x => x.id === id)
+  if (!ph) return
+  _giId = id
+  const list = galleryFilteredList()
+  const i = list.findIndex(x => x.id === id)
+  document.getElementById('giTitle').textContent = `Ảnh ${i + 1}/${list.length}`
+  document.getElementById('giImg').src = ph.url
+  document.getElementById('giCaption').value = ph.caption || ''
+
+  // Ảnh mang danh mục cũ đã bị xóa khỏi danh sách → vẫn cho hiện, đừng nuốt mất
+  const names = galleryCats.map(c => c.name)
+  const opts = ph.category && !names.includes(ph.category) ? [ph.category, ...names] : names
+  document.getElementById('giCategory').innerHTML = opts.map(c =>
+    `<option value="${esc(c)}" ${ph.category === c ? 'selected' : ''}>${esc(c)}</option>`).join('')
+
+  document.getElementById('giPrev').disabled = i <= 0
+  document.getElementById('giNext').disabled = i >= list.length - 1
+  const ov = document.getElementById('galItemModal')
+  ov.dataset.dirty = ''
+  ov.style.display = 'flex'
+  setTimeout(() => document.getElementById('giCaption').focus(), 60)
+}
+
+function closeGalItem() {
+  document.getElementById('galItemModal').style.display = 'none'
+  _giId = null
+}
+
+// Lưu chú thích + danh mục. close=true thì đóng luôn, false là đang sang ảnh khác.
+async function saveGalItem(close) {
+  if (_giId == null) return
+  const caption = document.getElementById('giCaption').value.trim()
+  const category = document.getElementById('giCategory').value
+  const ph = galleryItems.find(x => x.id === _giId)
+  const changed = ph && (ph.caption !== caption || ph.category !== category)
+
+  if (changed) {
+    const { error } = await sb.from('gallery').update({ caption, category }).eq('id', _giId)
+    if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+    ph.caption = caption
+    ph.category = category
+  }
+  document.getElementById('galItemModal').dataset.dirty = ''
+  if (close) {
+    closeGalItem()
+    if (changed) showToast('Đã lưu ảnh')
+  }
+  renderGalleryGrid()
+  renderGalleryCatManager()
+}
+
+// Sang ảnh trước/sau — LƯU TRƯỚC rồi mới chuyển, nếu không thì đặt chú thích
+// cho cả loạt ảnh sẽ mất trắng mỗi lần bấm mũi tên.
+async function galItemStep(dir) {
+  const list = galleryFilteredList()
+  const i = list.findIndex(x => x.id === _giId)
+  const next = list[i + dir]
+  if (!next) return
+  await saveGalItem(false)
+  openGalItem(next.id)
+}
+
+async function deleteGalItemFromDetail() {
+  const id = _giId
+  if (id == null) return
+  closeGalItem()
+  await deleteGalleryItem(id)
+}
+
+// ── Chọn nhiều ảnh → xóa / đổi danh mục một lượt ──────────────
+// Dọn 10 ảnh trước đây là 10 lần bấm ✕ kèm 10 lần xác nhận.
+const gallerySel = new Set()
+const _justUploaded = new Set()   // để gắn nhãn "MỚI" cho ảnh vừa upload
+
+function toggleGallerySel(id) {
+  gallerySel.has(id) ? gallerySel.delete(id) : gallerySel.add(id)
+  renderGalleryGrid()
+  syncGalleryBulkBar()
+}
+
+function clearGallerySel() {
+  gallerySel.clear()
+  renderGalleryGrid()
+  syncGalleryBulkBar()
+}
+
+function syncGalleryBulkBar() {
+  const bar = document.getElementById('galBulkBar')
+  if (!bar) return
+  bar.classList.toggle('show', gallerySel.size > 0)
+  document.getElementById('galBulkCount').textContent = `${gallerySel.size} ảnh`
+  const sel = document.getElementById('galBulkCat')
+  if (sel) sel.innerHTML = '<option value="">Chuyển sang…</option>' +
+    galleryCats.map(c => `<option value="${esc(c.name)}">${esc(c.emoji || '📷')} ${esc(c.name)}</option>`).join('')
+}
+
+async function bulkMoveGallery() {
+  const cat = document.getElementById('galBulkCat').value
+  if (!cat) { showToast('Chọn danh mục muốn chuyển sang', 'error'); return }
+  const ids = [...gallerySel]
+  const { error } = await sb.from('gallery').update({ category: cat }).in('id', ids)
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  galleryItems.forEach(ph => { if (gallerySel.has(ph.id)) ph.category = cat })
+  clearGallerySel()
+  showToast(`Đã chuyển ${ids.length} ảnh sang "${cat}"`)
+  renderGalleryGrid()
+  renderGalleryCatManager()
+}
+
+async function bulkDeleteGallery() {
+  const ids = [...gallerySel]
+  if (!(await askConfirm({
+    title: `Xóa ${ids.length} ảnh?`,
+    message: 'Các ảnh này sẽ bị xóa khỏi Gallery và kho lưu trữ. Không lấy lại được.',
+    okLabel: `Xóa ${ids.length} ảnh`,
+  }))) return
+
+  // Xóa file trong kho trước, rồi mới xóa bản ghi — ngược lại sẽ mất đường dẫn file
+  const paths = galleryItems
+    .filter(ph => gallerySel.has(ph.id) && ph.url)
+    .map(ph => ph.url.replace(SUPABASE_URL + '/storage/v1/object/public/images/', ''))
+  if (paths.length) await sb.storage.from('images').remove(paths)
+
+  const { error } = await sb.from('gallery').delete().in('id', ids)
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  gallerySel.clear()
+  syncGalleryBulkBar()
+  showToast(`Đã xóa ${ids.length} ảnh`)
+  loadGallery()
 }
 
 // ── Kéo-thả sắp xếp ảnh ──
@@ -3189,8 +3572,12 @@ async function handleGalleryUpload(files) {
   const text     = document.getElementById('progressText')
   progress.style.display = 'block'
 
-  // Ảnh mới thêm vào CUỐI (sau ảnh có order_index lớn nhất hiện tại)
-  let nextOrder = galleryItems.reduce((m, ph) => Math.max(m, ph.order_index ?? 0), -1) + 1
+  // Ảnh mới lên ĐẦU. Trước đây đẩy xuống cuối → với 60 ảnh chia trang 20, ảnh vừa
+  // up nằm tận trang 3, không thấy để đặt chú thích. Trừ đi cả lô rồi tăng dần
+  // để thứ tự trong lô vẫn đúng như lúc chọn file.
+  const minOrder = galleryItems.reduce((m, ph) => Math.min(m, ph.order_index ?? 0), 0)
+  let nextOrder = minOrder - files.length
+  _justUploaded.clear()
   let done = 0
   for (const raw of Array.from(files)) {
     const file = await compressImage(raw)
@@ -3198,7 +3585,10 @@ async function handleGalleryUpload(files) {
     const { error } = await sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })
     if (!error) {
       const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
-      await sb.from('gallery').insert({ url: publicUrl, caption: '', category, order_index: nextOrder++ })
+      const { data: added } = await sb.from('gallery')
+        .insert({ url: publicUrl, caption: '', category, order_index: nextOrder++ })
+        .select('id').single()
+      if (added) _justUploaded.add(added.id)
     }
     done++
     fill.style.width = `${(done / files.length) * 100}%`
@@ -3211,18 +3601,8 @@ async function handleGalleryUpload(files) {
   loadGallery()
 }
 
-async function updateCaption(id, caption) {
-  await sb.from('gallery').update({ caption }).eq('id', id)
-}
-
-async function updateCategory(id, category) {
-  await sb.from('gallery').update({ category }).eq('id', id)
-  const ph = galleryItems.find(x => x.id === id)
-  if (ph) ph.category = category
-  showToast('Đã cập nhật danh mục!')
-  renderGalleryGrid()          // chip đếm + badge cập nhật theo
-  renderGalleryCatManager()
-}
+// (Đã bỏ updateCaption / updateCategory — chú thích và danh mục giờ sửa
+//  trong màn chi tiết ảnh qua saveGalItem, không còn ô nhập ngoài lưới.)
 
 async function deleteGalleryItem(id) {
   if (!(await askConfirm({ title: 'Xóa ảnh này?', message: 'Ảnh sẽ bị xóa khỏi Gallery và kho lưu trữ.', okLabel: 'Xóa ảnh' }))) return
@@ -3636,7 +4016,8 @@ const orderThumbHTML = o => {
 }
 // Tên/SĐT khách: ưu tiên khách đã ghép, fallback sang tên snapshot trên đơn (đã escape)
 const orderCustomerName = o => esc(o.customers?.name || o.customer_name || '—')
-const orderCustomerPhone = o => esc(o.customers?.phone || '—')
+// Ưu tiên số trong sổ khách; nếu khách đã bị xoá thì dùng số đã chép vào đơn
+const orderCustomerPhone = o => esc(o.customers?.phone || o.customer_phone || '—')
 
 async function loadOrders() {
   const el = document.getElementById('ordersTable')
@@ -4347,6 +4728,7 @@ function renderCustomers() {
     <td class="actions">
       <button class="btn-edit" onclick="openCustomerModal(${c.id})">✏️ Sửa</button>
       <button class="btn-edit" onclick="viewCustomerOrders(${c.id})">📦 Xem đơn</button>
+      <button class="btn-delete" onclick="deleteCustomer(${c.id})">🗑 Xóa</button>
     </td>
   </tr>`).join('')}</tbody>
 </table>
@@ -4361,8 +4743,51 @@ function renderCustomers() {
     <div class="mc-actions">
       <button class="btn-edit" onclick="openCustomerModal(${c.id})">✏️ Sửa</button>
       <button class="btn-edit" onclick="viewCustomerOrders(${c.id})">📦 Xem đơn</button>
+      <button class="btn-delete" onclick="deleteCustomer(${c.id})">🗑 Xóa</button>
     </div>
   </div>`).join('')}</div>${moreBtnHTML('customers', cuMore, 'renderCustomers', 'khách')}`
+}
+
+// ── Xoá khách khỏi sổ ─────────────────────────────────────────
+// Đơn hàng KHÔNG bị xoá theo (khoá ngoại đặt "on delete set null"), nhưng đơn
+// chỉ lưu snapshot TÊN chứ không lưu SĐT → phải chép số vào đơn TRƯỚC KHI xoá,
+// nếu không lịch sử đơn mất số liên hệ mà không ai hay.
+async function deleteCustomer(id) {
+  const c = customers.find(x => x.id === id)
+  if (!c) return
+
+  const { count, error: cntErr } = await sb
+    .from('orders').select('id', { count: 'exact', head: true }).eq('customer_id', id)
+  if (cntErr) { showToast('Không đếm được đơn của khách: ' + cntErr.message, 'error'); return }
+  const n = count || 0
+
+  const ok = await askConfirm({
+    title: `Xóa "${c.name || c.phone}" khỏi sổ khách?`,
+    message: n
+      ? `Khách này có ${n} đơn. Đơn KHÔNG bị xóa — số điện thoại sẽ được chép vào từng đơn để sau này vẫn gọi được. Chỉ mất tên khách trong sổ.`
+      : 'Khách chưa có đơn nào. Xóa khỏi sổ và khỏi danh sách gợi ý khi lên đơn.',
+    okLabel: 'Xóa khách',
+  })
+  if (!ok) return
+
+  // Chép số vào đơn trước, xoá sau — thứ tự này quan trọng
+  if (n && c.phone) {
+    const { error } = await sb.from('orders')
+      .update({ customer_phone: c.phone }).eq('customer_id', id)
+    if (error) {
+      showToast(
+        error.message.includes('customer_phone')
+          ? 'Cần chạy file supabase/order_phone_snapshot.sql trước khi xóa khách có đơn'
+          : 'Lỗi: ' + error.message, 'error')
+      return
+    }
+  }
+
+  const { error } = await sb.from('customers').delete().eq('id', id)
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  showToast(n ? `Đã xóa khách — ${n} đơn vẫn giữ nguyên` : 'Đã xóa khách')
+  loadCustomers()
+  if (orders.length) loadOrders()   // đơn liên quan cần vẽ lại theo số vừa chép
 }
 
 async function viewCustomerOrders(id) {
