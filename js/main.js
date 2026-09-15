@@ -1215,13 +1215,20 @@ function initBackToTop() {
 
 // iOS: bàn phím mở làm vùng nhìn thấy co lại, nhưng lớp phủ position:fixed vẫn neo theo
 // màn hình đầy đủ → nút gửi đơn nằm dưới bàn phím. Ghi vùng nhìn thấy THẬT vào biến CSS.
+// --vvh/--vvtop ở đây CHỈ modal đọc (xem css/style.css), không dính chiều cao trang
+// — nên web khách không bị lỗi khung như admin từng bị. Vẫn chặn ghi lặp cho đỡ giật:
+// iOS bắn scroll mỗi frame, ghi biến CSS trên :root mỗi lần là bắt tính lại style cả trang.
 function initViewportFix() {
   const vv = window.visualViewport;
   if (!vv) return;
+  const r = document.documentElement.style;
+  const setVar = (name, px) => {
+    const v = Math.round(px) + 'px';
+    if (r.getPropertyValue(name) !== v) r.setProperty(name, v);
+  };
   const apply = () => {
-    const r = document.documentElement.style;
-    r.setProperty('--vvh', vv.height + 'px');
-    r.setProperty('--vvtop', (vv.offsetTop || 0) + 'px');
+    setVar('--vvh', vv.height);
+    setVar('--vvtop', vv.offsetTop || 0);
   };
   vv.addEventListener('resize', apply);
   vv.addEventListener('scroll', apply);

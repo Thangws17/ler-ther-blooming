@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test ô giá sản phẩm — Ler &amp; Ther Blooming</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; padding: 24px; font: 14px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+         background: #FAF8F5; color: #2B2B2B; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6B6B6B; margin: 0 0 20px; }
+  .sub code { background: #EFEAE3; padding: 1px 5px; border-radius: 4px; }
+  #tongket { padding: 12px 16px; border-radius: 10px; font-weight: 600; margin-bottom: 18px; }
+  .ok-box   { background: #E8F5E9; color: #1B5E20; border: 1px solid #A5D6A7; }
+  .fail-box { background: #FFEBEE; color: #B71C1C; border: 1px solid #EF9A9A; }
+  h2 { font-size: 15px; margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #E5DFD7; }
+  .ca { display: flex; gap: 8px; padding: 5px 0; align-items: baseline; }
+  .dau { flex: 0 0 18px; font-weight: 700; }
+  .ok .dau { color: #2E7D32; }
+  .fail .dau { color: #C62828; }
+  .fail { background: #FFF5F5; border-radius: 6px; padding-left: 6px; }
+  .ten { flex: 1; }
+  .chitiet { display: block; color: #C62828; font-family: ui-monospace, Consolas, monospace;
+             font-size: 12.5px; white-space: pre-wrap; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🌸 Test ô giá sản phẩm</h1>
+  <p class="sub">Lấy hàm thật trong <code>admin/index.html</code> ra chạy — không copy code, nên sửa admin
+     là test biết ngay. Chạy qua server: <code>python -m http.server 8765</code> rồi mở
+     <code>/test/test-gia-san-pham.html</code>.</p>
+  <div id="tongket">Đang chạy…</div>
+  <div id="kq"></div>
+</div>
+
+<script>
+// ══ Khung test nho nhỏ ═══════════════════════════════════════════════
+// Dự án không có npm/node nên tự viết, đủ dùng là được.
+let soOk = 0, soFail = 0
+const boxKq = document.getElementById('kq')
+
+function nhom(ten) {
+  const h = document.createElement('h2')
+  h.textContent = ten
+  boxKq.appendChild(h)
+}
+
+function test(ten, fn) {
+  const row = document.createElement('div')
+  row.className = 'ca'
+  row.innerHTML = '<span class="dau"></span><span class="ten"></span>'
+  const dau = row.querySelector('.dau'), t = row.querySelector('.ten')
+  t.textContent = ten
+  try {
+    fn()
+    soOk++
+    row.classList.add('ok')
+    dau.textContent = '✓'
+  } catch (e) {
+    soFail++
+    row.classList.add('fail')
+    dau.textContent = '✕'
+    const ct = document.createElement('span')
+    ct.className = 'chitiet'
+    ct.textContent = e.message
+    t.appendChild(ct)
+  }
+  boxKq.appendChild(row)
+}
+
+function bang(thuc, mong, ghiChu = '') {
+  const a = JSON.stringify(thuc), b = JSON.stringify(mong)
+  if (a !== b) throw new Error((ghiChu ? ghiChu + '\n' : '') + 'mong đợi: ' + b + '\nnhận được: ' + a)
+}
+
+// ══ Bốc code thật từ admin/index.html ════════════════════════════════
+// Khối giá nằm giữa 2 mốc này. Ai đổi tên hay dời khối thì test báo đỏ
+// ngay ở đây — cố ý, để người sửa biết mà cập nhật test luôn.
+const MOC_DAU  = '// ── Ô giá sản phẩm'
+const MOC_CUOI = 'function openModal('
+
+async function napKhoiGia(stub) {
+  // no-store + tham số ?t= : bắt buộc, không thì trình duyệt đưa lại bản
+  // admin/index.html trong cache và test đi kiểm code CŨ mà vẫn báo xanh
+  const res = await fetch('../admin/index.html?t=' + Date.now(), { cache: 'no-store' })
+  if (!res.ok) throw new Error('Không đọc được admin/index.html (HTTP ' + res.status + ')')
+  const src = await res.text()
+  const i = src.indexOf(MOC_DAU)
+  const j = src.indexOf(MOC_CUOI, i)
+  if (i < 0 || j < 0) {
+    throw new Error('Không tìm thấy khối code giá trong admin/index.html.\n' +
+      'Mốc cần có: "' + MOC_DAU + '" … "' + MOC_CUOI + '".\n' +
+      'Khối đã bị đổi tên hay dời chỗ → sửa lại 2 mốc ở đầu file test này.')
+  }
+  // Truyền document/products vào làm tham số để che biến toàn cục của admin
+  const tao = new Function('document', 'products', src.slice(i, j) +
+    '\n; return { _priceIsText, onPriceInput, priceToInput, priceToSave, renderPriceChips, setPriceQuick }')
+  return tao(stub.document, stub.products)
+}
+
+// ══ Đồ giả lập DOM ═══════════════════════════════════════════════════
+function taoWrap() {
+  const cls = new Set()
+  return {
+    classList: {
+      add: c => cls.add(c),
+      remove: c => cls.delete(c),
+      toggle: (c, on) => (on ? cls.add(c) : cls.delete(c)),
+      contains: c => cls.has(c)
+    }
+  }
+}
+
+// Ô nhập giả: giữ value + vị trí con trỏ như input thật
+function taoO(value = '', caret = null) {
+  const wrap = taoWrap()
+  const overlay = { dataset: {} }
+  const pos = caret == null ? value.length : caret
+  return {
+    value,
+    selectionStart: pos,
+    selectionEnd: pos,
+    _wrap: wrap,
+    _overlay: overlay,
+    setSelectionRange(a, b) { this.selectionStart = a; this.selectionEnd = b },
+    closest(sel) {
+      if (sel === '.price-wrap') return wrap
+      if (sel === '.modal-overlay') return overlay
+      return null
+    },
+    focus() {}
+  }
+}
+
+const taoDocument = (map = {}) => ({ getElementById: id => map[id] || null })
+
+// Đọc chữ trên các nút chip ra mảng, khỏi phải dò HTML thô
+function docChip(html) {
+  const d = document.createElement('div')
+  d.innerHTML = html
+  return [...d.querySelectorAll('.price-chip')].map(b => b.textContent)
+}
+
+// ══ Chạy ═════════════════════════════════════════════════════════════
+;(async function main() {
+  let M
+  try {
+    M = await napKhoiGia({ document: taoDocument(), products: [] })
+  } catch (e) {
+    const tk = document.getElementById('tongket')
+    tk.className = 'fail-box'
+    tk.textContent = '✕ Không nạp được code: ' + e.message
+    return
+  }
+
+  // ── 1. Phân biệt giá số và giá chữ ──────────────────────────────
+  nhom('1. _priceIsText — số hay chữ')
+  test('"350000" là số', () => bang(M._priceIsText('350000'), false))
+  test('"350.000" (có dấu chấm) vẫn là số', () => bang(M._priceIsText('350.000'), false))
+  test('"350.000 đ" vẫn là số — chữ "đ" không tính', () => bang(M._priceIsText('350.000 đ'), false))
+  test('"350000d" vẫn là số — gõ nhanh bỏ dấu', () => bang(M._priceIsText('350000d'), false))
+  test('"Liên hệ" là chữ', () => bang(M._priceIsText('Liên hệ'), true))
+  test('Ô rỗng coi như số', () => bang(M._priceIsText(''), false))
+  test('null/undefined không làm vỡ hàm', () => {
+    bang(M._priceIsText(null), false)
+    bang(M._priceIsText(undefined), false)
+  })
+
+  // ── 2. CSDL → ô nhập ────────────────────────────────────────────
+  nhom('2. priceToInput — từ CSDL ra ô nhập')
+  test('Số trần 350000 → "350.000"', () => bang(M.priceToInput(350000), '350.000'))
+  test('Chuỗi "350000" → "350.000"', () => bang(M.priceToInput('350000'), '350.000'))
+  test('Dữ liệu cũ "350.000đ" vẫn đọc được → "350.000"', () => bang(M.priceToInput('350.000đ'), '350.000'))
+  test('"Liên hệ" giữ nguyên', () => bang(M.priceToInput('Liên hệ'), 'Liên hệ'))
+  test('null → ô rỗng', () => bang(M.priceToInput(null), ''))
+  test('Triệu có 2 dấu chấm: 1500000 → "1.500.000"', () => bang(M.priceToInput(1500000), '1.500.000'))
+
+  // ── 3. Ô nhập → CSDL ────────────────────────────────────────────
+  nhom('3. priceToSave — lưu xuống CSDL')
+  test('"350.000" lưu thành số trần "350000"', () => bang(M.priceToSave('350.000'), '350000'))
+  test('"350.000 đ" lưu thành "350000"', () => bang(M.priceToSave('350.000 đ'), '350000'))
+  test('"Liên hệ" lưu y nguyên', () => bang(M.priceToSave('Liên hệ'), 'Liên hệ'))
+  test('Ô rỗng lưu rỗng', () => bang(M.priceToSave(''), ''))
+  test('Đi vòng CSDL → ô → CSDL không rơi số', () =>
+    bang(M.priceToSave(M.priceToInput(1500000)), '1500000'))
+
+  // ── 4. Gõ vào ô: tự chèn dấu chấm ───────────────────────────────
+  nhom('4. onPriceInput — tự chèn dấu chấm')
+  test('Gõ "350000" → "350.000"', () => {
+    const el = taoO('350000'); M.onPriceInput(el); bang(el.value, '350.000')
+  })
+  test('Có chữ số thì bật class has-num (để hiện chữ "đ")', () => {
+    const el = taoO('350000'); M.onPriceInput(el)
+    bang(el._wrap.classList.contains('has-num'), true)
+  })
+  test('Gõ "Liên hệ" → không đụng vào, tắt has-num (ẩn chữ "đ")', () => {
+    const el = taoO('Liên hệ'); M.onPriceInput(el)
+    bang(el.value, 'Liên hệ')
+    bang(el._wrap.classList.contains('has-num'), false)
+  })
+  test('Mới gõ mỗi chữ "d" → không xoá của người ta', () => {
+    const el = taoO('d'); M.onPriceInput(el); bang(el.value, 'd')
+  })
+  test('Xoá hết → ô rỗng, tắt has-num', () => {
+    const el = taoO(''); M.onPriceInput(el)
+    bang(el.value, '')
+    bang(el._wrap.classList.contains('has-num'), false)
+  })
+
+  // ── 5. Con trỏ — chính là lỗi đã sửa ở b99cba3 ──────────────────
+  nhom('5. Vị trí con trỏ khi sửa giá giữa chuỗi')
+  test('Gõ cuối chuỗi: con trỏ ở cuối', () => {
+    const el = taoO('350000'); M.onPriceInput(el)
+    bang([el.value, el.selectionStart], ['350.000', 7])
+  })
+  test('Chèn "4" sau số đầu của "350.000" → con trỏ đứng ngay sau số vừa gõ', () => {
+    // Trình duyệt chèn xong mới bắn event: value "3450.000", con trỏ ở vị trí 2
+    const el = taoO('3450.000', 2)
+    M.onPriceInput(el)
+    bang(el.value, '3.450.000')
+    // '3' '.' '4' → đứng sau chữ số thứ 2, tức vị trí 3. Lỗi cũ hất về cuối (9).
+    bang(el.selectionStart, 3, 'Con trỏ bị hất đi chỗ khác — lỗi cũ đã tái xuất')
+  })
+  test('Xoá số ở giữa: con trỏ không nhảy về cuối', () => {
+    // "1.350.000" xoá số '3' → value "1.50.000", con trỏ ở vị trí 2
+    const el = taoO('1.50.000', 2)
+    M.onPriceInput(el)
+    bang(el.value, '150.000')
+    bang(el.selectionStart, 1, 'Sau khi xoá, con trỏ phải ở sau chữ số thứ 1')
+  })
+  test('Con trỏ ở đầu chuỗi thì vẫn ở đầu', () => {
+    const el = taoO('350000', 0); M.onPriceInput(el)
+    bang([el.value, el.selectionStart], ['350.000', 0])
+  })
+
+  // ── 6. Dãy giá hay dùng ─────────────────────────────────────────
+  nhom('6. renderPriceChips — dãy giá hay dùng')
+
+  // Mỗi lần gọi phải nạp lại khối code vì `products` là tham số cố định
+  async function chipsVoi(products) {
+    const box  = { innerHTML: '' }
+    const wrap = { style: {} }
+    const M2 = await napKhoiGia({
+      document: taoDocument({ fPriceChips: box, fPriceChipsWrap: wrap }),
+      products
+    })
+    M2.renderPriceChips()
+    return { chips: docChip(box.innerHTML), wrap }
+  }
+
+  const nhieuLan = (gia, lan) => Array.from({ length: lan }, () => ({ price: gia }))
+
+  // Chọn theo SỐ LẦN DÙNG, rồi mới xếp theo giá tăng dần — 2 bước, không gộp
+  const dsBonMuc = [
+    ...nhieuLan(450000, 5), ...nhieuLan(400000, 4),
+    ...nhieuLan(350000, 3), ...nhieuLan(220000, 2)
+  ]
+  const r1 = await chipsVoi(dsBonMuc)
+  test('4 mức hiện đúng thứ tự giá TĂNG DẦN', () =>
+    bang(r1.chips, ['220.000đ', '350.000đ', '400.000đ', '450.000đ'],
+      'Ra 450 → 400 → 350 → 220 tức là đang xếp theo số lần dùng (lỗi cũ)'))
+
+  const r2 = await chipsVoi([...dsBonMuc, { price: 'Liên hệ' }, { price: null }, { price: 500 }])
+  test('Bỏ qua "Liên hệ", giá rỗng và giá dưới 1.000', () =>
+    bang(r2.chips, ['220.000đ', '350.000đ', '400.000đ', '450.000đ']))
+
+  // 7 mức khác nhau → chỉ giữ 6 mức HAY DÙNG NHẤT (không phải 6 mức rẻ nhất)
+  const r3 = await chipsVoi([
+    ...nhieuLan(100000, 1),   // ít dùng nhất → phải bị loại dù rẻ nhất
+    ...nhieuLan(200000, 5), ...nhieuLan(300000, 5), ...nhieuLan(400000, 5),
+    ...nhieuLan(500000, 5), ...nhieuLan(600000, 5), ...nhieuLan(700000, 5)
+  ])
+  test('Trên 6 mức thì chỉ vẽ 6 nút', () => bang(r3.chips.length, 6))
+  test('Loại mức ÍT dùng nhất, không loại mức đắt nhất', () =>
+    bang(r3.chips, ['200.000đ', '300.000đ', '400.000đ', '500.000đ', '600.000đ', '700.000đ'],
+      'Mức 100.000đ (dùng 1 lần) phải bị loại, 700.000đ phải còn'))
+
+  const r4 = await chipsVoi([])
+  test('Chưa có sản phẩm nào → giấu hẳn khối chip', () => {
+    bang(r4.chips, [])
+    bang(r4.wrap.style.display, 'none')
+  })
+  test('Có sản phẩm → khối chip hiện lại', () => bang(r1.wrap.style.display, ''))
+
+  // ── 7. Bấm chip ─────────────────────────────────────────────────
+  nhom('7. setPriceQuick — bấm chip điền giá')
+  const elQ = taoO('')
+  const MQ = await napKhoiGia({ document: taoDocument({ fPrice: elQ }), products: [] })
+  MQ.setPriceQuick('450000')
+  test('Bấm chip → ô giá thành "450.000"', () => bang(elQ.value, '450.000'))
+  test('Bấm chip cũng tính là "đang nhập dở" (chặn đóng modal làm mất dữ liệu)', () =>
+    bang(elQ._overlay.dataset.dirty, '1'))
+
+  // ── Tổng kết ────────────────────────────────────────────────────
+  const tk = document.getElementById('tongket')
+  tk.className = soFail ? 'fail-box' : 'ok-box'
+  tk.textContent = soFail
+    ? '✕ ' + soFail + ' ca FAIL / ' + (soOk + soFail) + ' ca'
+    : '✓ Tất cả ' + soOk + ' ca đều PASS'
+})()
+</script>
+</body>
+</html>

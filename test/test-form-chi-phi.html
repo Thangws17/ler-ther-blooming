@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test form chi phí (ngày + ô tiền) — Ler &amp; Ther Blooming</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; padding: 24px; font: 14px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+         background: #FAF8F5; color: #2B2B2B; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6B6B6B; margin: 0 0 20px; }
+  .sub code { background: #EFEAE3; padding: 1px 5px; border-radius: 4px; }
+  #tongket { padding: 12px 16px; border-radius: 10px; font-weight: 600; margin-bottom: 18px; }
+  .ok-box   { background: #E8F5E9; color: #1B5E20; border: 1px solid #A5D6A7; }
+  .fail-box { background: #FFEBEE; color: #B71C1C; border: 1px solid #EF9A9A; }
+  h2 { font-size: 15px; margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #E5DFD7; }
+  .ca { display: flex; gap: 8px; padding: 5px 0; align-items: baseline; }
+  .dau { flex: 0 0 18px; font-weight: 700; }
+  .ok .dau { color: #2E7D32; }
+  .fail .dau { color: #C62828; }
+  .fail { background: #FFF5F5; border-radius: 6px; padding-left: 6px; }
+  .ten { flex: 1; }
+  .chitiet { display: block; color: #C62828; font-family: ui-monospace, Consolas, monospace;
+             font-size: 12.5px; white-space: pre-wrap; margin-top: 2px; }
+  #dt { width: 390px; height: 700px; border: 0; position: absolute; left: -9999px; top: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>💰 Test form "Thêm chi phí"</h1>
+  <p class="sub">Canh 3 lỗi trong ảnh: <b>ô NGÀY dùng lịch iOS</b>, <b>ô tiền không có dấu chấm</b>,
+     <b>form bị đẩy lên cụt đầu</b>. Nạp <code>/admin/</code> vào khung 390px, mở form thật rồi thao tác.
+     <b>Không đăng nhập</b>, không ghi gì vào CSDL.</p>
+  <div id="tongket">Đang chạy…</div>
+  <div id="kq"></div>
+</div>
+<iframe id="dt" src="../admin/index.html"></iframe>
+
+<script>
+let soOk = 0, soFail = 0
+const boxKq = document.getElementById('kq')
+
+function nhom(ten) {
+  const h = document.createElement('h2')
+  h.textContent = ten
+  boxKq.appendChild(h)
+}
+
+function test(ten, fn) {
+  const row = document.createElement('div')
+  row.className = 'ca'
+  row.innerHTML = '<span class="dau"></span><span class="ten"></span>'
+  const dau = row.querySelector('.dau'), t = row.querySelector('.ten')
+  t.textContent = ten
+  try {
+    fn()
+    soOk++; row.classList.add('ok'); dau.textContent = '✓'
+  } catch (e) {
+    soFail++; row.classList.add('fail'); dau.textContent = '✕'
+    const ct = document.createElement('span')
+    ct.className = 'chitiet'
+    ct.textContent = e.message
+    t.appendChild(ct)
+  }
+  boxKq.appendChild(row)
+}
+
+function bang(thuc, mong, ghiChu = '') {
+  const a = JSON.stringify(thuc), b = JSON.stringify(mong)
+  if (a !== b) throw new Error((ghiChu ? ghiChu + '\n' : '') + 'mong đợi: ' + b + '\nnhận được: ' + a)
+}
+
+const dt = document.getElementById('dt')
+
+;(async function main() {
+  // iframe có thể đã tải xong TRƯỚC khi dòng này chạy (server local nhanh) → khi đó
+  // sự kiện load không bao giờ bắn nữa, chờ mãi. Kiểm readyState trước đã.
+  await new Promise(res => {
+    const xong = () => { try { return dt.contentDocument.readyState === 'complete' && dt.contentWindow.location.href !== 'about:blank' } catch { return false } }
+    if (xong()) return res()
+    dt.addEventListener('load', res, { once: true })
+  })
+  await new Promise(res => setTimeout(res, 1200))
+
+  const w = dt.contentWindow, d = dt.contentDocument
+  const css = el => w.getComputedStyle(el)
+  const id  = x => d.getElementById(x)
+
+  if (typeof w.openExpenseModal !== 'function') {
+    const tk = document.getElementById('tongket')
+    tk.className = 'fail-box'
+    tk.textContent = '✕ admin/index.html không nạp được JS (lỗi cú pháp?) — openExpenseModal không tồn tại'
+    return
+  }
+
+  id('appWrap').style.display = 'flex'
+  w.openExpenseModal()                    // mở form "Thêm chi phí" (không truyền id = thêm mới)
+  await new Promise(res => setTimeout(res, 80))
+
+  const hnay = new Date().toLocaleDateString('sv-SE')
+  const dmy  = x => { const [y,m,dd] = x.split('-'); return dd + '/' + m + '/' + y }
+
+  // ── 1. Không còn lịch mặc định của iOS ──────────────────────────
+  nhom('1. Ô NGÀY — bỏ lịch mặc định của iOS')
+  test('Toàn trang admin KHÔNG còn input type="date" nào', () => {
+    const con = [...d.querySelectorAll('input[type="date"]')].map(e => e.id)
+    bang(con, [], 'Còn ô nào là iOS còn vẽ control riêng, vẫn lệch khung')
+  })
+  test('Cả 4 ô ngày đều thành nút + lịch tự vẽ', () => {
+    const thieu = ['exDate','oeDate','noDate','clDate'].filter(x =>
+      !id(x) || id(x).type !== 'hidden' || !id(x + 'Btn') || !id(x + 'Pop'))
+    bang(thieu, [])
+  })
+  test('Modal đang mở và nút ngày nhìn thấy được', () => {
+    bang(id('expenseModal').style.display, 'flex')
+    if (id('exDateBtn').offsetHeight < 20) throw new Error('nút ngày cao ' + id('exDateBtn').offsetHeight + 'px')
+  })
+  test('Nút ngày cao bằng ô nhập khác (không lệch khung như iOS)', () => {
+    const a = id('exDateBtn').offsetHeight, b = id('exItem').offsetHeight
+    if (Math.abs(a - b) > 2) throw new Error('nút ngày ' + a + 'px, ô Mặt hàng ' + b + 'px — lệch nhau')
+  })
+  test('Nút ngày rộng đúng bằng ô nhập khác', () => {
+    const a = id('exDateBtn').offsetWidth, b = id('exCategory').offsetWidth
+    if (Math.abs(a - b) > 2) throw new Error('nút ' + a + 'px vs select ' + b + 'px')
+  })
+
+  // ── 2. Mở form là có sẵn ngày hôm nay ───────────────────────────
+  nhom('2. Giá trị ngày và chữ trên nút')
+  test('Thêm mới thì tự điền ngày hôm nay', () => bang(id('exDate').value, hnay))
+  test('Nút hiện "Hôm nay" chứ không phải chuỗi kiểu iOS', () =>
+    bang(id('exDateBtn').querySelector('.db-txt').textContent, 'Hôm nay'))
+  test('Nhãn trên nút không bao giờ xuống 2 dòng', () =>
+    bang(css(id('exDateBtn').querySelector('.db-txt')).whiteSpace, 'nowrap',
+      'Xuống dòng là nút cao hơn ô nhập khác một bậc — đúng lỗi lệch khung'))
+  test('Ngày lưu vẫn là dạng yyyy-mm-dd cho CSDL', () => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(id('exDate').value))
+      throw new Error('exDate = "' + id('exDate').value + '"')
+  })
+
+  // ── 3. Lịch bấm được ────────────────────────────────────────────
+  nhom('3. Lịch tự vẽ hoạt động')
+  w.openFormDate('exDate')
+  await new Promise(res => setTimeout(res, 50))
+  test('Bấm nút thì lịch mở ra', () => bang(id('exDatePop').style.display, 'block'))
+  test('Lịch vẽ đủ 7 thứ, bắt đầu từ T2', () => {
+    const dow = [...id('exDatePop').querySelectorAll('.cal-dow')].map(e => e.textContent)
+    bang(dow, ['T2','T3','T4','T5','T6','T7','CN'])
+  })
+  test('Có ô ngày bấm được và ngày hôm nay được tô', () => {
+    const ngay = id('exDatePop').querySelectorAll('.cal-day:not(.cal-empty)')
+    if (ngay.length < 28) throw new Error('chỉ có ' + ngay.length + ' ngày')
+    if (!id('exDatePop').querySelector('.cal-today')) throw new Error('không thấy .cal-today')
+  })
+  test('Ngày đang chọn được làm nổi', () =>
+    bang(!!id('exDatePop').querySelector('.cal-selected'), true))
+
+  // Cách đây 100 hôm: chắc chắn không phải hôm nay/mai/hôm qua, nên nhãn
+  // phải là dd/mm/yyyy — nếu lấy ngày gần, test sẽ chập chờn theo lịch
+  const ngayXa = new Date(Date.now() - 100 * 86400000).toLocaleDateString('sv-SE')
+  w.fdPick('exDate', ngayXa)
+  test('Bấm một ngày → lưu đúng vào ô ẩn', () => bang(id('exDate').value, ngayXa))
+  test('Ngày không phải hôm nay thì nút hiện dd/mm/yyyy', () =>
+    bang(id('exDateBtn').querySelector('.db-txt').textContent, dmy(ngayXa)))
+  test('Chọn xong thì lịch tự đóng', () => bang(id('exDatePop').style.display, 'none'))
+  test('Chọn ngày cũng tính là "đang nhập dở" (bấm ✕ sẽ hỏi lại)', () =>
+    bang(id('expenseModal').dataset.dirty, '1'))
+
+  w.fdStepMonth('exDate', -1)
+  test('Nút ‹ lùi được sang tháng trước', () => {
+    const [y, m] = hnay.split('-').map(Number)
+    const truoc = new Date(y, m - 2, 1)
+    const mong = 'Tháng ' + (truoc.getMonth() + 1) + '/' + truoc.getFullYear()
+    bang(id('exDatePop').querySelector('.date-pop-title').textContent, mong)
+  })
+  w.fdPick('exDate', hnay)
+
+  test('Ô ngày giao (đơn hàng) cho bỏ trống, ngày chi phí thì không', () => {
+    bang(id('noDate').dataset.optional, '1')
+    bang(id('exDate').dataset.optional, undefined)
+  })
+
+  // ── 4. Ô tiền có dấu chấm hàng nghìn ────────────────────────────
+  nhom('4. Ô ĐƠN GIÁ / THÀNH TIỀN — dấu chấm hàng nghìn')
+  test('Hai ô tiền dùng type=text (type=number không cho hiện dấu chấm)', () => {
+    bang(id('exUnitPrice').type, 'text')
+    bang(id('exAmount').type, 'text')
+  })
+  test('Vẫn bật bàn phím số trên điện thoại (inputmode=numeric)', () => {
+    bang(id('exUnitPrice').getAttribute('inputmode'), 'numeric')
+    bang(id('exAmount').getAttribute('inputmode'), 'numeric')
+  })
+
+  function go(el, val, caret) {
+    el.value = val
+    el.selectionStart = el.selectionEnd = (caret == null ? val.length : caret)
+    w.onMoneyInput(el)
+  }
+
+  test('Gõ 5000 → "5.000"', () => { go(id('exUnitPrice'), '5000'); bang(id('exUnitPrice').value, '5.000') })
+  test('Gõ 1500000 → "1.500.000"', () => { go(id('exAmount'), '1500000'); bang(id('exAmount').value, '1.500.000') })
+  test('Gõ chữ vào ô tiền thì bị loại, chỉ giữ số', () => {
+    go(id('exAmount'), '12a3b4'); bang(id('exAmount').value, '1.234')
+  })
+  test('Xoá hết thì ô rỗng, không thành "0"', () => {
+    go(id('exAmount'), ''); bang(id('exAmount').value, '')
+  })
+  test('Sửa số giữa chuỗi: con trỏ không nhảy về cuối', () => {
+    // "350.000" chèn '4' sau số đầu → trình duyệt để value "3450.000", con trỏ ở 2
+    go(id('exAmount'), '3450.000', 2)
+    bang(id('exAmount').value, '3.450.000')
+    bang(id('exAmount').selectionStart, 3, 'Con trỏ phải đứng ngay sau số vừa gõ')
+  })
+
+  // ── 5. Tự tính thành tiền ───────────────────────────────────────
+  nhom('5. Tự tính SL × đơn giá')
+  test('SL 50 × đơn giá 5.000 → thành tiền "250.000"', () => {
+    id('exQty').value = '50'
+    go(id('exUnitPrice'), '5000')
+    w.exUpdateAmount()
+    bang(id('exAmount').value, '250.000')
+  })
+  test('Chưa có đơn giá thì không tự ghi đè thành tiền', () => {
+    go(id('exUnitPrice'), '')
+    go(id('exAmount'), '99000')
+    w.exUpdateAmount()
+    bang(id('exAmount').value, '99.000')
+  })
+  // moneyNum/moneySet khai báo bằng `const` nên không nằm trên window, gọi từ
+  // ngoài iframe không tới. Bốc đúng khối code đó ra sandbox mà chạy — vẫn là
+  // code thật trong admin/index.html, không phải bản copy.
+  const M = await (async () => {
+    const src = await (await fetch('../admin/index.html?t=' + Date.now(), { cache: 'no-store' })).text()
+    const i = src.indexOf('// ── Ô tiền trong form: gõ số trần')
+    const j = src.indexOf('// ── Bộ chọn ngày giao (popover lịch, thay input date thô) ──', i)
+    if (i < 0 || j < 0) throw new Error('không tìm thấy khối helper ô tiền trong admin/index.html')
+    const o = {}
+    const tao = new Function('document', src.slice(i, j) +
+      '\n; return { onMoneyInput, moneyNum, moneySet }')
+    return tao({ getElementById: x => o[x] || (o[x] = { value: '' }) })
+  })()
+
+  test('moneyNum trả về SỐ trần để lưu CSDL', () => {
+    M.moneySet('a', 1500000)
+    bang(M.moneyNum('a'), 1500000)
+  })
+  test('Ô tiền trống → null, không phải 0 (đơn giá bỏ trống là hợp lệ)', () => {
+    M.moneySet('b', null)
+    bang(M.moneyNum('b'), null)
+  })
+  test('Số lẻ từ CSDL được làm tròn, không ra "45.000,5"', () => {
+    M.moneySet('c', 45000.6)
+    bang(M.moneyNum('c'), 45001)
+  })
+
+  // ── 5c. 3 form còn lại cũng phải chạy ───────────────────────────
+  // CLAUDE.md nhắc: đụng một chỗ thì rà đủ các chỗ giống nó, đã bỏ sót 2 lần
+  nhom('5c. Ô ngày của 3 form còn lại (sửa đơn, thêm đơn tay, ghi cập nhật)')
+  for (const f of ['oeDate', 'noDate', 'clDate']) {
+    test('[' + f + '] chọn ngày → lưu đúng + chữ trên nút đổi theo', () => {
+      w.fdPick(f, ngayXa)
+      bang(id(f).value, ngayXa)
+      bang(id(f + 'Btn').querySelector('.db-txt').textContent, dmy(ngayXa))
+    })
+    test('[' + f + '] lịch mở ra vẽ đủ ngày', () => {
+      w.openFormDate(f)
+      bang(id(f + 'Pop').style.display, 'block')
+      const n = id(f + 'Pop').querySelectorAll('.cal-day:not(.cal-empty)').length
+      if (n < 28) throw new Error('chỉ vẽ ' + n + ' ngày')
+      w.closeFormDatePops()
+    })
+  }
+  test('[noDate] ngày giao bỏ trống được → nút về "Chọn ngày"', () => {
+    w.fdClear('noDate')
+    bang(id('noDate').value, '')
+    bang(id('noDateBtn').querySelector('.db-txt').textContent, 'Chọn ngày')
+  })
+  test('Mở lịch ô này thì lịch ô khác tự đóng', () => {
+    w.openFormDate('oeDate')
+    w.openFormDate('clDate')
+    bang(id('oeDatePop').style.display, 'none')
+    bang(id('clDatePop').style.display, 'block')
+    w.closeFormDatePops()
+  })
+
+  // ── 6. Form không bị đẩy lên cụt đầu ────────────────────────────
+  nhom('6. Form không bị đẩy lên / cụt đầu')
+  test('Tiêu đề và nút Lưu luôn ghim, chỉ thân form cuộn', () => {
+    const box = id('expenseModal').querySelector('.modal-box')
+    bang(css(box.querySelector('.modal-header')).flexShrink, '0')
+    bang(css(box.querySelector('.modal-footer')).flexShrink, '0')
+    bang(css(box.querySelector('.modal-body')).overflowY, 'auto')
+  })
+  test('Có hàm trả độ cuộn trang về 0', () => bang(typeof w.resetPageScroll, 'function'))
+  test('Trang bị đẩy lệch → resetPageScroll kéo về 0', () => {
+    const se = d.scrollingElement || d.documentElement
+    se.scrollTop = 120
+    w.resetPageScroll()
+    bang(se.scrollTop, 0)
+  })
+  const se = d.scrollingElement || d.documentElement
+  id('exItem').dispatchEvent(new w.Event('focusin', { bubbles: true }))
+  se.scrollTop = 150                       // giả lập iOS đẩy trang sau khi bàn phím lên
+  await new Promise(res => setTimeout(res, 450))
+  test('Sau khi bàn phím lên, độ cuộn thừa bị dọn', () =>
+    bang(se.scrollTop, 0, 'Còn khác 0 là lớp phủ vẫn bị đẩy lên, form cụt đầu'))
+
+  test('Tiêu đề "Thêm chi phí" vẫn nhìn thấy trong khung modal', () => {
+    const h = id('expenseModalTitle').getBoundingClientRect()
+    const b = id('expenseModal').querySelector('.modal-box').getBoundingClientRect()
+    if (h.top < b.top - 1) throw new Error('tiêu đề nằm trên mép modal ' + Math.round(b.top - h.top) + 'px → cụt đầu')
+    if (h.top < 0) throw new Error('tiêu đề ra ngoài màn hình')
+  })
+
+  tongKet()
+})().catch(e => {
+  // Lỗi ném RA NGOÀI test() (ví dụ hàm chưa tồn tại) thì phải báo đỏ rõ ràng,
+  // đừng để ô tổng kết đứng nguyên chữ "Đang chạy…" trông như bị treo
+  soFail++
+  const row = document.createElement('div')
+  row.className = 'ca fail'
+  row.innerHTML = '<span class="dau">✕</span><span class="ten"></span>'
+  const t = row.querySelector('.ten')
+  t.textContent = 'Bộ test dừng giữa đường'
+  const ct = document.createElement('span')
+  ct.className = 'chitiet'
+  ct.textContent = (e && e.message) || String(e)
+  t.appendChild(ct)
+  boxKq.appendChild(row)
+  tongKet()
+})
+
+function tongKet() {
+  const tk = document.getElementById('tongket')
+  tk.className = soFail ? 'fail-box' : 'ok-box'
+  tk.textContent = soFail
+    ? '✕ ' + soFail + ' ca FAIL / ' + (soOk + soFail) + ' ca'
+    : '✓ Tất cả ' + soOk + ' ca đều PASS'
+}
+</script>
+</body>
+</html>

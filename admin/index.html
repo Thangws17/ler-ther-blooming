@@ -6,14 +6,23 @@
   <title>Quản trị — Ler & Ther Blooming</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', sans-serif; background: #f4f7f4; color: #1a2e1a; height: 100vh; overflow: hidden; }
+    /* ⚠️ KHÔNG dùng 100vh cho body. Trên iPhone 100vh = chiều cao màn hình lúc thanh
+       công cụ trình duyệt ĐÃ ẨN → cao hơn vùng thật sự nhìn thấy → trang có chỗ để
+       cuộn. overflow:hidden chỉ chặn ngón tay, KHÔNG chặn được iOS: bàn phím hiện là
+       iOS tự cuộn trang để lộ ô nhập, đóng bàn phím thì không cuộn trả → cả trang kẹt
+       lệch lên (mất thanh Admin, chữ "Đơn hàng" bị cắt), đáy trống một khúc.
+       Cao đúng bằng vùng nhìn thấy (--apph) thì trang không còn chỗ nào để cuộn. */
+    html { height: 100%; overflow: hidden; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f4f7f4; color: #1a2e1a;
+           height: 100%; height: var(--apph, 100dvh); overflow: hidden; overscroll-behavior: none; }
     input, textarea, select, button { font-family: inherit; font-size: .95rem; }
     a { text-decoration: none; color: inherit; }
 
     /* ── Login ────────────────────────────────── */
     #loginWrap {
       display: flex; align-items: center; justify-content: center;
-      min-height: 100vh; background: linear-gradient(135deg, #1B5E20, #43A047);
+      height: 100%; overflow-y: auto;   /* không dùng 100vh — xem ghi chú ở body */
+      background: linear-gradient(135deg, #1B5E20, #43A047);
       padding: 20px;
     }
     .login-card {
@@ -36,7 +45,7 @@
        để rộng bằng ô địa chỉ trông rất trống trải và khó liếc nhanh.
        Đặt trên .field-group để cả input lẫn select đều theo. */
     .fg-sm > input, .fg-sm > select { max-width: 220px; }
-    .fg-sm > input[type="date"] { max-width: 180px; }
+    .fg-sm > .date-pick-wrap { max-width: 180px; }   /* ô ngày giờ là nút + popover, không còn input[type=date] */
     /* Máy tính: nằm cạnh nhau như thường. Điện thoại: chiếm trọn hàng
        (khai báo trong khối ≤820px) để ô gợi ý khách đủ chỗ hiển thị. */
     .fg-wide { }
@@ -310,6 +319,33 @@
     .date-pop .cal-day.cal-selected .cal-dot { background: #fff; }
     .date-clear-btn { width: 100%; margin-top: 8px; padding: 8px; border: 1.5px solid #ddd; background: #fff; border-radius: 8px; color: #777; font-size: .85rem; font-weight: 600; cursor: pointer; }
     .date-clear-btn:hover { border-color: #E64A19; color: #E64A19; }
+    /* ── Nút chọn ngày trong form ──────────────────
+       Thay cho <input type="date">: iOS vẽ ô đó bằng control riêng của hệ
+       thống, không nghe padding/chiều cao mình đặt nên nó TRÀN khỏi khung bo
+       tròn, chữ lại ra kiểu "ngày 15 thg 9, 2026". Nút này ăn đúng style của
+       .field-group input nên nhìn đồng bộ với mọi ô khác trong form. */
+    .date-btn {
+      width: 100%; padding: 11px 14px; border: 1.5px solid #ddd; border-radius: 8px;
+      background: #fafafa; font-family: inherit; font-size: 1rem; color: #1a2e1a;
+      text-align: left; cursor: pointer; outline: none; transition: border-color .2s;
+      display: flex; align-items: center; gap: 8px;
+      /* Khoá line-height: emoji 📅 có line-box cao hơn chữ thường, không khoá
+         thì nút cao hơn các ô nhập khác ~20px, nhìn lệch hẳn một bậc */
+      line-height: 1.35;
+    }
+    .date-btn .db-ico { font-size: .95rem; line-height: 1; flex: 0 0 auto; }
+    /* Chốt một dòng: nhãn dài bất ngờ thì cắt bớt, tuyệt đối không xuống dòng
+       (xuống dòng là nút cao hơn các ô nhập khác, nhìn lệch hẳn) */
+    .date-btn .db-txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .date-btn:focus, .date-btn:active { border-color: #2E7D32; background: #fff; }
+    .date-btn .db-ph { color: #9aa89a; }   /* chưa chọn ngày thì chữ mờ như placeholder */
+    .form-date-pop { width: 296px; }
+    .date-today-btn {
+      width: 100%; margin-top: 8px; padding: 9px; border: 1.5px solid #2E7D32;
+      background: #fff; border-radius: 8px; color: #2E7D32; font-family: inherit;
+      font-size: .86rem; font-weight: 700; cursor: pointer;
+    }
+    .date-today-btn:hover { background: #2E7D32; color: #fff; }
     /* Nhật ký cập nhật */
     .cl-card { background: #fff; border: 1px solid #eef3ee; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 1px 6px rgba(0,0,0,.04); }
     .cl-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -740,11 +776,20 @@
       /* Chrome iOS: vì cuộn nằm TRONG khung .content nên thanh công cụ dưới không bao giờ
          tự thu lại. Lấy chiều cao vùng nhìn thấy thật (JS đo qua visualViewport → --vvh)
          để đáy khung cuộn dừng ngay trên thanh công cụ. */
-      #appWrap { height: var(--vvh, 100dvh); }
-      .content { padding: 0; }
+      /* Khung app xếp DỌC: thanh trên trên, khung cuộn dưới.
+         ⚠️ KHÔNG dùng --vvh cho chiều cao khung app. --vvh là chiều cao vùng
+         nhìn thấy: nó co lại khi bàn phím mở và nhảy liên tục trong lúc cuộn
+         (iOS bắn visualViewport scroll mỗi frame) → khung cuộn .content bị đổi
+         chiều cao NGAY GIỮA LÚC ĐANG CUỘN, iOS vẽ thẻ đơn ra trắng trơn và
+         thanh trên lệch chỗ bấm không trúng. --apph chỉ đổi khi cửa sổ đổi thật. */
+      #appWrap { height: var(--apph, 100dvh); flex-direction: column; }
+      /* min-height:0 là bắt buộc: thiếu nó thì flex item không co được, nội dung
+         dài sẽ tràn ra ngoài thay vì cuộn bên trong */
+      .content { padding: 0; flex: 1; min-height: 0; }
+      /* Thanh trên giờ là ANH EM của .content (nằm ngoài khung cuộn) nên tự đứng
+         yên — bỏ position:sticky, tránh luôn lỗi sticky-trong-khung-cuộn của iOS */
       .admin-topbar {
-        display: flex; align-items: center; gap: 12px;
-        position: sticky; top: 0; z-index: 900;
+        display: flex; align-items: center; gap: 12px; flex-shrink: 0;
         background: #162816; color: #fff; padding: 11px 14px;
       }
       .admin-topbar .hamburger { background: none; border: none; color: #fff; font-size: 1.5rem; line-height: 1; cursor: pointer; padding: 2px 8px; }
@@ -761,7 +806,7 @@
       .field-group { margin-bottom: 13px; }
       .field-group label { margin-bottom: 4px; }
       /* Ô ngắn đã nằm trong cột hẹp rồi, bỏ trần rộng để nó lấp đầy cột */
-      .fg-sm > input, .fg-sm > select, .fg-sm > input[type="date"] { max-width: none; }
+      .fg-sm > input, .fg-sm > select, .fg-sm > .date-pick-wrap { max-width: none; }
       .qty-step { width: 100%; max-width: 150px; }
       .fg-wide { grid-column: 1 / -1; }   /* tên khách + SĐT: cần trọn hàng trên điện thoại */
       /* Điện thoại: cho xuống 2 dòng và hiện đủ 6 mức giá — màn hẹp, xếp
@@ -846,12 +891,15 @@
   </aside>
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
+  <!-- Thanh trên (chỉ hiện trên điện thoại). CỐ Ý nằm NGOÀI .content:
+       để bên trong khung cuộn rồi dùng position:sticky thì iOS vẽ nó ở toạ độ cũ
+       — thấy thanh đè lên nội dung nhưng chạm không trúng. Ra ngoài khỏi cần sticky. -->
+  <div class="admin-topbar">
+    <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+    <span class="tb-brand">🌸 Admin</span>
+  </div>
+
   <main class="content">
-    <!-- Thanh trên (chỉ hiện trên điện thoại) -->
-    <div class="admin-topbar">
-      <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">☰</button>
-      <span class="tb-brand">🌸 Admin</span>
-    </div>
 
 
     <!-- Tổng quan -->
@@ -1392,7 +1440,13 @@
                Web khách cũng đã bỏ ô này — hai bên phải giống nhau. -->
           <div class="field-group fg-sm">
             <label>Ngày giao</label>
-            <input type="date" id="oeDate">
+            <div class="date-pick-wrap">
+              <button type="button" class="date-btn" id="oeDateBtn" onclick="openFormDate('oeDate')">
+                <span class="db-ico" aria-hidden="true">📅</span><span class="db-txt db-ph">Chọn ngày</span>
+              </button>
+              <input type="hidden" id="oeDate" data-optional="1">
+              <div id="oeDatePop" class="date-pop form-date-pop" style="display:none"></div>
+            </div>
           </div>
           <div class="field-group full">
             <label>Địa chỉ giao</label>
@@ -1498,7 +1552,13 @@
           <!-- Bỏ "Khu vực giao" — giống web khách, địa chỉ bên dưới là đủ -->
           <div class="field-group fg-sm">
             <label>Ngày giao</label>
-            <input type="date" id="noDate">
+            <div class="date-pick-wrap">
+              <button type="button" class="date-btn" id="noDateBtn" onclick="openFormDate('noDate')">
+                <span class="db-ico" aria-hidden="true">📅</span><span class="db-txt db-ph">Chọn ngày</span>
+              </button>
+              <input type="hidden" id="noDate" data-optional="1">
+              <div id="noDatePop" class="date-pop form-date-pop" style="display:none"></div>
+            </div>
           </div>
           <div class="field-group full">
             <label>Địa chỉ giao</label>
@@ -1582,7 +1642,13 @@
         <div class="form-grid">
           <div class="field-group">
             <label>Ngày uplive *</label>
-            <input type="date" id="clDate" required>
+            <div class="date-pick-wrap">
+              <button type="button" class="date-btn" id="clDateBtn" onclick="openFormDate('clDate')">
+                <span class="db-ico" aria-hidden="true">📅</span><span class="db-txt db-ph">Chọn ngày</span>
+              </button>
+              <input type="hidden" id="clDate">
+              <div id="clDatePop" class="date-pop form-date-pop" style="display:none"></div>
+            </div>
           </div>
           <div class="field-group full">
             <label>Tóm tắt *</label>
@@ -1698,7 +1764,13 @@
         <div class="form-grid">
           <div class="field-group">
             <label>Ngày *</label>
-            <input type="date" id="exDate" required>
+            <div class="date-pick-wrap">
+              <button type="button" class="date-btn" id="exDateBtn" onclick="openFormDate('exDate')">
+                <span class="db-ico" aria-hidden="true">📅</span><span class="db-txt db-ph">Chọn ngày</span>
+              </button>
+              <input type="hidden" id="exDate">
+              <div id="exDatePop" class="date-pop form-date-pop" style="display:none"></div>
+            </div>
           </div>
           <div class="field-group">
             <label>Loại</label>
@@ -1723,11 +1795,13 @@
           </div>
           <div class="field-group">
             <label>Đơn giá (đ)</label>
-            <input type="number" id="exUnitPrice" min="0" step="any" placeholder="VD: 5000" oninput="exUpdateAmount()">
+            <input type="text" id="exUnitPrice" inputmode="numeric" autocomplete="off"
+                   placeholder="VD: 5.000" oninput="onMoneyInput(this); exUpdateAmount()">
           </div>
           <div class="field-group full">
             <label>Thành tiền (đ) *</label>
-            <input type="number" id="exAmount" min="0" step="any" required placeholder="Tự tính từ SL × đơn giá, hoặc gõ tay">
+            <input type="text" id="exAmount" inputmode="numeric" autocomplete="off"
+                   placeholder="Tự tính từ SL × đơn giá, hoặc gõ tay" oninput="onMoneyInput(this)">
           </div>
           <div class="field-group full">
             <label>Ghi chú</label>
@@ -1930,7 +2004,12 @@ function initModalGuards() {
   document.addEventListener('invalid', e => {
     const el = e.target
     showToast('Còn ô bắt buộc chưa điền — mình đưa bạn tới ô đó nhé', 'error')
-    setTimeout(() => { try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }) } catch {} }, 30)
+    setTimeout(() => {
+      try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }) } catch {}
+      // scrollIntoView kéo MỌI khung cha, kể cả trang → trên iOS nó đẩy luôn
+      // lớp phủ fixed lên làm cụt đầu form. Trả độ cuộn trang về 0 ngay sau đó.
+      resetPageScroll()
+    }, 30)
   }, true)
 
   // Mỗi lần modal MỞ lại (display khác none) → xoá cờ đã-sửa để bắt đầu sạch
@@ -2354,6 +2433,7 @@ function openChangelogModal(id = null) {
   document.getElementById('clModalTitle').textContent = c ? 'Sửa bản cập nhật' : 'Thêm bản cập nhật'
   document.getElementById('clId').value = c ? c.id : ''
   document.getElementById('clDate').value = c ? c.release_date : new Date().toLocaleDateString('sv-SE')
+  fdSync('clDate')
   document.getElementById('clTitle').value = c?.title || ''
   document.getElementById('clDetails').value = c?.details || ''
   document.getElementById('changelogModal').style.display = 'flex'
@@ -2362,6 +2442,9 @@ function closeChangelogModal() { document.getElementById('changelogModal').style
 
 async function saveChangelog(e) {
   e.preventDefault()
+  if (!document.getElementById('clDate').value) {
+    showToast('Chưa chọn ngày uplive', 'error'); openFormDate('clDate'); return
+  }
   const btn = document.getElementById('saveChangelogBtn')
   btn.textContent = 'Đang lưu…'; btn.disabled = true
   const id = document.getElementById('clId').value
@@ -2497,7 +2580,7 @@ function pickMaterial(id) {
   if (!mt) return
   document.getElementById('exItem').value = mt.name
   document.getElementById('exCategory').value = mt.category
-  if (mt.last_price != null) document.getElementById('exUnitPrice').value = mt.last_price
+  if (mt.last_price != null) moneySet('exUnitPrice', mt.last_price)
   exUpdateAmount()
   hideExItemSuggest()
   document.getElementById('exQty').focus()
@@ -2806,8 +2889,8 @@ function openImageViewer(url) {
 
 function exUpdateAmount() {
   const q = parseFloat(document.getElementById('exQty').value)
-  const p = parseFloat(document.getElementById('exUnitPrice').value)
-  if (!isNaN(q) && !isNaN(p)) document.getElementById('exAmount').value = q * p
+  const p = moneyNum('exUnitPrice')
+  if (!isNaN(q) && p != null) moneySet('exAmount', q * p)
 }
 
 function setExpenseImagePreview(url) {
@@ -2847,8 +2930,8 @@ function openExpenseModal(id = null) {
     document.getElementById('exCategory').value = e.category
     document.getElementById('exItem').value = e.item || ''
     document.getElementById('exQty').value = e.quantity ?? ''
-    document.getElementById('exUnitPrice').value = e.unit_price ?? ''
-    document.getElementById('exAmount').value = e.amount ?? ''
+    moneySet('exUnitPrice', e.unit_price)
+    moneySet('exAmount', e.amount)
     document.getElementById('exNote').value = e.note || ''
     setExpenseImagePreview(e.image || '')
   } else {
@@ -2856,6 +2939,7 @@ function openExpenseModal(id = null) {
     document.getElementById('exDate').value = new Date().toLocaleDateString('sv-SE')
     setExpenseImagePreview('')
   }
+  fdSync('exDate')
   document.getElementById('expenseModal').style.display = 'flex'
 }
 
@@ -2864,18 +2948,23 @@ function closeExpenseModalOutside(e) { if (e.target.id === 'expenseModal') close
 
 async function saveExpense(e) {
   e.preventDefault()
+  if (!document.getElementById('exDate').value) {
+    showToast('Chưa chọn ngày chi', 'error'); openFormDate('exDate'); return
+  }
+  if (moneyNum('exAmount') == null) {
+    showToast('Chưa điền thành tiền', 'error'); document.getElementById('exAmount').focus(); return
+  }
   const btn = document.getElementById('saveExpenseBtn')
   btn.textContent = 'Đang lưu…'; btn.disabled = true
   const id = document.getElementById('exId').value
   const q = document.getElementById('exQty').value
-  const p = document.getElementById('exUnitPrice').value
   const data = {
     expense_date: document.getElementById('exDate').value,
     category:     document.getElementById('exCategory').value,
     item:         document.getElementById('exItem').value.trim() || null,
     quantity:     q === '' ? null : parseFloat(q),
-    unit_price:   p === '' ? null : parseFloat(p),
-    amount:       parseFloat(document.getElementById('exAmount').value) || 0,
+    unit_price:   moneyNum('exUnitPrice'),
+    amount:       moneyNum('exAmount') || 0,
     note:         document.getElementById('exNote').value.trim() || null,
     image:        document.getElementById('exImage').value || null,
   }
@@ -4064,6 +4153,142 @@ function orderQuickDate(offset) {
   renderOrders()
 }
 
+// ── Bộ chọn ngày DÙNG CHUNG cho các form ─────────────────────────
+// Thay <input type="date">: iOS vẽ ô đó bằng control riêng của hệ thống nên
+// tràn khỏi khung bo tròn, chữ ra kiểu "ngày 15 thg 9, 2026", bấm vào thì hiện
+// bánh xe cuộn khó nhằn. Dùng lại lịch tự vẽ cho giống chỗ lọc Đơn hàng.
+//
+// Giá trị THẬT vẫn nằm trong <input type="hidden"> mang ĐÚNG id cũ
+// (exDate/oeDate/noDate/clDate) nên mọi chỗ đọc .value không phải sửa gì.
+// Đổi giá trị bằng JS thì phải gọi fdSync(id) để chữ trên nút cập nhật theo.
+const DOW_VN = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+let _fdMonth = {}                      // id ô → tháng đang xem 'YYYY-MM'
+
+const fmtDateVN = iso => {
+  if (!iso) return ''
+  const [y, m, d] = iso.split('-')
+  return `${d}/${m}/${y}`
+}
+
+// Gọi tên hôm nay / mai / hôm qua cho dễ đọc, khỏi phải nhẩm.
+// Phải NGẮN: ô ngày nằm trong cột hẹp (~175px trên điện thoại), nhãn kiểu
+// "Hôm nay, 15/09/2026" dài quá sẽ xuống 2 dòng làm nút cao hơn các ô khác
+// một bậc — đúng cái lệch khung mình đang muốn bỏ.
+function fdLabel(iso) {
+  if (!iso) return null
+  const ds = off => new Date(Date.now() + off * 86400000).toLocaleDateString('sv-SE')
+  if (iso === ds(0))  return 'Hôm nay'
+  if (iso === ds(1))  return 'Mai'
+  if (iso === ds(-1)) return 'Hôm qua'
+  return fmtDateVN(iso)
+}
+
+// Đồng bộ chữ trên nút theo giá trị đang lưu trong ô ẩn
+function fdSync(id) {
+  const btn = document.getElementById(id + 'Btn')
+  const el = document.getElementById(id)
+  if (!btn || !el) return
+  const txt = btn.querySelector('.db-txt')
+  const nhan = fdLabel(el.value)
+  txt.textContent = nhan || 'Chọn ngày'
+  txt.classList.toggle('db-ph', !nhan)
+}
+
+function closeFormDatePops(tru) {
+  document.querySelectorAll('.form-date-pop').forEach(pop => {
+    if (pop.id !== tru) pop.style.display = 'none'
+  })
+}
+
+function openFormDate(id) {
+  const pop = document.getElementById(id + 'Pop')
+  if (pop.style.display !== 'none') { pop.style.display = 'none'; return }
+  closeFormDatePops(id + 'Pop')          // mở ô này thì đóng lịch ô khác
+  _fdMonth[id] = (document.getElementById(id).value || todayStr()).slice(0, 7)
+  fdRender(id)
+  pop.style.display = 'block'
+}
+
+function fdStepMonth(id, delta) {
+  const [y, m] = _fdMonth[id].split('-').map(Number)
+  _fdMonth[id] = new Date(y, m - 1 + delta, 1).toLocaleDateString('sv-SE').slice(0, 7)
+  fdRender(id)
+}
+
+function fdPick(id, ds) {
+  const el = document.getElementById(id)
+  el.value = ds
+  fdSync(id)
+  document.getElementById(id + 'Pop').style.display = 'none'
+  // Chọn ngày cũng là "đang nhập dở" → bấm ✕ phải hỏi lại, khỏi mất công gõ
+  const ov = el.closest('.modal-overlay')
+  if (ov) ov.dataset.dirty = '1'
+}
+
+function fdClear(id) {
+  document.getElementById(id).value = ''
+  fdSync(id)
+  document.getElementById(id + 'Pop').style.display = 'none'
+}
+
+function fdRender(id) {
+  const thang = _fdMonth[id]
+  const [y, m] = thang.split('-').map(Number)
+  const chon = document.getElementById(id).value
+  const today = todayStr()
+  const soNgay = new Date(y, m, 0).getDate()
+  const dauTuan = (new Date(y, m - 1, 1).getDay() + 6) % 7   // tuần bắt đầu từ T2
+  let cells = DOW_VN.map(d => `<div class="cal-dow">${d}</div>`).join('')
+  for (let i = 0; i < dauTuan; i++) cells += '<div class="cal-day cal-empty"></div>'
+  for (let d = 1; d <= soNgay; d++) {
+    const ds = `${thang}-${String(d).padStart(2, '0')}`
+    const cls = ['cal-day']
+    if (ds === today) cls.push('cal-today')
+    if (ds === chon) cls.push('cal-selected')
+    cells += `<div class="${cls.join(' ')}" onclick="fdPick('${id}','${ds}')">${d}</div>`
+  }
+  // Ô ngày giao được phép bỏ trống (đơn chưa hẹn ngày), ngày chi phí thì không
+  const boTrongDuoc = document.getElementById(id).dataset.optional === '1'
+  document.getElementById(id + 'Pop').innerHTML = `
+<div class="date-pop-head">
+  <button type="button" class="month-arrow" onclick="fdStepMonth('${id}',-1)">‹</button>
+  <span class="date-pop-title">Tháng ${m}/${y}</span>
+  <button type="button" class="month-arrow" onclick="fdStepMonth('${id}',1)">›</button>
+</div>
+<div class="cal-grid">${cells}</div>
+<button type="button" class="date-today-btn" onclick="fdPick('${id}','${today}')">Hôm nay</button>
+${boTrongDuoc && chon ? `<button type="button" class="date-clear-btn" onclick="fdClear('${id}')">✕ Bỏ trống ngày</button>` : ''}`
+}
+
+// ── Ô tiền trong form: gõ số trần, tự chèn dấu chấm hàng nghìn ───
+// KHÁC ô giá sản phẩm: chỗ này luôn là số, không có mẫu "Liên hệ".
+// Phải dùng type=text + inputmode=numeric, vì input type=number KHÔNG cho
+// hiện dấu chấm — nó coi "5.000" là số không hợp lệ rồi xoá trắng ô.
+function onMoneyInput(el) {
+  // Nhớ có bao nhiêu CHỮ SỐ trước con trỏ để đặt lại đúng chỗ sau khi chèn dấu
+  const truoc = el.value.slice(0, el.selectionStart).replace(/\D/g, '').length
+  const digits = el.value.replace(/\D/g, '')
+  el.value = digits ? Number(digits).toLocaleString('vi-VN') : ''
+  let pos = 0, seen = 0
+  while (pos < el.value.length && seen < truoc) {
+    if (/\d/.test(el.value[pos])) seen++
+    pos++
+  }
+  try { el.setSelectionRange(pos, pos) } catch {}
+}
+
+// Ô tiền → số để lưu CSDL (ô trống = null, đừng biến thành 0)
+const moneyNum = id => {
+  const d = String(document.getElementById(id).value || '').replace(/\D/g, '')
+  return d ? Number(d) : null
+}
+
+// Số từ CSDL → chữ có dấu chấm để hiện trong ô
+const moneySet = (id, v) => {
+  const el = document.getElementById(id)
+  el.value = (v == null || v === '') ? '' : Math.round(Number(v)).toLocaleString('vi-VN')
+}
+
 // ── Bộ chọn ngày giao (popover lịch, thay input date thô) ──
 let ordPickMonth = null
 
@@ -4140,6 +4365,7 @@ document.addEventListener('click', e => {
     if (pop && pop.style.display !== 'none') pop.style.display = 'none'
     const sug = document.getElementById('exItemSuggestPop')
     if (sug && sug.style.display !== 'none') sug.style.display = 'none'
+    closeFormDatePops()
     hideCustSuggest('no'); hideCustSuggest('oe')
     hideProdSuggest()
   }
@@ -4431,6 +4657,7 @@ function openOrderEditModal(id) {
   up.placeholder = listedNum ? `Giá niêm yết: ${fmtVnd(listedNum)}` : 'VD: 350000'
   document.getElementById('oeShipping').value = o.shipping_fee ?? 0
   document.getElementById('oeDate').value = o.delivery_date || ''
+  fdSync('oeDate')
   document.getElementById('oeAddress').value = o.delivery_address || ''
   document.getElementById('oeMessage').value = o.message_card || ''
   document.getElementById('oeNote').value = o.note || ''
@@ -4588,6 +4815,7 @@ function clearPickedProduct() {
 
 function openNewOrderModal() {
   document.getElementById('orderNewForm').reset()
+  fdSync('noDate')          // reset xoá ô ẩn → chữ trên nút phải về 'Chọn ngày'
   // Tab Đơn hàng không tự nạp 2 danh sách này — cần cho ô gợi ý khách + sản phẩm
   if (!customers.length) loadCustomers()
   if (!products.length) loadProducts()
@@ -4902,24 +5130,88 @@ function initBackToTop() {
   }, { passive: true })
 }
 
+// Trang admin không bao giờ tự cuộn (body overflow:hidden, cuộn nằm trong
+// .content), nên độ cuộn trang khác 0 luôn là do trình duyệt tự ý đẩy.
+function resetPageScroll() {
+  const se = document.scrollingElement || document.documentElement
+  if (se.scrollTop) se.scrollTop = 0
+  if (se.scrollLeft) se.scrollLeft = 0
+  if (window.pageYOffset || window.pageXOffset) window.scrollTo(0, 0)
+}
+
+// iOS để lại độ cuộn trang thừa khi bàn phím mở/đóng — ở MỌI ô nhập, không riêng
+// ô trong modal (ô "Tìm mã đơn" ngoài danh sách đơn cũng bị). Hậu quả: cả trang
+// kẹt lệch lên, mất thanh Admin; hoặc lớp phủ modal bị đẩy lên làm cụt đầu form.
+// CSS đã bỏ 100vh để trang hết chỗ cuộn; đây là lớp chặn thứ hai cho chắc.
+//
+// Mỗi lần focus đổi còn phải ĐO LẠI vùng nhìn thấy: chuyển giữa các ô, bàn phím
+// iOS đổi chiều cao (có/không có thanh gợi ý chữ) mà KHÔNG phải lúc nào cũng bắn
+// visualViewport resize → --vvh kẹt số cũ, form dừng cách bàn phím một khúc.
+// Đo nhiều nhịp vì bàn phím trượt lên/xuống mất ~0,3–0,6 giây.
+function initPageScrollGuard() {
+  const settle = delays => delays.forEach(ms =>
+    setTimeout(() => { resetPageScroll(); measureViewport() }, ms))
+
+  document.addEventListener('focusin', () => {
+    resetPageScroll()
+    requestAnimationFrame(resetPageScroll)
+    settle([120, 350, 700])
+  })
+  document.addEventListener('focusout', () => settle([60, 300, 650]))
+
+  // Trang không bao giờ được cuộn → hễ bị cuộn là trả về 0 (gộp theo frame cho nhẹ)
+  let cho = false
+  window.addEventListener('scroll', () => {
+    if (cho) return
+    cho = true
+    requestAnimationFrame(() => { cho = false; resetPageScroll() })
+  }, { passive: true })
+}
+
 // iOS: bàn phím mở làm vùng nhìn thấy co lại, nhưng lớp phủ position:fixed vẫn neo
 // theo màn hình đầy đủ → nửa dưới modal (nút Lưu/Hủy) nằm dưới bàn phím, bấm không tới.
 // Ghi chiều cao + vị trí vùng nhìn thấy THẬT vào biến CSS để modal co theo.
-function initViewportFix() {
+//
+// ⚠️ HAI biến riêng, ĐỪNG GỘP LÀM MỘT — gộp là tái lỗi cũ trên iPhone:
+//   --apph : chiều cao KHUNG APP (body + #appWrap). Lấy window.innerHeight vì iOS
+//            KHÔNG đổi số này khi bàn phím mở, nhưng vẫn đổi khi thanh công cụ
+//            trình duyệt co/giãn — đúng thứ khung app cần.
+//   --vvh  : chiều cao vùng nhìn thấy THẬT (đã trừ bàn phím). CHỈ cho modal/toast.
+// Trước đây #appWrap dùng --vvh nên: (1) mỗi frame cuộn khung cuộn bị đổi chiều
+// cao → thẻ đơn vẽ ra trắng thông tin, thanh trên sticky lệch chỗ bấm không trúng;
+// (2) đóng bàn phím iOS thường không bắn resize cuối → khung app kẹt ở chiều cao
+// lúc còn bàn phím, nửa dưới màn hình trắng trơn.
+
+// Chỉ ghi khi giá trị đổi THẬT — iOS bắn scroll/resize mỗi frame, ghi lại biến
+// CSS trên :root mỗi lần là bắt trình duyệt tính lại style cả trang giữa lúc cuộn
+function setRootVar(name, px) {
+  const r = document.documentElement.style
+  const v = Math.round(px) + 'px'
+  if (r.getPropertyValue(name) !== v) r.setProperty(name, v)
+}
+
+function measureViewport() {
+  setRootVar('--apph', window.innerHeight)
   const vv = window.visualViewport
   if (!vv) return
-  const apply = () => {
-    const r = document.documentElement.style
-    r.setProperty('--vvh', vv.height + 'px')
-    r.setProperty('--vvtop', (vv.offsetTop || 0) + 'px')
-  }
-  vv.addEventListener('resize', apply)
-  vv.addEventListener('scroll', apply)
-  apply()
+  setRootVar('--vvh', vv.height)
+  setRootVar('--vvtop', vv.offsetTop || 0)
+}
+
+function initViewportFix() {
+  measureViewport()
+  window.addEventListener('resize', measureViewport)
+  // iOS báo innerHeight cũ ngay lúc quay màn hình → chờ nó xong mới đo lại
+  window.addEventListener('orientationchange', () => setTimeout(measureViewport, 250))
+  const vv = window.visualViewport
+  if (!vv) return
+  vv.addEventListener('resize', measureViewport)
+  vv.addEventListener('scroll', measureViewport)
 }
 
 init()
 initModalGuards()
+initPageScrollGuard()
 initBackToTop()
 initViewportFix()
 </script>
