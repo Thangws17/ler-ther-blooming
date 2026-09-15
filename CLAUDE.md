@@ -35,7 +35,7 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 
 ## Kiến trúc
 
-**Hai front-end, một database.** Cả web khách và admin đều là HTML tĩnh gọi thẳng Supabase JS client từ trình duyệt — không có server trung gian, không API layer. Anon key nằm trong code là cố ý; ranh giới bảo mật duy nhất là **RLS**: public chỉ đọc, ghi phải có tài khoản admin đăng nhập (`supabase/rls_lockdown.sql`).
+**Hai front-end, một database.** Cả web khách và admin đều là HTML tĩnh gọi thẳng Supabase JS client từ trình duyệt — không có server trung gian, không API layer. Anon key nằm trong code là cố ý; ranh giới bảo mật duy nhất là **RLS**: public chỉ đọc, ghi phải có tài khoản admin đăng nhập (`supabase/17_rls_lockdown.sql`).
 
 **Web khách — `js/main.js` dùng chung cho MỌI trang.** Không có router. Mỗi hàm `loadX()` tự thoát sớm nếu trang hiện tại không có element mốc của nó (`const grid = document.getElementById('productsGrid'); if (!grid) return`). Hàm `DOMContentLoaded` ở cuối file gọi *tất cả* các loader song song; trang nào không liên quan thì loader tự no-op. Thêm trang mới = thêm HTML + một `loadX()` theo đúng khuôn này, không tạo file JS riêng.
 
@@ -49,11 +49,11 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 
 ## Bẫy đã biết
 
-- **`place_order` được định nghĩa lại ở 4 file SQL.** Bản hiện hành là `supabase/notifications_v2.sql` (11 tham số, có `p_email`) — mới nhất và đầy đủ nhất. Ba file kia (`phase1_optional_phone`, `place_order_hardening`, `place_order_autoprice`) chỉ có 10 tham số, chạy sau sẽ **lùi** hàm về bản cũ. Sửa RPC thì sửa trong `notifications_v2.sql`.
-- **`rls_lockdown.sql` luôn chạy cuối cùng** khi dựng lại DB.
+- **`place_order` được định nghĩa lại ở 4 file SQL.** Bản hiện hành là `supabase/15_notifications_v2.sql` (11 tham số, có `p_email`). Ba bản cũ (10 tham số) đã dồn vào `supabase/da-thay-the/` — chạy vào là **lùi** hàm về bản cũ. Sửa RPC thì sửa trong `15_notifications_v2.sql`.
+- **File SQL đánh số theo thứ tự chạy** (`01_` → `17_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
 - **Giá sản phẩm lưu dạng TEXT** (`"600,000đ"`, hoặc `"Liên hệ"`) — luôn qua `fmtPrice()`, đừng coi là số.
-- **`data/*.json` và `admin/config.yml` là xác chết** từ thời Decap CMS, không code nào đọc. Đừng sửa chúng khi cần đổi nội dung.
-- `demo-*.html` ở thư mục gốc là bản nháp giao diện, chưa commit, không nằm trên web live.
+- **`data/*.json`, `admin/config.yml`, `images/uploads/`, `demo-*.html` đã bị xoá** (16/09/2026) — di sản Decap CMS và bản nháp, không còn trong repo. Đừng tạo lại.
+- **Không đặt được HTTP header trên GitHub Pages.** `_headers`/`netlify.toml` đã xoá vì GH Pages không đọc (đã kiểm: bản live không trả về `X-Frame-Options`). Đừng tạo lại — muốn có header bảo mật thật thì phải đổi hosting.
 - **`--vvh` và `--apph` là HAI thứ khác nhau, đừng gộp.** `--vvh` = chiều cao vùng nhìn thấy
   (co lại khi bàn phím mở, nhảy mỗi frame vì iOS bắn `visualViewport scroll` liên tục) → **chỉ**
   cho modal/toast. `--apph` = `window.innerHeight`, dùng cho chiều cao `#appWrap`. Từng cho

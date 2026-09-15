@@ -2406,7 +2406,7 @@ async function loadChangelog() {
 function renderChangelog() {
   const el = document.getElementById('changelogList')
   if (!changelogs.length) {
-    el.innerHTML = '<div class="empty-state">Chưa có bản cập nhật nào. Chạy file changelog_setup.sql để nạp lịch sử, hoặc nhấn "+ Thêm bản cập nhật".</div>'
+    el.innerHTML = '<div class="empty-state">Chưa có bản cập nhật nào. Chạy file supabase/14_changelog_setup.sql để nạp lịch sử, hoặc nhấn "+ Thêm bản cập nhật".</div>'
     return
   }
   const { shown, more } = limitList('changelog', changelogs)
@@ -5005,7 +5005,7 @@ async function deleteCustomer(id) {
     if (error) {
       showToast(
         error.message.includes('customer_phone')
-          ? 'Cần chạy file supabase/order_phone_snapshot.sql trước khi xóa khách có đơn'
+          ? 'Cần chạy file supabase/03_order_phone_snapshot.sql trước khi xóa khách có đơn'
           : 'Lỗi: ' + error.message, 'error')
       return
     }

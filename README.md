@@ -37,14 +37,24 @@ css/style.css               Toàn bộ style web khách (1 file duy nhất)
 js/main.js                  Toàn bộ JS web khách: đọc Supabase, render, modal đặt hàng
 
 admin/index.html            TOÀN BỘ trang quản lý — 1 file, ~5000 dòng (HTML+CSS+JS)
-supabase/*.sql              Các file SQL cài đặt / nâng cấp database
+
+supabase/01_… → 17_….sql    SQL cài database, ĐÁNH SỐ THEO ĐÚNG THỨ TỰ CHẠY
+supabase/da-thay-the/       File SQL cũ đã bị thay thế — đừng chạy (xem README trong đó)
+supabase/REMINDERS_SETUP.md Hướng dẫn cài nhắc đơn qua Telegram / email
+
+test/*.html                 Test chạy trong trình duyệt (xem mục 3)
+serve.ps1                   Chạy server local + in link mở trên điện thoại
 images/                     Ảnh tĩnh (og-cover, icon…). Ảnh sản phẩm nằm trên Supabase Storage
 sitemap.xml, robots.txt     SEO (robots đã chặn /admin/)
-_headers, netlify.toml      Header bảo mật (di sản thời Netlify, để lại cho chắc)
 ```
 
-**File cũ không còn dùng:** `data/*.json` và `admin/config.yml` là di sản thời dùng Decap CMS — hiện không file nào đọc tới. Giữ lại cho an toàn, xoá lúc nào cũng được.
-`demo-*.html` ở thư mục gốc là các bản nháp giao diện để xem thử, chưa commit lên web.
+**Đã dọn (16/09/2026):** `data/*.json`, `admin/config.yml`, `images/uploads/` (di sản Decap CMS),
+`demo-*.html` (bản nháp), `_headers` + `netlify.toml` (di sản Netlify/Cloudflare) đã xoá — không code
+nào đọc tới, cũng không dòng dữ liệu nào trên Supabase trỏ về. Cần tra lại thì lấy trong git history.
+
+> ⚠️ GitHub Pages **không cho đặt HTTP header**, nên web hiện KHÔNG có `X-Frame-Options` /
+> `X-Content-Type-Options` / `Referrer-Policy`. Trước đây 2 file kia cũng đã không có tác dụng rồi.
+> Muốn có thật thì phải đổi hosting sang Cloudflare Pages hoặc Netlify.
 
 ## 3. Chạy thử ở máy
 
@@ -133,19 +143,32 @@ lại 2 mốc ở đầu file test — cố ý như vậy.
 ### Chạy file SQL
 
 Mọi file trong `supabase/` đều **idempotent** — chạy lại nhiều lần không lỗi, không hỏng dữ liệu.
-Mở Supabase → SQL Editor → dán nội dung file → Run. Nếu dựng lại database từ đầu, chạy theo thứ tự:
+Mở Supabase → SQL Editor → dán nội dung file → Run.
+
+Dựng lại database từ đầu thì cứ chạy **lần lượt `01_` → `17_`** — tên file đã đánh số theo đúng thứ tự:
 
 ```
-orders_setup_full.sql → phase1_orders.sql → phase1_optional_phone.sql
-place_order_autoprice.sql → place_order_hardening.sql
-order_phone_snapshot.sql → phone_normalize.sql → customers_insert_policy.sql → orders_image.sql
-expenses_setup.sql → expenses_image.sql → materials_setup.sql
-gallery_categories_setup.sql → categories_unify.sql
-policy_migration.sql → contact_hero_sides.sql → changelog_setup.sql
-notifications_v2.sql → reminders_setup.sql → rls_lockdown.sql   (rls_lockdown chạy CUỐI)
+01_orders_setup_full        →  bảng orders + customers
+02_phase1_orders            →  bổ sung cho orders
+03_order_phone_snapshot     →  cột orders.customer_phone
+04_phone_normalize          →  chuẩn hoá SĐT
+05_customers_insert_policy  →  quyền thêm khách
+06_orders_image             →  ảnh trên đơn
+07_expenses_setup           →  sổ chi phí
+08_expenses_image           →  ảnh hoá đơn
+09_materials_setup          →  sổ nguyên liệu
+10_gallery_categories_setup →  danh mục gallery
+11_categories_unify         →  gộp danh mục dùng chung với sản phẩm
+12_policy_migration         →  nội dung trang chính sách
+13_contact_hero_sides       →  ảnh hero trang chủ
+14_changelog_setup          →  nhật ký cập nhật
+15_notifications_v2         →  RPC place_order (bản hiện hành) + thông báo đơn mới
+16_reminders_setup          →  nhắc đơn (cần điền token trước, xem REMINDERS_SETUP.md)
+17_rls_lockdown             →  KHOÁ QUYỀN GHI — luôn chạy CUỐI CÙNG
 ```
 
-`reminders_setup.sql` cần điền token Telegram/Email trước — xem `supabase/REMINDERS_SETUP.md`.
+> `supabase/da-thay-the/` chứa 3 file `place_order` cũ. **Đừng chạy** — chạy vào là lùi hàm đặt
+> hàng về bản cũ, mất phần gửi email. Giữ lại chỉ để tra lịch sử.
 
 ## 6. Trang quản lý (admin)
 
