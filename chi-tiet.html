@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gallery — Ler & Ther Blooming</title>
-  <meta name="description" content="Xem album ảnh hoa tươi đẹp từ Ler & Ther Blooming.">
-  <meta property="og:type"        content="website">
+  <title>Chi tiết sản phẩm — Ler & Ther Blooming</title>
+  <meta name="description" content="Xem chi tiết sản phẩm hoa tươi tại Ler & Ther Blooming.">
+  <meta property="og:type"        content="product">
   <meta property="og:site_name"   content="Ler & Ther Blooming">
   <meta property="og:locale"      content="vi_VN">
-  <meta property="og:title"       content="Gallery — Ler & Ther Blooming">
-  <meta property="og:description" content="Album ảnh hoa tươi đẹp — hoa bó, giỏ hoa, hoa cưới và nhiều hơn nữa từ Ler & Ther Blooming.">
+  <meta property="og:title"       content="Hoa tươi — Ler & Ther Blooming">
+  <meta property="og:description" content="Xem chi tiết và đặt hoa tươi tại Ler & Ther Blooming.">
   <meta property="og:image"       content="https://thangws17.github.io/ler-ther-blooming/images/og-cover.jpg">
-  <link rel="canonical" href="https://thangws17.github.io/ler-ther-blooming/gallery">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,36 +39,16 @@
   </div>
 </nav>
 
-<!-- ── Banner ────────────────────────────────────────────── -->
-<div id="siteBanner" class="site-banner" style="display:none">
-  <div class="banner-inner"><span id="bannerText"></span><button class="banner-close" onclick="closeBanner()">✕</button></div>
-</div>
-
-<!-- ── Page Header ────────────────────────────────────── -->
-<div class="page-header">
+<!-- ── Detail ─────────────────────────────────────────── -->
+<section id="detailSection" style="padding:60px 0;">
   <div class="container">
-    <div class="page-kicker">Khoảnh khắc</div>
-    <h1>Gallery</h1>
-    <p>Những khoảnh khắc đẹp từ Ler &amp; Ther Blooming</p>
-  </div>
-</div>
-
-<!-- ── Gallery Grid ───────────────────────────────────── -->
-<section>
-  <div class="container">
-    <div class="filter-tabs" style="margin-bottom:32px" id="galleryFilters">
-      <button class="filter-tab gallery-filter-tab active" data-category="all">🌸 Tất cả</button>
+    <div id="detailContent">
+      <div class="loading"><div class="l-icon">🌸</div><p>Đang tải sản phẩm…</p></div>
     </div>
-    <div class="gallery-grid" id="galleryGrid">
-      <div class="gallery-col"><div class="sk-box sk-tile" style="height:230px"></div><div class="sk-box sk-tile" style="height:180px"></div></div>
-      <div class="gallery-col"><div class="sk-box sk-tile" style="height:170px"></div><div class="sk-box sk-tile" style="height:250px"></div></div>
-      <div class="gallery-col"><div class="sk-box sk-tile" style="height:260px"></div><div class="sk-box sk-tile" style="height:200px"></div></div>
-    </div>
-    <div id="galleryPagination"></div>
   </div>
 </section>
 
-<!-- ── Order Modal (đặt hoa theo mẫu ảnh trong lightbox) ── -->
+<!-- ── Order Modal ────────────────────────────────────── -->
 <div class="order-overlay" id="orderOverlay" onclick="if(event.target===this) closeOrderModal()">
   <div class="order-modal">
     <button class="order-close" onclick="closeOrderModal()" aria-label="Đóng">✕</button>
@@ -77,12 +56,13 @@
   </div>
 </div>
 
-<!-- ── CTA ────────────────────────────────────────────── -->
-<section class="cta-banner" style="padding:60px 0;">
-  <div class="container reveal">
-    <h2>Thích những bó hoa này?</h2>
-    <p>Liên hệ ngay để đặt hoa hoặc tham khảo thêm mẫu tại shop nhé!</p>
-    <a href="lien-he" class="btn btn-white">Liên hệ đặt hoa 🌸</a>
+<!-- ── Related Products ───────────────────────────────── -->
+<section id="relatedSection" style="background:#fff; display:none;">
+  <div class="container">
+    <div class="section-header reveal">
+      <h2>Sản phẩm cùng danh mục</h2>
+    </div>
+    <div class="products-grid" id="relatedGrid"></div>
   </div>
 </section>
 

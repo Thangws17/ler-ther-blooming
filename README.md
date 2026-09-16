@@ -24,14 +24,17 @@ Key nằm thẳng trong code là **publishable/anon key** — công khai đượ
 ## 2. Cấu trúc thư mục
 
 ```
-index.html                  Trang chủ (hero 3 ảnh, sản phẩm nổi bật, đánh giá)
-san-pham.html               Danh sách sản phẩm + lọc danh mục
-san-pham-chi-tiet.html      Chi tiết 1 sản phẩm (carousel nhiều ảnh) + nút đặt hàng
-gallery.html                Thư viện ảnh masonry + lightbox
-dang-sau-nhung-bo-hoa.html  Câu chuyện shop
-lien-he.html                Liên hệ, bản đồ, mạng xã hội
-chinh-sach.html             Giao hàng / thanh toán / cam kết + FAQ
-404.html                    Trang lỗi riêng của shop
+index.html        /              Trang chủ (hero 3 ảnh, sản phẩm nổi bật, đánh giá)
+san-pham.html     /san-pham      Danh sách sản phẩm + lọc danh mục
+chi-tiet.html     /chi-tiet?id=  Chi tiết 1 sản phẩm (carousel nhiều ảnh) + nút đặt hàng
+gallery.html      /gallery       Thư viện ảnh masonry + lightbox
+cau-chuyen.html   /cau-chuyen    Câu chuyện shop
+lien-he.html      /lien-he       Liên hệ, bản đồ, mạng xã hội
+chinh-sach.html   /chinh-sach    Giao hàng / thanh toán / cam kết + FAQ
+404.html                         Trang lỗi riêng của shop
+
+dang-sau-nhung-bo-hoa.html  ┐  Tên CŨ, giờ chỉ chuyển hướng sang cau-chuyen / chi-tiet
+san-pham-chi-tiet.html      ┘  để link đã chia sẻ vẫn vào được — ĐỪNG XOÁ
 
 css/style.css               Toàn bộ style web khách (1 file duy nhất)
 js/dungchung.js             Hàm dùng chung cho CẢ web khách và admin (esc, chuẩn hoá SĐT)
@@ -44,7 +47,8 @@ supabase/da-thay-the/       File SQL cũ đã bị thay thế — đừng chạy
 supabase/REMINDERS_SETUP.md Hướng dẫn cài nhắc đơn qua Telegram / email
 
 test/*.html                 Test chạy trong trình duyệt (xem mục 3)
-serve.ps1                   Chạy server local + in link mở trên điện thoại
+serve.py                    Server chạy thử ở máy, bắt chước GitHub Pages (hiểu URL không đuôi)
+serve.ps1                   Chạy serve.py + in link mở trên điện thoại
 images/                     Ảnh tĩnh (og-cover, icon…). Ảnh sản phẩm nằm trên Supabase Storage
 sitemap.xml, robots.txt     SEO (robots đã chặn /admin/)
 ```
@@ -62,8 +66,11 @@ nào đọc tới, cũng không dòng dữ liệu nào trên Supabase trỏ về
 Không cần cài gì, chỉ cần Python:
 
 ```bash
-python -m http.server 8765
+python serve.py
 ```
+
+> Dùng `serve.py`, **đừng dùng `python -m http.server`** nữa: web đã bỏ đuôi `.html` trong đường dẫn,
+> server có sẵn của Python không hiểu dạng đó nên sẽ báo 404.
 
 Rồi mở <http://localhost:8765/> (admin: <http://localhost:8765/admin/>).
 Dữ liệu vẫn lấy từ Supabase thật, nên **sửa gì ở local là sửa thật** — cẩn thận khi bấm xoá.

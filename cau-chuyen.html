@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chính sách — Ler & Ther Blooming</title>
-  <meta name="description" content="Chính sách giao hàng, thanh toán và cam kết chất lượng tại Ler & Ther Blooming.">
-  <meta property="og:type"        content="website">
+  <title>Đằng sau những bó hoa — Ler & Ther Blooming</title>
+  <meta name="description" content="Câu chuyện thật đằng sau Ler & Ther Blooming — về tình yêu với hoa và hành trình của hai người.">
+  <meta property="og:type"        content="article">
   <meta property="og:site_name"   content="Ler & Ther Blooming">
   <meta property="og:locale"      content="vi_VN">
-  <meta property="og:title"       content="Chính sách — Ler & Ther Blooming">
-  <meta property="og:description" content="Chính sách giao hàng, thanh toán và cam kết chất lượng — minh bạch, rõ ràng trước khi bạn đặt hoa.">
+  <meta property="og:title"       content="Đằng sau những bó hoa — Ler & Ther Blooming">
+  <meta property="og:description" content="Ler là người cắm hoa. Ther là người đi cùng. Câu chuyện thật đằng sau Ler & Ther Blooming.">
   <meta property="og:image"       content="https://thangws17.github.io/ler-ther-blooming/images/og-cover.jpg">
-  <link rel="canonical" href="https://thangws17.github.io/ler-ther-blooming/chinh-sach">
+  <link rel="canonical" href="https://thangws17.github.io/ler-ther-blooming/cau-chuyen">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,6 +19,62 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .story-section {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 80px 20px;
+    }
+    .story-section p {
+      font-size: 1.13rem;
+      line-height: 1.95;
+      color: var(--text-mid);
+      margin-bottom: 28px;
+    }
+    .story-section em {
+      font-style: normal;
+      color: var(--text);
+      font-weight: 700;
+    }
+    .story-quote {
+      border-left: 3px solid var(--green-light);
+      padding: 6px 0 6px 24px;
+      margin: 36px 0;
+      font-size: 1.08rem;
+      color: var(--text-mid);
+      font-style: italic;
+      line-height: 1.9;
+    }
+    .story-values {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 64px;
+      padding-top: 56px;
+      border-top: 1px solid var(--border);
+    }
+    .story-value {
+      text-align: center;
+      padding: 28px 16px;
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .story-value-icon { font-size: 2.2rem; margin-bottom: 14px; }
+    .story-value h3 { font-size: 1rem; margin-bottom: 8px; color: var(--text); }
+    .story-value p { font-size: .88rem; color: var(--text-mid); line-height: 1.7; margin: 0; }
+    .story-cta {
+      text-align: center;
+      margin-top: 56px;
+      padding-top: 48px;
+      border-top: 1px solid var(--border);
+    }
+    .story-cta p { margin-bottom: 20px; font-size: 1rem; }
+
+    @media (max-width: 640px) {
+      .story-values { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
 
@@ -48,94 +104,65 @@
 <!-- ── Page Header ────────────────────────────────────── -->
 <div class="page-header">
   <div class="container">
-    <div class="page-kicker">Cam kết với bạn</div>
-    <h1>Chính sách</h1>
-    <p>Minh bạch &amp; rõ ràng — để bạn yên tâm trước khi đặt hoa</p>
+    <div class="page-kicker">Câu chuyện</div>
+    <h1>Đằng sau những bó hoa</h1>
+    <p>Câu chuyện thật của Ler &amp; Ther Blooming</p>
   </div>
 </div>
 
-<!-- ── Policy ─────────────────────────────────────────── -->
-<section>
-  <div class="container policy-wrap">
-
-    <div class="policy-card reveal">
-      <div class="policy-icon">🚚</div>
-      <h2>Giao hàng</h2>
-      <div class="policy-body" id="policyDelivery">Đang tải…</div>
-    </div>
-
-    <div class="policy-card reveal" style="--reveal-delay:.08s">
-      <div class="policy-icon">💳</div>
-      <h2>Thanh toán</h2>
-      <div class="policy-body" id="policyPayment">Đang tải…</div>
-    </div>
-
-    <div class="policy-card reveal" style="--reveal-delay:.16s">
-      <div class="policy-icon">🌸</div>
-      <h2>Cam kết chất lượng</h2>
-      <div class="policy-body" id="policyQuality">Đang tải…</div>
-    </div>
-
-  </div>
-</section>
-
-<!-- ── FAQ ────────────────────────────────────────────── -->
+<!-- ── Story ──────────────────────────────────────────── -->
 <section style="background:#fff;">
-  <div class="container faq-wrap">
-    <div class="section-header reveal">
-      <h2>Câu hỏi thường gặp</h2>
-      <p>Những điều khách hay hỏi trước khi đặt hoa</p>
+  <div class="story-section">
+
+    <p>
+      <em>Ler</em> là người cắm hoa. <em>Ther</em> là người đi cùng.
+    </p>
+
+    <p>
+      Ler sống thiên về cảm xúc — nên mỗi bó hoa không chỉ là hoa,
+      mà là thứ gì đó Ler muốn gửi đi.
+    </p>
+
+    <p>
+      Khó khăn ban đầu có, chi phí có, có cả những buổi sáng đi nhập
+      hoa giữa trời mưa, mua nhầm màu rồi quay lại mua đúng — nhưng
+      chưa bao giờ đủ để dừng lại.
+    </p>
+
+    <div class="story-quote">
+      Ther không cắm hoa, nhưng Ther ở đó — trên mọi chuyến đi,
+      trên chặng đường dài.
     </div>
 
-    <details class="faq-item reveal">
-      <summary>Đặt hoa trước bao lâu là tốt nhất?</summary>
-      <div class="faq-answer">
-        Bạn nên đặt trước ít nhất vài tiếng để shop chuẩn bị chu đáo. Với hoa cưới
-        hoặc đơn số lượng lớn, nên đặt trước 1–2 ngày để chọn được hoa đẹp nhất.
-      </div>
-    </details>
+    <p>
+      <em>Ler &amp; Ther Blooming</em> là vậy. Không hoành tráng, nhưng thật.
+    </p>
 
-    <details class="faq-item reveal">
-      <summary>Shop có giao hoa trong ngày không?</summary>
-      <div class="faq-answer">
-        Có. Shop ưu tiên giao trong ngày với các đơn nội thành Hà Nội đặt sớm.
-        Bạn nhắn Zalo để shop xác nhận khung giờ giao phù hợp nhất.
+    <!-- Values -->
+    <div class="story-values">
+      <div class="story-value reveal">
+        <div class="story-value-icon">🌸</div>
+        <h3>Tâm huyết</h3>
+        <p>Mỗi bó hoa được cắm với toàn bộ cảm xúc, không phải chỉ bằng tay.</p>
       </div>
-    </details>
-
-    <details class="faq-item reveal">
-      <summary>Hoa nhận được có giống ảnh trên web không?</summary>
-      <div class="faq-answer">
-        Hoa được cắm thủ công theo từng đơn nên có thể chênh nhẹ về loại/màu tùy mùa,
-        nhưng shop luôn giữ đúng tinh thần và tông màu của mẫu. Quan trọng nhất:
-        shop sẽ chụp ảnh bó hoa thật và gửi bạn duyệt <strong>trước khi giao</strong>.
+      <div class="story-value reveal" style="--reveal-delay:.08s">
+        <div class="story-value-icon">🤝</div>
+        <h3>Đồng hành</h3>
+        <p>Ther luôn ở đó — từ những chuyến đi nhập hoa sớm đến từng đơn hàng.</p>
       </div>
-    </details>
-
-    <details class="faq-item reveal">
-      <summary>Mình có thể gửi kèm thiệp / lời nhắn không?</summary>
-      <div class="faq-answer">
-        Có. Khi đặt hàng, bạn điền vào ô “Lời nhắn trên thiếp” — shop sẽ viết tay
-        và gắn kèm bó hoa miễn phí.
+      <div class="story-value reveal" style="--reveal-delay:.16s">
+        <div class="story-value-icon">💌</div>
+        <h3>Gửi gắm</h3>
+        <p>Hoa là cách Ler nói những điều khó nói — và gửi chúng đến tay bạn.</p>
       </div>
-    </details>
+    </div>
 
-    <details class="faq-item reveal">
-      <summary>Thanh toán như thế nào?</summary>
-      <div class="faq-answer">
-        Bạn có thể trả tiền mặt khi nhận hoa (COD) hoặc chuyển khoản ngân hàng.
-        Thông tin tài khoản sẽ được gửi qua Zalo khi shop xác nhận đơn.
-      </div>
-    </details>
-  </div>
-</section>
+    <!-- CTA -->
+    <div class="story-cta reveal">
+      <p style="color:var(--text-mid)">Muốn để Ler gửi gắm điều gì đó qua một bó hoa?</p>
+      <a href="san-pham" class="btn btn-primary">🌺 Xem sản phẩm</a>
+    </div>
 
-<!-- ── CTA ────────────────────────────────────────────── -->
-<section class="cta-banner" style="padding:60px 0;">
-  <div class="container reveal">
-    <h2>Sẵn sàng đặt hoa?</h2>
-    <p>Còn thắc mắc gì về giao hàng hay thanh toán, nhắn Zalo để được tư vấn ngay nhé!</p>
-    <a href="san-pham" class="btn btn-white">Xem sản phẩm 🌸</a>
   </div>
 </section>
 
@@ -180,7 +207,6 @@
   </div>
 </footer>
 
-<!-- ── Floating Zalo ──────────────────────────────────── -->
 <a href="#" class="zalo-float" id="zaloFloat" target="_blank" aria-label="Chat Zalo">
   <span>💬</span>
   <span class="zalo-label">Chat Zalo</span>

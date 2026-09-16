@@ -11,7 +11,7 @@ Xem thêm [README.md](README.md) cho cấu trúc thư mục và mô tả từng 
 ## Lệnh thường dùng
 
 ```bash
-python -m http.server 8765        # chạy local; web http://localhost:8765/ , admin /admin/
+python serve.py                   # chạy local; web http://localhost:8765/ , admin /admin/
 ```
 
 Không có bước build, không `npm install`. Vẫn nên mở trình duyệt xem thật, nhưng đã có sẵn
@@ -55,6 +55,21 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 - **Giá sản phẩm lưu dạng TEXT** (`"600,000đ"`, `"Liên hệ"`, `"Từ 2xx (Theo size order)"`) — luôn qua `fmtPrice()`, đừng coi là số.
 - **`data/*.json`, `admin/config.yml`, `images/uploads/`, `demo-*.html` đã bị xoá** (16/09/2026) — di sản Decap CMS và bản nháp, không còn trong repo. Đừng tạo lại.
 - **Không đặt được HTTP header trên GitHub Pages.** `_headers`/`netlify.toml` đã xoá vì GH Pages không đọc (đã kiểm: bản live không trả về `X-Frame-Options`). Đừng tạo lại — muốn có header bảo mật thật thì phải đổi hosting.
+- **Chạy local bằng `python serve.py`, KHÔNG dùng `python -m http.server`.** Web bỏ đuôi `.html` trong
+  link (`/san-pham`); GitHub Pages tự hiểu, còn server có sẵn của Python thì không → báo 404 khắp nơi dù
+  web thật vẫn chạy. `serve.py` bắt chước đúng GitHub Pages (URL không đuôi + trả `404.html`).
+- **Link nội bộ KHÔNG ghi đuôi `.html`.** Trang chủ là `./`, các trang khác `san-pham`, `chi-tiet?id=…`.
+  Menu tô sáng mục đang xem bằng `tenTrang()` trong `js/main.js` (bỏ đuôi .html khi so) — đừng quay lại
+  so nguyên tên file. Trang 404 dùng `data-to=""` cho trang chủ vì JS tự ghép tiền tố repo.
+- **2 trang đã đổi tên (16/09/2026):** `dang-sau-nhung-bo-hoa` → `cau-chuyen`, `san-pham-chi-tiet` →
+  `chi-tiet`. File tên cũ giờ là **trang chuyển hướng — đừng xoá**, link cũ trên Facebook/Zalo/Google
+  còn trỏ vào. Chúng chuyển bằng JS trước để giữ `?id=` sản phẩm (meta refresh làm rơi mất).
+- **Khi có tên miền riêng**, địa chỉ `https://thangws17.github.io/ler-ther-blooming/` đang ghi cứng ở:
+  thẻ `og:image` (7 trang), thẻ `canonical` (6 trang), `sitemap.xml`, `robots.txt`, 2 trang chuyển
+  hướng. Tìm hết bằng `grep -rn "thangws17.github.io" --include=*.html --include=*.xml --include=*.txt .`
+  Trang `chi-tiet` cố ý **không** có canonical (canonical tĩnh sẽ gộp mọi sản phẩm thành một trang).
+  Lưu ý thêm: `robots.txt` chỉ có tác dụng ở GỐC tên miền — trên `github.io/ler-ther-blooming/` hiện
+  Google không đọc nó; có tên miền rồi thì nó mới có tác dụng.
 - **`--vvh` và `--apph` là HAI thứ khác nhau, đừng gộp.** `--vvh` = chiều cao vùng nhìn thấy
   (co lại khi bàn phím mở, nhảy mỗi frame vì iOS bắn `visualViewport scroll` liên tục) → **chỉ**
   cho modal/toast. `--apph` = `window.innerHeight`, dùng cho chiều cao `#appWrap`. Từng cho

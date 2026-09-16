@@ -33,12 +33,13 @@ function initNav() {
     })
   );
 
-  const page = location.pathname.split('/').pop() || 'index.html';
+  // Tô sáng mục menu của trang đang xem. So theo TÊN TRANG đã bỏ đuôi .html,
+  // để khớp cả link mới (/san-pham) lẫn link cũ ai đó còn lưu (/san-pham.html),
+  // và trang chủ ("/", "./", "index.html") đều quy về 'index'.
+  const tenTrang = p => (p || '').split(/[?#]/)[0].split('/').pop().replace(/\.html$/, '') || 'index';
+  const page = tenTrang(location.pathname);
   links.querySelectorAll('a').forEach(a => {
-    const href = a.getAttribute('href');
-    if (href === page || (page === '' && href === 'index.html')) {
-      a.classList.add('active');
-    }
+    if (tenTrang(a.getAttribute('href')) === page) a.classList.add('active');
   });
 }
 
@@ -91,10 +92,10 @@ function productCardHTML(p) {
   const nameAttr = jsAttr(p.name);
   return `
 <div class="product-card reveal" data-category="${esc(p.category)}">
-  <a href="san-pham-chi-tiet.html?id=${p.id}" class="product-img">${img}</a>
+  <a href="chi-tiet?id=${p.id}" class="product-img">${img}</a>
   <div class="product-info">
     <div class="product-name">
-      <a href="san-pham-chi-tiet.html?id=${p.id}" style="color:inherit">${esc(p.name)}</a>
+      <a href="chi-tiet?id=${p.id}" style="color:inherit">${esc(p.name)}</a>
     </div>
     <div class="product-footer">
       <span class="product-price">${esc(fmtPrice(p.price))}</span>
@@ -811,7 +812,7 @@ function openOrderModal(productId, productName, imgOverride) {
   <span class="om-chip">🚚 Nội thành miễn phí</span>
   <span class="om-chip">💳 COD / Chuyển khoản</span>
   <span class="om-chip">📸 Duyệt ảnh trước khi giao</span>
-  <a class="om-chip om-chip-link" href="chinh-sach.html" target="_blank">📋 Chính sách</a>
+  <a class="om-chip om-chip-link" href="chinh-sach" target="_blank">📋 Chính sách</a>
 </div>
 <form id="orderForm" onsubmit="submitOrder(event)">
   <div class="om-groups">
@@ -1113,7 +1114,7 @@ async function loadProductDetail() {
 <div class="detail-wrap">
   ${imgSection}
   <div class="detail-info">
-    <a href="san-pham.html" class="detail-back">← Quay lại sản phẩm</a>
+    <a href="san-pham" class="detail-back">← Quay lại sản phẩm</a>
     <span class="detail-cat">${esc(p.category)}</span>
     <h1 class="detail-name">${esc(p.name)}</h1>
     <div class="detail-price">${esc(fmtPrice(p.price))}</div>

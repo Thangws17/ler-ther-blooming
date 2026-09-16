@@ -1,119 +1,22 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chi tiết sản phẩm — Ler & Ther Blooming</title>
-  <meta name="description" content="Xem chi tiết sản phẩm hoa tươi tại Ler & Ther Blooming.">
-  <meta property="og:type"        content="product">
-  <meta property="og:site_name"   content="Ler & Ther Blooming">
-  <meta property="og:locale"      content="vi_VN">
-  <meta property="og:title"       content="Hoa tươi — Ler & Ther Blooming">
-  <meta property="og:description" content="Xem chi tiết và đặt hoa tươi tại Ler & Ther Blooming.">
-  <meta property="og:image"       content="https://thangws17.github.io/ler-ther-blooming/images/og-cover.jpg">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://oijcwborkebjpavzyisl.supabase.co">
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="utf-8">
+<title>Đang chuyển trang… — Ler &amp; Ther Blooming</title>
+<!--
+  Trang này CHỈ để chuyển hướng: "san-pham-chi-tiet" đã đổi tên thành "chi-tiet" (16/09/2026)
+  cho đường dẫn ngắn gọn. Giữ lại để link cũ đã chia sẻ (Facebook, Zalo,
+  Google) vẫn vào được. Đừng xoá.
+
+  JS chạy TRƯỚC thẻ meta refresh: meta refresh không giữ được phần "?id=…",
+  mà trang chi tiết sản phẩm cần đúng mã sản phẩm đó.
+-->
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://thangws17.github.io/ler-ther-blooming/chi-tiet">
+<script>location.replace('chi-tiet' + location.search + location.hash)</script>
+<meta http-equiv="refresh" content="0; url=chi-tiet">
 </head>
-<body>
-
-<!-- ── Navbar ─────────────────────────────────────────── -->
-<nav class="navbar">
-  <div class="container">
-    <a href="index.html" class="logo">
-      <span class="logo-icon">🌸</span>
-      <span>Ler &amp; Ther <span class="logo-accent">Blooming</span></span>
-    </a>
-    <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
-    <ul class="nav-links" id="navLinks">
-      <li><a href="index.html">Trang chủ</a></li>
-      <li><a href="san-pham.html">Sản phẩm</a></li>
-      <li><a href="gallery.html">Gallery</a></li>
-      <li><a href="dang-sau-nhung-bo-hoa.html">Câu chuyện</a></li>
-      <li><a href="lien-he.html">Liên hệ</a></li>
-    </ul>
-  </div>
-</nav>
-
-<!-- ── Detail ─────────────────────────────────────────── -->
-<section id="detailSection" style="padding:60px 0;">
-  <div class="container">
-    <div id="detailContent">
-      <div class="loading"><div class="l-icon">🌸</div><p>Đang tải sản phẩm…</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ── Order Modal ────────────────────────────────────── -->
-<div class="order-overlay" id="orderOverlay" onclick="if(event.target===this) closeOrderModal()">
-  <div class="order-modal">
-    <button class="order-close" onclick="closeOrderModal()" aria-label="Đóng">✕</button>
-    <div id="orderModalBody"></div>
-  </div>
-</div>
-
-<!-- ── Related Products ───────────────────────────────── -->
-<section id="relatedSection" style="background:#fff; display:none;">
-  <div class="container">
-    <div class="section-header reveal">
-      <h2>Sản phẩm cùng danh mục</h2>
-    </div>
-    <div class="products-grid" id="relatedGrid"></div>
-  </div>
-</section>
-
-<!-- ── Footer ─────────────────────────────────────────── -->
-<footer class="footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <a href="index.html" class="logo">
-          <span class="logo-icon">🌸</span>
-          <span>Ler &amp; Ther <span class="logo-accent">Blooming</span></span>
-        </a>
-        <p>Shop hoa tươi với tâm huyết — mỗi bông hoa là một lời yêu thương được gửi đi.</p>
-        <div class="footer-contact">
-          <span id="footAddress" class="foot-line" style="display:none">📍 <span></span></span>
-          <a id="footPhone" class="foot-line" href="#" style="display:none">📞 <span></span></a>
-        </div>
-      </div>
-      <div class="footer-col">
-        <h4>Trang</h4>
-        <ul>
-          <li><a href="index.html">Trang chủ</a></li>
-          <li><a href="san-pham.html">Sản phẩm</a></li>
-          <li><a href="gallery.html">Gallery</a></li>
-          <li><a href="dang-sau-nhung-bo-hoa.html">Câu chuyện</a></li>
-          <li><a href="chinh-sach.html">Chính sách</a></li>
-          <li><a href="lien-he.html">Liên hệ</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Kết nối</h4>
-        <ul>
-          <li><a href="#" id="fbLink" style="display:none">Facebook</a></li>
-          <li><a href="#" id="igLink" style="display:none">Instagram</a></li>
-          <li><a href="#" id="ttLink" style="display:none">TikTok</a></li>
-          <li><a href="#" id="thLink" style="display:none">Threads</a></li>
-          <li><a href="lien-he.html">Zalo / Điện thoại</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">© 2025 Ler &amp; Ther Blooming. Made with 🌸</div>
-  </div>
-</footer>
-
-<!-- ── Floating Zalo ──────────────────────────────────── -->
-<a href="#" class="zalo-float" id="zaloFloat" target="_blank" aria-label="Chat Zalo">
-  <span>💬</span>
-  <span class="zalo-label">Chat Zalo</span>
-</a>
-
-<script defer src="js/dungchung.js"></script>
-<script defer src="js/main.js"></script>
+<body style="font-family:sans-serif;text-align:center;padding:40px;color:#2E7D32">
+<p>Trang đã chuyển sang <a href="chi-tiet">địa chỉ mới</a>…</p>
 </body>
 </html>

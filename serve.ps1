@@ -69,4 +69,5 @@ Write-Host ''
 Write-Host '  Dang chay server... (Ctrl+C de dung)' -ForegroundColor Green
 Write-Host ''
 Set-Location $PSScriptRoot
-python -m http.server $port
+# serve.py thay cho python -m http.server: hieu duoc URL khong duoi (/san-pham)
+python serve.py $port
