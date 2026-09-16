@@ -3922,6 +3922,9 @@ function skeletonTable(rows = 6) {
 // Lỗi mạng ≠ chưa có dữ liệu — báo rõ ràng kèm nút thử lại
 const loadErrorHTML = fnName => `<div class="empty-state">📶 Không tải được dữ liệu — mạng có thể đang chập chờn.<br>
   <button class="btn-outline" style="margin-top:12px;" onclick="${fnName}()">↻ Thử lại</button></div>`
+// ⚠️ Database KHOÁ cột status chỉ nhận đúng 6 chữ này (supabase/19_order_status_check.sql).
+// Thêm/đổi tên trạng thái: sửa file SQL đó TRƯỚC rồi mới sửa ở đây — làm ngược lại thì
+// lưu đơn với trạng thái mới sẽ bị database từ chối.
 const ORDER_STATUSES = ['Mới', 'Đã xác nhận', 'Đang giao', 'Giao thành công', 'Hoàn thành', 'Đã hủy']
 const STATUS_CLASS = { 'Mới': 's-moi', 'Đã xác nhận': 's-xacnhan', 'Đang giao': 's-danggiao', 'Giao thành công': 's-giaotc', 'Hoàn thành': 's-hoanthanh', 'Đã hủy': 's-huy' }
 
@@ -4889,7 +4892,12 @@ function clearPickedProduct() {
 
 function openNewOrderModal() {
   document.getElementById('orderNewForm').reset()
-  fdSync('noDate')          // reset xoá ô ẩn → chữ trên nút phải về 'Chọn ngày'
+  // Ngày giao mặc định = HÔM NAY: shop lên đơn tay chủ yếu cho đơn giao trong ngày.
+  // (Web khách thì mặc định NGÀY MAI vì khách đặt trước — cố ý khác nhau.)
+  // Gán thẳng .value chứ không qua fdPick() để KHÔNG bật cờ "đang nhập dở" —
+  // mở form rồi đóng ngay thì không bị hỏi "bỏ thay đổi?". Vẫn bấm "Bỏ trống ngày" được.
+  document.getElementById('noDate').value = todayStr()
+  fdSync('noDate')          // đổi .value bằng JS thì phải đồng bộ chữ trên nút
   // Tab Đơn hàng không tự nạp 2 danh sách này — cần cho ô gợi ý khách + sản phẩm
   if (!customers.length) loadCustomers()
   if (!products.length) loadProducts()

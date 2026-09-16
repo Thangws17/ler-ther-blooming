@@ -175,6 +175,7 @@ Dựng lại database từ đầu thì cứ chạy **lần lượt `01_` → `17
 16_reminders_setup          →  nhắc đơn (cần điền token trước, xem REMINDERS_SETUP.md)
 17_rls_lockdown             →  KHOÁ QUYỀN GHI — luôn chạy CUỐI CÙNG
 18_price_normalize          →  chuẩn hoá giá sản phẩm về số trần (chạy lúc nào cũng được)
+19_order_status_check       →  khoá trạng thái đơn chỉ nhận đúng 6 giá trị (chạy lúc nào cũng được)
 ```
 
 > `supabase/da-thay-the/` chứa 3 file `place_order` cũ. **Đừng chạy** — chạy vào là lùi hàm đặt

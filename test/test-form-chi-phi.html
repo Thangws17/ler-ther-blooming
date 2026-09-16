@@ -284,6 +284,23 @@ const dt = document.getElementById('dt')
     w.closeFormDatePops()
   })
 
+  // ── 5d. Thêm đơn thủ công: ngày giao mặc định HÔM NAY ───────────
+  nhom('5d. Thêm đơn thủ công — ngày giao tự chọn hôm nay')
+  w.fdClear('noDate')                       // làm bẩn trước để chắc mở form là tự đặt lại
+  w.openNewOrderModal()
+  await new Promise(res => setTimeout(res, 80))
+  test('Mở form thêm đơn → ngày giao = hôm nay', () =>
+    bang(id('noDate').value, hnay, 'Shop lên đơn tay chủ yếu cho đơn giao trong ngày'))
+  test('Nút ngày giao hiện "Hôm nay"', () =>
+    bang(id('noDateBtn').querySelector('.db-txt').textContent, 'Hôm nay'))
+  test('Tự điền ngày KHÔNG tính là "đang nhập dở" (đóng form không bị hỏi lại)', () =>
+    bang(!!id('orderNewModal').dataset.dirty, false))
+  test('Vẫn bỏ trống ngày giao được (đơn chưa hẹn ngày)', () => {
+    w.fdClear('noDate')
+    bang(id('noDate').value, '')
+  })
+  id('orderNewModal').style.display = 'none'
+
   // ── 6. Form không bị đẩy lên cụt đầu ────────────────────────────
   nhom('6. Form không bị đẩy lên / cụt đầu')
   test('Tiêu đề và nút Lưu luôn ghim, chỉ thân form cuộn', () => {

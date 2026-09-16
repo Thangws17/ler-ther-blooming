@@ -52,6 +52,9 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 
 - **`place_order` được định nghĩa lại ở 4 file SQL.** Bản hiện hành là `supabase/15_notifications_v2.sql` (11 tham số, có `p_email`). Ba bản cũ (10 tham số) đã dồn vào `supabase/da-thay-the/` — chạy vào là **lùi** hàm về bản cũ. Sửa RPC thì sửa trong `15_notifications_v2.sql`.
 - **File SQL đánh số theo thứ tự chạy** (`01_` → `17_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
+- **Trạng thái đơn bị database khoá chỉ nhận 6 giá trị** (`supabase/19_order_status_check.sql`), phải
+  khớp y hệt `ORDER_STATUSES` trong admin. Thêm/đổi tên trạng thái: sửa SQL **trước**, rồi mới sửa JS —
+  ngược lại thì lưu đơn bị từ chối. Mọi chỗ ghi status đều phải lấy từ `ORDER_STATUSES`, đừng gõ tay chuỗi.
 - **Giá sản phẩm lưu dạng TEXT** (`"600,000đ"`, `"Liên hệ"`, `"Từ 2xx (Theo size order)"`) — luôn qua `fmtPrice()`, đừng coi là số.
 - **`data/*.json`, `admin/config.yml`, `images/uploads/`, `demo-*.html` đã bị xoá** (16/09/2026) — di sản Decap CMS và bản nháp, không còn trong repo. Đừng tạo lại.
 - **Không đặt được HTTP header trên GitHub Pages.** `_headers`/`netlify.toml` đã xoá vì GH Pages không đọc (đã kiểm: bản live không trả về `X-Frame-Options`). Đừng tạo lại — muốn có header bảo mật thật thì phải đổi hosting.
