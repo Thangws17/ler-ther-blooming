@@ -115,7 +115,8 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
   `<script>` thường (không module), phải nạp TRƯỚC `js/main.js`.
 - **Giá sản phẩm có loại dạng CHỮ CÓ SỐ**: `"Từ 2xx (Theo size order)"`. Viết SQL kiểu "bỏ hết ký tự
   không phải số" sẽ biến nó thành giá **2 đồng**. Xem `supabase/18_price_normalize.sql` để biết cách lọc
-  đúng (chỉ đổi chuỗi thuần số tiền).
+  đúng (chỉ đổi chuỗi thuần số tiền). **`place_order` từng dính đúng lỗi này** (đơn web đặt sản phẩm
+  "Từ 2xx" bị ghi đơn giá 2đ) — đã sửa trong `15_notifications_v2.sql` bằng cùng điều kiện lọc.
 - **Đừng đặt `position: sticky` cho phần tử nằm TRONG `.content`.** `.content` là khung cuộn;
   sticky bên trong khung cuộn là chỗ iOS vẽ sai toạ độ → thấy phần tử nhưng bấm không trúng.
   `.admin-topbar` vì vậy là anh em của `.content`, không phải con.

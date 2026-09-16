@@ -131,9 +131,17 @@ begin
     v_customer_id := null;
   end if;
 
-  -- Tự lấy giá niêm yết của sản phẩm (tách số từ chuỗi giá)
+  -- Tự lấy giá niêm yết — CHỈ khi giá là SỐ TIỀN THUẦN ("350000", "350,000đ").
+  -- Giá dạng chữ ("Liên hệ", "Từ 2xx (Theo size order)") → để trống = "Chưa định giá",
+  -- shop tự chốt giá khi xác nhận đơn.
+  -- ⚠️ ĐỪNG quay lại kiểu "bỏ hết ký tự không phải số": "Từ 2xx" sẽ thành đơn giá
+  -- 2 ĐỒNG, email xác nhận gửi khách cũng ghi sai (lỗi thật, sửa 16/09/2026).
+  -- Điều kiện lọc giống hệt supabase/18_price_normalize.sql.
   if p_product_id is not null then
-    select nullif(regexp_replace(coalesce(price, ''), '[^0-9]', '', 'g'), '')::numeric
+    select case
+             when price ~ '^[0-9][0-9.,[:space:]]*((đ|Đ|d|D)[[:space:]]*)?$'
+             then nullif(regexp_replace(price, '[^0-9]', '', 'g'), '')::numeric
+           end
       into v_unit_price
     from products
     where id = p_product_id;
