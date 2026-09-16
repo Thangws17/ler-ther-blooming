@@ -5,7 +5,7 @@ const SUPABASE_KEY = 'sb_publishable_vDRAF-LBS3nOpw1GHBchvw_xYuMfdqP'
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
 // Escape để chèn an toàn vào HTML (text hoặc thuộc tính bọc dấu ")
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))
+// esc(), normalizePhone(), isValidPhone(), PHONE_OK → js/dungchung.js (dùng chung với admin)
 // Chuỗi an toàn để nhúng vào onclick="fn('...')" — escape lớp JS rồi lớp HTML
 const jsAttr = s => esc(String(s ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"))
 
@@ -744,17 +744,11 @@ function showMiniToast(msg) {
 // Đưa SĐT về MỘT dạng chuẩn (0…) trước khi lưu.
 // Không có bước này thì cùng một người gõ "0912 345 678" lần này, "+84912345678"
 // lần sau sẽ thành 2 khách khác nhau trong sổ — sổ khách loạn, khó tra lịch sử.
-function normalizePhone(raw) {
-  let s = String(raw ?? '').replace(/[\s.\-()]/g, '');
-  if (s.startsWith('+84')) s = '0' + s.slice(3);
-  else if (s.startsWith('84') && s.length >= 10) s = '0' + s.slice(2);
-  return s;
-}
+
 
 // SĐT Việt Nam luôn 10 số (di động) hoặc 10–11 số (máy bàn), đều bắt đầu bằng 0.
 // Phải chặt tới mức này thì mới bắt được lỗi thiếu 1 số — thứ khiến shop gọi không ai nghe.
-const PHONE_OK = /^0\d{9,10}$/;
-function isValidPhone(raw) { return PHONE_OK.test(normalizePhone(raw)); }
+
 
 // Báo lỗi xong phải đưa khách TỚI ĐÚNG ô sai — form dài, bắt tự đi tìm là bỏ đơn
 function focusOrderField(id) {

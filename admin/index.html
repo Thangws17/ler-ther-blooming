@@ -1045,7 +1045,7 @@
         <button class="btn-green" onclick="openNewOrderModal()">+ Thêm đơn</button>
       </div>
       <div class="filter-bar">
-        <input type="search" id="orderSearch" class="filter-search" placeholder="🔍 Tìm mã đơn / tên khách / SĐT / sản phẩm…" oninput="renderOrders()">
+        <input type="search" id="orderSearch" class="filter-search" placeholder="🔍 Tìm mã đơn / tên khách / SĐT / sản phẩm…" oninput="onOrderSearchInput()">
         <button type="button" id="ordTodayChip" class="chip-thismonth" onclick="orderQuickDate(0)">Giao hôm nay</button>
         <button type="button" id="ordTomoChip" class="chip-thismonth" onclick="orderQuickDate(1)">Ngày mai</button>
         <div class="date-pick-wrap">
@@ -1856,6 +1856,7 @@
 <div id="toast" class="toast" style="display:none"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/dungchung.js"></script>
 <script>
 const SUPABASE_URL = 'https://oijcwborkebjpavzyisl.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_vDRAF-LBS3nOpw1GHBchvw_xYuMfdqP'
@@ -2144,7 +2145,7 @@ async function loadDashboard() {
     <div class="dash-card clickable" onclick="openStatDetail('profit')"><div class="dash-num" style="color:${profit >= 0 ? '#1565C0' : '#C62828'}">${fmtVnd(profit)}</div><div class="dash-label">${profit >= 0 ? 'Lãi gộp' : 'Lỗ'} thực tế tháng</div>${hint}</div>`
 
   // Cho viewOrderDetail/openOrderEditModal dùng được từ Dashboard
-  orders = all
+  cacheOrders(all)       // KHÔNG gán vào `orders` — xem ghi chú ở _donCache
   refreshNewOrderBadge()
   const el = document.getElementById('dashboardToday')
   el.innerHTML = !todayOrders.length
@@ -2207,7 +2208,7 @@ function statRowsHTML(list) {
 function openStatDetail(kind, src) {
   const ctx = src === 'ex' ? _statCtxEx : _statCtx
   if (!ctx) return
-  orders = ctx.orders   // để viewOrderDetail tra cứu được từ modal này
+  cacheOrders(ctx.orders)   // để viewOrderDetail tra cứu được từ modal này
   const mk = ctx.monthKey
   const inMonth = o => statAttrDate(o).slice(0, 7) === mk
   const mLabel = statMonthLabel(mk)
@@ -2278,9 +2279,9 @@ let delivSelectedDate = null  // ngày đang chọn trên lịch (null = xem t�
 async function loadDelivery() {
   const { data, error } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('delivery_date', { ascending: true })
   if (error) { document.getElementById('deliveryList').innerHTML = loadErrorHTML('loadDelivery'); return }
-  orders = data || []
+  cacheOrders(data)      // KHÔNG gán vào `orders` — đó là trang của tab Đơn hàng
   // Ẩn đơn đã hủy / đã giao thành công / hoàn thành (xong việc giao, không cần trong lịch)
-  delivActive = orders.filter(o => !DONE_STATUSES.includes(o.status))
+  delivActive = (data || []).filter(o => !DONE_STATUSES.includes(o.status))
   const input = document.getElementById('delivMonth')
   if (!input.value) input.value = curMonthStr()
   delivSelectedDate = null
@@ -3879,8 +3880,20 @@ async function saveTestimonial(e) {
 
 // ── Orders ────────────────────────────────────────
 let orders = []
-const ORDERS_PAGE = 20            // số đơn hiện mỗi lần, bấm "Xem thêm" để tải tiếp
-let ordersLimit = ORDERS_PAGE
+const ORDERS_PAGE = 20            // số đơn tải mỗi lần, bấm "Xem thêm" để tải tiếp
+// ⚠️ `orders` CHỈ chứa những đơn ĐÃ TẢI (trang đang xem), không còn là toàn bộ bảng.
+// Vì vậy lọc / tìm kiếm / đếm phải hỏi SERVER, tuyệt đối đừng filter trên mảng này —
+// filter ở máy sẽ chỉ tìm trong mấy chục đơn đã tải, tưởng "không có đơn nào".
+// Lịch sử mua hàng của khách KHÔNG dùng mảng này (viewCustomerOrders tự truy vấn
+// theo customer_id) nên không bị ảnh hưởng.
+let ordersTotal = 0               // tổng số đơn KHỚP BỘ LỌC, do server đếm
+
+// Bộ nhớ đệm đơn theo id, gom từ MỌI tab (Đơn hàng, Tổng quan, Lịch giao).
+// Có nó thì mở chi tiết / sửa đơn từ tab nào cũng tìm thấy, và các tab khác
+// KHÔNG phải ghi đè mảng `orders` của tab Đơn hàng nữa (ghi đè là phá trang đang xem).
+let _donCache = {}
+function cacheOrders(list) { (list || []).forEach(o => { _donCache[o.id] = o }) }
+function orderById(id) { return _donCache[id] || orders.find(x => x.id === id) }
 
 // ── Phân trang dùng chung: mục nào quá 20 dòng → hiện 20 + nút "Xem thêm" ──
 const LIST_PAGE = 20
@@ -3928,12 +3941,12 @@ function toggleStatusFilter(i) {
   const s = ORDER_STATUSES[i]
   orderStatusSet.has(s) ? orderStatusSet.delete(s) : orderStatusSet.add(s)
   renderStatusFilterChips()
-  renderOrders()
+  applyOrderFilters()
 }
 function clearStatusFilter() {
   orderStatusSet.clear()
   renderStatusFilterChips()
-  renderOrders()
+  applyOrderFilters()
 }
 // Mốc ghi nhận doanh thu thực tế: đã giao hàng thành công (hoặc đã đóng đơn)
 const REVENUE_STATUSES = ['Giao thành công', 'Hoàn thành']
@@ -3941,23 +3954,17 @@ const REVENUE_STATUSES = ['Giao thành công', 'Hoàn thành']
 const DONE_STATUSES = ['Giao thành công', 'Hoàn thành', 'Đã hủy']
 
 // Chống XSS: escape dữ liệu do khách/người dùng nhập trước khi đưa vào innerHTML
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))
+// esc(), normalizePhone(), isValidPhone(), PHONE_OK → ../js/dungchung.js (dùng chung với web khách)
 
 // Đưa SĐT về MỘT dạng chuẩn (0…) trước khi lưu — giống hệt hàm bên js/main.js.
 // Thiếu bước này thì "0912 345 678" và "+84912345678" thành 2 khách khác nhau,
 // lịch sử mua hàng của cùng một người bị xé đôi.
-function normalizePhone(raw) {
-  let s = String(raw ?? '').replace(/[\s.\-()]/g, '')
-  if (s.startsWith('+84')) s = '0' + s.slice(3)
-  else if (s.startsWith('84') && s.length >= 10) s = '0' + s.slice(2)
-  return s
-}
+
 
 // SĐT Việt Nam luôn 10 số (di động) hoặc 10–11 số (máy bàn), đều bắt đầu bằng 0.
 // Shop tự lên đơn là chính nên PHẢI kiểm ở đây, không chỉ ở web khách —
 // gõ thiếu 1 số là lúc cần gọi giao hàng mới phát hiện thì đã muộn.
-const PHONE_OK = /^0\d{9,10}$/
-function isValidPhone(raw) { return PHONE_OK.test(normalizePhone(raw)) }
+
 
 // Báo lỗi kèm đưa thẳng tới ô sai, khỏi phải tự dò trong form dài
 function phoneError(inputId) {
@@ -4108,13 +4115,56 @@ const orderCustomerName = o => esc(o.customers?.name || o.customer_name || '—'
 // Ưu tiên số trong sổ khách; nếu khách đã bị xoá thì dùng số đã chép vào đơn
 const orderCustomerPhone = o => esc(o.customers?.phone || o.customer_phone || '—')
 
-async function loadOrders() {
+// Bộ lọc đang bật — gom một chỗ để cả truy vấn lẫn thông báo "không tìm thấy" dùng chung
+function ordersFilterState() {
+  return {
+    q: document.getElementById('orderSearch').value.trim(),
+    date: document.getElementById('orderDateFilter').value,
+    statuses: [...orderStatusSet],
+  }
+}
+
+// Dựng câu truy vấn theo bộ lọc. count:'exact' để biết TỔNG số đơn khớp mà
+// không phải tải hết về — đó là điểm chính của phân trang.
+function buildOrdersQuery(f) {
+  let qy = sb.from('orders')
+    .select('*, customers(name, phone), products(image)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+  if (f.statuses.length) qy = qy.in('status', f.statuses)
+  if (f.date) qy = qy.eq('delivery_date', f.date)
+  if (f.q) {
+    // Bỏ ký tự phá cú pháp của .or() (dấu phẩy, ngoặc, %) kẻo câu truy vấn lỗi
+    const s2 = f.q.replace(/[%,()]/g, ' ').trim()
+    const so = s2.replace(/\D/g, '')
+    const dk = [
+      `customer_name.ilike.*${s2}*`,
+      `product_name.ilike.*${s2}*`,
+    ]
+    if (so) dk.push(`customer_phone.ilike.*${so}*`)
+    // Gõ "61" hay "0061" = tìm mã đơn #LT-0061. Giới hạn 6 chữ số kẻo số điện
+    // thoại tràn kiểu số nguyên của Postgres làm cả câu truy vấn lỗi.
+    if (so && so.length <= 6) dk.push(`id.eq.${Number(so)}`)
+    else if (!so) dk.push(`delivery_address.ilike.*${s2}*`)
+    qy = qy.or(dk.join(','))
+  }
+  return qy
+}
+
+// opt.append   = bấm "Xem thêm", nối thêm trang sau
+// opt.giuTrang = tải lại đúng số đơn đang xem (sau khi sửa/đổi trạng thái),
+//                để danh sách không nhảy về 20 đơn đầu
+async function loadOrders(opt = {}) {
   const el = document.getElementById('ordersTable')
   if (el && !orders.length) el.innerHTML = skeletonTable(6)
-  const { data, error } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('created_at', { ascending: false })
+  const f = ordersFilterState()
+  const tu  = opt.append ? orders.length : 0
+  const den = opt.append ? orders.length + ORDERS_PAGE - 1
+            : Math.max(ORDERS_PAGE, opt.giuTrang ? orders.length : 0) - 1
+  const { data, error, count } = await buildOrdersQuery(f).range(tu, den)
   if (error) { if (el) el.innerHTML = loadErrorHTML('loadOrders'); return }
-  orders = data || []
-  ordersLimit = ORDERS_PAGE   // về lại 30 đơn đầu mỗi lần tải mới
+  orders = opt.append ? orders.concat(data || []) : (data || [])
+  cacheOrders(orders)
+  ordersTotal = count == null ? orders.length : count
   renderStatusFilterChips()
   renderOrders()
   refreshNewOrderBadge()
@@ -4137,12 +4187,23 @@ function reloadActiveOrderViews() {
   else loadOrders()
 }
 
+// Đổi bộ lọc là phải hỏi lại server — đừng gọi renderOrders() suông,
+// vì đơn khớp bộ lọc có thể nằm ở những trang chưa tải
+function applyOrderFilters() { loadOrders() }
+
+// Gõ tìm kiếm: chờ 300ms cho gõ xong mới hỏi server, khỏi bắn mỗi ký tự một truy vấn
+let _timDonTimer = null
+function onOrderSearchInput() {
+  clearTimeout(_timDonTimer)
+  _timDonTimer = setTimeout(() => loadOrders(), 300)
+}
+
 function clearOrderFilters() {
   document.getElementById('orderSearch').value = ''
   document.getElementById('orderDateFilter').value = ''
   orderStatusSet.clear()
   renderStatusFilterChips()
-  renderOrders()
+  applyOrderFilters()
 }
 
 // Chip lọc nhanh theo ngày giao (bấm lại = bỏ lọc)
@@ -4150,7 +4211,7 @@ function orderQuickDate(offset) {
   const ds = new Date(Date.now() + offset * 86400000).toLocaleDateString('sv-SE')
   const input = document.getElementById('orderDateFilter')
   input.value = (input.value === ds) ? '' : ds
-  renderOrders()
+  applyOrderFilters()
 }
 
 // ── Bộ chọn ngày DÙNG CHUNG cho các form ─────────────────────────
@@ -4310,6 +4371,26 @@ function toggleOrderDatePicker() {
   }
 }
 
+// Chấm xanh trên lịch: chỉ tải ngày giao của ĐÚNG tháng đang xem (nhẹ, 1 cột),
+// nhớ lại tháng vừa tải để bấm qua bấm lại không hỏi server liên tục
+let _ordDotsMonth = null, _ordDots = {}, _ordDotsDang = null
+
+async function ordLoadDots(month) {
+  if (_ordDotsMonth === month || _ordDotsDang === month) return
+  _ordDotsDang = month
+  const { data, error } = await sb.from('orders')
+    .select('delivery_date, status')
+    .gte('delivery_date', month + '-01')
+    .lte('delivery_date', month + '-31')
+  _ordDotsDang = null
+  if (error) return
+  const m = {}
+  ;(data || []).forEach(o => { if (o.delivery_date && o.status !== 'Đã hủy') m[o.delivery_date] = true })
+  _ordDots = m
+  _ordDotsMonth = month
+  if (document.getElementById('orderDatePicker')?.style.display !== 'none') renderOrderDatePicker()
+}
+
 function ordPickStepMonth(delta) {
   const [y, m] = ordPickMonth.split('-').map(Number)
   ordPickMonth = new Date(y, m - 1 + delta, 1).toLocaleDateString('sv-SE').slice(0, 7)
@@ -4320,22 +4401,24 @@ function ordPickDay(ds) {
   const input = document.getElementById('orderDateFilter')
   input.value = (input.value === ds) ? '' : ds   // bấm lại ngày đang chọn = bỏ lọc
   document.getElementById('orderDatePicker').style.display = 'none'
-  renderOrders()
+  applyOrderFilters()
 }
 
 function ordPickClear() {
   document.getElementById('orderDateFilter').value = ''
   document.getElementById('orderDatePicker').style.display = 'none'
-  renderOrders()
+  applyOrderFilters()
 }
 
 function renderOrderDatePicker() {
   const [y, m] = ordPickMonth.split('-').map(Number)
   const selected = document.getElementById('orderDateFilter').value
   const today = todayStr()
-  // Chấm xanh: ngày có đơn (chưa hủy) hẹn giao
-  const has = {}
-  orders.forEach(o => { if (o.delivery_date?.startsWith(ordPickMonth) && o.status !== 'Đã hủy') has[o.delivery_date] = true })
+  // Chấm xanh: ngày có đơn (chưa hủy) hẹn giao.
+  // Phải hỏi server theo tháng — mảng `orders` giờ chỉ có mấy chục đơn đã tải,
+  // đọc từ đó thì tháng cũ sẽ không có chấm nào.
+  const has = _ordDotsMonth === ordPickMonth ? _ordDots : {}
+  ordLoadDots(ordPickMonth)
 
   const daysInMonth = new Date(y, m, 0).getDate()
   const firstDow = (new Date(y, m - 1, 1).getDay() + 6) % 7
@@ -4390,26 +4473,16 @@ function renderOrders() {
     dateBtn.style.fontWeight = date ? '700' : ''
   }
 
-  const list = orders.filter(o => {
-    if (orderStatusSet.size && !orderStatusSet.has(o.status)) return false
-    if (date && o.delivery_date !== date) return false
-    if (q) {
-      const hay = [
-        orderCode(o.id),
-        o.customers?.name || o.customer_name || '',
-        o.customers?.phone || '',
-        o.product_name || '',
-      ].join(' ').toLowerCase()
-      if (!hay.includes(q)) return false
-    }
-    return true
-  })
+  // KHÔNG filter ở đây nữa — server đã lọc rồi (xem buildOrdersQuery).
+  // `orders` là những đơn đã tải, `ordersTotal` là tổng số đơn khớp bộ lọc.
+  const list = orders
+  const coLoc = orderStatusSet.size || date || q
 
-  if (!orders.length) {
+  if (!ordersTotal && !coLoc) {
     el.innerHTML = '<div class="empty-state">Chưa có đơn hàng nào.</div>'
     return
   }
-  if (!list.length) {
+  if (!ordersTotal) {
     const parts = []
     if (orderStatusSet.size) parts.push('trạng thái <strong>' + [...orderStatusSet].join(', ') + '</strong>')
     if (date) parts.push('ngày giao <strong>' + date.split('-').reverse().join('/') + '</strong>')
@@ -4419,14 +4492,14 @@ function renderOrders() {
     return
   }
   const fmtDayShort = d => d ? d.slice(8, 10) + '/' + d.slice(5, 7) : ''
-  const shown = list.slice(0, ordersLimit)   // chỉ vẽ tối đa ordersLimit đơn cho nhẹ
-  const moreBtn = list.length > ordersLimit
+  const shown = list                         // đã tải bao nhiêu thì vẽ bấy nhiêu
+  const moreBtn = ordersTotal > shown.length
     ? `<div style="text-align:center;margin-top:16px;">
-         <button class="btn-outline" onclick="showMoreOrders()">Xem thêm ${list.length - ordersLimit} đơn nữa ▾</button>
+         <button class="btn-outline" id="ordMoreBtn" onclick="showMoreOrders()">Xem thêm ${ordersTotal - shown.length} đơn nữa ▾</button>
        </div>`
     : ''
   el.innerHTML = `
-<div class="orders-count" style="font-size:.85rem;color:#7A9879;margin-bottom:10px;">Hiển thị ${shown.length}/${list.length} đơn</div>
+<div class="orders-count" style="font-size:.85rem;color:#7A9879;margin-bottom:10px;">Hiển thị ${shown.length}/${ordersTotal} đơn</div>
 <div class="orders-desktop">
 <table class="data-table">
   <thead><tr>
@@ -4479,9 +4552,10 @@ function renderOrders() {
 ${moreBtn}`
 }
 
-function showMoreOrders() {
-  ordersLimit += ORDERS_PAGE
-  renderOrders()
+async function showMoreOrders() {
+  const btn = document.getElementById('ordMoreBtn')
+  if (btn) { btn.textContent = 'Đang tải…'; btn.disabled = true }
+  await loadOrders({ append: true })
 }
 
 // Nút −/+ ô Số lượng (giống hệt bên web khách). Bắn sự kiện 'input' để Tổng tạm tính
@@ -4500,7 +4574,7 @@ function stepQtyAdmin(id, delta) {
 let _qsOrderId = null
 
 function openQuickStatus(id) {
-  const o = orders.find(x => x.id === id)
+  const o = orderById(id)
   if (!o) return
   _qsOrderId = id
   document.getElementById('qsTitle').textContent = `Trạng thái ${orderCode(o.id)}`
@@ -4528,15 +4602,15 @@ async function pickQuickStatus(idx) {
 async function updateOrderStatus(id, status) {
   const { error } = await sb.from('orders').update({ status }).eq('id', id)
   if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
-  const o = orders.find(x => x.id === id)
+  const o = orderById(id)
   if (o) o.status = status
-  renderOrders()
+  renderOrders()          // vẽ lại ngay cho thấy đổi, khỏi chờ mạng
   refreshNewOrderBadge()
   showToast('Đã cập nhật trạng thái!')
 }
 
 function viewOrderDetail(id) {
-  const o = orders.find(x => x.id === id)
+  const o = orderById(id)
   if (!o) return
   document.getElementById('customerOrdersTitle').textContent = `Đơn ${orderCode(o.id)}`
   const priceRows = o.unit_price == null
@@ -4637,7 +4711,7 @@ function oeUpdateCustomerEditable() {
 }
 
 function openOrderEditModal(id) {
-  const o = orders.find(x => x.id === id)
+  const o = orderById(id)
   if (!o) return
   if (!customers.length) loadCustomers()   // để ô tên khách gợi ý được
   hideCustSuggest('oe')
@@ -4696,7 +4770,7 @@ async function saveOrderEdit(e) {
   }
 
   if (OE_CUSTOMER_EDITABLE_STATUSES.includes(status)) {
-    const o = orders.find(x => x.id === id)
+    const o = orderById(id)
     const newName = document.getElementById('oeCustomerName').value.trim()
     const newPhone = normalizePhone(document.getElementById('oePhone').value)
     data.customer_name = newName || null

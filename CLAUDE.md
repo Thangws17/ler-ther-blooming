@@ -20,6 +20,7 @@ mấy trang test chạy trong trình duyệt (vẫn server 8765 đó):
 - `/test/test-gia-san-pham.html` — ô giá sản phẩm: chèn dấu chấm, giữ con trỏ, dãy giá hay dùng
 - `/test/test-khung-man-hinh.html` — khung màn hình admin trên iPhone (xem "Bẫy đã biết")
 - `/test/test-form-chi-phi.html` — ô ngày + ô tiền trong form chi phí
+- `/test/test-phan-trang-don.html` — phân trang đơn: kiểm đúng URL truy vấn gửi lên Supabase
 
 Trang test **bốc hàm/DOM thật ra khỏi `admin/index.html`** chứ không copy code, nên sửa admin là test
 biết ngay. Không nối Supabase để ghi, chạy bao nhiêu lần cũng không đụng dữ liệu thật.
@@ -51,7 +52,7 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 
 - **`place_order` được định nghĩa lại ở 4 file SQL.** Bản hiện hành là `supabase/15_notifications_v2.sql` (11 tham số, có `p_email`). Ba bản cũ (10 tham số) đã dồn vào `supabase/da-thay-the/` — chạy vào là **lùi** hàm về bản cũ. Sửa RPC thì sửa trong `15_notifications_v2.sql`.
 - **File SQL đánh số theo thứ tự chạy** (`01_` → `17_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
-- **Giá sản phẩm lưu dạng TEXT** (`"600,000đ"`, hoặc `"Liên hệ"`) — luôn qua `fmtPrice()`, đừng coi là số.
+- **Giá sản phẩm lưu dạng TEXT** (`"600,000đ"`, `"Liên hệ"`, `"Từ 2xx (Theo size order)"`) — luôn qua `fmtPrice()`, đừng coi là số.
 - **`data/*.json`, `admin/config.yml`, `images/uploads/`, `demo-*.html` đã bị xoá** (16/09/2026) — di sản Decap CMS và bản nháp, không còn trong repo. Đừng tạo lại.
 - **Không đặt được HTTP header trên GitHub Pages.** `_headers`/`netlify.toml` đã xoá vì GH Pages không đọc (đã kiểm: bản live không trả về `X-Frame-Options`). Đừng tạo lại — muốn có header bảo mật thật thì phải đổi hosting.
 - **`--vvh` và `--apph` là HAI thứ khác nhau, đừng gộp.** `--vvh` = chiều cao vùng nhìn thấy
@@ -82,6 +83,21 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 - **Bàn phím iOS đổi chiều cao mà không báo sự kiện** (chuyển giữa ô có/không có thanh gợi ý chữ) →
   `--vvh` kẹt số cũ, form dừng cách bàn phím một khúc. Vì vậy `measureViewport()` được gọi lại nhiều
   nhịp sau mỗi lần focus đổi, không chỉ chờ `visualViewport resize`.
+- **Mảng `orders` CHỈ chứa trang đơn đang xem, không phải cả bảng.** Tab Đơn hàng tải theo trang
+  (`ORDERS_PAGE` = 20, `buildOrdersQuery()` lọc trên server, `count: 'exact'` để đếm). **Đừng bao giờ
+  `orders.filter(...)` để lọc/tìm** — sẽ chỉ tìm trong mấy chục đơn đã tải rồi báo "không có đơn nào".
+  Đổi bộ lọc thì gọi `applyOrderFilters()`, không gọi `renderOrders()` suông.
+- **Tra đơn theo id phải dùng `orderById(id)`**, không dùng `orders.find`. Tab Tổng quan và Lịch giao
+  nạp đơn của chúng vào `_donCache` qua `cacheOrders()` và **không được gán vào `orders`** — gán là phá
+  trang đang xem của tab Đơn hàng (đã từng như vậy).
+- **Lịch sử mua hàng của khách (`viewCustomerOrders`) tự truy vấn theo `customer_id`**, không dùng mảng
+  `orders`. Nhờ vậy phân trang không ảnh hưởng nó — giữ nguyên cách này.
+- **`js/dungchung.js` giữ hàm dùng chung** (`esc`, `normalizePhone`, `isValidPhone`, `PHONE_OK`) cho CẢ
+  web khách và admin. Sửa ở đây là cả 2 bên đổi theo — đừng viết lại bản riêng như trước. Nạp bằng thẻ
+  `<script>` thường (không module), phải nạp TRƯỚC `js/main.js`.
+- **Giá sản phẩm có loại dạng CHỮ CÓ SỐ**: `"Từ 2xx (Theo size order)"`. Viết SQL kiểu "bỏ hết ký tự
+  không phải số" sẽ biến nó thành giá **2 đồng**. Xem `supabase/18_price_normalize.sql` để biết cách lọc
+  đúng (chỉ đổi chuỗi thuần số tiền).
 - **Đừng đặt `position: sticky` cho phần tử nằm TRONG `.content`.** `.content` là khung cuộn;
   sticky bên trong khung cuộn là chỗ iOS vẽ sai toạ độ → thấy phần tử nhưng bấm không trúng.
   `.admin-topbar` vì vậy là anh em của `.content`, không phải con.

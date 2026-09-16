@@ -34,6 +34,7 @@ chinh-sach.html             Giao hàng / thanh toán / cam kết + FAQ
 404.html                    Trang lỗi riêng của shop
 
 css/style.css               Toàn bộ style web khách (1 file duy nhất)
+js/dungchung.js             Hàm dùng chung cho CẢ web khách và admin (esc, chuẩn hoá SĐT)
 js/main.js                  Toàn bộ JS web khách: đọc Supabase, render, modal đặt hàng
 
 admin/index.html            TOÀN BỘ trang quản lý — 1 file, ~5000 dòng (HTML+CSS+JS)
@@ -102,6 +103,7 @@ lần cũng không đụng dữ liệu thật.
 | `test/test-gia-san-pham.html` | Ô giá sản phẩm: tự chèn dấu chấm, giữ con trỏ khi sửa giữa chuỗi, mẫu "Liên hệ", dãy giá hay dùng |
 | `test/test-khung-man-hinh.html` | Khung màn hình admin trên iPhone: thẻ đơn không bị trắng thông tin, thanh trên không che khuất / bấm được |
 | `test/test-form-chi-phi.html` | Form chi phí: lịch tự vẽ (4 form), ô tiền có dấu chấm hàng nghìn, form không bị đẩy lên cụt đầu |
+| `test/test-phan-trang-don.html` | Phân trang đơn: lọc / tìm kiếm / đếm chạy đúng ở server |
 
 Trang test **bốc hàm thật ra khỏi `admin/index.html`** (cắt theo 2 mốc comment) chứ không copy code,
 nên sửa admin là test biết ngay. Nếu đổi tên hay dời khối code đó thì test báo đỏ kèm lời nhắc sửa
@@ -165,6 +167,7 @@ Dựng lại database từ đầu thì cứ chạy **lần lượt `01_` → `17
 15_notifications_v2         →  RPC place_order (bản hiện hành) + thông báo đơn mới
 16_reminders_setup          →  nhắc đơn (cần điền token trước, xem REMINDERS_SETUP.md)
 17_rls_lockdown             →  KHOÁ QUYỀN GHI — luôn chạy CUỐI CÙNG
+18_price_normalize          →  chuẩn hoá giá sản phẩm về số trần (chạy lúc nào cũng được)
 ```
 
 > `supabase/da-thay-the/` chứa 3 file `place_order` cũ. **Đừng chạy** — chạy vào là lùi hàm đặt

@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test phân trang đơn hàng — Ler &amp; Ther Blooming</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; padding: 24px; font: 14px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+         background: #FAF8F5; color: #2B2B2B; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6B6B6B; margin: 0 0 20px; }
+  .sub code { background: #EFEAE3; padding: 1px 5px; border-radius: 4px; }
+  #tongket { padding: 12px 16px; border-radius: 10px; font-weight: 600; margin-bottom: 18px; }
+  .ok-box   { background: #E8F5E9; color: #1B5E20; border: 1px solid #A5D6A7; }
+  .fail-box { background: #FFEBEE; color: #B71C1C; border: 1px solid #EF9A9A; }
+  h2 { font-size: 15px; margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #E5DFD7; }
+  .ca { display: flex; gap: 8px; padding: 5px 0; align-items: baseline; }
+  .dau { flex: 0 0 18px; font-weight: 700; }
+  .ok .dau { color: #2E7D32; }
+  .fail .dau { color: #C62828; }
+  .fail { background: #FFF5F5; border-radius: 6px; padding-left: 6px; }
+  .ten { flex: 1; }
+  .chitiet { display: block; color: #C62828; font-family: ui-monospace, Consolas, monospace;
+             font-size: 12.5px; white-space: pre-wrap; margin-top: 2px; word-break: break-all; }
+  #dt { width: 390px; height: 700px; border: 0; position: absolute; left: -9999px; top: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📄 Test phân trang đơn hàng</h1>
+  <p class="sub">Admin giờ <b>tải đơn theo trang</b>. Trang test kiểm đúng <b>URL truy vấn</b> mà admin gửi
+     lên Supabase — để chắc việc lọc / tìm kiếm / đếm chạy ở <b>server</b>, không phải lọc trong mấy chục
+     đơn đã tải. <b>Không đăng nhập</b>, không đọc/ghi dữ liệu đơn thật.</p>
+  <div id="tongket">Đang chạy…</div>
+  <div id="kq"></div>
+</div>
+<iframe id="dt" src="../admin/index.html"></iframe>
+
+<script>
+let soOk = 0, soFail = 0
+const boxKq = document.getElementById('kq')
+
+function nhom(ten) {
+  const h = document.createElement('h2')
+  h.textContent = ten
+  boxKq.appendChild(h)
+}
+
+function test(ten, fn) {
+  const row = document.createElement('div')
+  row.className = 'ca'
+  row.innerHTML = '<span class="dau"></span><span class="ten"></span>'
+  const dau = row.querySelector('.dau'), t = row.querySelector('.ten')
+  t.textContent = ten
+  try {
+    fn()
+    soOk++; row.classList.add('ok'); dau.textContent = '✓'
+  } catch (e) {
+    soFail++; row.classList.add('fail'); dau.textContent = '✕'
+    const ct = document.createElement('span')
+    ct.className = 'chitiet'
+    ct.textContent = e.message
+    t.appendChild(ct)
+  }
+  boxKq.appendChild(row)
+}
+
+function bang(thuc, mong, ghiChu = '') {
+  const a = JSON.stringify(thuc), b = JSON.stringify(mong)
+  if (a !== b) throw new Error((ghiChu ? ghiChu + '\n' : '') + 'mong đợi: ' + b + '\nnhận được: ' + a)
+}
+function chua(chuoi, doan, ghiChu = '') {
+  if (!String(chuoi).includes(doan))
+    throw new Error((ghiChu ? ghiChu + '\n' : '') + 'không thấy: ' + doan + '\ntrong: ' + chuoi)
+}
+function khongChua(chuoi, doan, ghiChu = '') {
+  if (String(chuoi).includes(doan))
+    throw new Error((ghiChu ? ghiChu + '\n' : '') + 'KHÔNG được có: ' + doan + '\nnhưng có trong: ' + chuoi)
+}
+
+const dt = document.getElementById('dt')
+
+;(async function main() {
+  await new Promise(res => {
+    const xong = () => { try { return dt.contentDocument.readyState === 'complete' && dt.contentWindow.location.href !== 'about:blank' } catch { return false } }
+    if (xong()) return res()
+    dt.addEventListener('load', res, { once: true })
+  })
+  await new Promise(res => setTimeout(res, 1200))
+
+  const w = dt.contentWindow, d = dt.contentDocument
+  const id = x => d.getElementById(x)
+
+  for (const f of ['buildOrdersQuery', 'ordersFilterState', 'applyOrderFilters', 'onOrderSearchInput', 'loadOrders', 'showMoreOrders', 'cacheOrders', 'orderById', 'ordLoadDots']) {
+    if (typeof w[f] !== 'function') {
+      const tk = document.getElementById('tongket')
+      tk.className = 'fail-box'
+      tk.textContent = '✕ admin/index.html thiếu hàm ' + f + ' (lỗi cú pháp JS?)'
+      return
+    }
+  }
+
+  // URL thật mà thư viện Supabase sẽ gọi.
+  // Khoảng trắng trong URL được mã hoá thành dấu '+' → đổi lại thành space
+  // cho dễ đọc khi so sánh ("Đang+giao" → "Đang giao").
+  const urlCua = f => {
+    const q = w.buildOrdersQuery(f)
+    if (!q || !q.url) throw new Error('không đọc được URL truy vấn (thư viện Supabase đổi cấu trúc?)')
+    return decodeURIComponent(q.url.toString()).replace(/\+/g, ' ')
+  }
+
+  // ── 1. Đếm ở server ─────────────────────────────────────────────
+  nhom('1. Tổng số đơn do SERVER đếm, không tải hết về để đếm')
+  test('Truy vấn có xin đếm chính xác (count=exact)', () => {
+    const q = w.buildOrdersQuery({ q: '', date: '', statuses: [] })
+    // headers là đối tượng Headers của trình duyệt, phải đọc bằng .get()
+    const pref = (q.headers && q.headers.get ? q.headers.get('prefer') : '') || ''
+    chua(pref, 'count=exact',
+      'Thiếu count=exact thì không biết tổng số đơn mà không tải hết — mất ý nghĩa phân trang')
+  })
+  test('Vẫn lấy kèm tên/SĐT khách và ảnh sản phẩm', () => {
+    const u = urlCua({ q: '', date: '', statuses: [] })
+    chua(u, 'customers(name,phone)'.replace('(', '('))
+    chua(u, 'products(image)')
+  })
+  test('Sắp theo đơn mới nhất trước', () =>
+    chua(urlCua({ q: '', date: '', statuses: [] }), 'order=created_at.desc'))
+
+  // ── 2. Lọc trạng thái + ngày chạy ở server ──────────────────────
+  nhom('2. Lọc trạng thái và ngày giao chạy ở server')
+  test('Không lọc gì thì URL không có điều kiện status/ngày', () => {
+    const u = urlCua({ q: '', date: '', statuses: [] })
+    khongChua(u, 'status=')
+    khongChua(u, 'delivery_date=')
+  })
+  test('Chọn 1 trạng thái → status=in.(...)', () =>
+    chua(urlCua({ q: '', date: '', statuses: ['Mới'] }), 'status=in.(Mới)'))
+  test('Chọn nhiều trạng thái → vào cùng một điều kiện', () => {
+    const u = urlCua({ q: '', date: '', statuses: ['Mới', 'Đang giao'] })
+    chua(u, 'status=in.(Mới,Đang giao)')
+  })
+  test('Lọc ngày giao → delivery_date=eq.<ngày>', () =>
+    chua(urlCua({ q: '', date: '2026-09-15', statuses: [] }), 'delivery_date=eq.2026-09-15'))
+  test('Lọc ngày + trạng thái cùng lúc thì có cả hai', () => {
+    const u = urlCua({ q: '', date: '2026-09-15', statuses: ['Hoàn thành'] })
+    chua(u, 'delivery_date=eq.2026-09-15')
+    chua(u, 'status=in.(Hoàn thành)')
+  })
+
+  // ── 3. Tìm kiếm chạy ở server ───────────────────────────────────
+  nhom('3. Tìm kiếm chạy ở server (quan trọng nhất)')
+  test('Gõ tên khách → tìm trong tên khách, tên sản phẩm', () => {
+    const u = urlCua({ q: 'Hồng', date: '', statuses: [] })
+    chua(u, 'customer_name.ilike.*Hồng*',
+      'Nếu thiếu, tìm kiếm chỉ chạy trên đơn đã tải → gõ tên khách cũ sẽ báo không có đơn')
+    chua(u, 'product_name.ilike.*Hồng*')
+  })
+  test('Gõ mã đơn "61" → tìm đúng đơn #LT-0061', () =>
+    chua(urlCua({ q: '61', date: '', statuses: [] }), 'id.eq.61'))
+  test('Gõ "0061" cũng ra đơn #LT-0061', () =>
+    chua(urlCua({ q: '0061', date: '', statuses: [] }), 'id.eq.61'))
+  test('Gõ số điện thoại → tìm theo SĐT', () =>
+    chua(urlCua({ q: '0971191175', date: '', statuses: [] }), 'customer_phone.ilike.*0971191175*'))
+  test('SĐT 10 số KHÔNG được ghép vào điều kiện mã đơn', () =>
+    khongChua(urlCua({ q: '0971191175', date: '', statuses: [] }), 'id.eq.',
+      'Số 10 chữ số tràn kiểu số nguyên của Postgres → cả câu truy vấn lỗi, danh sách trắng trơn'))
+  test('Gõ dấu phẩy / ngoặc không làm vỡ câu truy vấn', () => {
+    const u = urlCua({ q: 'hoa, (mix) 50%', date: '', statuses: [] })
+    khongChua(u, '(mix)', 'Ngoặc chưa được lọc → PostgREST hiểu sai cú pháp or()')
+    khongChua(u, '50%')
+  })
+  test('Tìm kiếm kết hợp được với lọc trạng thái', () => {
+    const u = urlCua({ q: 'Chi', date: '', statuses: ['Mới'] })
+    chua(u, 'status=in.(Mới)')
+    chua(u, 'customer_name.ilike.*Chi*')
+  })
+
+  // ── 4. Bộ lọc đọc đúng từ giao diện ─────────────────────────────
+  nhom('4. Bộ lọc đọc đúng từ các ô trên giao diện')
+  test('ordersFilterState đọc ô tìm kiếm và ô ngày', () => {
+    id('orderSearch').value = '  Em Chi  '
+    id('orderDateFilter').value = '2026-09-14'
+    const f = w.ordersFilterState()
+    bang(f.q, 'Em Chi', 'Phải tự bỏ khoảng trắng đầu/cuối')
+    bang(f.date, '2026-09-14')
+    id('orderSearch').value = ''
+    id('orderDateFilter').value = ''
+  })
+  test('Chưa chọn trạng thái nào = xem tất cả (danh sách rỗng)', () =>
+    bang(w.ordersFilterState().statuses, []))
+
+  // ── 5. Mở chi tiết đơn từ tab nào cũng được ─────────────────────
+  nhom('5. Mở chi tiết đơn từ Tổng quan / Lịch giao vẫn tra được')
+  test('cacheOrders + orderById tra được đơn theo mã', () => {
+    w.cacheOrders([{ id: 999001, status: 'Mới', product_name: 'TEST' }])
+    const o = w.orderById(999001)
+    if (!o) throw new Error('không tra được đơn vừa nạp vào bộ nhớ đệm')
+    bang(o.product_name, 'TEST')
+  })
+  test('Đơn không tồn tại thì trả về rỗng, không làm vỡ hàm', () =>
+    bang(w.orderById(123456789) || null, null))
+  test('Lịch giao KHÔNG ghi đè trang đang xem của tab Đơn hàng', () => {
+    const src = w.loadDelivery.toString()
+    khongChua(src, 'orders = data',
+      'loadDelivery gán vào mảng `orders` → phá trang đang xem của tab Đơn hàng')
+    chua(src, 'cacheOrders')
+  })
+  test('Tổng quan cũng không ghi đè', () => {
+    const src = w.loadDashboard.toString()
+    khongChua(src, 'orders = all')
+    chua(src, 'cacheOrders')
+  })
+
+  // ── 6. renderOrders không còn tự lọc ────────────────────────────
+  nhom('6. renderOrders chỉ vẽ, không tự lọc nữa')
+  test('renderOrders không còn filter trên mảng orders', () => {
+    const src = w.renderOrders.toString()
+    khongChua(src, 'orders.filter',
+      'Còn filter ở máy là lọc trong mấy chục đơn đã tải → tưởng "không có đơn nào"')
+  })
+  test('Số đếm hiển thị lấy từ tổng của server (ordersTotal)', () =>
+    chua(w.renderOrders.toString(), 'ordersTotal'))
+  test('"Xem thêm" tải trang sau từ server, không phải vẽ thêm', () => {
+    const src = w.showMoreOrders.toString()
+    chua(src, 'append', 'Phải gọi loadOrders({ append: true })')
+    khongChua(src, 'ordersLimit')
+  })
+
+  // ── 7. Chấm xanh trên lịch chọn ngày ────────────────────────────
+  nhom('7. Chấm xanh "ngày có đơn" hỏi theo tháng')
+  test('ordLoadDots giới hạn theo tháng đang xem', () => {
+    const src = w.ordLoadDots.toString()
+    chua(src, 'delivery_date')
+    chua(src, 'gte')
+    chua(src, 'lte', 'Không giới hạn tháng thì lại tải cả bảng đơn')
+  })
+  test('Chỉ lấy 2 cột cho nhẹ, không lấy cả đơn', () => {
+    const src = w.ordLoadDots.toString()
+    khongChua(src, "select('*'", 'Chấm lịch chỉ cần ngày giao + trạng thái')
+  })
+
+  tongKet()
+})().catch(e => {
+  soFail++
+  const row = document.createElement('div')
+  row.className = 'ca fail'
+  row.innerHTML = '<span class="dau">✕</span><span class="ten"></span>'
+  const t = row.querySelector('.ten')
+  t.textContent = 'Bộ test dừng giữa đường'
+  const ct = document.createElement('span')
+  ct.className = 'chitiet'
+  ct.textContent = (e && e.message) || String(e)
+  t.appendChild(ct)
+  boxKq.appendChild(row)
+  tongKet()
+})
+
+function tongKet() {
+  const tk = document.getElementById('tongket')
+  tk.className = soFail ? 'fail-box' : 'ok-box'
+  tk.textContent = soFail
+    ? '✕ ' + soFail + ' ca FAIL / ' + (soOk + soFail) + ' ca'
+    : '✓ Tất cả ' + soOk + ' ca đều PASS'
+}
+</script>
+</body>
+</html>
