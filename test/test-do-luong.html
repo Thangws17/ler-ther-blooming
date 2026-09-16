@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test đo lường truy cập — Ler &amp; Ther Blooming</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; padding: 24px; font: 14px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+         background: #FAF8F5; color: #2B2B2B; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6B6B6B; margin: 0 0 20px; }
+  .sub code { background: #EFEAE3; padding: 1px 5px; border-radius: 4px; }
+  #tongket { padding: 12px 16px; border-radius: 10px; font-weight: 600; margin-bottom: 18px; }
+  .ok-box   { background: #E8F5E9; color: #1B5E20; border: 1px solid #A5D6A7; }
+  .fail-box { background: #FFEBEE; color: #B71C1C; border: 1px solid #EF9A9A; }
+  h2 { font-size: 15px; margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #E5DFD7; }
+  .ca { display: flex; gap: 8px; padding: 5px 0; align-items: baseline; }
+  .dau { flex: 0 0 18px; font-weight: 700; }
+  .ok .dau { color: #2E7D32; }
+  .fail .dau { color: #C62828; }
+  .fail { background: #FFF5F5; border-radius: 6px; padding-left: 6px; }
+  .ten { flex: 1; }
+  .chitiet { display: block; color: #C62828; font-family: ui-monospace, Consolas, monospace;
+             font-size: 12.5px; white-space: pre-wrap; margin-top: 2px; word-break: break-all; }
+  #dt { width: 390px; height: 700px; border: 0; position: absolute; left: -9999px; top: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📊 Test đo lường truy cập</h1>
+  <p class="sub">Kiểm Google Analytics + Clarity trên web khách: chỉ bật khi có mã hợp lệ, <b>không đếm</b> khi chạy thử
+     ở máy hay khi là máy của shop, ghi đúng các thao tác quan trọng. Dùng mã giả <code>G-TEST…</code>, không phải mã thật.</p>
+  <div id="tongket">Đang chạy…</div>
+  <div id="kq"></div>
+</div>
+<iframe id="dt" src="../"></iframe>
+
+<script>
+let soOk = 0, soFail = 0
+const boxKq = document.getElementById('kq')
+function nhom(ten) { const h = document.createElement('h2'); h.textContent = ten; boxKq.appendChild(h) }
+function test(ten, fn) {
+  const row = document.createElement('div')
+  row.className = 'ca'
+  row.innerHTML = '<span class="dau"></span><span class="ten"></span>'
+  const dau = row.querySelector('.dau'), t = row.querySelector('.ten')
+  t.textContent = ten
+  try { fn(); soOk++; row.classList.add('ok'); dau.textContent = '✓' }
+  catch (e) {
+    soFail++; row.classList.add('fail'); dau.textContent = '✕'
+    const ct = document.createElement('span'); ct.className = 'chitiet'; ct.textContent = e.message; t.appendChild(ct)
+  }
+  boxKq.appendChild(row)
+}
+function bang(thuc, mong, ghiChu = '') {
+  const a = JSON.stringify(thuc), b = JSON.stringify(mong)
+  if (a !== b) throw new Error((ghiChu ? ghiChu + '\n' : '') + 'mong đợi: ' + b + '\nnhận được: ' + a)
+}
+function tongKet() {
+  const tk = document.getElementById('tongket')
+  tk.className = soFail ? 'fail-box' : 'ok-box'
+  tk.textContent = soFail ? '✕ ' + soFail + ' ca FAIL / ' + (soOk + soFail) + ' ca' : '✓ Tất cả ' + soOk + ' ca đều PASS'
+}
+
+const dt = document.getElementById('dt')
+const WEB_THAT = 'thangws17.github.io'
+
+;(async function main() {
+  await new Promise(res => {
+    const xong = () => { try { return dt.contentDocument.readyState === 'complete' && dt.contentWindow.location.href !== 'about:blank' } catch { return false } }
+    if (xong()) return res()
+    dt.addEventListener('load', res, { once: true })
+  })
+  await new Promise(res => setTimeout(res, 2500))     // chờ contact tải xong
+  const w = dt.contentWindow, d = dt.contentDocument
+  const theDoLuong = () => [...d.querySelectorAll('script[data-do-luong]')]
+
+  for (const f of ['initDoLuong', 'nenDoLuong', 'doLuong']) {
+    if (typeof w[f] !== 'function') throw new Error('js/main.js thiếu hàm ' + f)
+  }
+
+  nhom('1. Khi nào KHÔNG đếm')
+  test('Chạy thử ở máy (localhost) → không đếm', () => bang(w.nenDoLuong('localhost'), false))
+  test('Mở bằng địa chỉ IP (điện thoại cùng wifi) → không đếm', () => bang(w.nenDoLuong('192.127.89.102'), false))
+  test('Web thật trên GitHub Pages → có đếm', () => bang(w.nenDoLuong(WEB_THAT), true))
+  test('Máy đã đăng nhập admin (máy của shop) → không đếm', () => {
+    w.localStorage.setItem('lt_mayCuaShop', '1')
+    const kq = w.nenDoLuong(WEB_THAT)
+    w.localStorage.removeItem('lt_mayCuaShop')
+    bang(kq, false, 'Lượt xem của chính shop sẽ làm sai số liệu')
+  })
+  test('Trang đang chạy ở máy → lúc mở trang KHÔNG nạp công cụ nào', () =>
+    bang(theDoLuong().length, 0))
+
+  nhom('2. Chỉ nhận mã đúng định dạng (mã được ghép vào địa chỉ tải script)')
+  test('Mã rỗng → không nạp gì', () => {
+    bang(w.initDoLuong({ ga4_id: '', clarity_id: '' }, WEB_THAT), false)
+    bang(theDoLuong().length, 0)
+  })
+  test('Mã chứa ký tự lạ (thử chèn mã độc) → từ chối', () => {
+    bang(w.initDoLuong({ ga4_id: 'G-AB12"><img src=x onerror=alert(1)>', clarity_id: 'abc 123"/>' }, WEB_THAT), false)
+    bang(theDoLuong().length, 0)
+  })
+  test('Mã GA4 sai dạng (thiếu "G-") → từ chối', () => {
+    bang(w.initDoLuong({ ga4_id: 'UA-12345-1' }, WEB_THAT), false)
+    bang(theDoLuong().length, 0)
+  })
+  test('Không có dữ liệu contact → không lỗi, không nạp', () =>
+    bang(w.initDoLuong(null, WEB_THAT), false))
+  test('Quyết là KHÔNG bật → bỏ hàng chờ, không giữ mãi', () => {
+    w.eval("_doLuongDaQuyet = false; _doLuongCho = []")
+    w.doLuong('begin_checkout', { item_id: '1' })
+    w.initDoLuong({ ga4_id: '' }, WEB_THAT)
+    bang(w.eval('_doLuongCho.length'), 0)
+  })
+
+  nhom('3. Mã hợp lệ trên web thật → nạp đúng')
+  // Giả lập: khách xem mẫu lúc contact còn đang tải (chưa quyết bật hay không)
+  w.eval("_doLuongDaQuyet = false; _doLuongCho = []")
+  w.doLuong('view_item', { item_id: 'cho-truoc', item_name: 'Mẫu xem sớm' })
+  test('Chưa quyết → thao tác được giữ trong hàng chờ, chưa gửi', () =>
+    bang(w.eval('_doLuongCho.length'), 1))
+  const bat = w.initDoLuong({ ga4_id: 'G-TEST12345', clarity_id: 'test1234ab' }, WEB_THAT)
+  test('Bật được đo lường', () => bang(bat, true))
+  test('Nạp đúng script Google Analytics với mã', () => {
+    const s = theDoLuong().find(x => x.dataset.doLuong === 'ga4')
+    if (!s) throw new Error('không có script ga4')
+    bang(s.src, 'https://www.googletagmanager.com/gtag/js?id=G-TEST12345')
+    bang(s.async, true)
+  })
+  test('Nạp đúng script Clarity với mã', () => {
+    const s = theDoLuong().find(x => x.dataset.doLuong === 'clarity')
+    if (!s) throw new Error('không có script clarity')
+    bang(s.src, 'https://www.clarity.ms/tag/test1234ab')
+  })
+  test('Gửi lệnh cấu hình GA4 đúng mã', () => {
+    const cfg = [...w.dataLayer].map(a => [...a]).find(a => a[0] === 'config')
+    if (!cfg) throw new Error('không có lệnh config')
+    bang(cfg[1], 'G-TEST12345')
+  })
+  test('Thao tác xảy ra TRƯỚC khi bật (4G chậm) vẫn được gửi sau khi bật', () => {
+    const ev = [...w.dataLayer].map(a => [...a]).filter(a => a[0] === 'event' && a[1] === 'view_item' && a[2].item_id === 'cho-truoc')
+    bang(ev.length, 1, 'Lượt xem mẫu xảy ra lúc contact chưa tải xong bị mất')
+  })
+  test('Gọi bật lần 2 không nạp trùng script', () => {
+    w.initDoLuong({ ga4_id: 'G-TEST12345', clarity_id: 'test1234ab' }, WEB_THAT)
+    bang(theDoLuong().length, 2)
+  })
+
+  nhom('4. Ghi đúng các thao tác của khách')
+  const suKienCuoi = () => {
+    const ev = [...w.dataLayer].map(a => [...a]).filter(a => a[0] === 'event')
+    return ev[ev.length - 1]
+  }
+  test('Mở form đặt hoa → begin_checkout', () => {
+    w.doLuong('begin_checkout', { item_id: '31', item_name: 'Mix Chiết Xạ và Sophia' })
+    const e = suKienCuoi()
+    bang([e[1], e[2].item_id, e[2].item_name], ['begin_checkout', '31', 'Mix Chiết Xạ và Sophia'])
+  })
+  test('Clarity cũng nhận sự kiện', () => {
+    const q = (w.clarity.q || []).map(a => [...a])
+    if (!q.some(a => a[0] === 'event' && a[1] === 'begin_checkout')) throw new Error('clarity chưa nhận')
+  })
+  test('Mã nguồn web: mở form, gửi đơn, xem mẫu đều có gọi đo lường', () => {
+    const src = w.openOrderModal.toString()
+    if (!src.includes("doLuong('begin_checkout'")) throw new Error('openOrderModal chưa gọi')
+    if (!w.submitOrder.toString().includes("doLuong('generate_lead'")) throw new Error('submitOrder chưa gọi')
+    if (!w.loadProductDetail.toString().includes("'view_item'")) throw new Error('loadProductDetail chưa gọi')
+  })
+  test('Bấm link Zalo ở bất kỳ đâu → lien_he (kênh zalo)', () => {
+    const a = d.createElement('a'); a.href = 'https://zalo.me/0912345678'; a.textContent = 'Zalo'
+    a.addEventListener('click', e => e.preventDefault())     // không rời trang test
+    d.body.appendChild(a); a.click(); a.remove()
+    const e = suKienCuoi()
+    bang([e[1], e[2].kenh], ['lien_he', 'zalo'])
+  })
+  test('Bấm gọi điện → lien_he (kênh dien_thoai)', () => {
+    const a = d.createElement('a'); a.href = 'tel:0912345678'
+    a.addEventListener('click', e => e.preventDefault())
+    d.body.appendChild(a); a.click(); a.remove()
+    bang(suKienCuoi()[2].kenh, 'dien_thoai')
+  })
+  test('Bấm link thường (không phải liên hệ) → không ghi', () => {
+    const truoc = [...w.dataLayer].length
+    const a = d.createElement('a'); a.href = 'san-pham'
+    a.addEventListener('click', e => e.preventDefault())
+    d.body.appendChild(a); a.click(); a.remove()
+    bang([...w.dataLayer].length, truoc)
+  })
+
+  nhom('5. Đồng bộ admin ↔ web khách, trang Chính sách')
+  const [srcAdmin, srcMain, srcCs] = await Promise.all([
+    fetch('../admin/index.html?t=' + Date.now(), { cache: 'no-store' }).then(r => r.text()),
+    fetch('../js/main.js?t=' + Date.now(), { cache: 'no-store' }).then(r => r.text()),
+    fetch('../chinh-sach.html?t=' + Date.now(), { cache: 'no-store' }).then(r => r.text()),
+  ])
+  const layMau = (src, ten) => (src.match(new RegExp('const ' + ten + ' = (/[^\\n]+?/);?')) || [])[1]
+  test('Điều kiện mã GA4 giống hệt nhau ở admin và web khách', () => {
+    const a = layMau(srcAdmin, 'MA_GA4'), m = layMau(srcMain, 'MA_GA4')
+    if (!a || !m) throw new Error('không tìm thấy MA_GA4 ở một bên')
+    bang(a, m, 'Admin cho lưu mã mà web khách từ chối (hoặc ngược lại) → tưởng đã bật mà không đo')
+  })
+  test('Điều kiện mã Clarity giống hệt nhau ở admin và web khách', () => {
+    const a = layMau(srcAdmin, 'MA_CLARITY'), m = layMau(srcMain, 'MA_CLARITY')
+    if (!a || !m) throw new Error('không tìm thấy MA_CLARITY ở một bên')
+    bang(a, m)
+  })
+  test('Admin đánh dấu "máy của shop" khi đăng nhập', () => {
+    if (!/function showApp\(\) \{[\s\S]{0,400}lt_mayCuaShop/.test(srcAdmin)) throw new Error('showApp chưa đặt cờ lt_mayCuaShop')
+  })
+  test('Admin bỏ cột chưa có khi lưu (chưa chạy SQL 20 vẫn lưu được Liên hệ)', () => {
+    if (!/_contactCot\.has\(k\)\) delete data\[k\]/.test(srcAdmin)) throw new Error('saveContact chưa lọc cột')
+  })
+  test('Trang Chính sách có mục giải thích đo lường ẩn danh', () => {
+    if (!srcCs.includes('Google Analytics') || !srcCs.includes('ẩn danh')) throw new Error('thiếu mục quyền riêng tư')
+  })
+
+  tongKet()
+})().catch(e => {
+  soFail++
+  const row = document.createElement('div')
+  row.className = 'ca fail'
+  row.innerHTML = '<span class="dau">✕</span><span class="ten"></span>'
+  const t = row.querySelector('.ten')
+  t.textContent = 'Bộ test dừng giữa đường'
+  const ct = document.createElement('span'); ct.className = 'chitiet'; ct.textContent = (e && e.message) || String(e)
+  t.appendChild(ct); boxKq.appendChild(row); tongKet()
+})
+</script>
+</body>
+</html>

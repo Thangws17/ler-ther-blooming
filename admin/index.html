@@ -275,6 +275,14 @@
     .stat-total-bar strong { font-size: 1.1rem; }
     .profit-line { display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; border-bottom: 1px dashed #DCEBDC; font-size: .95rem; }
     .profit-line strong { font-size: 1.05rem; }
+    /* Khung sao lưu: xanh khi đã sao lưu gần đây, cam khi quá 30 ngày / chưa bao giờ */
+    .backup-box { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; justify-content: space-between; margin-top: 32px; padding: 20px 22px; background: #E8F5E9; border: 1.5px solid #A5D6A7; border-radius: 14px; }
+    .backup-box.qua-han { background: #FBE9E7; border-color: #FFAB91; }
+    .backup-box p.bk-mo-ta { font-size: .85rem; color: #5b7a5a; margin-top: 4px; max-width: 640px; }
+    .backup-box .bk-cuoi { font-size: .85rem; font-weight: 700; margin-top: 6px; color: #2E7D32; }
+    .backup-box.qua-han .bk-cuoi { color: #BF360C; }
+    .backup-box .bk-trang-thai { flex: 1 1 100%; font-size: .85rem; color: #555; margin: 0; }
+    .backup-box .bk-trang-thai:empty { display: none; }
     .optimizer-box { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; justify-content: space-between; margin-top: 32px; padding: 20px 22px; background: #FFF8E1; border: 1.5px solid #FFE082; border-radius: 14px; }
 
     /* ── Lịch giao: lịch tháng mini ───────────── */
@@ -842,7 +850,8 @@
       .modal-box { max-height: calc(var(--vvh, 92vh) - 10px); }
       .filter-bar { gap: 8px; }
       .filter-search { min-width: 0; }
-      .optimizer-box { flex-direction: column; align-items: flex-start; }
+      .optimizer-box, .backup-box { flex-direction: column; align-items: flex-start; }
+      .backup-box .btn-green { width: 100%; }
     }
   </style>
 </head>
@@ -909,6 +918,20 @@
       <div id="dashboardCards" class="dash-cards"></div>
       <h2 style="margin:28px 0 14px;font-size:1.15rem;">📅 Giao hôm nay</h2>
       <div id="dashboardToday"><div class="loading-state">Đang tải…</div></div>
+
+      <!-- Sao lưu dữ liệu ra Excel -->
+      <div class="backup-box" id="backupBox">
+        <div>
+          <strong>💾 Sao lưu dữ liệu</strong>
+          <p class="bk-mo-ta">
+            Tải toàn bộ đơn hàng, sổ khách, chi phí, sản phẩm, gallery… về <b>một file Excel</b>.
+            Nên tải mỗi tháng một lần và cất vào Google Drive — xoá nhầm trên web thì vẫn còn bản này.
+          </p>
+          <p class="bk-cuoi" id="backupLast"></p>
+        </div>
+        <button class="btn-green" id="backupBtn" type="button" onclick="taiSaoLuu()">Tải file sao lưu</button>
+        <p class="bk-trang-thai" id="backupStatus" role="status" aria-live="polite"></p>
+      </div>
 
       <!-- Công cụ tối ưu ảnh cũ -->
       <div class="optimizer-box">
@@ -1217,6 +1240,24 @@
           <div class="field-group full">
             <label>🌸 Cam kết chất lượng</label>
             <textarea name="policy_quality" rows="3" placeholder="VD: Gửi ảnh duyệt trước khi giao…"></textarea>
+          </div>
+          <div class="field-group full">
+            <label>📊 Đo lường truy cập <span style="font-weight:400;color:#7A9879;text-transform:none;">(để trống = không đo)</span></label>
+            <p style="font-size:.84rem;color:#5b7a5a;margin:0 0 10px;line-height:1.6;">
+              Dán mã để biết bao nhiêu người vào web, xem mẫu nào, bấm đặt hoa bao nhiêu lần.
+              Máy nào đã đăng nhập trang quản lý này thì <b>không bị đếm</b>, nên số liệu không lẫn lượt xem của shop.
+            </p>
+            <p id="doLuongCanSql" style="display:none;font-size:.84rem;color:#BF360C;background:#FBE9E7;border-radius:8px;padding:8px 10px;margin:0 0 10px;">
+              ⚠️ Cần chạy file <b>supabase/20_analytics_settings.sql</b> trước thì mới lưu được 2 ô này.
+            </p>
+          </div>
+          <div class="field-group">
+            <label for="ctGa4">Google Analytics 4</label>
+            <input type="text" id="ctGa4" name="ga4_id" placeholder="G-XXXXXXXXXX" autocomplete="off" spellcheck="false" style="text-transform:uppercase">
+          </div>
+          <div class="field-group">
+            <label for="ctClarity">Microsoft Clarity</label>
+            <input type="text" id="ctClarity" name="clarity_id" placeholder="VD: abcd1234ef" autocomplete="off" spellcheck="false">
           </div>
         </div>
         <button type="submit" class="btn-green">💾 Lưu thay đổi</button>
@@ -1857,6 +1898,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/dungchung.js"></script>
+<script src="xlsx.js"></script>
 <script>
 const SUPABASE_URL = 'https://oijcwborkebjpavzyisl.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_vDRAF-LBS3nOpw1GHBchvw_xYuMfdqP'
@@ -1897,6 +1939,9 @@ function showLogin() {
 }
 
 function showApp() {
+  // Web khách và admin cùng tên miền nên dùng chung bộ nhớ trình duyệt:
+  // đánh dấu "máy của shop" để công cụ đo lường KHÔNG đếm lượt xem của shop
+  try { localStorage.setItem('lt_mayCuaShop', '1') } catch {}
   document.getElementById('loginWrap').style.display = 'none'
   document.getElementById('appWrap').style.display = 'flex'
   loadProducts()   // nạp sẵn để modal Sửa đơn gợi ý giá niêm yết
@@ -2095,6 +2140,7 @@ function _cfDone(ok) {
 const todayStr = () => new Date().toLocaleDateString('sv-SE')  // YYYY-MM-DD theo giờ địa phương
 
 async function loadDashboard() {
+  veSaoLuuCuoi()
   const { data, error } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('created_at', { ascending: false })
   if (error) { document.getElementById('dashboardToday').innerHTML = loadErrorHTML('loadDashboard'); return }
   const all = data || []
@@ -3707,11 +3753,18 @@ async function deleteGalleryItem(id) {
 }
 
 // ── Contact ──────────────────────────────────────
+let _contactCot = null   // tên các cột bảng contact đang có (biết sau lần tải đầu)
+
 async function loadContact() {
   const { data } = await sb.from('contact').select('*').eq('id', 1).single()
   if (!data) return
   const form = document.getElementById('contactForm')
-  ;['phone','zalo','address','hours','facebook','instagram','tiktok','threads','banner_text','policy_delivery','policy_payment','policy_quality'].forEach(key => {
+  // Nhớ các cột đang có: chưa chạy SQL 20 thì bảng chưa có ga4_id/clarity_id,
+  // gửi 2 cột đó lên sẽ làm HỎNG CẢ việc lưu form Liên hệ (xem saveContact)
+  _contactCot = new Set(Object.keys(data))
+  const thieuCot = !_contactCot.has('ga4_id') || !_contactCot.has('clarity_id')
+  document.getElementById('doLuongCanSql').style.display = thieuCot ? 'block' : 'none'
+  ;['phone','zalo','address','hours','facebook','instagram','tiktok','threads','banner_text','policy_delivery','policy_payment','policy_quality','ga4_id','clarity_id'].forEach(key => {
     const el = form.querySelector(`[name="${key}"]`)
     if (el) el.value = data[key] || ''
   })
@@ -3757,12 +3810,37 @@ function clearHeroImage(slot = 'main') {
   document.getElementById(s.input).value = ''
 }
 
+// Giống hệt điều kiện trong js/main.js (initDoLuong) — sửa một bên phải sửa bên kia
+const MA_GA4 = /^G-[A-Z0-9]{6,12}$/
+const MA_CLARITY = /^[a-z0-9]{6,20}$/
+
 async function saveContact(e) {
   e.preventDefault()
   const data = {}
   new FormData(e.target).forEach((v, k) => data[k] = v)
   // checkbox không xuất hiện trong FormData khi unchecked — xử lý thủ công
   data.banner_active = document.getElementById('bannerActive').checked
+  // Mã đo lường: kiểm đúng định dạng. Mã này được ghép vào địa chỉ tải script
+  // trên web khách, nên chỉ nhận đúng chữ-số, tuyệt đối không nhận ký tự lạ.
+  data.ga4_id = String(data.ga4_id || '').trim().toUpperCase()
+  data.clarity_id = String(data.clarity_id || '').trim()
+  if (data.ga4_id && !MA_GA4.test(data.ga4_id)) {
+    showToast('Mã Google Analytics phải có dạng G-XXXXXXXXXX', 'error'); document.getElementById('ctGa4').focus(); return
+  }
+  if (data.clarity_id && !MA_CLARITY.test(data.clarity_id)) {
+    showToast('Mã Clarity chỉ gồm chữ thường và số (khoảng 10 ký tự)', 'error'); document.getElementById('ctClarity').focus(); return
+  }
+  data.ga4_id = data.ga4_id || null
+  data.clarity_id = data.clarity_id || null
+  // Chưa chạy SQL 20 → bỏ 2 cột này ra, để các ô Liên hệ khác vẫn lưu được
+  if (_contactCot) {
+    for (const k of Object.keys(data)) if (!_contactCot.has(k)) delete data[k]
+  } else {
+    // Bấm Lưu khi dữ liệu Liên hệ chưa tải xong: chưa biết database có 2 cột mới chưa.
+    // Ô trống thì bỏ hẳn khỏi lần lưu này, để form Liên hệ không hỏng vì cột chưa có.
+    if (data.ga4_id === null) delete data.ga4_id
+    if (data.clarity_id === null) delete data.clarity_id
+  }
   const { error } = await sb.from('contact').update(data).eq('id', 1)
   error ? showToast('Lỗi: ' + error.message, 'error') : showToast('Đã lưu thông tin liên hệ!')
 }
@@ -4011,6 +4089,167 @@ async function compressImage(file, maxDim = 1600, quality = 0.78) {
 // Tối ưu 1 lần toàn bộ ảnh cũ: tải về → nén WebP → up lại (cache 1 năm) → cập nhật link.
 // Quét: ảnh đại diện SP + ẢNH PHỤ carousel (images[]) + gallery + hero trang chủ.
 // Ảnh gốc giữ nguyên (không xóa). Bỏ qua ảnh đã tối ưu WebP (link chứa "_optw_" / đuôi .webp).
+// ── Sao lưu dữ liệu ra Excel ──────────────────────────────────────
+// Tải MỌI dòng của các bảng nghiệp vụ, mỗi bảng một trang tính. File tạo bằng
+// admin/xlsx.js (không thư viện). Nguyên tắc:
+//  • Không bỏ sót cột: cột có tên tiếng Việt cho dễ đọc; cột nào database thêm
+//    sau này mà chưa khai báo ở đây cũng TỰ vào cuối trang tính (tên gốc).
+//  • Không bỏ sót dòng: Supabase trả tối đa 1.000 dòng/lần → lấy theo từng trang.
+//  • KHÔNG xuất app_settings: chứa token Telegram / email, không được nằm
+//    trong file Excel để rải rác trên máy / Drive.
+//  • Một bảng lỗi (vd chưa chạy SQL tạo bảng) không làm hỏng cả file —
+//    ghi lỗi vào trang "Thông tin" rồi xuất tiếp các bảng khác.
+const SAO_LUU_KHOA = 'lt_saoLuuCuoi'      // ngày sao lưu gần nhất, lưu TRÊN MÁY NÀY
+const SAO_LUU_QUA_HAN = 30                // ngày
+
+// cot: [cột database, tiêu đề, kiểu, độ rộng]
+const SAO_LUU_BANG = [
+  { bang: 'orders', ten: 'Đơn hàng', them: [{ tieuDe: 'Mã đơn', kieu: 'chu', rong: 11, lay: d => orderCode(d.id) }], cot: [
+    ['created_at', 'Ngày đặt', 'ngaygio', 17], ['delivery_date', 'Ngày giao', 'ngay', 12], ['status', 'Trạng thái', 'chu', 15],
+    ['customer_name', 'Tên khách', 'chu', 20], ['customer_phone', 'SĐT', 'chu', 13], ['customer_email', 'Email', 'chu', 22],
+    ['product_name', 'Sản phẩm', 'chu', 26], ['quantity', 'SL', 'so', 6], ['unit_price', 'Đơn giá', 'tien', 12],
+    ['shipping_fee', 'Phí ship', 'tien', 11], ['total', 'Tổng tiền', 'tien', 13],
+    ['delivery_address', 'Địa chỉ giao', 'chu', 34], ['delivery_area', 'Khu vực', 'chu', 14],
+    ['message_card', 'Lời nhắn thiếp', 'chu', 30], ['note', 'Ghi chú', 'chu', 30], ['image', 'Ảnh đơn (đường dẫn)', 'chu', 24],
+    ['id', 'id', 'so', 7], ['customer_id', 'id khách', 'so', 9], ['product_id', 'id sản phẩm', 'so', 10] ] },
+  { bang: 'customers', ten: 'Khách hàng', cot: [
+    ['name', 'Tên', 'chu', 22], ['phone', 'SĐT', 'chu', 13], ['address', 'Địa chỉ', 'chu', 36],
+    ['created_at', 'Ngày tạo', 'ngaygio', 17], ['updated_at', 'Cập nhật', 'ngaygio', 17], ['id', 'id', 'so', 7] ] },
+  { bang: 'expenses', ten: 'Chi phí', cot: [
+    ['expense_date', 'Ngày chi', 'ngay', 12], ['category', 'Loại', 'chu', 12], ['item', 'Mặt hàng', 'chu', 24],
+    ['quantity', 'SL', 'so', 7], ['unit_price', 'Đơn giá', 'tien', 12], ['amount', 'Thành tiền', 'tien', 13],
+    ['note', 'Ghi chú', 'chu', 30], ['image', 'Ảnh hoá đơn (đường dẫn)', 'chu', 24],
+    ['created_at', 'Ngày tạo', 'ngaygio', 17], ['id', 'id', 'so', 7] ] },
+  { bang: 'materials', ten: 'Nguyên liệu', cot: [
+    ['name', 'Tên', 'chu', 24], ['category', 'Loại', 'chu', 12], ['last_price', 'Giá gần nhất', 'tien', 13],
+    ['created_at', 'Ngày tạo', 'ngaygio', 17], ['id', 'id', 'so', 7] ] },
+  { bang: 'products', ten: 'Sản phẩm', cot: [
+    ['name', 'Tên', 'chu', 26], ['price', 'Giá (như đang nhập)', 'chu', 16], ['category', 'Danh mục', 'chu', 14],
+    ['description', 'Mô tả', 'chu', 40], ['featured', 'Nổi bật', 'chu', 8], ['image', 'Ảnh chính (đường dẫn)', 'chu', 24],
+    ['images', 'Ảnh phụ (đường dẫn)', 'chu', 24], ['order_index', 'Thứ tự', 'so', 8], ['created_at', 'Ngày tạo', 'ngaygio', 17], ['id', 'id', 'so', 7] ] },
+  { bang: 'gallery', ten: 'Gallery', cot: [['caption', 'Chú thích', 'chu', 30], ['category', 'Danh mục', 'chu', 14], ['url', 'Ảnh (đường dẫn)', 'chu', 30], ['order_index', 'Thứ tự', 'so', 8], ['created_at', 'Ngày tạo', 'ngaygio', 17], ['id', 'id', 'so', 7]] },
+  { bang: 'gallery_categories', ten: 'Danh mục', cot: [['name', 'Tên', 'chu', 20], ['emoji', 'Biểu tượng', 'chu', 10], ['order_index', 'Thứ tự', 'so', 8], ['id', 'id', 'so', 7]] },
+  { bang: 'testimonials', ten: 'Đánh giá', cot: [['name', 'Tên khách', 'chu', 20], ['content', 'Nội dung', 'chu', 50], ['context', 'Dịp', 'chu', 16], ['active', 'Hiện trên web', 'chu', 12], ['order_index', 'Thứ tự', 'so', 8], ['created_at', 'Ngày tạo', 'ngaygio', 17], ['id', 'id', 'so', 7]] },
+  { bang: 'changelog', ten: 'Nhật ký cập nhật', cot: [['release_date', 'Ngày', 'ngay', 12], ['title', 'Tóm tắt', 'chu', 40], ['details', 'Chi tiết', 'chu', 60], ['note', 'Góp ý', 'chu', 30], ['id', 'id', 'so', 7]] },
+  { bang: 'contact', ten: 'Cài đặt liên hệ', cot: [] },
+]
+
+// Lấy HẾT dòng của một bảng, từng trang 1.000 dòng, sắp theo id cho ổn định.
+// Bảng không có cột id (hoặc id không sắp được) thì lấy không sắp xếp.
+async function layHetBang(bang, baoTienDo) {
+  const TRANG = 1000, kq = []
+  let sapTheoId = true
+  for (let tu = 0; ; tu += TRANG) {
+    let q = sb.from(bang).select('*')
+    if (sapTheoId) q = q.order('id', { ascending: true })
+    let { data, error } = await q.range(tu, tu + TRANG - 1)
+    if (error && sapTheoId && tu === 0) {
+      sapTheoId = false
+      ;({ data, error } = await sb.from(bang).select('*').range(tu, tu + TRANG - 1))
+    }
+    if (error) throw new Error(error.message)
+    kq.push(...(data || []))
+    if (baoTienDo) baoTienDo(kq.length)
+    if (!data || data.length < TRANG) break
+  }
+  return kq
+}
+
+// Dựng trang tính: cột khai báo trước (tên tiếng Việt), cột lạ nối vào sau (tên gốc)
+function trangTinhSaoLuu(cauHinh, dong) {
+  const daKhai = new Set(cauHinh.cot.map(c => c[0]))
+  const cotLa = []
+  for (const d of dong) for (const k of Object.keys(d)) if (!daKhai.has(k) && !cotLa.includes(k)) cotLa.push(k)
+  const cot = [...cauHinh.cot, ...cotLa.map(k => [k, k, 'chu', 18])]
+  const them = cauHinh.them || []
+  return {
+    ten: cauHinh.ten,
+    cot: [...them.map(c => ({ tieuDe: c.tieuDe, kieu: c.kieu, rong: c.rong })),
+          ...cot.map(c => ({ tieuDe: c[1], kieu: c[2], rong: c[3] }))],
+    dong: dong.map(d => [...them.map(c => c.lay(d)), ...cot.map(c => {
+      const v = d[c[0]]
+      return typeof v === 'boolean' ? (v ? 'Có' : 'Không') : v
+    })]),
+  }
+}
+
+async function taiSaoLuu() {
+  const btn = document.getElementById('backupBtn')
+  const tt = document.getElementById('backupStatus')
+  if (typeof window.taoXlsx !== 'function') { showToast('Chưa nạp được bộ tạo Excel, tải lại trang rồi thử lại', 'error'); return }
+  btn.disabled = true; btn.textContent = 'Đang lấy dữ liệu…'
+  const trang = [], thongTin = []
+  let tongDong = 0, soLoi = 0
+  try {
+    for (const ch of SAO_LUU_BANG) {
+      const nhan = ch.ten.toLowerCase()
+      tt.textContent = `Đang lấy ${nhan}…`
+      try {
+        const dong = await layHetBang(ch.bang, n => { tt.textContent = `Đang lấy ${nhan}… ${n} dòng` })
+        trang.push(trangTinhSaoLuu(ch, dong))
+        thongTin.push([ch.ten, ch.bang, dong.length, 'OK'])
+        tongDong += dong.length
+      } catch (e) {
+        soLoi++
+        thongTin.push([ch.ten, ch.bang, 0, 'LỖI: ' + (e.message || e)])
+      }
+    }
+    const { data: { session } } = await sb.auth.getSession()
+    const bayGio = new Date()
+    const trangTT = {
+      ten: 'Thông tin',
+      cot: [{ tieuDe: 'Trang tính', kieu: 'chu', rong: 22 }, { tieuDe: 'Bảng gốc', kieu: 'chu', rong: 20 },
+            { tieuDe: 'Số dòng', kieu: 'so', rong: 10 }, { tieuDe: 'Tình trạng', kieu: 'chu', rong: 70 }],
+      dong: [
+        ['Ngày giờ xuất', '', '', bayGio.toLocaleString('vi-VN')],
+        ['Người xuất', '', '', session?.user?.email || ''],
+        ['Tổng số dòng', '', tongDong, ''],
+        ['', '', '', ''],
+        ...thongTin,
+        ['', '', '', ''],
+        ['Lưu ý', '', '', 'Ảnh KHÔNG nằm trong file này — file chỉ lưu đường dẫn ảnh trên Supabase Storage.'],
+        ['Lưu ý', '', '', 'Token Telegram / email (bảng app_settings) cố ý KHÔNG xuất để giữ bí mật.'],
+      ],
+    }
+    btn.textContent = 'Đang tạo file…'
+    const bytes = window.taoXlsx([trangTT, ...trang])
+    const ngay = todayStr()
+    window.taiFile(bytes, `ler-ther-sao-luu-${ngay}.xlsx`)
+    try { localStorage.setItem(SAO_LUU_KHOA, ngay) } catch {}
+    veSaoLuuCuoi()
+    tt.textContent = soLoi
+      ? `Đã tải file (${tongDong} dòng), nhưng ${soLoi} bảng không lấy được — xem trang "Thông tin" trong file.`
+      : `Đã tải file: ${tongDong} dòng từ ${trang.length} bảng.`
+    showToast(soLoi ? 'Đã tải, có bảng bị lỗi — xem trang Thông tin' : 'Đã tải file sao lưu!', soLoi ? 'error' : 'success')
+  } catch (e) {
+    tt.textContent = 'Không tạo được file: ' + (e.message || e)
+    showToast('Sao lưu lỗi: ' + (e.message || e), 'error')
+  } finally {
+    btn.disabled = false; btn.textContent = 'Tải file sao lưu'
+  }
+}
+
+// Hiện "lần sao lưu gần nhất" + đổi màu cam khi quá 30 ngày / chưa bao giờ.
+// Ghi nhớ theo TỪNG MÁY (localStorage) — máy Ler và máy anh đếm riêng.
+function veSaoLuuCuoi() {
+  const hop = document.getElementById('backupBox')
+  const el = document.getElementById('backupLast')
+  if (!hop || !el) return
+  let cuoi = null
+  try { cuoi = localStorage.getItem(SAO_LUU_KHOA) } catch {}
+  if (!cuoi) {
+    el.textContent = '⚠️ Máy này chưa sao lưu lần nào'
+    hop.classList.add('qua-han')
+    return
+  }
+  const soNgay = Math.round((new Date(todayStr()) - new Date(cuoi)) / 86400000)
+  const nhan = soNgay <= 0 ? 'hôm nay' : soNgay === 1 ? 'hôm qua' : soNgay + ' ngày trước'
+  const quaHan = soNgay > SAO_LUU_QUA_HAN
+  el.textContent = (quaHan ? '⚠️ ' : '✓ ') + 'Lần sao lưu gần nhất trên máy này: ' +
+    cuoi.split('-').reverse().join('/') + ' (' + nhan + ')' + (quaHan ? ' — nên tải bản mới' : '')
+  hop.classList.toggle('qua-han', quaHan)
+}
+
 async function optimizeOldImages() {
   if (!(await askConfirm({ title: 'Tối ưu toàn bộ ảnh cũ?', message: 'Ảnh sẽ được nén sang WebP nhẹ hơn. Có thể mất vài phút — đừng đóng tab cho tới khi xong.', okLabel: 'Bắt đầu tối ưu', icon: '⚡' }))) return
   const btn  = document.getElementById('optimizeBtn')

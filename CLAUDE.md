@@ -21,6 +21,8 @@ mấy trang test chạy trong trình duyệt (vẫn server 8765 đó):
 - `/test/test-khung-man-hinh.html` — khung màn hình admin trên iPhone (xem "Bẫy đã biết")
 - `/test/test-form-chi-phi.html` — ô ngày + ô tiền trong form chi phí
 - `/test/test-phan-trang-don.html` — phân trang đơn: kiểm đúng URL truy vấn gửi lên Supabase
+- `/test/test-sao-luu.html` — bộ tạo Excel + nút sao lưu thật trong admin (xuất file mẫu base64 để mở lại bằng openpyxl)
+- `/test/test-do-luong.html` — Google Analytics + Clarity: khi nào đếm / không đếm, kiểm mã, hàng chờ thao tác
 
 Trang test **bốc hàm/DOM thật ra khỏi `admin/index.html`** chứ không copy code, nên sửa admin là test
 biết ngay. Không nối Supabase để ghi, chạy bao nhiêu lần cũng không đụng dữ liệu thật.
@@ -52,6 +54,19 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 
 - **`place_order` được định nghĩa lại ở 4 file SQL.** Bản hiện hành là `supabase/15_notifications_v2.sql` (11 tham số, có `p_email`). Ba bản cũ (10 tham số) đã dồn vào `supabase/da-thay-the/` — chạy vào là **lùi** hàm về bản cũ. Sửa RPC thì sửa trong `15_notifications_v2.sql`.
 - **File SQL đánh số theo thứ tự chạy** (`01_` → `17_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
+- **Sao lưu Excel (`admin/xlsx.js` + `taiSaoLuu()` trong admin)** tự viết file .xlsx, KHÔNG thêm thư viện.
+  Thêm bảng mới vào database thì thêm vào `SAO_LUU_BANG`; cột lạ tự nối vào cuối nên không mất dữ liệu,
+  nhưng khai báo thì có tên cột tiếng Việt. **Tuyệt đối không thêm `app_settings`** (chứa token). Ngày sao
+  lưu gần nhất nhớ theo TỪNG MÁY (localStorage `lt_saoLuuCuoi`), không phải toàn shop.
+- **Bẫy khi ghi file: chuỗi `\u0000` có thể bị biến thành ký tự điều khiển THẬT.** Đã xảy ra với regex lọc
+  ký tự cấm trong `xlsx.js` (trình duyệt đổi NUL thật thành ký tự lạ → bộ lọc hỏng mà không báo lỗi). Viết
+  xong file có `\uXXXX` thì quét lại ký tự điều khiển ẩn trước khi commit.
+- **Đo lường (GA4 + Clarity):** mã nhập ở admin tab Liên hệ → cột `contact.ga4_id` / `contact.clarity_id`
+  (SQL 20). Web khách chỉ nạp khi mã khớp `MA_GA4` / `MA_CLARITY` — 2 regex này **phải giống hệt nhau** ở
+  `admin/index.html` và `js/main.js` (test kiểm). Không đếm khi chạy ở localhost/IP, và máy đã đăng nhập admin
+  (cờ `lt_mayCuaShop`, đặt trong `showApp()`). Ghi thao tác bằng `doLuong(ten, thamSo)` — gọi sớm cũng được,
+  nó tự xếp hàng chờ tới khi biết có bật hay không. Lưu form Liên hệ phải bỏ cột database chưa có
+  (`_contactCot`), không thì chưa chạy SQL 20 là hỏng cả form.
 - **Trạng thái đơn bị database khoá chỉ nhận 6 giá trị** (`supabase/19_order_status_check.sql`), phải
   khớp y hệt `ORDER_STATUSES` trong admin. Thêm/đổi tên trạng thái: sửa SQL **trước**, rồi mới sửa JS —
   ngược lại thì lưu đơn bị từ chối. Mọi chỗ ghi status đều phải lấy từ `ORDER_STATUSES`, đừng gõ tay chuỗi.

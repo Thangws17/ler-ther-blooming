@@ -19,7 +19,7 @@ Website giới thiệu hoa tươi **và** hệ thống quản lý đơn hàng (a
 | Hosting | GitHub Pages, tự deploy khi push nhánh `main` |
 
 Supabase project: `https://oijcwborkebjpavzyisl.supabase.co`.
-Key nằm thẳng trong code là **publishable/anon key** — công khai được, an toàn vì mọi quyền ghi đều chặn bằng RLS (xem mục 5).
+Key nằm thẳng trong code là **publishable/anon key** — công khai được, an toàn vì mọi quyền ghi đều chặn bằng RLS (xem mục 6).
 
 ## 2. Cấu trúc thư mục
 
@@ -41,6 +41,7 @@ js/dungchung.js             Hàm dùng chung cho CẢ web khách và admin (esc,
 js/main.js                  Toàn bộ JS web khách: đọc Supabase, render, modal đặt hàng
 
 admin/index.html            TOÀN BỘ trang quản lý — 1 file, ~5000 dòng (HTML+CSS+JS)
+admin/xlsx.js               Tạo file Excel cho nút Sao lưu (tự viết, không thư viện)
 
 supabase/01_… → 17_….sql    SQL cài database, ĐÁNH SỐ THEO ĐÚNG THỨ TỰ CHẠY
 supabase/da-thay-the/       File SQL cũ đã bị thay thế — đừng chạy (xem README trong đó)
@@ -111,12 +112,27 @@ lần cũng không đụng dữ liệu thật.
 | `test/test-khung-man-hinh.html` | Khung màn hình admin trên iPhone: thẻ đơn không bị trắng thông tin, thanh trên không che khuất / bấm được |
 | `test/test-form-chi-phi.html` | Form chi phí: lịch tự vẽ (4 form), ô tiền có dấu chấm hàng nghìn, form không bị đẩy lên cụt đầu |
 | `test/test-phan-trang-don.html` | Phân trang đơn: lọc / tìm kiếm / đếm chạy đúng ở server |
+| `test/test-sao-luu.html` | Nút sao lưu Excel: file mở được, giữ tiếng Việt / số tiền / ngày, không xuất token |
+| `test/test-do-luong.html` | Đo lường truy cập: chỉ đếm trên web thật, không đếm máy của shop, kiểm mã hợp lệ |
 
 Trang test **bốc hàm thật ra khỏi `admin/index.html`** (cắt theo 2 mốc comment) chứ không copy code,
 nên sửa admin là test biết ngay. Nếu đổi tên hay dời khối code đó thì test báo đỏ kèm lời nhắc sửa
 lại 2 mốc ở đầu file test — cố ý như vậy.
 
-## 4. Đưa lên web (uplive)
+## 4. Sao lưu và đo lường
+
+**Sao lưu:** admin → tab 📊 Tổng quan → **Tải file sao lưu**. Ra một file Excel gồm đơn hàng, khách, chi phí,
+nguyên liệu, sản phẩm, gallery, đánh giá, nhật ký, cài đặt liên hệ. Nên tải mỗi tháng một lần, cất Google Drive.
+File **không chứa ảnh** (chỉ đường dẫn) và **không chứa token** Telegram/email. Khung chuyển cam khi máy đó quá
+30 ngày chưa sao lưu.
+
+**Đo lường truy cập:** chạy `supabase/20_analytics_settings.sql`, rồi dán mã vào admin → tab ⚙️ Liên hệ:
+- Google Analytics 4: <https://analytics.google.com> → tạo tài khoản → tạo "Luồng dữ liệu web" cho địa chỉ web → lấy **Mã đo lường** dạng `G-XXXXXXXXXX`.
+- Microsoft Clarity: <https://clarity.microsoft.com> → tạo dự án → Settings → Overview → **Project ID** (khoảng 10 ký tự).
+
+Web chỉ đếm trên web thật; máy đã đăng nhập admin không bị đếm. Để trống 2 ô là tắt đo lường.
+
+## 5. Đưa lên web (uplive)
 
 1. Chạy local, tự xem lại cho chắc.
 2. `git add` → `git commit` → `git push origin main`.
@@ -127,7 +143,7 @@ lại 2 mốc ở đầu file test — cố ý như vậy.
    (`--ssl-no-revoke` là do máy này hay lỗi kiểm tra chứng chỉ.)
 4. Ghi lại bản cập nhật: vào admin → tab **📝 Cập nhật**, hoặc chạy câu SQL `insert into changelog ...` trong Supabase — để Ler cùng đọc và góp ý.
 
-## 5. Database (Supabase)
+## 6. Database (Supabase)
 
 **Các bảng chính**
 
@@ -176,12 +192,13 @@ Dựng lại database từ đầu thì cứ chạy **lần lượt `01_` → `17
 17_rls_lockdown             →  KHOÁ QUYỀN GHI — luôn chạy CUỐI CÙNG
 18_price_normalize          →  chuẩn hoá giá sản phẩm về số trần (chạy lúc nào cũng được)
 19_order_status_check       →  khoá trạng thái đơn chỉ nhận đúng 6 giá trị (chạy lúc nào cũng được)
+20_analytics_settings       →  2 ô nhập mã Google Analytics + Clarity trong admin
 ```
 
 > `supabase/da-thay-the/` chứa 3 file `place_order` cũ. **Đừng chạy** — chạy vào là lùi hàm đặt
 > hàng về bản cũ, mất phần gửi email. Giữ lại chỉ để tra lịch sử.
 
-## 6. Trang quản lý (admin)
+## 7. Trang quản lý (admin)
 
 Các tab: **📊 Tổng quan · 📦 Đơn hàng · 📅 Lịch giao · 👤 Khách hàng · 💰 Sổ chi phí · 🛍️ Sản phẩm · 📸 Gallery · 💬 Đánh giá · 📝 Cập nhật · ⚙️ Liên hệ**.
 Dùng tốt trên điện thoại (menu trượt, bảng đổi thành thẻ, bottom-sheet). F5 vẫn giữ nguyên tab đang xem nhờ `#hash` trên URL.
@@ -198,7 +215,7 @@ Doanh thu tính theo **ngày giao** (nếu trống thì lấy ngày tạo đơn)
 
 **Cảnh báo chuẩn bị hàng:** hiện ngay trong admin (miễn phí), kèm Telegram + Email 8:30 mỗi sáng cho đơn giao ngày mai (pg_cron + pg_net).
 
-## 7. Quy ước khi sửa code
+## 8. Quy ước khi sửa code
 
 - **Không thêm thư viện** nếu chưa thật cần — giữ nguyên HTML/CSS/JS thuần cho dễ bảo trì.
 - **Luôn dùng `esc()`** khi nhét dữ liệu do người dùng nhập vào HTML (chống XSS); chèn vào `onclick` ở web khách thì dùng thêm `jsAttr()` (helper này chỉ có trong `js/main.js`).

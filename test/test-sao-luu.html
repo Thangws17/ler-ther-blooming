@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test sao lưu Excel — Ler &amp; Ther Blooming</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; padding: 24px; font: 14px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+         background: #FAF8F5; color: #2B2B2B; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6B6B6B; margin: 0 0 20px; }
+  .sub code { background: #EFEAE3; padding: 1px 5px; border-radius: 4px; }
+  #tongket { padding: 12px 16px; border-radius: 10px; font-weight: 600; margin-bottom: 18px; }
+  .ok-box   { background: #E8F5E9; color: #1B5E20; border: 1px solid #A5D6A7; }
+  .fail-box { background: #FFEBEE; color: #B71C1C; border: 1px solid #EF9A9A; }
+  h2 { font-size: 15px; margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #E5DFD7; }
+  .ca { display: flex; gap: 8px; padding: 5px 0; align-items: baseline; }
+  .dau { flex: 0 0 18px; font-weight: 700; }
+  .ok .dau { color: #2E7D32; }
+  .fail .dau { color: #C62828; }
+  .fail { background: #FFF5F5; border-radius: 6px; padding-left: 6px; }
+  .ten { flex: 1; }
+  .chitiet { display: block; color: #C62828; font-family: ui-monospace, Consolas, monospace;
+             font-size: 12.5px; white-space: pre-wrap; margin-top: 2px; word-break: break-all; }
+  #mau { display: none; }
+  .tai { margin: 8px 0 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>💾 Test sao lưu Excel</h1>
+  <p class="sub">Kiểm bộ tạo file <code>admin/xlsx.js</code>: file .xlsx phải mở được bằng Excel, giữ đúng tiếng Việt,
+     số tiền, ngày tháng — kể cả khi dữ liệu có ký tự lạ. Không nối Supabase.</p>
+  <div id="tongket">Đang chạy…</div>
+  <button class="tai" id="taiMau" type="button">⬇ Tải file mẫu để mở thử bằng Excel</button>
+  <div id="kq"></div>
+  <pre id="mau"></pre>
+  <pre id="that" style="display:none"></pre>
+</div>
+<iframe id="dt" src="../admin/index.html" style="width:390px;height:700px;border:0;position:absolute;left:-9999px;top:0"></iframe>
+
+<script src="../admin/xlsx.js"></script>
+<script>
+let soOk = 0, soFail = 0
+const boxKq = document.getElementById('kq')
+function nhom(ten) { const h = document.createElement('h2'); h.textContent = ten; boxKq.appendChild(h) }
+function test(ten, fn) {
+  const row = document.createElement('div')
+  row.className = 'ca'
+  row.innerHTML = '<span class="dau"></span><span class="ten"></span>'
+  const dau = row.querySelector('.dau'), t = row.querySelector('.ten')
+  t.textContent = ten
+  try { fn(); soOk++; row.classList.add('ok'); dau.textContent = '✓' }
+  catch (e) {
+    soFail++; row.classList.add('fail'); dau.textContent = '✕'
+    const ct = document.createElement('span'); ct.className = 'chitiet'; ct.textContent = e.message; t.appendChild(ct)
+  }
+  boxKq.appendChild(row)
+}
+function bang(thuc, mong, ghiChu = '') {
+  const a = JSON.stringify(thuc), b = JSON.stringify(mong)
+  if (a !== b) throw new Error((ghiChu ? ghiChu + '\n' : '') + 'mong đợi: ' + b + '\nnhận được: ' + a)
+}
+function tongKet() {
+  const tk = document.getElementById('tongket')
+  tk.className = soFail ? 'fail-box' : 'ok-box'
+  tk.textContent = soFail ? '✕ ' + soFail + ' ca FAIL / ' + (soOk + soFail) + ' ca' : '✓ Tất cả ' + soOk + ' ca đều PASS'
+}
+
+// Đọc lại file ZIP vừa tạo: trả về { tên tệp: chuỗi nội dung }, kiểm luôn CRC từng tệp
+function docZip(bytes) {
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+  let e = bytes.length - 22
+  while (e >= 0 && dv.getUint32(e, true) !== 0x06054B50) e--
+  if (e < 0) throw new Error('không thấy phần kết thúc ZIP')
+  const soTep = dv.getUint16(e + 10, true)
+  let p = dv.getUint32(e + 16, true)
+  const giai = new TextDecoder('utf-8', { fatal: true })
+  const kq = {}
+  for (let i = 0; i < soTep; i++) {
+    if (dv.getUint32(p, true) !== 0x02014B50) throw new Error('mục lục ZIP hỏng ở tệp ' + i)
+    const crc = dv.getUint32(p + 16, true), co = dv.getUint32(p + 20, true)
+    const dt = dv.getUint16(p + 28, true), vt = dv.getUint32(p + 42, true)
+    const ten = giai.decode(bytes.subarray(p + 46, p + 46 + dt))
+    const dtDau = dv.getUint16(vt + 26, true)
+    const d = bytes.subarray(vt + 30 + dtDau, vt + 30 + dtDau + co)
+    if (window._xlsxNoiBo.crc32(d) !== crc) throw new Error('sai CRC ở ' + ten)
+    kq[ten] = giai.decode(d)
+    p += 46 + dt + dv.getUint16(p + 30, true) + dv.getUint16(p + 32, true)
+  }
+  return kq
+}
+
+const X = window._xlsxNoiBo
+
+// Dữ liệu "khó": đúng những thứ hay gặp trong đơn hàng thật
+const MAU = [
+  { ten: 'Đơn hàng', cot: [
+      { tieuDe: 'Mã đơn', kieu: 'chu', rong: 11 },
+      { tieuDe: 'Ngày đặt', kieu: 'ngaygio', rong: 17 },
+      { tieuDe: 'Ngày giao', kieu: 'ngay', rong: 12 },
+      { tieuDe: 'Khách', kieu: 'chu', rong: 20 },
+      { tieuDe: 'SĐT', kieu: 'chu', rong: 13 },
+      { tieuDe: 'Số lượng', kieu: 'so' },
+      { tieuDe: 'Tổng tiền', kieu: 'tien' },
+      { tieuDe: 'Ghi chú', kieu: 'chu', rong: 30 } ],
+    dong: [
+      ['#LT-0061', '2026-09-14T08:05:00+07:00', '2026-09-14', 'DNP_2th3', '0971191175', 1, 359000, 'số nhà 9, 14/20 Hồ Tùng Mậu - giao 5h chiều'],
+      ['#LT-0060', '2026-09-13T21:30:00+07:00', '2026-09-14', 'Em Chi', '0967216805', 2, 400000, 'Hoa <đẹp> & "tươi" \'nhé\''],
+      ['#LT-0059', null, '', 'Khách lẫn ký tự\u0007 điều khiển\u0000', '', '', '', 'Dòng 1\nDòng 2'],
+      ['#LT-0058', 'không-phải-ngày', 'sai', 'Số không hợp lệ', '0912', 'abc', 'Từ 2xx', '😊 emoji 🌸'],
+    ] },
+  { ten: 'Khách: hàng/[VIP]?*', cot: [{ tieuDe: 'Tên', kieu: 'chu' }], dong: [['Chị Mai']] },
+  { ten: 'Trống', cot: [{ tieuDe: 'Không có dòng', kieu: 'chu' }], dong: [] },
+]
+
+;(async function main() {
+  if (typeof window.taoXlsx !== 'function') {
+    const tk = document.getElementById('tongket'); tk.className = 'fail-box'
+    tk.textContent = '✕ Không nạp được admin/xlsx.js'; return
+  }
+
+  nhom('1. Các phần nhỏ')
+  test('CRC32 đúng chuẩn ("123456789" → CBF43926)', () =>
+    bang(X.crc32(new TextEncoder().encode('123456789')).toString(16).toUpperCase(), 'CBF43926'))
+  test('Tên cột Excel: A, Z, AA, AZ, ZZ, AAA', () =>
+    bang([0, 25, 26, 51, 701, 702].map(X.tenCot), ['A', 'Z', 'AA', 'AZ', 'ZZ', 'AAA']))
+  test('Ngày Excel: 01/01/2000 = 36526, 17/09/2026 = 46282', () => {
+    bang(X.soNgayExcel(2000, 1, 1), 36526)
+    bang(X.soNgayExcel(2026, 9, 17), 46282)
+  })
+  test('Bỏ ký tự điều khiển cấm trong XML (lỗi "file hỏng" của Excel)', () =>
+    bang(X.xmlChu('a\u0000b\u0007c\u001Fd'), 'abcd'))
+  test('Giữ xuống dòng và tab trong ghi chú', () => bang(X.xmlChu('a\nb\tc'), 'a\nb\tc'))
+  test('Thoát ký tự & < > "', () => bang(X.xmlChu('<a & "b">'), '&lt;a &amp; &quot;b&quot;&gt;'))
+  test('Tên trang tính: bỏ ký tự cấm, cắt 31 ký tự, không trùng', () => {
+    const t = X.tenTrangHopLe(['Khách: hàng/[VIP]?*', 'x'.repeat(40), 'Đơn', 'đơn', ''])
+    if (/[:\\/?*[\]]/.test(t[0])) throw new Error('còn ký tự cấm: ' + t[0])
+    bang(t[1].length, 31)
+    if (t[2].toLowerCase() === t[3].toLowerCase()) throw new Error('trùng tên: ' + t[2] + ' / ' + t[3])
+    if (!t[4]) throw new Error('tên rỗng')
+  })
+
+  nhom('2. File .xlsx tạo ra')
+  let bytes, tep
+  test('Tạo được file', () => { bytes = window.taoXlsx(MAU); if (!(bytes instanceof Uint8Array) || bytes.length < 500) throw new Error('file rỗng') })
+  test('Là file ZIP hợp lệ, CRC từng tệp đúng', () => { tep = docZip(bytes) })
+  test('Đủ các tệp bắt buộc của .xlsx', () => {
+    for (const f of ['[Content_Types].xml', '_rels/.rels', 'xl/workbook.xml', 'xl/_rels/workbook.xml.rels', 'xl/styles.xml',
+                     'xl/worksheets/sheet1.xml', 'xl/worksheets/sheet2.xml', 'xl/worksheets/sheet3.xml'])
+      if (!(f in tep)) throw new Error('thiếu ' + f)
+  })
+  test('Mọi tệp XML đều đúng cú pháp', () => {
+    for (const [ten, noiDung] of Object.entries(tep)) {
+      const doc = new DOMParser().parseFromString(noiDung, 'application/xml')
+      if (doc.getElementsByTagName('parsererror').length) throw new Error('XML hỏng: ' + ten)
+    }
+  })
+  test('Tiếng Việt còn nguyên (không thành chữ lạ)', () => {
+    if (!tep['xl/worksheets/sheet1.xml'].includes('Hồ Tùng Mậu')) throw new Error('mất dấu tiếng Việt')
+    if (!tep['xl/workbook.xml'].includes('Đơn hàng')) throw new Error('mất dấu ở tên trang tính')
+  })
+  test('Số tiền là SỐ (cộng tổng được), không phải chữ', () =>
+    bang(/<c r="G2" s="2"><v>359000<\/v><\/c>/.test(tep['xl/worksheets/sheet1.xml']), true))
+  test('Ngày giao là NGÀY Excel (lọc/sắp xếp được)', () =>
+    bang(/<c r="C2" s="3"><v>46279<\/v><\/c>/.test(tep['xl/worksheets/sheet1.xml']), true))
+  test('Số điện thoại giữ số 0 đầu (lưu dạng chữ)', () =>
+    bang(tep['xl/worksheets/sheet1.xml'].includes('>0971191175<'), true))
+  test('Giá trị sai kiểu KHÔNG bị bỏ — ghi dạng chữ', () => {
+    const s = tep['xl/worksheets/sheet1.xml']
+    for (const v of ['abc', 'Từ 2xx', 'không-phải-ngày', 'sai']) if (!s.includes('>' + v + '<')) throw new Error('mất giá trị: ' + v)
+  })
+  test('Ô trống không sinh ô rỗng thừa', () =>
+    bang(/<c r="E4"/.test(tep['xl/worksheets/sheet1.xml']), false))
+  test('Trang tính không có dòng vẫn hợp lệ, không gắn bộ lọc', () =>
+    bang(tep['xl/worksheets/sheet3.xml'].includes('autoFilter'), false))
+
+  // ── 3. Nút sao lưu thật trong admin ──────────────────────────────
+  nhom('3. Nút "Tải file sao lưu" trong admin (dữ liệu thật, không đăng nhập)')
+  const dt = document.getElementById('dt')
+  await new Promise(res => {
+    const xong = () => { try { return dt.contentDocument.readyState === 'complete' && dt.contentWindow.location.href !== 'about:blank' } catch { return false } }
+    if (xong()) return res()
+    dt.addEventListener('load', res, { once: true })
+  })
+  await new Promise(res => setTimeout(res, 1200))
+  const w = dt.contentWindow, d = dt.contentDocument
+  test('Admin nạp được xlsx.js và có nút sao lưu', () => {
+    bang(typeof w.taoXlsx, 'function')
+    bang(typeof w.taiSaoLuu, 'function')
+    if (!d.getElementById('backupBtn')) throw new Error('không thấy nút backupBtn')
+  })
+  try { w.localStorage.removeItem('lt_saoLuuCuoi') } catch {}
+  w.veSaoLuuCuoi()
+  test('Chưa sao lưu lần nào → khung màu cam cảnh báo', () => {
+    bang(d.getElementById('backupBox').classList.contains('qua-han'), true)
+    if (!d.getElementById('backupLast').textContent.includes('chưa sao lưu')) throw new Error(d.getElementById('backupLast').textContent)
+  })
+
+  // Bắt file thay vì tải về, rồi bấm sao lưu thật
+  let fileThat = null, tenFile = ''
+  w.taiFile = (b, ten) => { fileThat = b; tenFile = ten }
+  await w.taiSaoLuu()
+
+  test('Tạo được file sao lưu', () => { if (!fileThat || fileThat.length < 1000) throw new Error('không có file') })
+  test('Tên file có ngày: ler-ther-sao-luu-yyyy-mm-dd.xlsx', () =>
+    bang(/^ler-ther-sao-luu-\d{4}-\d{2}-\d{2}\.xlsx$/.test(tenFile), true, tenFile))
+  test('File sao lưu là ZIP hợp lệ, CRC đúng', () => docZip(fileThat))
+  test('KHÔNG có token: không xuất bảng app_settings', () => {
+    const t = docZip(fileThat)
+    const tatCa = Object.values(t).join(' ')
+    if (/sheet name="app_settings"/i.test(t['xl/workbook.xml'])) throw new Error('có trang tính app_settings')
+    if (/telegram_bot_token|brevo_api_key/i.test(tatCa)) throw new Error('lộ tên cột token')
+  })
+  test('Sau khi tải: ghi nhớ ngày, khung chuyển màu xanh', () => {
+    bang(w.localStorage.getItem('lt_saoLuuCuoi'), new Date().toLocaleDateString('sv-SE'))
+    bang(d.getElementById('backupBox').classList.contains('qua-han'), false)
+    if (!d.getElementById('backupLast').textContent.includes('hôm nay')) throw new Error(d.getElementById('backupLast').textContent)
+  })
+  test('Nút trở lại bình thường sau khi xong', () => {
+    bang(d.getElementById('backupBtn').disabled, false)
+    bang(d.getElementById('backupBtn').textContent, 'Tải file sao lưu')
+  })
+  test('Báo trạng thái số dòng đã tải', () => {
+    const t = d.getElementById('backupStatus').textContent
+    if (!/Đã tải file/.test(t)) throw new Error(t)
+  })
+
+  // Sao lưu quá 30 ngày → cảnh báo lại
+  try { w.localStorage.setItem('lt_saoLuuCuoi', new Date(Date.now() - 45 * 86400000).toLocaleDateString('sv-SE')) } catch {}
+  w.veSaoLuuCuoi()
+  test('Quá 30 ngày chưa sao lưu → khung cam + nhắc tải bản mới', () => {
+    bang(d.getElementById('backupBox').classList.contains('qua-han'), true)
+    if (!d.getElementById('backupLast').textContent.includes('nên tải bản mới')) throw new Error(d.getElementById('backupLast').textContent)
+  })
+  try { w.localStorage.removeItem('lt_saoLuuCuoi') } catch {}
+
+  if (fileThat) {
+    let b2 = ''
+    for (let i = 0; i < fileThat.length; i++) b2 += String.fromCharCode(fileThat[i])
+    document.getElementById('that').textContent = btoa(b2)
+  }
+
+  tongKet()
+
+  // Xuất file mẫu dạng base64 để kiểm lại bằng thư viện Excel thật (openpyxl) ngoài trình duyệt
+  let bin = ''
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i])
+  document.getElementById('mau').textContent = btoa(bin)
+  document.getElementById('taiMau').onclick = () => window.taiFile(bytes, 'mau-kiem-tra-sao-luu.xlsx')
+})()
+</script>
+</body>
+</html>

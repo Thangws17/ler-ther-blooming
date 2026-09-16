@@ -568,6 +568,92 @@ function openLightbox(url, caption) {
   requestAnimationFrame(() => el.classList.add('show'));
 }
 
+// ─── Đo lường truy cập (Google Analytics 4 + Microsoft Clarity) ─────────
+// Mã đo lường nhập trong admin (tab Liên hệ) → lưu ở bảng contact → web đọc về.
+// Để trống = không nạp gì. KHÔNG đếm khi:
+//   • chạy thử ở máy (localhost / địa chỉ IP)
+//   • máy đã từng đăng nhập admin (cờ lt_mayCuaShop) — để số liệu không lẫn shop
+// Điều kiện mã giống hệt MA_GA4 / MA_CLARITY trong admin: mã được ghép vào địa
+// chỉ tải script nên chỉ nhận đúng chữ-số.
+const MA_GA4 = /^G-[A-Z0-9]{6,12}$/;
+const MA_CLARITY = /^[a-z0-9]{6,20}$/;
+let _doLuongBat = false;
+// Thao tác xảy ra TRƯỚC khi biết có bật đo lường hay không (contact chưa tải xong —
+// hay gặp trên 4G chậm) thì xếp hàng chờ, quyết xong mới gửi hoặc bỏ.
+let _doLuongDaQuyet = false;
+let _doLuongCho = [];
+
+function nenDoLuong(tenMay = location.hostname) {
+  if (!tenMay || tenMay === 'localhost' || /^[\d.]+$/.test(tenMay) || tenMay.startsWith('[')) return false;
+  try { if (localStorage.getItem('lt_mayCuaShop') === '1') return false; } catch {}
+  return true;
+}
+
+function initDoLuong(cfg, tenMay = location.hostname) {
+  if (_doLuongBat) return true;
+  _doLuongDaQuyet = true;
+  if (!cfg || !nenDoLuong(tenMay)) { _doLuongCho = []; return false; }
+  const ga4 = String(cfg.ga4_id || '').trim();
+  const clarity = String(cfg.clarity_id || '').trim();
+  let coGi = false;
+  if (MA_GA4.test(ga4)) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', ga4);   // GA4 tự ẩn địa chỉ IP, không cần tham số riêng
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(ga4);
+    s.dataset.doLuong = 'ga4';
+    document.head.appendChild(s);
+    coGi = true;
+  }
+  if (MA_CLARITY.test(clarity)) {
+    window.clarity = window.clarity || function () { (window.clarity.q = window.clarity.q || []).push(arguments); };
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.clarity.ms/tag/' + encodeURIComponent(clarity);
+    s.dataset.doLuong = 'clarity';
+    document.head.appendChild(s);
+    coGi = true;
+  }
+  _doLuongBat = coGi;
+  if (coGi) {
+    ghiNhanBamLienHe();
+    const cho = _doLuongCho; _doLuongCho = [];
+    cho.forEach(([ten, thamSo]) => doLuong(ten, thamSo));
+  } else {
+    _doLuongCho = [];
+  }
+  return coGi;
+}
+
+// Ghi một hành động quan trọng của khách. Chưa bật đo lường thì không làm gì.
+function doLuong(ten, thamSo = {}) {
+  if (!_doLuongBat) {
+    // Chưa quyết thì giữ lại (tối đa 20 cái cho khỏi phình), quyết là không bật thì bỏ
+    if (!_doLuongDaQuyet && _doLuongCho.length < 20) _doLuongCho.push([ten, thamSo]);
+    return;
+  }
+  try { if (window.gtag) window.gtag('event', ten, thamSo); } catch {}
+  try { if (window.clarity) window.clarity('event', ten); } catch {}
+}
+
+// Bấm Zalo / gọi điện / Messenger / Facebook ở bất kỳ đâu trên trang
+function ghiNhanBamLienHe() {
+  document.addEventListener('click', e => {
+    const a = e.target.closest && e.target.closest('a[href]');
+    if (!a) return;
+    const href = a.getAttribute('href') || '';
+    const kenh = /zalo\.me/i.test(href) ? 'zalo'
+      : /^tel:/i.test(href) ? 'dien_thoai'
+      : /m\.me|messenger\.com/i.test(href) ? 'messenger'
+      : /facebook\.com/i.test(href) ? 'facebook'
+      : null;
+    if (kenh) doLuong('lien_he', { kenh });
+  }, true);
+}
+
 // ─── Contact ──────────────────────────────────────────────
 let contactInfo = null;
 
@@ -791,6 +877,7 @@ let _orderProduct = { id: null, name: '' };
 const _prodCache = {};
 
 function openOrderModal(productId, productName, imgOverride) {
+  doLuong('begin_checkout', { item_id: String(productId), item_name: productName || '' });
   _orderProduct = { id: productId, name: productName };
   const cached = (productId && _prodCache[productId]) || {};
   const img = imgOverride || cached.image || '';
@@ -989,6 +1076,7 @@ async function submitOrder(event) {
     return;
   }
 
+  doLuong('generate_lead', { item_id: String(_orderProduct.id), item_name: _orderProduct.name });
   const zalo = zaloURL(contactInfo?.zalo || contactInfo?.phone);
   document.getElementById('orderModalBody').innerHTML = `
 <div class="order-success">
@@ -1098,6 +1186,8 @@ async function loadProductDetail() {
   _prodCache[p.id] = { image: p.images?.[0] || p.image, price: p.price };   // cho header form đặt
 
   document.title = `${p.name} — Ler & Ther Blooming`;
+  // Có thể chạy trước khi đo lường bật xong — doLuong tự xếp hàng chờ
+  doLuong('view_item', { item_id: String(p.id), item_name: p.name, item_category: p.category || '' });
   const _ogTitle = document.querySelector('meta[property="og:title"]');
   const _ogDesc  = document.querySelector('meta[property="og:description"]');
   const _ogImg   = document.querySelector('meta[property="og:image"]');
@@ -1251,6 +1341,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadProductDetail();
   initScrollReveal();
   await contactReady;
+  initDoLuong(contactInfo);   // mã đo lường nằm trong contact
   loadBanner();          // cần dữ liệu contact
   wireOrderButtons();    // nối lại link Zalo sau khi contact sẵn sàng
 });
