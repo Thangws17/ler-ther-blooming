@@ -301,6 +301,87 @@ const dt = document.getElementById('dt')
   })
   id('orderNewModal').style.display = 'none'
 
+  // ── 5e. BẤM NÚT THẬT ‹ › trên lịch (không gọi thẳng hàm) ──────────
+  // Lỗi thật 17/09: nút ‹ › vẽ lại cả lịch → chính nút vừa bấm bị gỡ khỏi trang →
+  // trình xử lý "bấm ra ngoài thì đóng" tưởng bấm ra ngoài → lịch đóng ngay.
+  // Test cũ gọi thẳng fdStepMonth() nên không bắt được — phải bấm như người dùng.
+  nhom('5e. Bấm nút ‹ › thật trên lịch — lịch phải MỞ và đổi tháng')
+  const tieuDeLich = popId => (id(popId).querySelector('.date-pop-title') || {}).textContent
+  const nutLich = (popId, i) => id(popId).querySelectorAll('.date-pop-head .month-arrow')[i]   // 0 = ‹, 1 = ›
+
+  // Lịch trong form (dùng ô Ngày giao của form Sửa đơn)
+  w.fdPick('oeDate', '2026-09-17')
+  w.closeFormDatePops()
+  w.openFormDate('oeDate')
+  nutLich('oeDatePop', 1).click()
+  test('[Lịch form] bấm › → lịch VẪN MỞ', () =>
+    bang(id('oeDatePop').style.display, 'block', 'Lịch tự đóng ngay khi bấm chuyển tháng — lỗi anh gặp'))
+  test('[Lịch form] bấm › → sang tháng 10/2026', () => bang(tieuDeLich('oeDatePop'), 'Tháng 10/2026'))
+  nutLich('oeDatePop', 0).click()
+  nutLich('oeDatePop', 0).click()
+  test('[Lịch form] bấm ‹ hai lần → về tháng 8/2026, lịch vẫn mở', () => {
+    bang(id('oeDatePop').style.display, 'block')
+    bang(tieuDeLich('oeDatePop'), 'Tháng 8/2026')
+  })
+  nutLich('oeDatePop', 1).click(); nutLich('oeDatePop', 1).click()
+  const ngay10 = [...id('oeDatePop').querySelectorAll('.cal-day:not(.cal-empty)')].find(e => e.textContent.trim() === '10')
+  ngay10.click()
+  test('[Lịch form] sang tháng sau rồi bấm ngày 10 → chọn đúng 10/10/2026', () =>
+    bang(id('oeDate').value, '2026-10-10'))
+  test('[Lịch form] chọn ngày xong thì lịch đóng', () => bang(id('oeDatePop').style.display, 'none'))
+
+  // Qua năm: 12/2026 → 1/2027 → lại 12/2026
+  w.fdPick('oeDate', '2026-12-20'); w.closeFormDatePops(); w.openFormDate('oeDate')
+  nutLich('oeDatePop', 1).click()
+  test('[Lịch form] tháng 12 bấm › → sang 1/2027 (qua năm)', () => bang(tieuDeLich('oeDatePop'), 'Tháng 1/2027'))
+  nutLich('oeDatePop', 0).click()
+  test('[Lịch form] tháng 1 bấm ‹ → về 12/2026', () => bang(tieuDeLich('oeDatePop'), 'Tháng 12/2026'))
+  w.closeFormDatePops()
+
+  // Bấm thật RA NGOÀI lịch vẫn phải đóng (không được sửa lỗi bằng cách bỏ luôn tính năng này)
+  w.openFormDate('oeDate')
+  d.body.click()
+  test('[Lịch form] bấm ra ngoài lịch → lịch đóng', () => bang(id('oeDatePop').style.display, 'none'))
+
+  // Lịch lọc ngày ở tab Đơn hàng
+  const popLoc = id('orderDatePicker')
+  if (popLoc) {
+    id('orderDateFilter').value = '2026-09-18'
+    popLoc.style.display = 'none'
+    w.toggleOrderDatePicker()
+    nutLich('orderDatePicker', 1).click()
+    test('[Lịch lọc đơn] bấm › → lịch VẪN MỞ', () =>
+      bang(popLoc.style.display, 'block', 'Lịch lọc ngày tự đóng khi chuyển tháng'))
+    test('[Lịch lọc đơn] bấm › → sang tháng 10/2026', () => bang(tieuDeLich('orderDatePicker'), 'Tháng 10/2026'))
+    nutLich('orderDatePicker', 0).click(); nutLich('orderDatePicker', 0).click()
+    test('[Lịch lọc đơn] bấm ‹ hai lần → tháng 8/2026, vẫn mở', () => {
+      bang(popLoc.style.display, 'block')
+      bang(tieuDeLich('orderDatePicker'), 'Tháng 8/2026')
+    })
+    d.body.click()
+    test('[Lịch lọc đơn] bấm ra ngoài → đóng', () => bang(popLoc.style.display, 'none'))
+    id('orderDateFilter').value = ''
+  } else {
+    test('[Lịch lọc đơn] có lịch lọc ngày', () => { throw new Error('không thấy #orderDatePicker') })
+  }
+
+  // Nút tháng ở Lịch giao + Sổ chi phí (nút cố định, nhưng vẫn kiểm bấm thật + qua năm)
+  const nutTrong = (panelId, i) => id(panelId).querySelectorAll('.month-nav .month-arrow')[i]
+  id('delivMonth').value = '2026-12'
+  nutTrong('panelDelivery', 1).click()
+  test('[Lịch giao] tháng 12/2026 bấm › → 01/2027', () => bang(id('delivMonth').value, '2027-01'))
+  nutTrong('panelDelivery', 0).click(); nutTrong('panelDelivery', 0).click()
+  test('[Lịch giao] bấm ‹ hai lần → 11/2026', () => bang(id('delivMonth').value, '2026-11'))
+  test('[Lịch giao] chữ tháng hiển thị đổi theo', () => {
+    const t = id('delivMonthDisplay').textContent
+    if (!/11/.test(t) || !/2026/.test(t)) throw new Error('đang hiện: ' + t)
+  })
+  id('expenseMonth').value = '2027-01'
+  nutTrong('panelExpenses', 0).click()
+  test('[Sổ chi phí] tháng 01/2027 bấm ‹ → 12/2026', () => bang(id('expenseMonth').value, '2026-12'))
+  nutTrong('panelExpenses', 1).click(); nutTrong('panelExpenses', 1).click()
+  test('[Sổ chi phí] bấm › hai lần → 02/2027', () => bang(id('expenseMonth').value, '2027-02'))
+
   // ── 6. Form không bị đẩy lên cụt đầu ────────────────────────────
   nhom('6. Form không bị đẩy lên / cụt đầu')
   test('Tiêu đề và nút Lưu luôn ghim, chỉ thân form cuộn', () => {

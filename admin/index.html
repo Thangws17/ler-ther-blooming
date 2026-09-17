@@ -4685,6 +4685,11 @@ ${selected ? '<button type="button" class="date-clear-btn" onclick="ordPickClear
 
 // Bấm ra ngoài thì đóng popover (lịch chọn ngày + gợi ý nguyên liệu)
 document.addEventListener('click', e => {
+  // ⚠️ Nút ‹ › trên lịch VẼ LẠI cả lịch ngay trong lúc bấm → chính nút vừa bấm đã
+  // bị gỡ khỏi trang khi sự kiện lan tới đây. closest() trên phần tử đã bị gỡ trả về
+  // null → tưởng bấm ra ngoài → đóng lịch ngay khi vừa chuyển tháng (lỗi thật 17/09).
+  // Phần tử không còn trong trang thì chắc chắn vừa được bấm BÊN TRONG → bỏ qua.
+  if (!e.target.isConnected) return
   if (!e.target.closest('.date-pick-wrap')) {
     const pop = document.getElementById('orderDatePicker')
     if (pop && pop.style.display !== 'none') pop.style.display = 'none'

@@ -132,6 +132,11 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
   không phải số" sẽ biến nó thành giá **2 đồng**. Xem `supabase/18_price_normalize.sql` để biết cách lọc
   đúng (chỉ đổi chuỗi thuần số tiền). **`place_order` từng dính đúng lỗi này** (đơn web đặt sản phẩm
   "Từ 2xx" bị ghi đơn giá 2đ) — đã sửa trong `15_notifications_v2.sql` bằng cùng điều kiện lọc.
+- **Popover tự vẽ lại khi bấm (lịch ‹ ›) + trình xử lý "bấm ra ngoài thì đóng" = lỗi tự đóng.** Vẽ lại
+  bằng `innerHTML` gỡ chính nút vừa bấm khỏi trang; khi sự kiện lan tới `document`, `closest()` trên phần tử
+  đã bị gỡ trả `null` → tưởng bấm ra ngoài → đóng lịch ngay (lỗi thật 17/09: không chuyển được tháng). Trình
+  xử lý chung đã chặn bằng `if (!e.target.isConnected) return`. Viết popover mới cũng phải nhớ điều này.
+  **Test UI phải BẤM NÚT THẬT (`.click()`)**, đừng gọi thẳng hàm — test cũ gọi `fdStepMonth()` nên không bắt được.
 - **Đừng đặt `position: sticky` cho phần tử nằm TRONG `.content`.** `.content` là khung cuộn;
   sticky bên trong khung cuộn là chỗ iOS vẽ sai toạ độ → thấy phần tử nhưng bấm không trúng.
   `.admin-topbar` vì vậy là anh em của `.content`, không phải con.
