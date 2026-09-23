@@ -120,6 +120,97 @@ function skeletonTiles(n = 8) {
     `<div class="sk-box sk-tile" style="height:${hs[i % hs.length]}px"></div>`).join('');
 }
 
+// ─── Bộ sưu tập (BST) ─────────────────────────────────────
+// Thay danh mục cũ ở phía khách. Bảng collections + collection_products
+// (supabase/21_collections.sql), cấu hình ở admin → tab 🌿 Bộ sưu tập.
+// Chưa chạy SQL 21 thì 2 truy vấn dưới lỗi → web vẫn chạy, chỉ không có bộ lọc.
+let bstAll = [];       // BST đang hiện (đã lọc bật/tắt + ngày hẹn)
+let bstGanAll = [];    // [{collection_id, product_id}] của các BST đang hiện
+let _bstReady = null;  // nhiều trang cùng cần → chỉ tải đúng 1 lần
+
+// Luật hiện/ẩn PHẢI giống hàm bstDangHien() trong admin/index.html
+function bstDangHien(c, homNay = new Date().toLocaleDateString('sv-SE')) {
+  if (!c || !c.active) return false;
+  if (c.start_date && c.start_date > homNay) return false;
+  if (c.end_date   && c.end_date   < homNay) return false;
+  return true;
+}
+
+function loadBst() {
+  if (_bstReady) return _bstReady;
+  _bstReady = (async () => {
+    const [cs, gs] = await Promise.all([
+      sb.from('collections').select('*').order('order_index'),
+      sb.from('collection_products').select('collection_id,product_id'),
+    ]);
+    bstAll = (cs.data || []).filter(c => bstDangHien(c));
+    const dangHien = new Set(bstAll.map(c => c.id));
+    bstGanAll = (gs.data || []).filter(x => dangHien.has(x.collection_id));
+  })();
+  return _bstReady;
+}
+
+function bstMauIds(cid) {
+  return bstGanAll.filter(x => x.collection_id === cid).map(x => x.product_id);
+}
+
+function bstCuaMau(pid) {
+  return bstAll.filter(c => bstGanAll.some(x => x.collection_id === c.id && x.product_id === pid));
+}
+
+function bstTheoSlug(slug) {
+  return bstAll.find(c => c.slug === slug) || null;
+}
+
+// Ảnh bìa: admin đặt tay thì dùng, chưa đặt thì mượn ảnh mẫu đầu tiên trong bộ
+function bstAnhBia(c, anhTheoId) {
+  if (c.cover_url) return c.cover_url;
+  for (const pid of bstMauIds(c.id)) if (anhTheoId[pid]) return anhTheoId[pid];
+  return '';
+}
+
+// ─── Khối Bộ sưu tập ở trang chủ ──────────────────────────
+async function loadBoSuuTap() {
+  const wrap = document.getElementById('bstGrid');
+  if (!wrap) return;
+  const sec = document.getElementById('bstSection');
+  const an = () => { if (sec) sec.style.display = 'none'; };
+
+  await loadBst();
+  // BST rỗng thì bỏ qua — bấm vào chỉ ra trang trắng
+  const ds = bstAll.filter(c => bstMauIds(c.id).length);
+  if (!ds.length) { an(); return; }
+
+  // Chỉ hỏi ảnh mẫu khi có BST chưa đặt ảnh bìa
+  let anhTheoId = {};
+  if (ds.some(c => !c.cover_url)) {
+    const { data } = await sb.from('products').select('id,image');
+    (data || []).forEach(p => { if (p.image) anhTheoId[p.id] = p.image; });
+  }
+
+  wrap.innerHTML = ds.map(c => {
+    const bia = bstAnhBia(c, anhTheoId);
+    const em = esc(c.emoji || '🌸');
+    const n = bstMauIds(c.id).length;
+    return `
+<a class="bst-card reveal" href="san-pham?bst=${encodeURIComponent(c.slug || '')}">
+  ${bia ? `<img src="${esc(bia)}" alt="${esc(c.name)}" loading="lazy">`
+        : `<div class="bst-ph">${em}</div>`}
+  <span class="bst-veil"></span>
+  <span class="bst-txt">
+    <span class="bst-em">${em}</span>
+    <span class="bst-h">${esc(c.name)}</span>
+    ${c.tagline ? `<span class="bst-tl">${esc(c.tagline)}</span>` : ''}
+    <span class="bst-sl">${n} mẫu →</span>
+  </span>
+</a>`;
+  }).join('');
+
+  if (sec) sec.style.display = '';
+  staggerReveal(wrap.querySelectorAll('.reveal'));
+  initScrollReveal(wrap);
+}
+
 // ─── Products page ────────────────────────────────────────
 let allProducts = [];
 
@@ -129,36 +220,51 @@ async function loadProducts() {
 
   grid.innerHTML = skeletonCards(6);
 
-  // Danh mục dùng CHUNG với Gallery (bảng gallery_categories) → tab lọc tự theo cấu hình trong admin
-  const [prodRes, catRes] = await Promise.all([
+  // Bộ lọc dựng từ Bộ sưu tập đang hiện (bảng collections), không còn danh mục
+  const [prodRes] = await Promise.all([
     sb.from('products').select('*').order('order_index'),
-    sb.from('gallery_categories').select('*').order('order_index'),
+    loadBst(),
   ]);
   if (prodRes.error || !prodRes.data) {
     grid.innerHTML = '<div class="loading"><p>Không thể tải sản phẩm, vui lòng thử lại.</p></div>';
     return;
   }
   allProducts = prodRes.data;
-  galleryCats = catRes.data || [];
   buildProductFilterTabs();
-  renderProducts(allProducts, grid);
+  // Link dạng /san-pham?bst=bst-trong-trang mở thẳng đúng bộ sưu tập
+  const slug = new URLSearchParams(location.search).get('bst');
+  if (slug && bstTheoSlug(slug)) currentBst = slug;
   initFilters();
+  applyProductFilters();
 }
 
-// Dựng tab lọc sản phẩm từ danh mục chung (chỉ hiện danh mục đang có sản phẩm).
-// Sản phẩm mang danh mục ngoài danh sách (dữ liệu cũ) vẫn có tab riêng để không bị "mất".
+// Dựng nút lọc từ Bộ sưu tập đang hiện — chỉ hiện bộ có ít nhất 1 mẫu.
+// Nút "Tất cả" LUÔN có: mẫu không thuộc bộ nào vẫn phải xem và mua được.
 function buildProductFilterTabs() {
   const wrap = document.getElementById('productFilters');
   if (!wrap) return;
-  const tabs = galleryCats
-    .filter(c => allProducts.some(p => p.category === c.name))
-    .map(c => `<button class="filter-tab" data-category="${esc(c.name)}">${esc(c.emoji || '🌸')} ${esc(c.name)}</button>`)
+  const coMau = new Set(allProducts.map(p => p.id));
+  const tabs = bstAll
+    .filter(c => bstMauIds(c.id).some(id => coMau.has(id)))
+    .map(c => `<button class="filter-tab" data-bst="${esc(c.slug || '')}">${esc(c.emoji || '🌸')} ${esc(c.name)}</button>`)
     .join('');
-  const known = new Set(galleryCats.map(c => c.name));
-  const extras = [...new Set(allProducts.map(p => p.category).filter(c => c && !known.has(c)))]
-    .map(c => `<button class="filter-tab" data-category="${esc(c)}">🌸 ${esc(c)}</button>`)
-    .join('');
-  wrap.innerHTML = `<button class="filter-tab active" data-category="all">🌸 Tất cả</button>${tabs}${extras}`;
+  wrap.innerHTML = `<button class="filter-tab active" data-bst="all">🌸 Tất cả</button>${tabs}`;
+}
+
+// Dải giới thiệu bộ sưu tập đang xem (ảnh bìa + câu giới thiệu)
+function veBstBanner(c) {
+  const el = document.getElementById('bstBanner');
+  if (!el) return;
+  if (!c) { el.innerHTML = ''; return; }
+  const n = bstMauIds(c.id).length;
+  el.innerHTML = `
+<div class="bst-banner">
+  ${c.cover_url ? `<img src="${esc(c.cover_url)}" alt="" loading="lazy">` : ''}
+  <div>
+    <h2>${esc(c.emoji || '🌸')} ${esc(c.name)}</h2>
+    <p>${c.tagline ? esc(c.tagline) + ' · ' : ''}${n} mẫu</p>
+  </div>
+</div>`;
 }
 
 function renderProducts(list, grid) {
@@ -179,17 +285,21 @@ function noAccent(s) {
     .replace(/đ/g, 'd').trim();
 }
 
-let currentProdCat = 'all';
+let currentBst = 'all';
 let prodSearchTerm = '';
 
-// Danh mục và ô tìm cùng lọc trên MỘT danh sách — đổi cái nào cũng gọi lại đây
+// Bộ sưu tập và ô tìm cùng lọc trên MỘT danh sách — đổi cái nào cũng gọi lại đây
 function applyProductFilters() {
   const grid = document.getElementById('productsGrid');
   if (!grid) return;
   const q = noAccent(prodSearchTerm);
+  const bst = currentBst === 'all' ? null : bstTheoSlug(currentBst);
+  veBstBanner(bst);
+  const trongBo = bst ? new Set(bstMauIds(bst.id)) : null;
   const list = allProducts.filter(p =>
-    (currentProdCat === 'all' || p.category === currentProdCat) &&
-    (!q || noAccent(p.name).includes(q) || noAccent(p.category).includes(q))
+    (!trongBo || trongBo.has(p.id)) &&
+    (!q || noAccent(p.name).includes(q) ||
+           bstCuaMau(p.id).some(c => noAccent(c.name).includes(q)))
   );
 
   const clearBtn = document.getElementById('productSearchClear');
@@ -217,11 +327,18 @@ function resetProductSearch() {
 
 function initFilters() {
   const tabs = document.querySelectorAll('.filter-tab');
+  // Mở bằng link ?bst=… thì tô sáng đúng nút đó thay vì "Tất cả"
+  tabs.forEach(t => t.classList.toggle('active', t.dataset.bst === currentBst));
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      currentProdCat = tab.dataset.category;
+      currentBst = tab.dataset.bst;
+      // Ghi vào địa chỉ để khách sao link gửi đi vẫn mở đúng bộ sưu tập
+      const u = new URL(location.href);
+      if (currentBst && currentBst !== 'all') u.searchParams.set('bst', currentBst);
+      else u.searchParams.delete('bst');
+      history.replaceState(null, '', u);
       applyProductFilters();
     });
   });
@@ -532,7 +649,7 @@ function openGalleryLightbox(startIdx) {
 // Đặt hoa theo mẫu ảnh Gallery → mở form đặt hàng, ghi chú tự kèm link ảnh mẫu cho shop
 function orderFromGalleryPhoto(ph) {
   if (!document.getElementById('orderModalBody')) return;
-  openOrderModal(null, ph.caption ? `Mẫu Gallery: ${ph.caption}` : 'Mẫu trong Gallery', ph.url);
+  openOrderModal(null, ph.caption ? `Mẫu ảnh Khoảnh khắc: ${ph.caption}` : 'Mẫu trong trang Khoảnh khắc', ph.url);
   const note = document.getElementById('orderNote');
   if (note) note.value = `Đặt theo mẫu ảnh: ${ph.url}`;
 }
@@ -1181,13 +1298,19 @@ async function loadProductDetail() {
   const id = new URLSearchParams(location.search).get('id');
   if (!id) { content.innerHTML = '<div class="loading"><p>Không tìm thấy sản phẩm.</p></div>'; return; }
 
-  const { data: p } = await sb.from('products').select('*').eq('id', id).single();
+  const [{ data: p }] = await Promise.all([
+    sb.from('products').select('*').eq('id', id).single(),
+    loadBst(),
+  ]);
   if (!p) { content.innerHTML = '<div class="loading"><p>Sản phẩm không tồn tại.</p></div>'; return; }
   _prodCache[p.id] = { image: p.images?.[0] || p.image, price: p.price };   // cho header form đặt
 
   document.title = `${p.name} — Ler & Ther Blooming`;
   // Có thể chạy trước khi đo lường bật xong — doLuong tự xếp hàng chờ
-  doLuong('view_item', { item_id: String(p.id), item_name: p.name, item_category: p.category || '' });
+  doLuong('view_item', {
+    item_id: String(p.id), item_name: p.name,
+    item_category: bstCuaMau(p.id).map(c => c.name).join(', '),
+  });
   const _ogTitle = document.querySelector('meta[property="og:title"]');
   const _ogDesc  = document.querySelector('meta[property="og:description"]');
   const _ogImg   = document.querySelector('meta[property="og:image"]');
@@ -1205,7 +1328,10 @@ async function loadProductDetail() {
   ${imgSection}
   <div class="detail-info">
     <a href="san-pham" class="detail-back">← Quay lại sản phẩm</a>
-    <span class="detail-cat">${esc(p.category)}</span>
+    ${bstCuaMau(p.id).length
+      ? `<div class="detail-bst">${bstCuaMau(p.id).map(c =>
+          `<a href="san-pham?bst=${encodeURIComponent(c.slug || '')}">${esc(c.emoji || '🌸')} ${esc(c.name)}</a>`).join('')}</div>`
+      : ''}
     <h1 class="detail-name">${esc(p.name)}</h1>
     <div class="detail-price">${esc(fmtPrice(p.price))}</div>
     <p class="detail-desc">${esc(p.description)}</p>
@@ -1222,16 +1348,28 @@ async function loadProductDetail() {
 
   wireOrderButtons();
   if (imgs.length > 1) _startCarousel(imgs);
-  loadRelated(p.category, p.id);
+  loadRelated(p.id);
 }
 
-async function loadRelated(category, excludeId) {
+// Gợi ý mẫu CÙNG bộ sưu tập. Mẫu chưa thuộc bộ nào (hoặc bộ chỉ có mình nó)
+// thì lấy mẫu mới nhất — để mục này không bao giờ trống trơ.
+async function loadRelated(excludeId) {
   const section = document.getElementById('relatedSection');
   const grid    = document.getElementById('relatedGrid');
   if (!section || !grid) return;
 
-  const { data } = await sb.from('products').select('*')
-    .eq('category', category).neq('id', excludeId).limit(4);
+  await loadBst();
+  const cung = [...new Set(bstCuaMau(excludeId).flatMap(c => bstMauIds(c.id)))]
+    .filter(x => String(x) !== String(excludeId));
+
+  let data = null;
+  if (cung.length) {
+    ({ data } = await sb.from('products').select('*').in('id', cung).limit(4));
+  }
+  if (!data?.length) {
+    ({ data } = await sb.from('products').select('*')
+      .neq('id', excludeId).order('order_index').limit(4));
+  }
   if (!data?.length) return;
 
   grid.innerHTML = data.map(productCardHTML).join('');
@@ -1334,6 +1472,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // (ảnh phụ hero do loadContact gọi applyHeroSides xử lý)
   const contactReady = loadContact();
   loadHeroPriceHint();
+  loadBoSuuTap();
   loadFeatured();
   loadProducts();
   loadGallery();

@@ -23,6 +23,8 @@ mấy trang test chạy trong trình duyệt (vẫn server 8765 đó):
 - `/test/test-phan-trang-don.html` — phân trang đơn: kiểm đúng URL truy vấn gửi lên Supabase
 - `/test/test-sao-luu.html` — bộ tạo Excel + nút sao lưu thật trong admin (xuất file mẫu base64 để mở lại bằng openpyxl)
 - `/test/test-do-luong.html` — Google Analytics + Clarity: khi nào đếm / không đếm, kiểm mã, hàng chờ thao tác
+- `/test/test-bo-suu-tap.html` — bộ sưu tập: luật hiện/ẩn, đuôi link, tắt bộ không làm mất mẫu hoa
+- `/test/test-cu-phap.html` — biên dịch thử toàn bộ JS (web + admin). Chạy sau mọi lần sửa file lớn
 
 Trang test **bốc hàm/DOM thật ra khỏi `admin/index.html`** chứ không copy code, nên sửa admin là test
 biết ngay. Không nối Supabase để ghi, chạy bao nhiêu lần cũng không đụng dữ liệu thật.
@@ -46,6 +48,8 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 
 **Đường ghi đơn hàng đi qua RPC `place_order`** (cả web khách lẫn admin đều gọi, `security definer`): tự dedupe khách theo SĐT đã chuẩn hoá, tự điền giá từ giá niêm yết, cho phép đơn không SĐT, và không cho ghi đè tên/địa chỉ khách cũ. Sửa logic tạo đơn thì thường là sửa hàm SQL này, không phải sửa JS.
 
+**Danh mục đã bị thay bằng BỘ SƯU TẬP.** Khách không còn thấy "Hoa bó / Sự kiện" nữa — thay bằng `collections` (BST có ảnh bìa, câu giới thiệu, công tắc bật/tắt, hẹn ngày) + bảng nối `collection_products` (**1 mẫu nằm được nhiều BST**). Xem `supabase/21_collections.sql`; 4 BST thật của Ler (Trông Trăng, 20/10, Em Xinh, Anh Trai) tạo ở `22_bst_cua_ler.sql` — file này chỉ chạy lần đầu, 5 BST cũ bị tắt chứ không xoá. Admin quản ở tab 🌿 Bộ sưu tập; form Sản phẩm tick BST thay cho ô "Danh mục" cũ.
+
 **Ảnh:** upload nào cũng đi qua `compressImage()` trong admin — thu về ≤1600px, xuất WebP q0.78 (fallback JPEG), bỏ qua file <300KB; rồi `sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })`. Thư mục trong bucket: `products/`, `gallery/`, `hero/`, `expenses/` (ảnh hoá đơn không lên web công khai). `optimizeOldImages()` là nút chạy một lần cho ảnh cũ, nhận diện ảnh đã tối ưu qua `_optw_` / đuôi `.webp`.
 
 **Doanh thu** tính theo **ngày giao** (trống thì lấy ngày tạo). Trạng thái nào được tính nằm ở `REVENUE_STATUSES` / `DONE_STATUSES` (`admin/index.html`, gần dòng 3850). Vòng đời: `Mới → Đã xác nhận → Đang giao → Giao thành công → Hoàn thành` (khoá sửa) hoặc `Đã hủy`.
@@ -53,7 +57,7 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 ## Bẫy đã biết
 
 - **`place_order` được định nghĩa lại ở 4 file SQL.** Bản hiện hành là `supabase/15_notifications_v2.sql` (11 tham số, có `p_email`). Ba bản cũ (10 tham số) đã dồn vào `supabase/da-thay-the/` — chạy vào là **lùi** hàm về bản cũ. Sửa RPC thì sửa trong `15_notifications_v2.sql`.
-- **File SQL đánh số theo thứ tự chạy** (`01_` → `17_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
+- **File SQL đánh số theo thứ tự chạy** (`01_` → `22_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
 - **Sao lưu Excel (`admin/xlsx.js` + `taiSaoLuu()` trong admin)** tự viết file .xlsx, KHÔNG thêm thư viện.
   Thêm bảng mới vào database thì thêm vào `SAO_LUU_BANG`; cột lạ tự nối vào cuối nên không mất dữ liệu,
   nhưng khai báo thì có tên cột tiếng Việt. **Tuyệt đối không thêm `app_settings`** (chứa token). Ngày sao
@@ -70,6 +74,23 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 - **Trạng thái đơn bị database khoá chỉ nhận 6 giá trị** (`supabase/19_order_status_check.sql`), phải
   khớp y hệt `ORDER_STATUSES` trong admin. Thêm/đổi tên trạng thái: sửa SQL **trước**, rồi mới sửa JS —
   ngược lại thì lưu đơn bị từ chối. Mọi chỗ ghi status đều phải lấy từ `ORDER_STATUSES`, đừng gõ tay chuỗi.
+- **Tắt một BST KHÔNG được làm mất mẫu hoa.** Nút "🌸 Tất cả" trên trang Sản phẩm luôn hiện
+  **mọi** mẫu, kể cả mẫu không thuộc BST nào — đây là lá chắn duy nhất sau khi bỏ danh mục, đừng
+  viết lại bộ lọc thành "phải thuộc một BST". Admin cũng cảnh báo mẫu chưa thuộc BST nào.
+  "Sản phẩm liên quan" ở trang chi tiết lấy theo BST, không có thì lùi về mẫu mới nhất — không
+  bao giờ để trống.
+- **`bstDangHien()` viết HAI lần** — `admin/index.html` và `js/main.js`. Luật bật/tắt + hẹn ngày
+  phải giống hệt nhau, lệch là admin báo một đằng web hiện một nẻo (test đối chiếu 2 bản).
+  Tương tự: `slugVi()` trong JS phải cho ra kết quả giống hàm `slug_vi()` trong SQL 21.
+- **Trang ảnh tên là "Khoảnh khắc" (`khoanh-khac`), không còn chữ "Gallery" nào khách/admin thấy** (web thuần Việt,
+  23/09/2026). Trong code và database vẫn tên `gallery` (bảng, hàm `loadGallery`, `data-tab="Gallery"`) — cố ý
+  giữ, đừng đổi tên bảng. Chữ mới hiện ra thì viết "Khoảnh khắc" / "nhóm ảnh", đừng viết "Gallery" / "danh mục".
+- **`gallery_categories` giờ CHỈ của Thư viện ảnh.** Không còn dùng chung với sản phẩm nữa —
+  đổi tên / xoá nhóm ảnh không đụng gì tới mẫu hoa. Cột `products.category` vẫn còn nhưng
+  **chỉ là ghi chú** (tên BST đầu tiên, cho dễ đọc file sao lưu) — đừng lọc/hiển thị theo nó.
+- **Viết hàm tiện ích bằng `function`, đừng `const ten = () => …`.** `const`/`let` ở phạm vi gốc
+  KHÔNG nằm trong `window`, nên trang test (chạy admin trong iframe) gọi không tới. Cần đặt
+  giá trị cho biến `let` từ test thì phải dùng `khung.eval('ten = …')`, gán thẳng là vô tác dụng.
 - **Giá sản phẩm lưu dạng TEXT** (`"600,000đ"`, `"Liên hệ"`, `"Từ 2xx (Theo size order)"`) — luôn qua `fmtPrice()`, đừng coi là số.
 - **`data/*.json`, `admin/config.yml`, `images/uploads/`, `demo-*.html` đã bị xoá** (16/09/2026) — di sản Decap CMS và bản nháp, không còn trong repo. Đừng tạo lại.
 - **Không đặt được HTTP header trên GitHub Pages.** `_headers`/`netlify.toml` đã xoá vì GH Pages không đọc (đã kiểm: bản live không trả về `X-Frame-Options`). Đừng tạo lại — muốn có header bảo mật thật thì phải đổi hosting.
@@ -79,11 +100,11 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 - **Link nội bộ KHÔNG ghi đuôi `.html`.** Trang chủ là `./`, các trang khác `san-pham`, `chi-tiet?id=…`.
   Menu tô sáng mục đang xem bằng `tenTrang()` trong `js/main.js` (bỏ đuôi .html khi so) — đừng quay lại
   so nguyên tên file. Trang 404 dùng `data-to=""` cho trang chủ vì JS tự ghép tiền tố repo.
-- **2 trang đã đổi tên (16/09/2026):** `dang-sau-nhung-bo-hoa` → `cau-chuyen`, `san-pham-chi-tiet` →
-  `chi-tiet`. File tên cũ giờ là **trang chuyển hướng — đừng xoá**, link cũ trên Facebook/Zalo/Google
+- **3 trang đã đổi tên:** `dang-sau-nhung-bo-hoa` → `cau-chuyen`, `san-pham-chi-tiet` →
+  `chi-tiet` (16/09/2026), `gallery` → `khoanh-khac` (23/09/2026). File tên cũ giờ là **trang chuyển hướng — đừng xoá**, link cũ trên Facebook/Zalo/Google
   còn trỏ vào. Chúng chuyển bằng JS trước để giữ `?id=` sản phẩm (meta refresh làm rơi mất).
 - **Khi có tên miền riêng**, địa chỉ `https://thangws17.github.io/ler-ther-blooming/` đang ghi cứng ở:
-  thẻ `og:image` (7 trang), thẻ `canonical` (6 trang), `sitemap.xml`, `robots.txt`, 2 trang chuyển
+  thẻ `og:image` (7 trang), thẻ `canonical` (6 trang), `sitemap.xml`, `robots.txt`, 3 trang chuyển
   hướng. Tìm hết bằng `grep -rn "thangws17.github.io" --include=*.html --include=*.xml --include=*.txt .`
   Trang `chi-tiet` cố ý **không** có canonical (canonical tĩnh sẽ gộp mọi sản phẩm thành một trang).
   Lưu ý thêm: `robots.txt` chỉ có tác dụng ở GỐC tên miền — trên `github.io/ler-ther-blooming/` hiện

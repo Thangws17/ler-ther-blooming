@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="UTF-8"><title>Test cú pháp JS — Ler &amp; Ther Blooming</title></head>
+<body style="font:14px/1.6 system-ui;padding:24px;background:#FAF8F5">
+<h1 style="font-size:20px;margin:0 0 4px">⚙️ Test cú pháp JS</h1>
+<p style="color:#6B6B6B;margin:0 0 16px">Biên dịch thử toàn bộ JS của web và admin. Không chạy, chỉ kiểm lỗi cú pháp — chạy sau mỗi lần sửa file lớn.</p>
+<pre id="out" style="background:#fff;padding:14px;border-radius:10px;white-space:pre-wrap">đang chạy…</pre>
+<script>
+(async () => {
+  const o = document.getElementById('out')
+  const ket = []
+  for (const f of ['../admin/index.html', '../js/main.js', '../js/dungchung.js', '../admin/xlsx.js']) {
+    try {
+      const txt = await (await fetch(f + '?t=' + Date.now(), { cache: 'no-store' })).text()
+      let code = txt
+      if (f.endsWith('.html')) {
+        code = [...txt.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n;\n')
+      }
+      new Function(code)                      // chỉ biên dịch, KHÔNG chạy
+      ket.push('OK    ' + f + '  (' + code.length + ' ký tự)')
+    } catch (e) {
+      ket.push('LOI   ' + f + '  → ' + e.name + ': ' + e.message)
+    }
+  }
+  o.textContent = ket.join('\n') + '\n' + (ket.some(x => x.startsWith('LOI')) ? 'KET_QUA=FAIL' : 'KET_QUA=PASS')
+})()
+</script>
+</body></html>

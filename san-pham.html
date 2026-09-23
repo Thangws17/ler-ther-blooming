@@ -33,7 +33,7 @@
     <ul class="nav-links" id="navLinks">
       <li><a href="./">Trang chủ</a></li>
       <li><a href="san-pham">Sản phẩm</a></li>
-      <li><a href="gallery">Gallery</a></li>
+      <li><a href="khoanh-khac">Khoảnh khắc</a></li>
       <li><a href="cau-chuyen">Câu chuyện</a></li>
       <li><a href="lien-he">Liên hệ</a></li>
     </ul>
@@ -66,10 +66,13 @@
       <button type="button" class="ps-clear" id="productSearchClear" aria-label="Xoá ô tìm">✕</button>
     </div>
 
-    <!-- Filter tabs — dựng động theo danh mục chung cấu hình trong admin -->
+    <!-- Nút lọc — dựng động theo Bộ sưu tập cấu hình trong admin -->
     <div class="filter-tabs" id="productFilters">
-      <button class="filter-tab active" data-category="all">🌸 Tất cả</button>
+      <button class="filter-tab active" data-bst="all">🌸 Tất cả</button>
     </div>
+
+    <!-- Dải giới thiệu bộ sưu tập đang xem (JS đổ vào, trống khi xem Tất cả) -->
+    <div id="bstBanner"></div>
 
     <!-- Grid — khung chờ skeleton hiện ngay, JS thay bằng sản phẩm thật -->
     <div class="products-grid" id="productsGrid">
@@ -111,7 +114,7 @@
         <ul>
           <li><a href="./">Trang chủ</a></li>
           <li><a href="san-pham">Sản phẩm</a></li>
-          <li><a href="gallery">Gallery</a></li>
+          <li><a href="khoanh-khac">Khoảnh khắc</a></li>
           <li><a href="cau-chuyen">Câu chuyện</a></li>
           <li><a href="chinh-sach">Chính sách</a></li>
           <li><a href="lien-he">Liên hệ</a></li>

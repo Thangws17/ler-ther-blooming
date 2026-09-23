@@ -435,6 +435,81 @@
     .cat-fold-body { display: none; padding-top: 14px; }
     .cat-manager.open .cat-fold-body { display: block; }
     .cat-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    /* ── Bộ sưu tập (BST) ── */
+    .bst-list { display: grid; gap: 12px; }
+    .bst-card { display: flex; gap: 14px; align-items: center; background: #fff; border-radius: 14px; padding: 12px 14px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+    .bst-card.off { opacity: .6; }
+    .bst-bia { width: 62px; height: 78px; border-radius: 10px; object-fit: cover; flex: 0 0 auto; background: #EEF5EE; }
+    .bst-bia-trong { display: grid; place-items: center; background: #EEF5EE; color: #A5C6A4; font-size: 1.5rem; }
+    .bst-than { flex: 1; min-width: 0; }
+    .bst-ten { font-weight: 800; font-size: 1rem; color: #1a2e1a; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; overflow-wrap: anywhere; }
+    .bst-tl { font-size: .84rem; color: #5b7a5a; margin-top: 2px; overflow-wrap: anywhere; }
+    .bst-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+    .bst-chip { font-size: .75rem; color: #2E7D32; background: #E8F5E9; border-radius: 50px; padding: 3px 10px; white-space: nowrap; }
+    .bst-chip.off { background: #FBE9E7; color: #D84315; }
+    .bst-chip.nho { background: #f3f6f3; color: #7A9879; font-size: .72rem; overflow-wrap: anywhere; white-space: normal; }
+    .bst-nut { display: flex; gap: 6px; align-items: center; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-end; }
+    .bst-trong { background: #fff; border-radius: 14px; padding: 16px 18px; color: #5b7a5a; font-size: .92rem; line-height: 1.65; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+
+    /* Cảnh báo mẫu hoa chưa thuộc BST nào */
+    .bst-warn { background: #FFF8E1; border-left: 4px solid #FFA000; border-radius: 10px; padding: 13px 16px; margin-bottom: 16px; font-size: .88rem; color: #6D4C41; line-height: 1.6; }
+    .bst-warn-ds { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .bst-warn-nut { background: #fff; border: 1.5px solid #FFCC80; color: #E65100; border-radius: 50px; padding: 4px 12px; font: 700 .8rem inherit; font-family: inherit; }
+    .bst-warn-nut:hover { background: #FFF3E0; }
+
+    /* Công tắc bật/tắt */
+    .sw { position: relative; display: inline-block; width: 44px; height: 25px; flex: 0 0 auto; }
+    .sw input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+    .sw-nen { position: absolute; inset: 0; background: #d3ddd3; border-radius: 50px; transition: background .18s; pointer-events: none; }
+    .sw-nen::after { content: ''; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; background: #fff; border-radius: 50%; transition: transform .18s; }
+    .sw input:checked + .sw-nen { background: #2E7D32; }
+    .sw input:checked + .sw-nen::after { transform: translateX(19px); }
+    .sw input:focus-visible + .sw-nen { outline: 2px solid #2E7D32; outline-offset: 2px; }
+
+    /* Ảnh bìa trong modal BST */
+    .bst-cover-hang { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+    .bst-cover-xem { width: 92px; height: 116px; border-radius: 10px; object-fit: cover; flex: 0 0 auto; }
+    .bst-cover-cot { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 190px; }
+    .bst-cover-nut { display: flex; gap: 7px; flex-wrap: wrap; }
+    .bst-cover-nut button { background: #fff; border: 1.5px solid #C8E6C9; color: #2E7D32; border-radius: 8px; padding: 7px 12px; font: 700 .82rem inherit; font-family: inherit; }
+    .bst-cover-nut button:hover { background: #E8F5E9; }
+    .bst-cover-nut button.bo { border-color: #FFCDD2; color: #C62828; }
+    .bst-cover-nut button.bo:hover { background: #FFEBEE; }
+    .bst-cover-link { display: flex; gap: 6px; }
+    .bst-cover-link input { flex: 1; min-width: 0; padding: 7px 10px; border: 1.5px solid #ddd; border-radius: 8px; font-size: .84rem; }
+    .bst-cover-tumau { display: flex; gap: 6px; overflow-x: auto; padding: 6px 0; }
+    .bst-cover-tumau img { width: 52px; height: 52px; border-radius: 7px; object-fit: cover; cursor: pointer; border: 2.5px solid transparent; flex: 0 0 auto; }
+    .bst-cover-tumau img:hover { border-color: #2E7D32; }
+    .bst-cover-nhac { font-size: .82rem; color: #7A9879; }
+
+    /* Lưới tick chọn mẫu hoa cho BST */
+    .bst-pick-dau { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 7px; }
+    .bst-pick-dem { font-size: .82rem; color: #2E7D32; font-weight: 700; }
+    .bst-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; max-height: 320px; overflow-y: auto; padding: 8px; border: 1.5px solid #e8f0e8; border-radius: 10px; background: #fafcfa; }
+    .bst-o { position: relative; display: block; border-radius: 9px; overflow: hidden; cursor: pointer; border: 2.5px solid transparent; background: #fff; }
+    .bst-o.on { border-color: #2E7D32; }
+    .bst-o input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .bst-o img, .bst-o-trong { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; }
+    .bst-o-trong { display: grid; place-items: center; background: #EEF5EE; font-size: 1.3rem; }
+    .bst-o .tick { position: absolute; top: 5px; right: 5px; width: 21px; height: 21px; border-radius: 50%; background: rgba(255,255,255,.92); display: grid; place-items: center; font-size: .72rem; font-weight: 800; color: transparent; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
+    .bst-o.on .tick { background: #2E7D32; color: #fff; }
+    .bst-o .ten { display: block; font-size: .68rem; line-height: 1.25; padding: 4px 5px 5px; color: #1a2e1a; height: 2.8em; overflow: hidden; }
+    .bst-o input:focus-visible ~ .tick { outline: 2px solid #2E7D32; outline-offset: 2px; }
+
+    /* Chọn BST trong form Sản phẩm (thay ô "Danh mục" cũ) */
+    .bst-tick-hang { display: flex; flex-wrap: wrap; gap: 7px; }
+    .bst-tick { position: relative; display: inline-flex; align-items: center; gap: 5px; border: 1.5px solid #C8E6C9; background: #fff; border-radius: 50px; padding: 7px 14px; font-size: .86rem; font-weight: 600; color: #4A6849; cursor: pointer; }
+    .bst-tick input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .bst-tick.on { background: #2E7D32; border-color: #2E7D32; color: #fff; }
+    .bst-tick input:focus-visible ~ * , .bst-tick:focus-within { outline: 2px solid #2E7D32; outline-offset: 2px; }
+    .bst-tick-trong { font-size: .85rem; color: #7A9879; }
+
+    @media (max-width: 720px) {
+      .bst-card { flex-wrap: wrap; }
+      .bst-than { flex: 1 1 100%; order: 3; }
+      .bst-nut { flex: 1 1 auto; justify-content: flex-start; }
+    }
+
     .cat-row { display: flex; align-items: center; gap: 8px; background: #f8faf8; border: 1px solid #eef3ee; border-radius: 8px; padding: 7px 10px; }
     .cat-row .cat-emoji { width: 40px; text-align: center; padding: 6px 4px; border: 1.5px solid #ddd; border-radius: 6px; background: #fff; font-size: 1rem; }
     /* Tên danh mục ngắn ("Hoa bó") — cho ô vừa đủ chứ đừng kéo hết chiều ngang */
@@ -888,7 +963,8 @@
       <button class="nav-item" data-tab="Customers" onclick="switchTab(this)">👤 Khách hàng</button>
       <button class="nav-item" data-tab="Expenses" onclick="switchTab(this)">💰 Sổ chi phí</button>
       <button class="nav-item" data-tab="Products" onclick="switchTab(this)">🛍️ Sản phẩm</button>
-      <button class="nav-item" data-tab="Gallery" onclick="switchTab(this)">📸 Gallery</button>
+      <button class="nav-item" data-tab="Collections" onclick="switchTab(this)">🌿 Bộ sưu tập</button>
+      <button class="nav-item" data-tab="Gallery" onclick="switchTab(this)">📸 Khoảnh khắc</button>
       <button class="nav-item" data-tab="Testimonials" onclick="switchTab(this)">💬 Đánh giá</button>
       <button class="nav-item" data-tab="Changelog" onclick="switchTab(this)">📝 Cập nhật</button>
       <button class="nav-item" data-tab="Contact" onclick="switchTab(this)">⚙️ Liên hệ</button>
@@ -976,30 +1052,40 @@
         <button class="btn-green" onclick="openModal()">+ Thêm sản phẩm</button>
       </div>
       <div class="filter-bar">
-        <input type="search" id="productSearch" class="filter-search" placeholder="🔍 Tìm theo tên hoặc danh mục…" oninput="renderProducts()">
+        <input type="search" id="productSearch" class="filter-search" placeholder="🔍 Tìm theo tên hoặc bộ sưu tập…" oninput="renderProducts()">
       </div>
       <div id="productsTable"><div class="loading-state">Đang tải…</div></div>
     </div>
 
-    <!-- Gallery -->
+    <!-- Bộ sưu tập: thay danh mục ở phía khách xem web -->
+    <div id="panelCollections" class="panel" style="display:none">
+      <div class="panel-topbar">
+        <h1>Bộ sưu tập</h1>
+        <button class="btn-green" onclick="openBstModal()">+ Thêm bộ sưu tập</button>
+      </div>
+      <div id="bstCanhBao"></div>
+      <div id="bstList" class="bst-list"><div class="loading-state">Đang tải…</div></div>
+    </div>
+
+    <!-- Khoảnh khắc (bảng gallery) -->
     <div id="panelGallery" class="panel" style="display:none">
-      <div class="panel-topbar"><h1>Gallery</h1></div>
+      <div class="panel-topbar"><h1>Khoảnh khắc</h1></div>
 
       <!-- Quản lý danh mục — gấp lại cho đỡ chiếm màn hình, ảnh mới là thứ cần thấy trước -->
       <div class="cat-manager" id="catManager">
         <button type="button" class="cat-fold" onclick="toggleCatManager()">
           <span>🏷️</span>
-          <span>Danh mục chung <span id="catFoldCount" class="cat-fold-count"></span></span>
+          <span>Nhóm ảnh <span id="catFoldCount" class="cat-fold-count"></span></span>
           <span class="cat-fold-caret">▾</span>
         </button>
         <div class="cat-fold-body" id="catFoldBody">
           <p style="font-size:.82rem;color:#7A9879;margin-bottom:12px;">
-            Thêm / sửa / xóa một chỗ — form Sản phẩm, trang Sản phẩm và trang Gallery đều dùng bộ này
+            Các nút lọc trên trang Khoảnh khắc. Chỉ dùng cho ảnh — không đụng tới mẫu hoa hay Bộ sưu tập
           </p>
           <div id="galleryCatList" class="cat-list"></div>
           <div class="cat-add-row">
             <input type="text" id="newCatEmoji" maxlength="2" placeholder="🌸" style="width:56px;text-align:center;">
-            <input type="text" id="newCatName" placeholder="Tên danh mục mới…" onkeydown="if(event.key==='Enter')addGalleryCat()">
+            <input type="text" id="newCatName" placeholder="Tên nhóm ảnh mới…" onkeydown="if(event.key==='Enter')addGalleryCat()">
             <button class="btn-green" onclick="addGalleryCat()">+ Thêm</button>
           </div>
         </div>
@@ -1181,7 +1267,7 @@
                     <input type="file" id="heroImgInput" accept="image/*" style="display:none" onchange="handleHeroImageUpload(this,'main')">
                     📷 Upload
                   </div>
-                  <div class="img-upload-area pick" onclick="openGalleryPickerForHero('main')">📸 Chọn từ Gallery</div>
+                  <div class="img-upload-area pick" onclick="openGalleryPickerForHero('main')">📸 Chọn từ Khoảnh khắc</div>
                 </div>
                 <input type="hidden" id="heroImageUrl" name="hero_image">
               </div>
@@ -1197,7 +1283,7 @@
                     <input type="file" id="heroSide1Input" accept="image/*" style="display:none" onchange="handleHeroImageUpload(this,'side1')">
                     📷 Upload
                   </div>
-                  <div class="img-upload-area pick" onclick="openGalleryPickerForHero('side1')">📸 Chọn từ Gallery</div>
+                  <div class="img-upload-area pick" onclick="openGalleryPickerForHero('side1')">📸 Chọn từ Khoảnh khắc</div>
                 </div>
                 <input type="hidden" id="heroSide1Url" name="hero_side1">
               </div>
@@ -1213,12 +1299,12 @@
                     <input type="file" id="heroSide2Input" accept="image/*" style="display:none" onchange="handleHeroImageUpload(this,'side2')">
                     📷 Upload
                   </div>
-                  <div class="img-upload-area pick" onclick="openGalleryPickerForHero('side2')">📸 Chọn từ Gallery</div>
+                  <div class="img-upload-area pick" onclick="openGalleryPickerForHero('side2')">📸 Chọn từ Khoảnh khắc</div>
                 </div>
                 <input type="hidden" id="heroSide2Url" name="hero_side2">
               </div>
             </div>
-            <p style="font-size:.8rem;color:#7A9879;margin-top:8px;">Để trống 2 ảnh phụ thì trang chủ tự lấy 2 ảnh đầu trong Gallery.</p>
+            <p style="font-size:.8rem;color:#7A9879;margin-top:8px;">Để trống 2 ảnh phụ thì trang chủ tự lấy 2 ảnh đầu trong Khoảnh khắc.</p>
           </div>
           <div class="field-group full">
             <label>Nội dung banner thông báo</label>
@@ -1301,11 +1387,9 @@
               <span class="price-suffix">đ</span>
             </div>
           </div>
-          <div class="field-group">
-            <label>Danh mục *</label>
-            <select id="fCategory" required>
-              <option value="">-- Chọn danh mục --</option>
-            </select>
+          <div class="field-group full">
+            <label>Bộ sưu tập <span style="font-weight:400;color:#7A9879;text-transform:none;">(chọn được nhiều, để trống cũng được — mẫu vẫn nằm ở mục "Tất cả")</span></label>
+            <div class="bst-tick-hang" id="fBstChon"></div>
           </div>
           <!-- Dãy giá hay dùng để RIÊNG một hàng đầy đủ: nhét trong cột Giá
                (chỉ rộng nửa hàng) thì các nút bị bẻ xuống dòng, nhìn rất lệch -->
@@ -1326,7 +1410,7 @@
                 📷 Upload ảnh mới
               </div>
               <div class="img-upload-area" style="flex:1;color:#2E7D32;border-color:#2E7D32;" onclick="openGalleryPicker()">
-                📸 Chọn từ Gallery
+                📸 Chọn từ Khoảnh khắc
               </div>
             </div>
           </div>
@@ -1352,7 +1436,7 @@
 <div id="galleryPicker" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;padding:24px;overflow-y:auto;" onclick="closeGalleryPickerOutside(event)">
   <div style="background:#fff;border-radius:16px;max-width:820px;margin:0 auto;box-shadow:0 24px 64px rgba(0,0,0,.25);">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #eee;">
-      <h2 style="font-size:1.2rem;font-weight:800;">📸 Chọn ảnh từ Gallery</h2>
+      <h2 style="font-size:1.2rem;font-weight:800;">📸 Chọn ảnh từ Khoảnh khắc</h2>
       <button onclick="closeGalleryPicker()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999;padding:4px 8px;border-radius:6px;">✕</button>
     </div>
     <div id="galleryPickerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:20px 24px 24px;"></div>
@@ -1510,7 +1594,7 @@
                 📷 Upload ảnh mới
               </div>
               <div class="img-upload-area" style="flex:1;color:#2E7D32;border-color:#2E7D32;" onclick="openGalleryPickerForOrder('oe')">
-                📸 Chọn từ Gallery
+                📸 Chọn từ Khoảnh khắc
               </div>
             </div>
             <input type="hidden" id="oeImage">
@@ -1622,7 +1706,7 @@
                 📷 Upload ảnh mới
               </div>
               <div class="img-upload-area" style="flex:1;color:#2E7D32;border-color:#2E7D32;" onclick="openGalleryPickerForOrder('no')">
-                📸 Chọn từ Gallery
+                📸 Chọn từ Khoảnh khắc
               </div>
             </div>
             <input type="hidden" id="noImage">
@@ -1665,6 +1749,109 @@
       <div class="modal-footer">
         <button type="button" class="btn-outline" onclick="closeCustomerModal()">Hủy</button>
         <button type="submit" class="btn-green" id="saveCustomerBtn">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Thêm/Sửa bộ sưu tập -->
+<div id="bstModal" class="modal-overlay" style="display:none" onclick="closeBstModalOutside(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="bstModalTitle">Thêm bộ sưu tập</h2>
+      <button class="modal-close" onclick="closeBstModal()">✕</button>
+    </div>
+    <form id="bstForm" onsubmit="saveBst(event)">
+      <div class="modal-body">
+        <div class="form-grid">
+
+          <div class="field-group full">
+            <label>Tên bộ sưu tập *</label>
+            <input type="text" id="bstName" required placeholder="VD: BST Trông Trăng" autocomplete="off"
+                   oninput="document.getElementById('bstLinkXem').textContent = '/san-pham?bst=' + (slugVi(this.value) || '…')">
+            <span class="bst-cover-nhac">Link gửi khách: <b id="bstLinkXem">/san-pham?bst=…</b></span>
+          </div>
+
+          <div class="field-group">
+            <label>Biểu tượng</label>
+            <input type="text" id="bstEmoji" maxlength="2" placeholder="🌕" autocomplete="off">
+          </div>
+
+          <div class="field-group">
+            <label>Thứ tự</label>
+            <span class="bst-cover-nhac" style="padding-top:10px">Đổi bằng nút ▲ ▼ ở danh sách</span>
+          </div>
+
+          <div class="field-group full">
+            <label>Câu giới thiệu <span style="font-weight:400;color:#7A9879;text-transform:none;">(hiện dưới tên, ở trang chủ)</span></label>
+            <input type="text" id="bstTagline" maxlength="120" placeholder="VD: Trung thu này, để hoa thay đèn lồng" autocomplete="off">
+          </div>
+
+          <div class="field-group full">
+            <label>Ảnh bìa <span style="font-weight:400;color:#7A9879;text-transform:none;">(tấm khách nhìn thấy ở trang chủ)</span></label>
+            <div class="bst-cover-hang">
+              <div id="bstCoverXem"></div>
+              <div class="bst-cover-cot">
+                <div class="bst-cover-nut">
+                  <button type="button" onclick="document.getElementById('bstCoverInput').click()">📷 Tải ảnh lên</button>
+                  <button type="button" onclick="toggleBstCoverTuMau()">🌸 Lấy từ mẫu trong bộ</button>
+                  <button type="button" class="bo" id="bstCoverBo" onclick="boBstCover()">✕ Bỏ ảnh</button>
+                </div>
+                <input type="file" id="bstCoverInput" accept="image/*" style="display:none" onchange="uploadBstCover(this)">
+                <div id="bstCoverTuMau" class="bst-cover-tumau" style="display:none"></div>
+                <div class="bst-cover-link">
+                  <input type="text" id="bstCoverUrl" placeholder="hoặc dán link ảnh https://…" autocomplete="off">
+                  <button type="button" onclick="datBstCoverTuLink()" class="btn-outline" style="padding:7px 13px;font-size:.82rem">Dùng link</button>
+                </div>
+                <span class="bst-cover-nhac">Chưa đặt ảnh thì trang chủ lấy tạm ảnh của mẫu đầu tiên trong bộ.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>Bắt đầu hiện <span style="font-weight:400;color:#7A9879;text-transform:none;">(để trống = hiện ngay)</span></label>
+            <div class="date-pick-wrap">
+              <button type="button" class="date-btn" id="bstStartBtn" onclick="openFormDate('bstStart')">
+                <span class="db-ico" aria-hidden="true">📅</span><span class="db-txt db-ph">Chọn ngày</span>
+              </button>
+              <input type="hidden" id="bstStart">
+              <div id="bstStartPop" class="date-pop form-date-pop" style="display:none"></div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>Ẩn sau ngày <span style="font-weight:400;color:#7A9879;text-transform:none;">(để trống = không tự ẩn)</span></label>
+            <div class="date-pick-wrap">
+              <button type="button" class="date-btn" id="bstEndBtn" onclick="openFormDate('bstEnd')">
+                <span class="db-ico" aria-hidden="true">📅</span><span class="db-txt db-ph">Chọn ngày</span>
+              </button>
+              <input type="hidden" id="bstEnd">
+              <div id="bstEndPop" class="date-pop form-date-pop" style="display:none"></div>
+            </div>
+          </div>
+
+          <div class="field-group full">
+            <label>Chọn mẫu hoa <span style="font-weight:400;color:#7A9879;text-transform:none;">(một mẫu nằm được nhiều bộ sưu tập)</span></label>
+            <div class="bst-pick-dau">
+              <span class="bst-pick-dem" id="bstPickerDem">chưa chọn mẫu nào</span>
+              <span>
+                <button type="button" class="btn-outline" style="padding:5px 12px;font-size:.8rem" onclick="chonHetBstMau(true)">Chọn hết</button>
+                <button type="button" class="btn-outline" style="padding:5px 12px;font-size:.8rem" onclick="chonHetBstMau(false)">Bỏ hết</button>
+              </span>
+            </div>
+            <div class="bst-pick" id="bstPicker"></div>
+          </div>
+
+          <div class="check-row full">
+            <input type="checkbox" id="bstActive" checked>
+            <label for="bstActive">Hiện trên web (bỏ tick = tạm ẩn, mẫu hoa bên trong vẫn còn)</label>
+          </div>
+
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" onclick="closeBstModal()">Hủy</button>
+        <button type="submit" class="btn-green" id="bstSaveBtn">Lưu</button>
       </div>
     </form>
   </div>
@@ -1996,6 +2183,7 @@ function applyTab(tab) {
   if (tab === 'Orders')        loadOrders()
   if (tab === 'Delivery')      loadDelivery()
   if (tab === 'Expenses')      loadExpenses()
+  if (tab === 'Collections')   loadCollections()
   if (tab === 'Gallery')       loadGallery()
   if (tab === 'Customers')     loadCustomers()
   if (tab === 'Testimonials')  loadTestimonials()
@@ -2022,7 +2210,7 @@ window.addEventListener('popstate', e => {
 
 // ── Chống mất dữ liệu: hỏi trước khi đóng modal đang nhập dở ──
 // Các modal có form cần bảo vệ (bấm nhầm ra ngoài / ✕ / Hủy sẽ hỏi lại)
-const GUARDED_MODALS = ['modal', 'testimonialModal', 'orderEditModal', 'orderNewModal', 'customerModal', 'changelogModal', 'expenseModal', 'materialEditModal', 'galItemModal']
+const GUARDED_MODALS = ['modal', 'testimonialModal', 'orderEditModal', 'orderNewModal', 'customerModal', 'changelogModal', 'expenseModal', 'materialEditModal', 'galItemModal', 'bstModal']
 
 function initModalGuards() {
   // Nút trong hộp thoại xác nhận thoát
@@ -3040,28 +3228,16 @@ let products = []
 async function loadProducts() {
   const pt = document.getElementById('productsTable')
   if (pt && !products.length) pt.innerHTML = skeletonTable(5)
-  // Danh mục dùng chung với Gallery — nạp song song để đổ vào form sản phẩm
+  // Bộ sưu tập + nhóm ảnh nạp song song để form sản phẩm luôn có sẵn danh sách BST
   const [prodRes] = await Promise.all([
     sb.from('products').select('*').order('order_index'),
     loadGalleryCats(),
+    loadBstNgam(),
   ])
   if (prodRes.error) { if (pt) pt.innerHTML = loadErrorHTML('loadProducts'); return }
   products = prodRes.data || []
   resetListLimit('products')
-  fillProductCategorySelect()
   renderProducts()
-}
-
-// Đổ danh mục chung (gallery_categories) vào select của form sản phẩm.
-// Sản phẩm cũ mang danh mục đã bị xóa khỏi danh sách → vẫn hiện lên đầu để không mất dữ liệu.
-function fillProductCategorySelect(current) {
-  const sel = document.getElementById('fCategory')
-  if (!sel) return
-  const names = galleryCats.map(c => c.name)
-  const extra = current && !names.includes(current) ? [{ name: current, emoji: '🌸' }] : []
-  sel.innerHTML = '<option value="">-- Chọn danh mục --</option>' +
-    [...extra, ...galleryCats].map(c => `<option value="${esc(c.name)}">${esc(c.emoji || '🌸')} ${esc(c.name)}</option>`).join('')
-  sel.value = current || ''
 }
 
 function renderProducts() {
@@ -3072,7 +3248,7 @@ function renderProducts() {
   }
   const q = (document.getElementById('productSearch')?.value || '').trim().toLowerCase()
   const list = q
-    ? products.filter(p => `${p.name || ''} ${p.category || ''}`.toLowerCase().includes(q))
+    ? products.filter(p => `${p.name || ''} ${bstCuaMau(p.id).map(c => c.name).join(' ')}`.toLowerCase().includes(q))
     : products
   if (!list.length) {
     el.innerHTML = '<div class="empty-state">Không tìm thấy sản phẩm khớp. <a href="#" onclick="document.getElementById(\'productSearch\').value=\'\';renderProducts();return false" style="color:#2E7D32;font-weight:700;">Xóa tìm</a></div>'
@@ -3083,14 +3259,14 @@ function renderProducts() {
 <div class="table-desktop">
 <table class="data-table">
   <thead><tr>
-    <th>Ảnh</th><th>Tên sản phẩm</th><th>Danh mục</th>
+    <th>Ảnh</th><th>Tên sản phẩm</th><th>Bộ sưu tập</th>
     <th>Giá</th><th>Nổi bật</th><th>Thứ tự</th><th></th>
   </tr></thead>
   <tbody>${prodShown.map(p => `
   <tr>
     <td><div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="">` : '🌸'}</div></td>
     <td><strong>${esc(p.name)}</strong></td>
-    <td><span class="cat-badge">${esc(p.category)}</span></td>
+    <td>${bstNhanHTML(p.id)}</td>
     <td>${fmtPriceText(p.price)}</td>
     <td><button class="toggle-btn ${p.featured ? 'on' : ''}" onclick="toggleFeatured(${p.id},${p.featured})">${p.featured ? '✓ Có' : '— Không'}</button></td>
     <td>${p.order_index}</td>
@@ -3106,7 +3282,7 @@ function renderProducts() {
     <div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="">` : '🌸'}</div>
     <div class="prod-info">
       <div class="mc-title">${esc(p.name)}</div>
-      <div class="mc-sub">${esc(p.category)} · ${fmtPriceText(p.price)}</div>
+      <div class="mc-sub">${bstNhanChu(p.id)} · ${fmtPriceText(p.price)}</div>
       <div class="mc-actions">
         <button class="toggle-btn ${p.featured ? 'on' : ''}" onclick="toggleFeatured(${p.id},${p.featured})">${p.featured ? '★ Nổi bật' : '☆ Nổi bật'}</button>
         <button class="btn-edit" onclick="openModal(${p.id})">✏️ Sửa</button>
@@ -3134,7 +3310,7 @@ let newImages = []
 function renderProductImagesGrid() {
   const grid = document.getElementById('productImagesGrid')
   if (!newImages.length) {
-    grid.innerHTML = '<p style="color:#999;font-size:.8rem;padding:4px 0;">Chưa có ảnh. Upload hoặc chọn từ Gallery.</p>'
+    grid.innerHTML = '<p style="color:#999;font-size:.8rem;padding:4px 0;">Chưa có ảnh. Upload hoặc chọn từ Khoảnh khắc.</p>'
     return
   }
   grid.innerHTML = newImages.map((url, i) => `
@@ -3243,14 +3419,14 @@ function openModal(id = null) {
     document.getElementById('productId').value   = p.id
     document.getElementById('fName').value        = p.name
     document.getElementById('fPrice').value       = priceToInput(p.price)
-    fillProductCategorySelect(p.category)
+    renderProductBstChips(bstCuaMau(p.id).map(c => c.id))
     document.getElementById('fDesc').value        = p.description || ''
     document.getElementById('fOrder').value       = p.order_index || 0
     document.getElementById('fFeatured').checked  = p.featured
     newImages = p.images?.length ? [...p.images] : (p.image ? [p.image] : [])
   } else {
     document.getElementById('modalTitle').textContent = 'Thêm sản phẩm'
-    fillProductCategorySelect()
+    renderProductBstChips([])
   }
   renderProductImagesGrid()
   renderPriceChips()
@@ -3284,10 +3460,13 @@ async function saveProduct(e) {
   btn.textContent = 'Đang lưu…'; btn.disabled = true
 
   const id   = document.getElementById('productId').value
+  // Cột category cũ không còn hiển thị trên web nữa, nhưng vẫn ghi tên BST đầu tiên
+  // vào đó để file sao lưu Excel và dữ liệu thô còn đọc được bằng mắt.
+  const bstIds = layProductBstChon()
   const data = {
     name:        document.getElementById('fName').value.trim(),
     price:       priceToSave(document.getElementById('fPrice').value),
-    category:    document.getElementById('fCategory').value,
+    category:    bstList.find(c => c.id === bstIds[0])?.name || '',
     description: document.getElementById('fDesc').value.trim(),
     image:       newImages[0] || '',
     images:      newImages,
@@ -3295,13 +3474,19 @@ async function saveProduct(e) {
     featured:    document.getElementById('fFeatured').checked,
   }
 
-  const { error } = id
-    ? await sb.from('products').update(data).eq('id', id)
-    : await sb.from('products').insert(data)
+  const { data: row, error } = id
+    ? await sb.from('products').update(data).eq('id', id).select().single()
+    : await sb.from('products').insert(data).select().single()
 
-  if (error) { showToast('Lỗi: ' + error.message, 'error') }
-  else { showToast(id ? 'Đã cập nhật sản phẩm!' : 'Đã thêm sản phẩm!'); closeModal(); loadProducts() }
-  btn.textContent = 'Lưu'; btn.disabled = false
+  const xong = () => { btn.textContent = 'Lưu'; btn.disabled = false }
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); xong(); return }
+
+  // Gán mẫu vào đúng các bộ sưu tập đã tick (bảng nối collection_products)
+  const eBst = bstChuaCaiDat ? null : await luuBstChoMau(row.id, bstIds)
+  if (eBst) showToast('Lưu mẫu xong nhưng lỗi gán bộ sưu tập: ' + eBst.message, 'error')
+  else showToast(id ? 'Đã cập nhật sản phẩm!' : 'Đã thêm sản phẩm!')
+  closeModal(); loadProducts()
+  xong()
 }
 
 // ── Gallery ──────────────────────────────────────
@@ -3339,7 +3524,7 @@ function renderGalleryCatManager() {
   if (box && !galleryCats.length) box.classList.add('open')
 
   if (!galleryCats.length) {
-    el.innerHTML = '<div style="color:#7A9879;font-size:.88rem;">Chưa có danh mục nào. Thêm ở bên dưới.</div>'
+    el.innerHTML = '<div style="color:#7A9879;font-size:.88rem;">Chưa có nhóm ảnh nào. Thêm ở bên dưới.</div>'
     return
   }
   el.innerHTML = galleryCats.map((c, i) => `
@@ -3358,15 +3543,15 @@ async function addGalleryCat() {
   const emojiEl = document.getElementById('newCatEmoji')
   const name = nameEl.value.trim()
   const emoji = emojiEl.value.trim() || '📷'
-  if (!name) { showToast('Nhập tên danh mục', 'error'); return }
+  if (!name) { showToast('Nhập tên nhóm ảnh', 'error'); return }
   if (galleryCats.some(c => c.name.toLowerCase() === name.toLowerCase())) {
-    showToast('Danh mục này đã tồn tại', 'error'); return
+    showToast('Nhóm ảnh này đã có rồi', 'error'); return
   }
   const maxOrder = galleryCats.reduce((m, c) => Math.max(m, c.order_index || 0), 0)
   const { error } = await sb.from('gallery_categories').insert({ name, emoji, order_index: maxOrder + 1 })
   if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
   nameEl.value = ''; emojiEl.value = ''
-  showToast('Đã thêm danh mục!')
+  showToast('Đã thêm nhóm ảnh!')
   await loadGalleryCats(); renderGalleryCatManager()
 }
 
@@ -3375,20 +3560,17 @@ async function saveGalleryCat(id, field, value) {
   if (!cat) return
   value = value.trim()
   if (field === 'name') {
-    if (!value) { showToast('Tên danh mục không được trống', 'error'); renderGalleryCatManager(); return }
+    if (!value) { showToast('Tên nhóm ảnh không được trống', 'error'); renderGalleryCatManager(); return }
     if (value === cat.name) return  // không đổi
     if (galleryCats.some(c => c.id !== id && c.name.toLowerCase() === value.toLowerCase())) {
-      showToast('Đã có danh mục trùng tên', 'error'); renderGalleryCatManager(); return
+      showToast('Đã có nhóm ảnh trùng tên', 'error'); renderGalleryCatManager(); return
     }
-    // Đổi tên: cập nhật cả ảnh + sản phẩm đang dùng tên cũ để không mồ côi (danh mục dùng chung)
+    // Đổi tên: cập nhật cả ảnh đang dùng tên cũ để không mồ côi
     const oldName = cat.name
     const { error } = await sb.from('gallery_categories').update({ name: value }).eq('id', id)
     if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
-    await Promise.all([
-      sb.from('gallery').update({ category: value }).eq('category', oldName),
-      sb.from('products').update({ category: value }).eq('category', oldName),
-    ])
-    showToast('Đã đổi tên danh mục (ảnh + sản phẩm đổi theo)!')
+    await sb.from('gallery').update({ category: value }).eq('category', oldName)
+    showToast('Đã đổi tên nhóm ảnh (ảnh đổi theo)!')
     await loadGalleryCats(); await loadGallery()
     return
   }
@@ -3414,24 +3596,18 @@ async function moveGalleryCat(id, dir) {
 async function deleteGalleryCat(id) {
   const cat = galleryCats.find(c => c.id === id)
   if (!cat) return
-  if (galleryCats.length <= 1) { showToast('Cần giữ ít nhất 1 danh mục', 'error'); return }
+  if (galleryCats.length <= 1) { showToast('Cần giữ ít nhất 1 nhóm ảnh', 'error'); return }
+  // Nhóm ảnh giờ chỉ của Thư viện ảnh — sản phẩm đã chuyển sang Bộ sưu tập,
+  // nên xóa nhóm ảnh KHÔNG đụng gì tới mẫu hoa nữa.
   const count = galleryCatCount(cat.name)
-  // Danh mục dùng chung: đếm cả sản phẩm đang gắn danh mục này
-  const { count: prodCount } = await sb.from('products').select('id', { count: 'exact', head: true }).eq('category', cat.name)
-  const fallback = galleryCats.find(c => c.id !== id)  // danh mục còn lại đầu tiên
-  if (count > 0 || prodCount > 0) {
-    const parts = []
-    if (count > 0) parts.push(`${count} ảnh`)
-    if (prodCount > 0) parts.push(`${prodCount} sản phẩm`)
-    if (!(await askConfirm({ title: `Xóa danh mục "${cat.name}"?`, message: `${parts.join(' và ')} đang dùng danh mục này sẽ được chuyển sang "${fallback.name}".`, okLabel: 'Xóa & chuyển', icon: '🏷️' }))) return
-    await Promise.all([
-      sb.from('gallery').update({ category: fallback.name }).eq('category', cat.name),
-      sb.from('products').update({ category: fallback.name }).eq('category', cat.name),
-    ])
-  } else if (!(await askConfirm({ title: `Xóa danh mục "${cat.name}"?`, message: 'Danh mục trống, xóa không ảnh hưởng gì.', okLabel: 'Xóa', icon: '🏷️' }))) return
+  const fallback = galleryCats.find(c => c.id !== id)  // nhóm còn lại đầu tiên
+  if (count > 0) {
+    if (!(await askConfirm({ title: `Xóa nhóm ảnh "${cat.name}"?`, message: `${count} ảnh đang ở nhóm này sẽ được chuyển sang "${fallback.name}". Mẫu hoa không bị ảnh hưởng.`, okLabel: 'Xóa & chuyển', icon: '🏷️' }))) return
+    await sb.from('gallery').update({ category: fallback.name }).eq('category', cat.name)
+  } else if (!(await askConfirm({ title: `Xóa nhóm ảnh "${cat.name}"?`, message: 'Nhóm trống, xóa không ảnh hưởng gì.', okLabel: 'Xóa', icon: '🏷️' }))) return
   const { error } = await sb.from('gallery_categories').delete().eq('id', id)
   if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
-  showToast('Đã xóa danh mục!')
+  showToast('Đã xóa nhóm ảnh!')
   await loadGalleryCats(); await loadGallery()
 }
 
@@ -3626,7 +3802,7 @@ async function bulkDeleteGallery() {
   const ids = [...gallerySel]
   if (!(await askConfirm({
     title: `Xóa ${ids.length} ảnh?`,
-    message: 'Các ảnh này sẽ bị xóa khỏi Gallery và kho lưu trữ. Không lấy lại được.',
+    message: 'Các ảnh này sẽ bị xóa khỏi Khoảnh khắc và kho lưu trữ. Không lấy lại được.',
     okLabel: `Xóa ${ids.length} ảnh`,
   }))) return
 
@@ -3741,7 +3917,7 @@ async function handleGalleryUpload(files) {
 //  trong màn chi tiết ảnh qua saveGalItem, không còn ô nhập ngoài lưới.)
 
 async function deleteGalleryItem(id) {
-  if (!(await askConfirm({ title: 'Xóa ảnh này?', message: 'Ảnh sẽ bị xóa khỏi Gallery và kho lưu trữ.', okLabel: 'Xóa ảnh' }))) return
+  if (!(await askConfirm({ title: 'Xóa ảnh này?', message: 'Ảnh sẽ bị xóa khỏi Khoảnh khắc và kho lưu trữ.', okLabel: 'Xóa ảnh' }))) return
   const ph = galleryItems.find(x => x.id === id)
   if (ph?.url) {
     const storagePath = ph.url.replace(SUPABASE_URL + '/storage/v1/object/public/images/', '')
@@ -4089,6 +4265,425 @@ async function compressImage(file, maxDim = 1600, quality = 0.78) {
 // Tối ưu 1 lần toàn bộ ảnh cũ: tải về → nén WebP → up lại (cache 1 năm) → cập nhật link.
 // Quét: ảnh đại diện SP + ẢNH PHỤ carousel (images[]) + gallery + hero trang chủ.
 // Ảnh gốc giữ nguyên (không xóa). Bỏ qua ảnh đã tối ưu WebP (link chứa "_optw_" / đuôi .webp).
+// ── Bộ sưu tập (BST) ──────────────────────────────────────────────
+// BST thay danh mục ở phía khách xem web. Khác danh mục cũ ở 3 điểm:
+//   • 1 mẫu hoa nằm được NHIỀU BST (bảng nối collection_products)
+//   • BST tắt được thay vì phải xoá — mẫu hoa bên trong vẫn còn, vẫn bán
+//   • BST có ảnh bìa + câu giới thiệu + hẹn ngày tự lên/xuống
+// Bảng và dữ liệu chuyển đổi: supabase/21_collections.sql
+// Web khách đọc cùng 2 bảng này (js/main.js) — sửa luật hiện/ẩn thì sửa CẢ HAI.
+let bstList = []        // [{id,name,slug,emoji,tagline,cover_url,order_index,active,start_date,end_date}]
+let bstGan  = []        // [{collection_id, product_id}] — bảng nối, nhỏ nên tải hết
+let bstChuaCaiDat = false   // true = chưa chạy SQL 21
+
+function bstSoMau(id) {
+  return bstGan.filter(x => x.collection_id === id).length
+}
+
+function bstCuaMau(pid) {
+  return bstGan.filter(x => x.product_id === pid)
+    .map(x => bstList.find(c => c.id === x.collection_id)).filter(Boolean)
+}
+
+// Mẫu hoa chưa thuộc bộ sưu tập nào — admin cảnh báo để không bỏ quên mẫu nào
+function bstChuaGan() {
+  return products.filter(p => !bstGan.some(x => x.product_id === p.id))
+}
+
+// Nhan BST cua mot mau hoa - dung o bang San pham
+function bstNhanHTML(pid) {
+  const ds = bstCuaMau(pid)
+  if (!ds.length) return '<span class="cat-badge" style="background:#FBE9E7;color:#D84315">chưa vào bộ nào</span>'
+  return ds.map(c => `<span class="cat-badge">${esc((c.emoji || '🌸') + ' ' + c.name)}</span>`).join(' ')
+}
+
+function bstNhanChu(pid) {
+  const ds = bstCuaMau(pid)
+  return ds.length ? esc(ds.map(c => (c.emoji || '🌸') + ' ' + c.name).join(', ')) : 'chưa vào bộ nào'
+}
+
+// Đuôi link từ tên tiếng Việt: "BST Trông Trăng" → "bst-trong-trang".
+// PHẢI cho ra kết quả giống hàm slug_vi() trong SQL 21 (test kiểm đối chiếu).
+function slugVi(s) {
+  return String(s || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+}
+
+// BST có đang hiện trên web khách không. Tắt tay, hoặc chưa tới / đã qua ngày hẹn.
+// Luật này lặp lại y hệt trong js/main.js — đổi một bên phải đổi bên kia.
+function bstDangHien(c, homNay = todayStr()) {
+  if (!c || !c.active) return false
+  if (c.start_date && c.start_date > homNay) return false
+  if (c.end_date   && c.end_date   < homNay) return false
+  return true
+}
+
+// Vì sao BST không hiện — để admin nói rõ thay vì chỉ "đang tắt"
+function bstLyDoAn(c, homNay = todayStr()) {
+  if (!c.active) return 'Đang tắt'
+  if (c.start_date && c.start_date > homNay) return 'Chờ tới ' + dmy(c.start_date)
+  if (c.end_date   && c.end_date   < homNay) return 'Đã hết ' + dmy(c.end_date)
+  return ''
+}
+
+function dmy(s) {
+  return s ? String(s).split('-').reverse().join('/') : ''
+}
+
+// Nạp ngầm (không vẽ) — gọi kèm loadProducts nên lúc nào cũng có sẵn cho form sản phẩm
+async function loadBstNgam() {
+  const [cs, gs] = await Promise.all([
+    sb.from('collections').select('*').order('order_index').order('id'),
+    sb.from('collection_products').select('collection_id,product_id'),
+  ])
+  // Chưa chạy SQL 21 → bảng chưa tồn tại. Không phá gì, chỉ ghi cờ để báo cho chủ shop.
+  bstChuaCaiDat = !!(cs.error || gs.error)
+  bstList = cs.data || []
+  bstGan  = gs.data || []
+}
+
+async function loadCollections() {
+  const el = document.getElementById('bstList')
+  if (el && !bstList.length) el.innerHTML = '<div class="loading-state">Đang tải…</div>'
+  await loadProducts()   // cần ảnh mẫu cho ô chọn + đếm mẫu chưa gán
+  renderCollections()
+}
+
+function renderCollections() {
+  const el = document.getElementById('bstList')
+  const canh = document.getElementById('bstCanhBao')
+  if (!el) return
+
+  if (bstChuaCaiDat) {
+    if (canh) canh.innerHTML = ''
+    el.innerHTML = `<div class="bst-trong">Chưa bật tính năng Bộ sưu tập.<br>
+      Cần dán file <b>supabase/21_collections.sql</b> vào Supabase SQL Editor chạy một lần.
+      Chạy xong 5 danh mục đang có sẽ tự thành 5 bộ sưu tập, không mất mẫu hoa nào.</div>`
+    return
+  }
+
+  // Cảnh báo mẫu hoa chưa thuộc BST nào — bấm vào mở luôn form sửa mẫu đó
+  const roi = bstChuaGan()
+  if (canh) {
+    canh.innerHTML = !roi.length ? '' : `
+      <div class="bst-warn">
+        <b>⚠️ ${roi.length} mẫu hoa chưa thuộc bộ sưu tập nào.</b>
+        Khách vẫn thấy chúng ở mục "Tất cả", nhưng sẽ không hiện khi lọc theo bộ sưu tập.
+        Bấm tên mẫu để gán:
+        <div class="bst-warn-ds">${roi.map(p =>
+          `<button type="button" class="bst-warn-nut" onclick="openModal(${p.id})">${esc(p.name)}</button>`).join('')}</div>
+      </div>`
+  }
+
+  if (!bstList.length) {
+    el.innerHTML = '<div class="empty-state">Chưa có bộ sưu tập nào. Nhấn "+ Thêm bộ sưu tập" để bắt đầu.</div>'
+    return
+  }
+
+  el.innerHTML = bstList.map((c, i) => {
+    const hien = bstDangHien(c)
+    const lyDo = bstLyDoAn(c)
+    const hen = c.start_date || c.end_date
+      ? `<span class="bst-chip">📅 ${c.start_date ? dmy(c.start_date) : '…'} → ${c.end_date ? dmy(c.end_date) : '…'}</span>` : ''
+    return `
+<div class="bst-card${hien ? '' : ' off'}">
+  ${c.cover_url
+    ? `<img class="bst-bia" src="${esc(c.cover_url)}" alt="" loading="lazy">`
+    : '<div class="bst-bia bst-bia-trong" title="Chưa có ảnh bìa">🖼️</div>'}
+  <div class="bst-than">
+    <div class="bst-ten">${esc(c.emoji || '🌸')} ${esc(c.name)}
+      ${hien ? '' : `<span class="bst-chip off">${esc(lyDo)}</span>`}</div>
+    ${c.tagline ? `<div class="bst-tl">${esc(c.tagline)}</div>` : ''}
+    <div class="bst-meta">
+      <span class="bst-chip">${bstSoMau(c.id)} mẫu</span>
+      ${hen}
+      <span class="bst-chip nho">/san-pham?bst=${esc(c.slug || '')}</span>
+    </div>
+  </div>
+  <div class="bst-nut">
+    <label class="sw" title="${hien ? 'Đang hiện trên web' : 'Không hiện trên web'}">
+      <input type="checkbox" ${c.active ? 'checked' : ''} onchange="toggleBstActive(${c.id}, this.checked)"
+             aria-label="Bật/tắt ${esc(c.name)}">
+      <span class="sw-nen"></span>
+    </label>
+    <button class="cat-move" onclick="moveBst(${c.id}, -1)" ${i === 0 ? 'disabled' : ''} title="Lên">▲</button>
+    <button class="cat-move" onclick="moveBst(${c.id}, 1)" ${i === bstList.length - 1 ? 'disabled' : ''} title="Xuống">▼</button>
+    <button class="btn-edit" onclick="openBstModal(${c.id})">✏️ Sửa</button>
+    <button class="btn-delete-sm" onclick="deleteBst(${c.id})" title="Xoá">✕</button>
+  </div>
+</div>`
+  }).join('')
+}
+
+async function toggleBstActive(id, on) {
+  const { error } = await sb.from('collections').update({ active: on }).eq('id', id)
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); await loadBstNgam(); renderCollections(); return }
+  const c = bstList.find(x => x.id === id); if (c) c.active = on
+  showToast(on ? 'Đã bật — khách thấy bộ sưu tập này' : 'Đã tắt — mẫu hoa bên trong vẫn còn')
+  renderCollections()
+}
+
+async function moveBst(id, dir) {
+  const i = bstList.findIndex(c => c.id === id)
+  const j = i + dir
+  if (i < 0 || j < 0 || j >= bstList.length) return
+  const a = bstList[i], b = bstList[j]
+  // Thứ tự có thể trùng nhau (dữ liệu chuyển từ danh mục cũ) → đổi chỗ suông sẽ
+  // không nhúc nhích. Đánh số lại cả dãy theo vị trí mới cho chắc.
+  const moi = [...bstList]
+  moi[i] = b; moi[j] = a
+  const { error } = await sb.from('collections').upsert(moi.map((c, k) => ({ id: c.id, name: c.name, order_index: k + 1 })))
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  await loadBstNgam(); renderCollections()
+}
+
+async function deleteBst(id) {
+  const c = bstList.find(x => x.id === id); if (!c) return
+  const n = bstSoMau(c.id)
+  const ok = await askConfirm({
+    title: `Xoá bộ sưu tập "${c.name}"?`,
+    message: n
+      ? `${n} mẫu hoa bên trong KHÔNG bị xoá — chúng chỉ rời khỏi bộ sưu tập, vẫn nằm ở mục "Tất cả". Chỉ muốn tạm ẩn thì dùng công tắc Tắt, khỏi phải gán lại sau này.`
+      : 'Bộ sưu tập đang trống, xoá không ảnh hưởng gì.',
+    okLabel: 'Xoá', icon: '🌿',
+  })
+  if (!ok) return
+  const { error } = await sb.from('collections').delete().eq('id', id)
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  showToast('Đã xoá bộ sưu tập!')
+  await loadBstNgam(); renderCollections()
+}
+
+// ── Modal thêm/sửa BST ──
+let _bstId = null
+let _bstCover = ''
+let _bstChon = new Set()   // id mẫu hoa đang tick
+
+function openBstModal(id = null) {
+  if (bstChuaCaiDat) { showToast('Cần chạy file supabase/21_collections.sql trước', 'error'); return }
+  _bstId = id
+  const c = id ? bstList.find(x => x.id === id) : null
+  _bstCover = c?.cover_url || ''
+  _bstChon = new Set(id ? bstGan.filter(x => x.collection_id === id).map(x => x.product_id) : [])
+
+  document.getElementById('bstModalTitle').textContent = c ? 'Sửa bộ sưu tập' : 'Thêm bộ sưu tập'
+  document.getElementById('bstName').value    = c?.name || ''
+  document.getElementById('bstEmoji').value   = c?.emoji || ''
+  document.getElementById('bstTagline').value = c?.tagline || ''
+  document.getElementById('bstActive').checked = c ? !!c.active : true
+  document.getElementById('bstStart').value   = c?.start_date || ''
+  document.getElementById('bstEnd').value     = c?.end_date || ''
+  fdSync('bstStart'); fdSync('bstEnd')
+  document.getElementById('bstLinkXem').textContent = '/san-pham?bst=' + (c?.slug || slugVi(c?.name || '') || '…')
+  document.getElementById('bstCoverUrl').value = ''
+  document.getElementById('bstCoverTuMau').style.display = 'none'
+
+  veBstCover()
+  veBstPicker()
+  document.getElementById('bstModal').style.display = 'flex'
+}
+
+function closeBstModal() { document.getElementById('bstModal').style.display = 'none' }
+function closeBstModalOutside(e) { if (e.target.id === 'bstModal') closeBstModal() }
+
+function veBstCover() {
+  const xem = document.getElementById('bstCoverXem')
+  xem.innerHTML = _bstCover
+    ? `<img class="bst-cover-xem" src="${esc(_bstCover)}" alt="Ảnh bìa">`
+    : '<div class="bst-cover-xem bst-bia-trong">🖼️</div>'
+  document.getElementById('bstCoverBo').style.display = _bstCover ? '' : 'none'
+}
+
+// Ảnh bìa lấy từ chính các mẫu đang tick — khỏi phải đi tìm file
+function toggleBstCoverTuMau() {
+  const box = document.getElementById('bstCoverTuMau')
+  const dangMo = box.style.display !== 'none'
+  if (dangMo) { box.style.display = 'none'; return }
+  const ds = products.filter(p => _bstChon.has(p.id) && p.image)
+  box.innerHTML = ds.length
+    ? ds.map(p => `<img src="${esc(p.image)}" alt="${esc(p.name)}" title="${esc(p.name)}" loading="lazy"
+         onclick="datBstCover('${esc(p.image)}')">`).join('')
+    : '<span class="bst-cover-nhac">Chưa tick mẫu hoa nào ở dưới — tick xong mới lấy ảnh được.</span>'
+  box.style.display = 'flex'
+}
+
+function datBstCover(url) {
+  _bstCover = url
+  document.getElementById('bstCoverTuMau').style.display = 'none'
+  veBstCover()
+}
+
+function boBstCover() { _bstCover = ''; veBstCover() }
+
+function datBstCoverTuLink() {
+  const o = document.getElementById('bstCoverUrl')
+  const v = o.value.trim()
+  if (!v) return
+  if (!/^https?:\/\//i.test(v)) { showToast('Link ảnh phải bắt đầu bằng http:// hoặc https://', 'error'); return }
+  _bstCover = v; o.value = ''
+  veBstCover()
+}
+
+async function uploadBstCover(input) {
+  const raw = input.files?.[0]
+  input.value = ''
+  if (!raw) return
+  showToast('Đang tải ảnh lên…')
+  try {
+    const file = await compressImage(raw)
+    const path = `collections/${Date.now()}_${file.name.replace(/\s/g, '_')}`
+    const { error } = await sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })
+    if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+    _bstCover = sb.storage.from('images').getPublicUrl(path).data.publicUrl
+    veBstCover()
+    showToast('Đã đặt ảnh bìa!')
+  } catch (err) {
+    showToast('Không đọc được ảnh: ' + (err?.message || err), 'error')
+  }
+}
+
+function veBstPicker() {
+  const el = document.getElementById('bstPicker')
+  const dem = document.getElementById('bstPickerDem')
+  if (dem) dem.textContent = _bstChon.size ? `${_bstChon.size} mẫu đã chọn` : 'chưa chọn mẫu nào'
+  if (!products.length) {
+    el.innerHTML = '<div class="bst-cover-nhac">Chưa có mẫu hoa nào trong tab Sản phẩm.</div>'
+    return
+  }
+  el.innerHTML = products.map(p => `
+    <label class="bst-o${_bstChon.has(p.id) ? ' on' : ''}" data-pid="${p.id}">
+      <input type="checkbox" ${_bstChon.has(p.id) ? 'checked' : ''} onchange="tickBstMau(${p.id}, this.checked)">
+      ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : '<div class="bst-o-trong">🌸</div>'}
+      <span class="tick">✓</span>
+      <span class="ten">${esc(p.name)}</span>
+    </label>`).join('')
+}
+
+function tickBstMau(pid, on) {
+  if (on) _bstChon.add(pid); else _bstChon.delete(pid)
+  // Chỉ đổi class ô vừa bấm, KHÔNG vẽ lại cả lưới — vẽ lại sẽ gỡ mất ô đang bấm
+  // giữa chừng sự kiện (bẫy đã dính ở lịch chọn ngày).
+  document.querySelector(`#bstPicker .bst-o[data-pid="${pid}"]`)?.classList.toggle('on', on)
+  const dem = document.getElementById('bstPickerDem')
+  if (dem) dem.textContent = _bstChon.size ? `${_bstChon.size} mẫu đã chọn` : 'chưa chọn mẫu nào'
+}
+
+function chonHetBstMau(on) {
+  _bstChon = on ? new Set(products.map(p => p.id)) : new Set()
+  veBstPicker()
+}
+
+async function saveBst(e) {
+  e.preventDefault()
+  const btn = document.getElementById('bstSaveBtn')
+  const name = document.getElementById('bstName').value.trim()
+  if (!name) { showToast('Chưa đặt tên bộ sưu tập', 'error'); return }
+  if (bstList.some(c => c.id !== _bstId && c.name.trim().toLowerCase() === name.toLowerCase())) {
+    showToast('Đã có bộ sưu tập trùng tên', 'error'); return
+  }
+  const start = document.getElementById('bstStart').value || null
+  const end   = document.getElementById('bstEnd').value || null
+  if (start && end && start > end) { showToast('Ngày bắt đầu phải trước ngày kết thúc', 'error'); return }
+
+  btn.textContent = 'Đang lưu…'; btn.disabled = true
+  const xong = () => { btn.textContent = 'Lưu'; btn.disabled = false }
+
+  const data = {
+    name,
+    slug: bstSlugRieng(name, _bstId),
+    emoji: document.getElementById('bstEmoji').value.trim() || '🌸',
+    tagline: document.getElementById('bstTagline').value.trim() || null,
+    cover_url: _bstCover || null,
+    active: document.getElementById('bstActive').checked,
+    start_date: start,
+    end_date: end,
+  }
+  if (!_bstId) data.order_index = bstList.reduce((m, c) => Math.max(m, c.order_index || 0), 0) + 1
+
+  const { data: row, error } = _bstId
+    ? await sb.from('collections').update(data).eq('id', _bstId).select().single()
+    : await sb.from('collections').insert(data).select().single()
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); xong(); return }
+
+  const err2 = await luuBstMau(row.id)
+  if (err2) { showToast('Lưu bộ sưu tập xong nhưng lỗi gán mẫu: ' + err2.message, 'error'); xong(); return }
+
+  showToast(_bstId ? 'Đã cập nhật bộ sưu tập!' : 'Đã thêm bộ sưu tập!')
+  closeBstModal(); xong()
+  await loadBstNgam(); renderCollections()
+}
+
+// Đuôi link không được trùng BST khác → trùng thì nối thêm số
+function bstSlugRieng(name, boQuaId) {
+  let goc = slugVi(name) || 'bst'
+  let s = goc, k = 2
+  while (bstList.some(c => c.id !== boQuaId && c.slug === s)) s = goc + '-' + k++
+  return s
+}
+
+// Đồng bộ danh sách mẫu của BST: bỏ mẫu đã bỏ tick, thêm mẫu mới tick.
+// Không xoá sạch rồi thêm lại — làm vậy nếu lỗi giữa chừng là mất hết.
+async function luuBstMau(cid) {
+  const dangCo = new Set(bstGan.filter(x => x.collection_id === cid).map(x => x.product_id))
+  const boDi  = [...dangCo].filter(id => !_bstChon.has(id))
+  const themVao = [..._bstChon].filter(id => !dangCo.has(id))
+  if (boDi.length) {
+    const { error } = await sb.from('collection_products').delete().eq('collection_id', cid).in('product_id', boDi)
+    if (error) return error
+  }
+  if (themVao.length) {
+    const { error } = await sb.from('collection_products')
+      .upsert(themVao.map(pid => ({ collection_id: cid, product_id: pid })))
+    if (error) return error
+  }
+  return null
+}
+
+// ── Ô chọn BST trong form Sản phẩm (thay ô "Danh mục" cũ) ──
+function renderProductBstChips(dangChon = []) {
+  const el = document.getElementById('fBstChon')
+  if (!el) return
+  const co = new Set(dangChon)
+  if (bstChuaCaiDat) {
+    el.innerHTML = '<span class="bst-tick-trong">Chưa bật Bộ sưu tập (cần chạy supabase/21_collections.sql).</span>'
+    return
+  }
+  if (!bstList.length) {
+    el.innerHTML = '<span class="bst-tick-trong">Chưa có bộ sưu tập nào — tạo ở tab 🌿 Bộ sưu tập.</span>'
+    return
+  }
+  el.innerHTML = bstList.map(c => `
+    <label class="bst-tick${co.has(c.id) ? ' on' : ''}">
+      <input type="checkbox" value="${c.id}" ${co.has(c.id) ? 'checked' : ''}
+             onchange="this.closest('.bst-tick').classList.toggle('on', this.checked)">
+      ${esc(c.emoji || '🌸')} ${esc(c.name)}
+    </label>`).join('')
+}
+
+function layProductBstChon() {
+  return [...document.querySelectorAll('#fBstChon input:checked')].map(i => Number(i.value))
+}
+
+// Gán mẫu hoa vào đúng các BST đã tick trong form sản phẩm
+async function luuBstChoMau(pid, idsMoi) {
+  const moi = new Set(idsMoi)
+  const cu  = new Set(bstGan.filter(x => x.product_id === pid).map(x => x.collection_id))
+  const boDi   = [...cu].filter(id => !moi.has(id))
+  const themVao = [...moi].filter(id => !cu.has(id))
+  if (boDi.length) {
+    const { error } = await sb.from('collection_products').delete().eq('product_id', pid).in('collection_id', boDi)
+    if (error) return error
+  }
+  if (themVao.length) {
+    const { error } = await sb.from('collection_products')
+      .upsert(themVao.map(cid => ({ collection_id: cid, product_id: pid })))
+    if (error) return error
+  }
+  return null
+}
+
 // ── Sao lưu dữ liệu ra Excel ──────────────────────────────────────
 // Tải MỌI dòng của các bảng nghiệp vụ, mỗi bảng một trang tính. File tạo bằng
 // admin/xlsx.js (không thư viện). Nguyên tắc:
@@ -4127,7 +4722,7 @@ const SAO_LUU_BANG = [
     ['name', 'Tên', 'chu', 26], ['price', 'Giá (như đang nhập)', 'chu', 16], ['category', 'Danh mục', 'chu', 14],
     ['description', 'Mô tả', 'chu', 40], ['featured', 'Nổi bật', 'chu', 8], ['image', 'Ảnh chính (đường dẫn)', 'chu', 24],
     ['images', 'Ảnh phụ (đường dẫn)', 'chu', 24], ['order_index', 'Thứ tự', 'so', 8], ['created_at', 'Ngày tạo', 'ngaygio', 17], ['id', 'id', 'so', 7] ] },
-  { bang: 'gallery', ten: 'Gallery', cot: [['caption', 'Chú thích', 'chu', 30], ['category', 'Danh mục', 'chu', 14], ['url', 'Ảnh (đường dẫn)', 'chu', 30], ['order_index', 'Thứ tự', 'so', 8], ['created_at', 'Ngày tạo', 'ngaygio', 17], ['id', 'id', 'so', 7]] },
+  { bang: 'gallery', ten: 'Khoảnh khắc', cot: [['caption', 'Chú thích', 'chu', 30], ['category', 'Danh mục', 'chu', 14], ['url', 'Ảnh (đường dẫn)', 'chu', 30], ['order_index', 'Thứ tự', 'so', 8], ['created_at', 'Ngày tạo', 'ngaygio', 17], ['id', 'id', 'so', 7]] },
   { bang: 'gallery_categories', ten: 'Danh mục', cot: [['name', 'Tên', 'chu', 20], ['emoji', 'Biểu tượng', 'chu', 10], ['order_index', 'Thứ tự', 'so', 8], ['id', 'id', 'so', 7]] },
   { bang: 'testimonials', ten: 'Đánh giá', cot: [['name', 'Tên khách', 'chu', 20], ['content', 'Nội dung', 'chu', 50], ['context', 'Dịp', 'chu', 16], ['active', 'Hiện trên web', 'chu', 12], ['order_index', 'Thứ tự', 'so', 8], ['created_at', 'Ngày tạo', 'ngaygio', 17], ['id', 'id', 'so', 7]] },
   { bang: 'changelog', ten: 'Nhật ký cập nhật', cot: [['release_date', 'Ngày', 'ngay', 12], ['title', 'Tóm tắt', 'chu', 40], ['details', 'Chi tiết', 'chu', 60], ['note', 'Góp ý', 'chu', 30], ['id', 'id', 'so', 7]] },
@@ -4923,7 +5518,7 @@ async function handleOrderImageUpload(input, prefix) {
   const nextIdx = ((maxRow?.[0]?.order_index) ?? -1) + 1
   const cat = galleryCats.find(c => c.name === 'Khác')?.name || galleryCats[0]?.name || 'Khác'
   await sb.from('gallery').insert({ url: publicUrl, caption: '', category: cat, order_index: nextIdx })
-  showToast('Đã gắn ảnh & thêm vào Gallery!')
+  showToast('Đã gắn ảnh & thêm vào Khoảnh khắc!')
 }
 
 function openGalleryPickerForOrder(prefix) {
@@ -5385,7 +5980,7 @@ async function openGalleryPicker() {
 
   const { data } = await sb.from('gallery').select('id,url,caption,category').order('order_index')
   if (!data?.length) {
-    grid.innerHTML = '<div class="empty-state">Chưa có ảnh nào trong Gallery.</div>'
+    grid.innerHTML = '<div class="empty-state">Chưa có ảnh nào trong Khoảnh khắc.</div>'
     return
   }
   grid.innerHTML = data.map(ph => `
@@ -5415,7 +6010,7 @@ function selectGalleryImage(url) {
     renderProductImagesGrid()
   }
   closeGalleryPicker()
-  showToast('Đã thêm ảnh từ Gallery!')
+  showToast('Đã thêm ảnh từ Khoảnh khắc!')
 }
 
 function closeGalleryPicker() {

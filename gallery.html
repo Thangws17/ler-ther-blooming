@@ -1,139 +1,19 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gallery — Ler & Ther Blooming</title>
-  <meta name="description" content="Xem album ảnh hoa tươi đẹp từ Ler & Ther Blooming.">
-  <meta property="og:type"        content="website">
-  <meta property="og:site_name"   content="Ler & Ther Blooming">
-  <meta property="og:locale"      content="vi_VN">
-  <meta property="og:title"       content="Gallery — Ler & Ther Blooming">
-  <meta property="og:description" content="Album ảnh hoa tươi đẹp — hoa bó, giỏ hoa, hoa cưới và nhiều hơn nữa từ Ler & Ther Blooming.">
-  <meta property="og:image"       content="https://thangws17.github.io/ler-ther-blooming/images/og-cover.jpg">
-  <link rel="canonical" href="https://thangws17.github.io/ler-ther-blooming/gallery">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://oijcwborkebjpavzyisl.supabase.co">
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="utf-8">
+<title>Đang chuyển trang… — Ler &amp; Ther Blooming</title>
+<!--
+  Trang này CHỈ để chuyển hướng: "gallery" đã đổi tên thành "khoanh-khac" (23/09/2026)
+  cho web tiếng Việt trọn vẹn. Giữ lại để link cũ đã chia sẻ (Facebook, Zalo,
+  Google) vẫn vào được. Đừng xoá.
+-->
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://thangws17.github.io/ler-ther-blooming/khoanh-khac">
+<script>location.replace('khoanh-khac' + location.search + location.hash)</script>
+<meta http-equiv="refresh" content="0; url=khoanh-khac">
 </head>
-<body>
-
-<!-- ── Navbar ─────────────────────────────────────────── -->
-<nav class="navbar">
-  <div class="container">
-    <a href="./" class="logo">
-      <span class="logo-icon">🌸</span>
-      <span>Ler &amp; Ther <span class="logo-accent">Blooming</span></span>
-    </a>
-    <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
-    <ul class="nav-links" id="navLinks">
-      <li><a href="./">Trang chủ</a></li>
-      <li><a href="san-pham">Sản phẩm</a></li>
-      <li><a href="gallery">Gallery</a></li>
-      <li><a href="cau-chuyen">Câu chuyện</a></li>
-      <li><a href="lien-he">Liên hệ</a></li>
-    </ul>
-  </div>
-</nav>
-
-<!-- ── Banner ────────────────────────────────────────────── -->
-<div id="siteBanner" class="site-banner" style="display:none">
-  <div class="banner-inner"><span id="bannerText"></span><button class="banner-close" onclick="closeBanner()">✕</button></div>
-</div>
-
-<!-- ── Page Header ────────────────────────────────────── -->
-<div class="page-header">
-  <div class="container">
-    <div class="page-kicker">Khoảnh khắc</div>
-    <h1>Gallery</h1>
-    <p>Những khoảnh khắc đẹp từ Ler &amp; Ther Blooming</p>
-  </div>
-</div>
-
-<!-- ── Gallery Grid ───────────────────────────────────── -->
-<section>
-  <div class="container">
-    <div class="filter-tabs" style="margin-bottom:32px" id="galleryFilters">
-      <button class="filter-tab gallery-filter-tab active" data-category="all">🌸 Tất cả</button>
-    </div>
-    <div class="gallery-grid" id="galleryGrid">
-      <div class="gallery-col"><div class="sk-box sk-tile" style="height:230px"></div><div class="sk-box sk-tile" style="height:180px"></div></div>
-      <div class="gallery-col"><div class="sk-box sk-tile" style="height:170px"></div><div class="sk-box sk-tile" style="height:250px"></div></div>
-      <div class="gallery-col"><div class="sk-box sk-tile" style="height:260px"></div><div class="sk-box sk-tile" style="height:200px"></div></div>
-    </div>
-    <div id="galleryPagination"></div>
-  </div>
-</section>
-
-<!-- ── Order Modal (đặt hoa theo mẫu ảnh trong lightbox) ── -->
-<div class="order-overlay" id="orderOverlay" onclick="if(event.target===this) closeOrderModal()">
-  <div class="order-modal">
-    <button class="order-close" onclick="closeOrderModal()" aria-label="Đóng">✕</button>
-    <div id="orderModalBody"></div>
-  </div>
-</div>
-
-<!-- ── CTA ────────────────────────────────────────────── -->
-<section class="cta-banner" style="padding:60px 0;">
-  <div class="container reveal">
-    <h2>Thích những bó hoa này?</h2>
-    <p>Liên hệ ngay để đặt hoa hoặc tham khảo thêm mẫu tại shop nhé!</p>
-    <a href="lien-he" class="btn btn-white">Liên hệ đặt hoa 🌸</a>
-  </div>
-</section>
-
-<!-- ── Footer ─────────────────────────────────────────── -->
-<footer class="footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <a href="./" class="logo">
-          <span class="logo-icon">🌸</span>
-          <span>Ler &amp; Ther <span class="logo-accent">Blooming</span></span>
-        </a>
-        <p>Shop hoa tươi với tâm huyết — mỗi bông hoa là một lời yêu thương được gửi đi.</p>
-        <div class="footer-contact">
-          <span id="footAddress" class="foot-line" style="display:none">📍 <span></span></span>
-          <a id="footPhone" class="foot-line" href="#" style="display:none">📞 <span></span></a>
-        </div>
-      </div>
-      <div class="footer-col">
-        <h4>Trang</h4>
-        <ul>
-          <li><a href="./">Trang chủ</a></li>
-          <li><a href="san-pham">Sản phẩm</a></li>
-          <li><a href="gallery">Gallery</a></li>
-          <li><a href="cau-chuyen">Câu chuyện</a></li>
-          <li><a href="chinh-sach">Chính sách</a></li>
-          <li><a href="lien-he">Liên hệ</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Kết nối</h4>
-        <ul>
-          <li><a href="#" id="fbLink" style="display:none">Facebook</a></li>
-          <li><a href="#" id="igLink" style="display:none">Instagram</a></li>
-          <li><a href="#" id="ttLink" style="display:none">TikTok</a></li>
-          <li><a href="#" id="thLink" style="display:none">Threads</a></li>
-          <li><a href="lien-he">Zalo / Điện thoại</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">© 2025 Ler &amp; Ther Blooming. Made with 🌸</div>
-  </div>
-</footer>
-
-<!-- ── Floating Zalo ──────────────────────────────────── -->
-<a href="#" class="zalo-float" id="zaloFloat" target="_blank" aria-label="Chat Zalo">
-  <span>💬</span>
-  <span class="zalo-label">Chat Zalo</span>
-</a>
-
-<script defer src="js/dungchung.js"></script>
-<script defer src="js/main.js"></script>
+<body style="font-family:sans-serif;text-align:center;padding:40px;color:#2E7D32">
+<p>Trang đã chuyển sang <a href="khoanh-khac">địa chỉ mới</a>…</p>
 </body>
 </html>

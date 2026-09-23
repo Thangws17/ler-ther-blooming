@@ -585,6 +585,67 @@ section    { padding:64px 0; }
   transition:var(--t); margin-bottom:4px;
 }
 .detail-back:hover { color:var(--green); }
+
+/* ─── Bộ sưu tập (BST) ────────────────────────────────────
+   Thay dãy danh mục cũ. Thẻ bìa cao 3:4, ảnh to, chữ đè lên ảnh.
+   Cấu hình trong admin → tab 🌿 Bộ sưu tập. */
+.bst-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(232px,1fr)); gap:18px;
+}
+.bst-card {
+  position:relative; display:block; border-radius:var(--radius); overflow:hidden;
+  aspect-ratio:3/4; box-shadow:var(--shadow); transition:var(--t);
+}
+.bst-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); }
+.bst-card img { width:100%; height:100%; object-fit:cover; transition:transform .5s ease; }
+.bst-card:hover img { transform:scale(1.05); }
+.bst-card .bst-ph {
+  width:100%; height:100%; display:grid; place-items:center; font-size:3rem;
+  background:linear-gradient(135deg,#A5D6A7,#4CAF50);
+}
+.bst-veil {
+  position:absolute; inset:0;
+  background:linear-gradient(to top,rgba(10,26,10,.86) 0%,rgba(10,26,10,.42) 42%,rgba(10,26,10,.05) 72%);
+}
+.bst-txt { position:absolute; left:0; right:0; bottom:0; padding:18px 18px 20px; color:#fff; }
+.bst-txt .bst-em { display:block; font-size:1.5rem; line-height:1; margin-bottom:6px; }
+.bst-txt .bst-h {
+  display:block; font-family:'Nunito',sans-serif; font-weight:800; font-size:1.24rem;
+  line-height:1.2; margin-bottom:5px; text-shadow:0 1px 6px rgba(0,0,0,.35);
+}
+.bst-txt .bst-tl {
+  display:block; font-size:.84rem; color:#DCEDC8; line-height:1.45; margin-bottom:9px;
+}
+.bst-txt .bst-sl {
+  display:inline-block; font-family:'Nunito',sans-serif; font-weight:700; font-size:.8rem;
+  background:rgba(255,255,255,.18); border-radius:50px; padding:4px 12px;
+}
+.bst-card:focus-visible { outline:3px solid var(--green); outline-offset:3px; }
+
+/* Dải giới thiệu khi khách đang lọc theo một BST (trang Sản phẩm) */
+.bst-banner {
+  display:flex; align-items:center; gap:14px;
+  background:var(--green-pale); border-radius:12px; padding:12px 16px; margin:16px 0 4px;
+}
+.bst-banner img { width:56px; height:56px; border-radius:10px; object-fit:cover; flex:0 0 auto; }
+.bst-banner h2 { font-size:1.05rem; margin:0; }
+.bst-banner p  { font-size:.86rem; color:var(--text-mid); margin:2px 0 0; }
+
+/* Nhãn BST ở trang chi tiết — bấm được để về đúng bộ */
+.detail-bst { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:10px; }
+.detail-bst a {
+  display:inline-block; font-family:'Nunito',sans-serif; font-weight:700; font-size:.82rem;
+  color:var(--green); background:var(--green-pale); border:1.5px solid var(--border);
+  border-radius:50px; padding:4px 13px; transition:var(--t);
+}
+.detail-bst a:hover { background:var(--green); border-color:var(--green); color:#fff; }
+
+@media (max-width:560px) {
+  .bst-grid { gap:12px; }
+  .bst-banner { padding:10px 12px; gap:11px; }
+  .bst-banner img { width:46px; height:46px; }
+}
+
 .detail-cat {
   display:inline-block; background:var(--green-pale); color:var(--green);
   border-radius:50px; padding:4px 14px;

@@ -33,7 +33,7 @@
     <ul class="nav-links" id="navLinks">
       <li><a href="./">Trang chủ</a></li>
       <li><a href="san-pham">Sản phẩm</a></li>
-      <li><a href="gallery">Gallery</a></li>
+      <li><a href="khoanh-khac">Khoảnh khắc</a></li>
       <li><a href="cau-chuyen">Câu chuyện</a></li>
       <li><a href="lien-he">Liên hệ</a></li>
     </ul>
@@ -60,7 +60,7 @@
       </p>
       <div class="hero-cta">
         <a href="san-pham" class="btn btn-white">Đặt hoa 🌸</a>
-        <a href="gallery" class="btn btn-outline" style="border-color:rgba(255,255,255,.6);color:#fff;">Xem mẫu</a>
+        <a href="khoanh-khac" class="btn btn-outline" style="border-color:rgba(255,255,255,.6);color:#fff;">Xem mẫu</a>
       </div>
       <p class="hero-price-hint" id="heroPriceHint" style="display:none"></p>
     </div>
@@ -75,11 +75,24 @@
   </div>
 </section>
 
-<!-- ── Featured Products ─────────────────────────────── -->
+<!-- ── Bộ sưu tập ─────────────────────────────────────
+     Ẩn sẵn; JS bật lên khi có bộ sưu tập đang hiện (js/main.js → loadBoSuuTap) -->
+<section id="bstSection" style="display:none;background:#fff;">
+  <div class="container">
+    <div class="section-header">
+      <span class="sec-kicker">Theo mùa · theo dịp</span>
+      <h2>Bộ sưu tập</h2>
+      <p>Mỗi mùa một câu chuyện — chọn bộ hợp với dịp của bạn</p>
+    </div>
+    <div class="bst-grid" id="bstGrid"></div>
+  </div>
+</section>
+
+<!-- ── Sản phẩm nổi bật ──────────────────────────────── -->
 <section style="background:#fff;">
   <div class="container">
     <div class="section-header reveal">
-      <span class="sec-kicker">Bộ sưu tập</span>
+      <span class="sec-kicker">Được yêu thích</span>
       <h2>Sản phẩm nổi bật</h2>
       <p>Những mẫu hoa được yêu thích nhất tại Ler &amp; Ther Blooming</p>
     </div>
@@ -172,7 +185,7 @@
         <ul>
           <li><a href="./">Trang chủ</a></li>
           <li><a href="san-pham">Sản phẩm</a></li>
-          <li><a href="gallery">Gallery</a></li>
+          <li><a href="khoanh-khac">Khoảnh khắc</a></li>
           <li><a href="cau-chuyen">Câu chuyện</a></li>
           <li><a href="chinh-sach">Chính sách</a></li>
           <li><a href="lien-he">Liên hệ</a></li>

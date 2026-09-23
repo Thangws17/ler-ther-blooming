@@ -25,16 +25,17 @@ Key nằm thẳng trong code là **publishable/anon key** — công khai đượ
 
 ```
 index.html        /              Trang chủ (hero 3 ảnh, sản phẩm nổi bật, đánh giá)
-san-pham.html     /san-pham      Danh sách sản phẩm + lọc danh mục
+san-pham.html     /san-pham      Danh sách sản phẩm + lọc theo bộ sưu tập (?bst=…)
 chi-tiet.html     /chi-tiet?id=  Chi tiết 1 sản phẩm (carousel nhiều ảnh) + nút đặt hàng
-gallery.html      /gallery       Thư viện ảnh masonry + lightbox
+khoanh-khac.html  /khoanh-khac   "Khoảnh khắc" — ảnh hoa thật đã trao, masonry + lightbox
 cau-chuyen.html   /cau-chuyen    Câu chuyện shop
 lien-he.html      /lien-he       Liên hệ, bản đồ, mạng xã hội
 chinh-sach.html   /chinh-sach    Giao hàng / thanh toán / cam kết + FAQ
 404.html                         Trang lỗi riêng của shop
 
-dang-sau-nhung-bo-hoa.html  ┐  Tên CŨ, giờ chỉ chuyển hướng sang cau-chuyen / chi-tiet
-san-pham-chi-tiet.html      ┘  để link đã chia sẻ vẫn vào được — ĐỪNG XOÁ
+dang-sau-nhung-bo-hoa.html  ┐  Tên CŨ, giờ chỉ chuyển hướng sang cau-chuyen / chi-tiet / khoanh-khac
+san-pham-chi-tiet.html      │  để link đã chia sẻ vẫn vào được — ĐỪNG XOÁ
+gallery.html                ┘
 
 css/style.css               Toàn bộ style web khách (1 file duy nhất)
 js/dungchung.js             Hàm dùng chung cho CẢ web khách và admin (esc, chuẩn hoá SĐT)
@@ -114,6 +115,8 @@ lần cũng không đụng dữ liệu thật.
 | `test/test-phan-trang-don.html` | Phân trang đơn: lọc / tìm kiếm / đếm chạy đúng ở server |
 | `test/test-sao-luu.html` | Nút sao lưu Excel: file mở được, giữ tiếng Việt / số tiền / ngày, không xuất token |
 | `test/test-do-luong.html` | Đo lường truy cập: chỉ đếm trên web thật, không đếm máy của shop, kiểm mã hợp lệ |
+| `test/test-bo-suu-tap.html` | Bộ sưu tập: luật hiện/ẩn, đuôi link, 1 mẫu nhiều bộ, **tắt bộ không được làm mất mẫu hoa** |
+| `test/test-cu-phap.html` | Biên dịch thử toàn bộ JS của web + admin — bắt lỗi cú pháp sau khi sửa file lớn |
 
 Trang test **bốc hàm thật ra khỏi `admin/index.html`** (cắt theo 2 mốc comment) chứ không copy code,
 nên sửa admin là test biết ngay. Nếu đổi tên hay dời khối code đó thì test báo đỏ kèm lời nhắc sửa
@@ -150,7 +153,8 @@ Web chỉ đếm trên web thật; máy đã đăng nhập admin không bị đ�
 | Bảng | Nội dung |
 |---|---|
 | `products` | Sản phẩm (giá lưu dạng **TEXT**, ví dụ `"600,000đ"` hoặc `"Liên hệ"`) |
-| `gallery`, `gallery_categories` | Ảnh thư viện + danh mục tự quản (Sản phẩm dùng chung danh mục này) |
+| `collections`, `collection_products` | **Bộ sưu tập** — thứ khách nhìn thấy thay cho danh mục. Có ảnh bìa, câu giới thiệu, công tắc bật/tắt, hẹn ngày tự lên/xuống. Một mẫu nằm được nhiều bộ |
+| `gallery`, `gallery_categories` | Ảnh thư viện + nhóm ảnh tự quản (**chỉ của Thư viện ảnh** — sản phẩm đã chuyển sang `collections`) |
 | `orders` | Đơn hàng: `unit_price`, `shipping_fee`, `total` tự tính, tên + SĐT khách snapshot, ngày giao, trạng thái |
 | `customers` | Sổ khách, `phone` là duy nhất |
 | `expenses`, `materials` | Sổ chi phí (ghi theo dòng tiền) + sổ tay nguyên liệu gợi ý giá |
@@ -193,6 +197,8 @@ Dựng lại database từ đầu thì cứ chạy **lần lượt `01_` → `17
 18_price_normalize          →  chuẩn hoá giá sản phẩm về số trần (chạy lúc nào cũng được)
 19_order_status_check       →  khoá trạng thái đơn chỉ nhận đúng 6 giá trị (chạy lúc nào cũng được)
 20_analytics_settings       →  2 ô nhập mã Google Analytics + Clarity trong admin
+21_collections              →  Bộ sưu tập thay danh mục (tự chuyển danh mục cũ sang, không mất mẫu nào)
+22_bst_cua_ler              →  4 BST của Ler (Trông Trăng, 20/10, Em Xinh, Anh Trai) + tắt 5 BST cũ; chỉ tác dụng lần đầu
 ```
 
 > `supabase/da-thay-the/` chứa 3 file `place_order` cũ. **Đừng chạy** — chạy vào là lùi hàm đặt
@@ -200,7 +206,7 @@ Dựng lại database từ đầu thì cứ chạy **lần lượt `01_` → `17
 
 ## 7. Trang quản lý (admin)
 
-Các tab: **📊 Tổng quan · 📦 Đơn hàng · 📅 Lịch giao · 👤 Khách hàng · 💰 Sổ chi phí · 🛍️ Sản phẩm · 📸 Gallery · 💬 Đánh giá · 📝 Cập nhật · ⚙️ Liên hệ**.
+Các tab: **📊 Tổng quan · 📦 Đơn hàng · 📅 Lịch giao · 👤 Khách hàng · 💰 Sổ chi phí · 🛍️ Sản phẩm · 🌿 Bộ sưu tập · 📸 Khoảnh khắc · 💬 Đánh giá · 📝 Cập nhật · ⚙️ Liên hệ**.
 Dùng tốt trên điện thoại (menu trượt, bảng đổi thành thẻ, bottom-sheet). F5 vẫn giữ nguyên tab đang xem nhờ `#hash` trên URL.
 
 **Vòng đời đơn hàng**

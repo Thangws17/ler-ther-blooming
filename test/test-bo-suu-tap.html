@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test bộ sưu tập — Ler &amp; Ther Blooming</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; padding: 24px; font: 14px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+         background: #FAF8F5; color: #2B2B2B; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6B6B6B; margin: 0 0 20px; }
+  .sub code { background: #EFEAE3; padding: 1px 5px; border-radius: 4px; }
+  #tongket { padding: 12px 16px; border-radius: 10px; font-weight: 600; margin-bottom: 18px; }
+  .ok-box   { background: #E8F5E9; color: #1B5E20; border: 1px solid #A5D6A7; }
+  .fail-box { background: #FFEBEE; color: #B71C1C; border: 1px solid #EF9A9A; }
+  h2 { font-size: 15px; margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #E5DFD7; }
+  .ca { display: flex; gap: 8px; padding: 5px 0; align-items: baseline; }
+  .dau { flex: 0 0 18px; font-weight: 700; }
+  .ok .dau { color: #2E7D32; }
+  .fail .dau { color: #C62828; }
+  .fail { background: #FFF5F5; border-radius: 6px; padding-left: 6px; }
+  .ten { flex: 1; }
+  .chitiet { display: block; color: #C62828; font-family: ui-monospace, Consolas, monospace;
+             font-size: 12.5px; white-space: pre-wrap; margin-top: 2px; word-break: break-all; }
+  iframe { width: 390px; height: 700px; border: 0; position: absolute; left: -9999px; top: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🌿 Test bộ sưu tập</h1>
+  <p class="sub">Kiểm bộ sưu tập thay danh mục: luật hiện/ẩn, đuôi link, gán mẫu vào nhiều bộ,
+     và <b>không mẫu hoa nào bị mất</b> khi tắt bộ. Bốc hàm thật từ <code>admin/index.html</code>
+     và <code>js/main.js</code> — không ghi gì vào dữ liệu thật.</p>
+  <div id="tongket">Đang chạy…</div>
+  <div id="kq"></div>
+</div>
+<iframe id="ad" src="../admin/index.html"></iframe>
+<iframe id="web" src="../san-pham"></iframe>
+
+<script>
+let soOk = 0, soFail = 0
+const boxKq = document.getElementById('kq')
+function nhom(ten) { const h = document.createElement('h2'); h.textContent = ten; boxKq.appendChild(h) }
+function test(ten, fn) {
+  const row = document.createElement('div')
+  row.className = 'ca'
+  row.innerHTML = '<span class="dau"></span><span class="ten"></span>'
+  const dau = row.querySelector('.dau'), t = row.querySelector('.ten')
+  t.textContent = ten
+  try { fn(); soOk++; row.classList.add('ok'); dau.textContent = '✓' }
+  catch (e) {
+    soFail++; row.classList.add('fail'); dau.textContent = '✕'
+    const ct = document.createElement('span'); ct.className = 'chitiet'; ct.textContent = e.message; t.appendChild(ct)
+  }
+  boxKq.appendChild(row)
+}
+function bang(thuc, mong, ghiChu = '') {
+  const a = JSON.stringify(thuc), b = JSON.stringify(mong)
+  if (a !== b) throw new Error((ghiChu ? ghiChu + '\n' : '') + 'mong đợi: ' + b + '\nnhận được: ' + a)
+}
+function tongKet() {
+  const tk = document.getElementById('tongket')
+  tk.className = soFail ? 'fail-box' : 'ok-box'
+  tk.textContent = soFail ? '✕ ' + soFail + ' ca FAIL / ' + (soOk + soFail) + ' ca' : '✓ Tất cả ' + soOk + ' ca đều PASS'
+}
+// Biến khai báo bằng `let` ở phạm vi gốc KHÔNG nằm trong window, nên gán thẳng
+// kiểu `khung.bstList = …` là vô tác dụng (tạo thuộc tính mới, code bên trong
+// không thấy). Phải ghi qua eval() của chính khung đó.
+function dat(W, ten, giaTri) {
+  W.eval(ten + ' = ' + JSON.stringify(giaTri))
+}
+
+function doiKhung(fr) {
+  return new Promise(res => {
+    const xong = () => { try { return fr.contentDocument.readyState === 'complete' && fr.contentWindow.location.href !== 'about:blank' } catch { return false } }
+    if (xong()) return res()
+    fr.addEventListener('load', res, { once: true })
+  })
+}
+
+;(async function main() {
+  const ad = document.getElementById('ad'), web = document.getElementById('web')
+  await Promise.all([doiKhung(ad), doiKhung(web)])
+  // Chờ trang Sản phẩm tự tải xong hẳn, không thì nó vẽ đè lên dữ liệu giả của test
+  for (let i = 0; i < 40; i++) {
+    if (web.contentDocument.querySelector('#productsGrid .product-card')) break
+    await new Promise(r => setTimeout(r, 150))
+  }
+  await new Promise(r => setTimeout(r, 400))
+  const A = ad.contentWindow      // admin
+  const W = web.contentWindow     // web khách
+
+  const thieu = []
+  for (const f of ['slugVi', 'bstDangHien', 'bstLyDoAn', 'bstSoMau', 'bstCuaMau', 'bstChuaGan',
+                   'bstNhanChu', 'renderCollections', 'renderProductBstChips', 'bstSlugRieng',
+                   'layProductBstChon'])
+    if (typeof A[f] !== 'function') thieu.push('admin: ' + f)
+  for (const f of ['bstDangHien', 'bstMauIds', 'bstCuaMau', 'bstTheoSlug', 'bstAnhBia',
+                   'buildProductFilterTabs', 'applyProductFilters', 'veBstBanner', 'loadBoSuuTap'])
+    if (typeof W[f] !== 'function') thieu.push('main.js: ' + f)
+  if (thieu.length) {
+    document.getElementById('tongket').className = 'fail-box'
+    document.getElementById('tongket').textContent = '✕ Thiếu hàm (lỗi cú pháp JS?): ' + thieu.join(', ')
+    return
+  }
+
+  // ── Dữ liệu giả, không đụng Supabase ──
+  const MAU = [
+    { id: 1, name: 'Tulip x cỏ suối',   image: 'a.jpg' },
+    { id: 2, name: 'Hồng Ecuador',      image: 'b.jpg' },
+    { id: 3, name: 'Hướng dương',       image: ''      },
+    { id: 4, name: 'Mix Garden pastel', image: 'd.jpg' },
+  ]
+  const BST = [
+    { id: 10, name: 'BST Trông Trăng', slug: 'bst-trong-trang', emoji: '🌕', active: true,  cover_url: 'bia.jpg', start_date: null, end_date: null,        order_index: 1 },
+    { id: 20, name: 'BST 20/10',       slug: 'bst-20-10',       emoji: '💝', active: true,  cover_url: null,      start_date: '2026-10-01', end_date: '2026-10-21', order_index: 2 },
+    { id: 30, name: 'BST Em Xinh',     slug: 'bst-em-xinh',     emoji: '✨', active: false, cover_url: null,      start_date: null, end_date: null,        order_index: 3 },
+  ]
+  // Mẫu 2 nằm trong HAI bộ. Mẫu 3 không nằm bộ nào.
+  const GAN = [
+    { collection_id: 10, product_id: 1 }, { collection_id: 10, product_id: 2 },
+    { collection_id: 20, product_id: 2 }, { collection_id: 20, product_id: 4 },
+    { collection_id: 30, product_id: 4 },
+  ]
+
+  // ════════════════════════════════════════════
+  nhom('1. Đuôi link (slug) — phải khớp hàm slug_vi() trong SQL 21')
+  const slugCa = [
+    ['BST Trông Trăng', 'bst-trong-trang'],
+    ['BST 20/10',       'bst-20-10'],
+    ['BST Em Xinh',     'bst-em-xinh'],
+    ['Hoa tốt nghiệp',  'hoa-tot-nghiep'],
+    ['Đèn lồng nở hoa', 'den-long-no-hoa'],
+    ['Sự kiện',         'su-kien'],
+    ['BST  —  Ngày Thường!!', 'bst-ngay-thuong'],
+    ['  Khác  ',        'khac'],
+  ]
+  for (const [vao, ra] of slugCa)
+    test('"' + vao + '" → ' + ra, () => bang(A.slugVi(vao), ra))
+  test('Tên toàn ký tự lạ → chuỗi rỗng (SQL sẽ lấy id làm đuôi)', () => bang(A.slugVi('###'), ''))
+
+  test('Đuôi link trùng nhau thì tự nối số', () => {
+    dat(A, 'bstList', [{ id: 1, name: 'BST Tết', slug: 'bst-tet' }])
+    bang(A.bstSlugRieng('BST Tết', null), 'bst-tet-2', 'Hai bộ trùng tên sẽ đè link của nhau')
+    bang(A.bstSlugRieng('BST Tết', 1), 'bst-tet', 'Sửa chính nó thì giữ nguyên đuôi cũ')
+  })
+
+  // ════════════════════════════════════════════
+  nhom('2. Khi nào bộ sưu tập hiện trên web (admin và web khách phải GIỐNG NHAU)')
+  const caHien = [
+    ['Đang bật, không hẹn ngày → hiện',            { active: true,  start_date: null,         end_date: null },         '2026-09-23', true],
+    ['Đã tắt tay → không hiện',                    { active: false, start_date: null,         end_date: null },         '2026-09-23', false],
+    ['Hẹn 01/10 mà nay 23/09 → chưa hiện',         { active: true,  start_date: '2026-10-01', end_date: null },         '2026-09-23', false],
+    ['Đúng ngày bắt đầu → hiện',                   { active: true,  start_date: '2026-10-01', end_date: null },         '2026-10-01', true],
+    ['Đúng ngày kết thúc → vẫn hiện',              { active: true,  start_date: null,         end_date: '2026-10-21' }, '2026-10-21', true],
+    ['Qua ngày kết thúc → tự ẩn',                  { active: true,  start_date: null,         end_date: '2026-10-21' }, '2026-10-22', false],
+    ['Trong khoảng hẹn → hiện',                    { active: true,  start_date: '2026-10-01', end_date: '2026-10-21' }, '2026-10-10', true],
+    ['Tắt tay thì hẹn ngày cũng không cứu được',   { active: false, start_date: '2026-10-01', end_date: '2026-10-21' }, '2026-10-10', false],
+  ]
+  for (const [ten, c, ngay, mong] of caHien) {
+    test(ten, () => {
+      bang(A.bstDangHien(c, ngay), mong, 'bản admin')
+      bang(W.bstDangHien(c, ngay), mong, 'bản web khách')
+    })
+  }
+  test('Hai bản luật hiện/ẩn cho kết quả y hệt nhau trên MỌI ca trên', () => {
+    for (const [ten, c, ngay] of caHien)
+      if (A.bstDangHien(c, ngay) !== W.bstDangHien(c, ngay))
+        throw new Error('admin và web khác nhau ở ca: ' + ten)
+  })
+
+  nhom('3. Lý do bộ sưu tập không hiện (admin nói rõ cho chủ shop)')
+  test('Tắt tay → "Đang tắt"', () => bang(A.bstLyDoAn({ active: false }, '2026-09-23'), 'Đang tắt'))
+  test('Chưa tới ngày → "Chờ tới 01/10/2026"', () =>
+    bang(A.bstLyDoAn({ active: true, start_date: '2026-10-01' }, '2026-09-23'), 'Chờ tới 01/10/2026'))
+  test('Đã qua ngày → "Đã hết 21/10/2026"', () =>
+    bang(A.bstLyDoAn({ active: true, end_date: '2026-10-21' }, '2026-10-22'), 'Đã hết 21/10/2026'))
+  test('Đang hiện bình thường → không có lý do', () =>
+    bang(A.bstLyDoAn({ active: true }, '2026-09-23'), ''))
+
+  // ════════════════════════════════════════════
+  nhom('4. Một mẫu hoa nằm được NHIỀU bộ sưu tập')
+  dat(A, 'bstList', BST); dat(A, 'bstGan', GAN); dat(A, 'products', MAU)
+  test('Mẫu 2 nằm trong 2 bộ', () => bang(A.bstCuaMau(2).map(c => c.id), [10, 20]))
+  test('Mẫu 1 nằm trong 1 bộ', () => bang(A.bstCuaMau(1).map(c => c.id), [10]))
+  test('Mẫu 3 chưa thuộc bộ nào', () => bang(A.bstCuaMau(3), []))
+  test('Đếm số mẫu từng bộ', () => bang([10, 20, 30].map(A.bstSoMau), [2, 2, 1]))
+  test('Nhãn trên bảng Sản phẩm ghi đủ các bộ', () =>
+    bang(A.bstNhanChu(2), '🌕 BST Trông Trăng, 💝 BST 20/10'))
+  test('Mẫu chưa vào bộ nào được cảnh báo rõ', () => bang(A.bstNhanChu(3), 'chưa vào bộ nào'))
+  test('Admin liệt kê đúng mẫu chưa thuộc bộ nào', () => bang(A.bstChuaGan().map(p => p.id), [3]))
+
+  // ════════════════════════════════════════════
+  nhom('5. Web khách: tắt bộ sưu tập KHÔNG được làm mất mẫu hoa')
+  // Bộ 30 đang tắt → web khách không nạp nó, cũng không nạp liên kết của nó
+  const bstHien = BST.filter(c => W.bstDangHien(c, '2026-09-23'))
+  const hienId = new Set(bstHien.map(c => c.id))
+  dat(W, 'bstAll', bstHien)
+  dat(W, 'bstGanAll', GAN.filter(x => hienId.has(x.collection_id)))
+  dat(W, 'allProducts', MAU)
+
+  test('Bộ đang tắt không lọt ra web khách', () => bang(bstHien.map(c => c.id), [10]))
+  test('Bộ chưa tới ngày hẹn cũng không lọt ra', () =>
+    bang(bstHien.some(c => c.id === 20), false, 'BST 20/10 hẹn 01/10, nay 23/09'))
+
+  test('Nút lọc LUÔN có "Tất cả" và chỉ thêm bộ đang hiện', () => {
+    W.buildProductFilterTabs()
+    const nut = [...W.document.querySelectorAll('#productFilters .filter-tab')].map(b => b.dataset.bst)
+    bang(nut, ['all', 'bst-trong-trang'])
+  })
+
+  test('Xem "Tất cả" → thấy đủ 4 mẫu, kể cả mẫu không thuộc bộ nào', () => {
+    dat(W, 'currentBst', 'all'); dat(W, 'prodSearchTerm', '')
+    W.applyProductFilters()
+    bang(W.document.querySelectorAll('#productsGrid .product-card').length, 4,
+         'Đây là lá chắn chính: tắt bộ thì mẫu vẫn phải bán được')
+  })
+
+  test('Lọc theo bộ đang hiện → chỉ mẫu của bộ đó', () => {
+    dat(W, 'currentBst', 'bst-trong-trang')
+    W.applyProductFilters()
+    const ten = [...W.document.querySelectorAll('#productsGrid .product-name')].map(e => e.textContent.trim())
+    bang(ten.length, 2)
+  })
+
+  test('Mẫu 4 chỉ thuộc bộ đang TẮT → vẫn còn ở "Tất cả"', () => {
+    dat(W, 'currentBst', 'all')
+    W.applyProductFilters()
+    const html = W.document.getElementById('productsGrid').innerHTML
+    if (!html.includes('Mix Garden pastel')) throw new Error('mẫu bị biến mất khỏi web khi tắt bộ')
+  })
+
+  test('Link lạ ?bst=khong-co-that → không có bộ nào khớp', () =>
+    bang(W.bstTheoSlug('khong-co-that'), null))
+
+  test('Tìm theo tên bộ sưu tập cũng ra mẫu', () => {
+    dat(W, 'currentBst', 'all'); dat(W, 'prodSearchTerm', 'trong trang')
+    W.applyProductFilters()
+    bang(W.document.querySelectorAll('#productsGrid .product-card').length, 2)
+    dat(W, 'prodSearchTerm', '')
+  })
+
+  // ════════════════════════════════════════════
+  nhom('6. Ảnh bìa bộ sưu tập')
+  test('Đã đặt ảnh bìa → dùng đúng ảnh đó', () =>
+    bang(W.bstAnhBia(BST[0], { 1: 'a.jpg' }), 'bia.jpg'))
+  test('Chưa đặt → mượn ảnh mẫu đầu tiên trong bộ', () => {
+    dat(W, 'bstGanAll', GAN)
+    bang(W.bstAnhBia(BST[1], { 2: 'b.jpg', 4: 'd.jpg' }), 'b.jpg')
+  })
+  test('Chưa đặt và mẫu trong bộ cũng không có ảnh → rỗng (vẽ nền emoji)', () => {
+    dat(W, 'bstGanAll', [{ collection_id: 99, product_id: 3 }])
+    bang(W.bstAnhBia({ id: 99, cover_url: null }, {}), '')
+  })
+
+  // ════════════════════════════════════════════
+  nhom('7. Ô tick bộ sưu tập trong form Sản phẩm')
+  test('Vẽ đủ số bộ, tick sẵn bộ mà mẫu đang thuộc', () => {
+    dat(A, 'bstChuaCaiDat', false)
+    dat(A, 'bstList', BST)
+    A.renderProductBstChips([10, 30])
+    const o = [...A.document.querySelectorAll('#fBstChon input')]
+    bang(o.length, 3)
+    bang(o.map(i => i.checked), [true, false, true])
+  })
+  test('Đọc lại đúng các bộ đang tick', () => bang(A.layProductBstChon(), [10, 30]))
+  test('Chưa chạy SQL 21 → báo rõ, không vỡ form', () => {
+    dat(A, 'bstChuaCaiDat', true)
+    A.renderProductBstChips([])
+    const t = A.document.getElementById('fBstChon').textContent
+    if (!t.includes('21_collections')) throw new Error('không nhắc tên file SQL cần chạy: ' + t)
+    dat(A, 'bstChuaCaiDat', false)
+  })
+
+  // ════════════════════════════════════════════
+  nhom('8. Danh sách bộ sưu tập trong admin')
+  test('Bộ đang tắt được đánh dấu mờ + ghi lý do', () => {
+    dat(A, 'bstList', BST); dat(A, 'bstGan', GAN); dat(A, 'products', MAU)
+    A.renderCollections()
+    const the = [...A.document.querySelectorAll('#bstList .bst-card')]
+    bang(the.length, 3)
+    bang(the.map(x => x.classList.contains('off')), [false, true, true],
+         'BST 20/10 chưa tới ngày, BST Em Xinh đang tắt')
+  })
+  test('Cảnh báo mẫu chưa thuộc bộ nào có hiện', () => {
+    const t = A.document.getElementById('bstCanhBao').textContent
+    if (!t.includes('1 mẫu hoa chưa thuộc')) throw new Error('không cảnh báo: ' + t)
+  })
+  test('Công tắc bật/tắt khớp trạng thái thật', () => {
+    const sw = [...A.document.querySelectorAll('#bstList .sw input')]
+    bang(sw.map(i => i.checked), [true, true, false])
+  })
+  test('Mỗi bộ hiện sẵn link để gửi khách', () => {
+    const t = A.document.getElementById('bstList').textContent
+    if (!t.includes('/san-pham?bst=bst-trong-trang')) throw new Error('thiếu link chia sẻ')
+  })
+  test('Chưa chạy SQL 21 → chỉ dẫn chạy file, không báo lỗi khó hiểu', () => {
+    dat(A, 'bstChuaCaiDat', true)
+    A.renderCollections()
+    const t = A.document.getElementById('bstList').textContent
+    if (!t.includes('21_collections.sql')) throw new Error('không nhắc tên file: ' + t)
+    dat(A, 'bstChuaCaiDat', false)
+  })
+
+  tongKet()
+})().catch(e => {
+  const tk = document.getElementById('tongket')
+  tk.className = 'fail-box'
+  tk.textContent = '✕ Test dừng giữa chừng: ' + (e && e.message ? e.message : e)
+})
+</script>
+</body>
+</html>
