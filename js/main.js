@@ -23,13 +23,13 @@ function initNav() {
 
   toggle.addEventListener('click', () => {
     const open = links.classList.toggle('open');
-    toggle.textContent = open ? '✕' : '☰';
+    toggle.innerHTML = ic(open ? 'x' : 'menu');
   });
 
   links.querySelectorAll('a').forEach(a =>
     a.addEventListener('click', () => {
       links.classList.remove('open');
-      toggle.textContent = '☰';
+      toggle.innerHTML = ic('menu');
     })
   );
 
@@ -99,7 +99,7 @@ function productCardHTML(p) {
     </div>
     <div class="product-footer">
       <span class="product-price">${esc(fmtPrice(p.price))}</span>
-      <button type="button" class="product-btn" onclick="openOrderModal(${p.id}, '${nameAttr}')">Đặt ngay</button>
+      <button type="button" class="product-btn" onclick="openOrderModal(${p.id}, '${nameAttr}')" aria-label="Đặt ${esc(p.name)}">${ic('plus')}<span>Đặt ngay</span></button>
     </div>
   </div>
 </div>`;
@@ -246,9 +246,9 @@ function buildProductFilterTabs() {
   const coMau = new Set(allProducts.map(p => p.id));
   const tabs = bstAll
     .filter(c => bstMauIds(c.id).some(id => coMau.has(id)))
-    .map(c => `<button class="filter-tab" data-bst="${esc(c.slug || '')}">${esc(c.emoji || '🌸')} ${esc(c.name)}</button>`)
+    .map(c => `<button class="filter-tab" data-bst="${esc(c.slug || '')}">${esc(c.name)}</button>`)
     .join('');
-  wrap.innerHTML = `<button class="filter-tab active" data-bst="all">🌸 Tất cả</button>${tabs}`;
+  wrap.innerHTML = `<button class="filter-tab active" data-bst="all">Tất cả</button>${tabs}`;
 }
 
 // Dải giới thiệu bộ sưu tập đang xem (ảnh bìa + câu giới thiệu)
@@ -269,7 +269,7 @@ function veBstBanner(c) {
 
 function renderProducts(list, grid) {
   if (!list.length) {
-    grid.innerHTML = '<div class="loading"><div class="l-icon">🌷</div><p>Chưa có sản phẩm trong mục này.</p></div>';
+    grid.innerHTML = `<div class="loading"><div class="l-icon">${ic('flower')}</div><p>Chưa có sản phẩm trong mục này.</p></div>`;
     return;
   }
   grid.innerHTML = list.map(productCardHTML).join('');
@@ -309,7 +309,7 @@ function applyProductFilters() {
   if (!list.length && q) {
     grid.innerHTML = `
 <div class="loading">
-  <div class="l-icon">🔍</div>
+  <div class="l-icon">${ic('search')}</div>
   <p>Không tìm thấy hoa nào khớp "<strong>${esc(prodSearchTerm)}</strong>".</p>
   <button type="button" class="btn btn-outline" style="margin-top:14px" onclick="resetProductSearch()">Xoá tìm kiếm</button>
 </div>`;
@@ -369,7 +369,7 @@ async function loadHeroPriceHint() {
     .filter(n => n >= 1000);
   if (!nums.length) return;
   const min = Math.min(...nums);
-  el.textContent = `🌷 Hoa tươi chỉ từ ${min.toLocaleString('vi-VN')}đ · Giao tận nơi nội thành`;
+  el.textContent = `Hoa tươi chỉ từ ${min.toLocaleString('vi-VN')}đ · Giao tận nơi nội thành`;
   el.style.display = 'block';
 }
 
@@ -405,7 +405,7 @@ async function loadGallery() {
     sb.from('gallery_categories').select('*').order('order_index'),
   ]);
   if (galRes.error) {
-    grid.innerHTML = '<div class="gallery-empty"><div class="e-icon">📶</div><p>Không tải được ảnh — mạng có thể đang chập chờn.<br><button class="page-btn" style="margin-top:14px;" onclick="loadGallery()">↻ Thử lại</button></p></div>';
+    grid.innerHTML = '<div class="gallery-empty"><div class="e-icon">' + ic('wifi') + '</div><p>Không tải được ảnh — mạng có thể đang chập chờn.<br><button class="page-btn" style="margin-top:14px;" onclick="loadGallery()">↻ Thử lại</button></p></div>';
     return;
   }
   galleryAll = galRes.data || [];
@@ -423,9 +423,9 @@ function buildGalleryFilterTabs() {
   if (!wrap) return;
   const tabs = galleryCats
     .filter(c => galleryAll.some(ph => ph.category === c.name))
-    .map(c => `<button class="filter-tab gallery-filter-tab" data-category="${esc(c.name)}">${esc(c.emoji || '📷')} ${esc(c.name)}</button>`)
+    .map(c => `<button class="filter-tab gallery-filter-tab" data-category="${esc(c.name)}">${esc(c.name)}</button>`)
     .join('');
-  wrap.innerHTML = `<button class="filter-tab gallery-filter-tab active" data-category="all">🌸 Tất cả</button>${tabs}`;
+  wrap.innerHTML = `<button class="filter-tab gallery-filter-tab active" data-category="all">Tất cả</button>${tabs}`;
 }
 
 function getFilteredPhotos() {
@@ -436,7 +436,7 @@ function getFilteredPhotos() {
 // Số cột theo bề rộng màn hình
 function galleryColumnCount() {
   const w = window.innerWidth;
-  return w <= 520 ? 1 : w <= 860 ? 2 : 3;
+  return w <= 860 ? 2 : w <= 1180 ? 3 : 4;
 }
 
 // Tỷ lệ cao/rộng của ảnh — đo 1 lần rồi nhớ, phân trang qua lại là tức thì
@@ -468,7 +468,7 @@ async function renderGalleryPage() {
   if (!filtered.length) {
     grid.innerHTML = `
 <div class="gallery-empty">
-  <div class="e-icon">📷</div>
+  <div class="e-icon">${ic('img')}</div>
   <p>Chưa có ảnh trong mục này.<br>Quay lại sớm nhé!</p>
 </div>`;
     renderGalleryPagination(0);
@@ -583,8 +583,9 @@ function openGalleryLightbox(startIdx) {
   };
   const btnPrev  = mkBtn('lightbox-nav lightbox-prev', '‹', 'Ảnh trước');
   const btnNext  = mkBtn('lightbox-nav lightbox-next', '›', 'Ảnh sau');
-  const btnClose = mkBtn('lightbox-close', '✕', 'Đóng');
-  const btnOrder = mkBtn('btn btn-primary lightbox-order', '🌸 Đặt mẫu này', 'Đặt hoa theo mẫu này');
+  const btnClose = mkBtn('lightbox-close', '', 'Đóng');
+  btnClose.innerHTML = ic('x');
+  const btnOrder = mkBtn('btn btn-primary lightbox-order', 'Đặt mẫu này', 'Đặt hoa theo mẫu này');
 
   const show = (i) => {
     idx = (i + list.length) % list.length;   // xoay vòng đầu ↔ cuối
@@ -915,7 +916,7 @@ function wireOrderButtons() {
       btn.onclick = () => {
         if (name) {
           navigator.clipboard.writeText(`Tôi muốn đặt: ${name}`).catch(() => {});
-          showMiniToast('📋 Đã copy tên sản phẩm — paste vào Zalo để đặt!');
+          showMiniToast('Đã copy tên sản phẩm — paste vào Zalo để đặt!');
         }
       };
     } else {
@@ -940,6 +941,9 @@ function showMiniToast(msg) {
     document.body.appendChild(t);
   }
   t.textContent = msg;
+  const formMo = document.getElementById('orderOverlay')?.classList.contains('open');
+  t.style.top = formMo ? 'calc(14px + env(safe-area-inset-top, 0px))' : 'auto';
+  t.style.bottom = formMo ? 'auto' : 'calc(90px + env(safe-area-inset-bottom, 0px))';
   t.style.display = 'block';
   clearTimeout(t._t);
   t._t = setTimeout(() => t.style.display = 'none', 3000);
@@ -958,6 +962,9 @@ function showMiniToast(msg) {
 function focusOrderField(id) {
   const el = document.getElementById(id);
   if (!el) return;
+  // Ô nằm trong mục đang gấp (vd email) → mở mục ra trước, không thì focus vào ô ẩn chẳng thấy gì
+  const than = el.closest('.omx-than');
+  if (than && than.previousElementSibling) than.previousElementSibling.classList.add('open');
   try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch {}
   setTimeout(() => { try { el.focus({ preventScroll: true }); } catch { el.focus(); } }, 120);
 }
@@ -1003,104 +1010,175 @@ function openOrderModal(productId, productName, imgOverride) {
   const _today = new Date().toLocaleDateString('sv-SE');
   const _tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE');
 
+  // Form kiểu mới (24/09/2026) — cùng kiểu form admin: Người đặt · Người nhận · Giao.
+  // Người nhận + giờ giao ghép vào GHI CHÚ đơn (ghepGhiChuDon, js/dungchung.js) → không đổi database.
+  // Ngày giao: chip + lịch tự vẽ (bỏ <input type="date"> — iOS vẽ lệch khung, hiện kiểu tháng/ngày).
+  const gioChip = GIO_GIAO.map(g => `<button type="button" class="om-chip2" data-gio="${g}" onclick="chonGioGiao(this)">${g}</button>`).join('')
   document.getElementById('orderModalBody').innerHTML = `
-<div class="om-top">
-  ${img ? `<img src="${esc(img)}" alt="${esc(productName)}">` : '<div class="om-ph">🌸</div>'}
-  <div class="om-top-info">
-    <div class="om-eyebrow">Đang đặt</div>
-    <div class="om-name">${esc(productName)}</div>
-    ${price ? `<div class="om-price">${esc(price)}</div>` : ''}
-  </div>
-</div>
-<div class="om-chips">
-  <span class="om-chip">🚚 Nội thành miễn phí</span>
-  <span class="om-chip">💳 COD / Chuyển khoản</span>
-  <span class="om-chip">📸 Duyệt ảnh trước khi giao</span>
-  <a class="om-chip om-chip-link" href="chinh-sach" target="_blank">📋 Chính sách</a>
-</div>
-<form id="orderForm" onsubmit="submitOrder(event)">
-  <div class="om-groups">
-    <div class="om-group om-g1">
-      <div class="g-title"><span class="g-num">1</span> Thông tin của bạn</div>
-      <div class="om-row">
-        <div class="order-field">
-          <label>Họ tên *</label>
-          <input type="text" id="orderName" required placeholder="VD: Minh Anh">
-        </div>
-        <div class="order-field">
-          <label>Số điện thoại *</label>
-          <input type="tel" id="orderPhone" required placeholder="VD: 0912 345 678">
-        </div>
-      </div>
-      <div class="order-field">
-        <label>Email <span class="lbl-opt">· không bắt buộc, để nhận xác nhận đơn</span></label>
-        <input type="email" id="orderEmail" placeholder="VD: minhanh@gmail.com">
-      </div>
+<form id="orderForm" class="omx" onsubmit="submitOrder(event)">
+  <div class="omx-sp">
+    ${img ? `<img src="${esc(img)}" alt="${esc(productName)}">` : `<div class="om-ph">${ic('flower')}</div>`}
+    <div class="omx-sp-t">
+      <div class="om-name">${esc(productName)}</div>
+      ${price ? `<div class="om-price">${esc(price)}</div>` : ''}
     </div>
-
-    <div class="om-group om-g2">
-      <div class="g-title"><span class="g-num">2</span> Giao đến đâu</div>
-      <!-- Không hỏi "Khu vực giao": địa chỉ đầy đủ đã nói lên tất cả, hỏi thêm là thừa.
-           Admin cũng đã bỏ ô này — hai bên phải giống nhau. -->
-      <div class="order-field">
-        <label>Địa chỉ giao hàng *</label>
-        <input type="text" id="orderAddress" required placeholder="Số nhà, ngõ, đường, phường, quận…">
-      </div>
-      <!-- Ngày ăn hết chỗ trống, số lượng chỉ cần vừa đủ: đa số khách đặt 1-2 bó,
-           nên dùng nút −/+ cho nhanh thay vì ô nhập rộng phải gọi bàn phím -->
-      <div class="om-row om-row-date-qty">
-        <div class="order-field">
-          <label>Ngày giao mong muốn</label>
-          <input type="date" id="orderDate" value="${_tomorrow}" min="${_today}">
-        </div>
-        <div class="order-field">
-          <label>Số lượng</label>
-          <div class="qty-step">
-            <button type="button" onclick="stepQty(-1)" aria-label="Bớt 1">−</button>
-            <input type="number" id="orderQty" min="1" max="99" value="1" inputmode="numeric" aria-label="Số lượng">
-            <button type="button" onclick="stepQty(1)" aria-label="Thêm 1">+</button>
-          </div>
-        </div>
-      </div>
-      <p class="order-hint">🌸 Shop để sẵn ngày mai — đặt trước 1 ngày để hoa tươi và chuẩn bị chu đáo nhất!</p>
-    </div>
-
-    <!-- Nhóm 3 KHÔNG bắt buộc → trên điện thoại thu lại sau 1 dòng bấm cho form đỡ rối;
-         trên máy tính (≥900px) vẫn mở sẵn như cũ vì có chỗ rộng, xem CSS .om-more -->
-    <div class="om-group om-g3 om-more" id="omMore">
-      <div class="g-title"><span class="g-num">3</span> Lời nhắn <span class="lbl-opt">(nếu có)</span></div>
-      <button type="button" class="om-more-btn" onclick="toggleOrderMore()" aria-expanded="false" aria-controls="omMoreBody">
-        <span class="omb-txt">
-          ✍️ Thêm lời nhắn hoặc yêu cầu khác
-          <small>Thiệp chúc, phụ kiện, giờ giao mong muốn…</small>
-        </span>
-        <span class="omb-caret">▾</span>
-      </button>
-      <div class="om-more-body" id="omMoreBody">
-        <div class="om-row">
-          <div class="order-field">
-            <label>Lời nhắn trên thiếp</label>
-            <textarea id="orderMessage" placeholder="VD: Chúc mừng sinh nhật..."></textarea>
-          </div>
-          <div class="order-field">
-            <label>Ghi chú thêm</label>
-            <textarea id="orderNote" placeholder="VD: kèm thiệp, nơ, giỏ mây… hoặc giờ giao mong muốn"></textarea>
-          </div>
-        </div>
-      </div>
+    <div class="qty-step">
+      <button type="button" onclick="stepQty(-1)" aria-label="Bớt 1">${ic('minus')}</button>
+      <input type="number" id="orderQty" min="1" max="99" value="1" inputmode="numeric" aria-label="Số lượng">
+      <button type="button" onclick="stepQty(1)" aria-label="Thêm 1">${ic('plus')}</button>
     </div>
   </div>
+
+  <div class="omx-grp">
+    <div class="omx-gt">${ic('user')}Người đặt</div>
+    <label class="omx-in">${ic('user')}<input type="text" id="orderName" required placeholder="Tên của bạn" autocomplete="name"></label>
+    <label class="omx-in">${ic('phone')}<input type="tel" id="orderPhone" required placeholder="Số điện thoại" autocomplete="tel"></label>
+  </div>
+
+  <div class="omx-grp">
+    <div class="omx-gt">${ic('heart')}Người nhận</div>
+    <div class="omx-chips" id="omNhan">
+      <button type="button" class="om-chip2 on" data-v="0" onclick="chonNguoiNhan(this)">Tôi nhận</button>
+      <button type="button" class="om-chip2" data-v="1" onclick="chonNguoiNhan(this)">Tặng người khác</button>
+    </div>
+    <div id="omNhanKhac" style="display:none">
+      <label class="omx-in">${ic('user')}<input type="text" id="orderRecvName" placeholder="Tên người nhận"></label>
+      <label class="omx-in">${ic('phone')}<input type="tel" id="orderRecvPhone" placeholder="SĐT người nhận (để shop gọi khi giao)"></label>
+    </div>
+  </div>
+
+  <div class="omx-grp">
+    <div class="omx-gt">${ic('truck')}Giao</div>
+    <label class="omx-in">${ic('pin')}<input type="text" id="orderAddress" required placeholder="Địa chỉ giao: số nhà, ngõ, đường, phường…" autocomplete="street-address"></label>
+    <div class="omx-lb">Ngày giao</div>
+    <div class="omx-chips" id="omNgay">
+      <button type="button" class="om-chip2" data-d="1" onclick="chonNgayGiao(this)">Ngày mai</button>
+      <button type="button" class="om-chip2" data-d="2" onclick="chonNgayGiao(this)">Ngày kia</button>
+      <span class="omx-lich-wrap">
+        <button type="button" class="om-chip2" id="omNgayKhac" onclick="moLichGiao()">${ic('cal')}<span>Chọn ngày</span></button>
+        <div class="omx-lich" id="omLich" style="display:none"></div>
+      </span>
+    </div>
+    <input type="hidden" id="orderDate" value="${_tomorrow}">
+    <div class="omx-lb">Giờ giao mong muốn <small>không bắt buộc</small></div>
+    <div class="omx-chips omx-gio" id="omGio">${gioChip}</div>
+    <input type="hidden" id="orderTime">
+  </div>
+
+  <div class="omx-more">
+    <button type="button" class="omx-mo" onclick="this.classList.toggle('open')">${ic('plus')}<span>Lời nhắn trên thiếp</span><small>tuỳ chọn</small></button>
+    <div class="omx-than"><label class="omx-in"><textarea id="orderMessage" rows="2" placeholder="VD: Chúc mừng sinh nhật…"></textarea></label></div>
+    <button type="button" class="omx-mo" onclick="this.classList.toggle('open')">${ic('plus')}<span>Ghi chú / yêu cầu thêm</span><small>tuỳ chọn</small></button>
+    <div class="omx-than"><label class="omx-in"><textarea id="orderNote" rows="2" placeholder="VD: kèm thiệp, nơ, giỏ mây…"></textarea></label></div>
+    <button type="button" class="omx-mo" onclick="this.classList.toggle('open')">${ic('plus')}<span>Nhận xác nhận qua email</span><small>tuỳ chọn</small></button>
+    <div class="omx-than"><label class="omx-in">${ic('mail')}<input type="email" id="orderEmail" placeholder="VD: minhanh@gmail.com" autocomplete="email"></label></div>
+  </div>
+
   <!-- Bẫy bot: người thật không thấy ô này; bot tự điền là bị loại -->
   <div class="hp-field" aria-hidden="true">
     <label>Website</label>
     <input type="text" id="orderWebsite" tabindex="-1" autocomplete="off">
   </div>
-  <button type="submit" class="btn btn-primary order-submit" id="orderSubmitBtn">🌸 Gửi đơn đặt hàng</button>
-  <p class="om-foot-note">Shop sẽ gọi/Zalo xác nhận trong 15–30 phút</p>
+
+  <div class="omx-ft">
+    <div class="omx-ft-r">
+      <div class="omx-tong"><small>Tạm tính</small><b>${price ? esc(price) : 'Shop báo giá'}</b></div>
+      <button type="submit" class="btn btn-primary order-submit" id="orderSubmitBtn">Gửi đơn</button>
+    </div>
+    <p class="om-foot-note">Miễn phí nội thành · Duyệt ảnh trước khi giao · <a href="chinh-sach" target="_blank">Chính sách</a></p>
+  </div>
 </form>`;
+  _lichThang = _tomorrow.slice(0, 7)
+  dongBoNgayGiao();
   document.getElementById('orderOverlay').classList.add('open');
   lockBodyScroll();
 }
+
+// ── Chip trong form đặt hoa ──
+function chonNguoiNhan(btn) {
+  document.querySelectorAll('#omNhan .om-chip2').forEach(b => b.classList.toggle('on', b === btn));
+  const khac = btn.dataset.v === '1';
+  document.getElementById('omNhanKhac').style.display = khac ? '' : 'none';
+  if (khac) document.getElementById('orderRecvName').focus();
+}
+function chonGioGiao(btn) {
+  const bat = !btn.classList.contains('on');   // bấm lại chip đang chọn = bỏ chọn
+  document.querySelectorAll('#omGio .om-chip2').forEach(b => b.classList.remove('on'));
+  btn.classList.toggle('on', bat);
+  document.getElementById('orderTime').value = bat ? btn.dataset.gio : '';
+}
+function _ngayCach(n) { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString('sv-SE'); }
+function chonNgayGiao(btn) {
+  document.getElementById('orderDate').value = _ngayCach(Number(btn.dataset.d));
+  document.getElementById('omLich').style.display = 'none';
+  dongBoNgayGiao();
+}
+// Tô chip ngày đang chọn; ngày khác "mai/kia" thì chip lịch hiện ngày đó (dd/mm)
+function dongBoNgayGiao() {
+  const v = document.getElementById('orderDate')?.value || '';
+  let trung = false;
+  document.querySelectorAll('#omNgay .om-chip2[data-d]').forEach(b => {
+    const on = v === _ngayCach(Number(b.dataset.d)); b.classList.toggle('on', on); if (on) trung = true;
+  });
+  const k = document.getElementById('omNgayKhac');
+  if (!k) return;
+  k.classList.toggle('on', !!v && !trung);
+  k.querySelector('span').textContent = v && !trung ? v.slice(8, 10) + '/' + v.slice(5, 7) : 'Chọn ngày';
+}
+
+// Lịch tự vẽ (thay <input type="date">): không chọn được ngày đã qua
+let _lichThang = null;
+function moLichGiao() {
+  const pop = document.getElementById('omLich');
+  if (pop.style.display !== 'none') { pop.style.display = 'none'; return; }
+  _lichThang = (document.getElementById('orderDate').value || _ngayCach(1)).slice(0, 7);
+  veLichGiao(); pop.style.display = 'block';
+}
+function doiThangLich(n) {
+  const [y, m] = _lichThang.split('-').map(Number);
+  _lichThang = new Date(y, m - 1 + n, 1).toLocaleDateString('sv-SE').slice(0, 7);
+  veLichGiao();
+}
+function veLichGiao() {
+  const pop = document.getElementById('omLich');
+  const [y, m] = _lichThang.split('-').map(Number);
+  const homNay = _ngayCach(0), chon = document.getElementById('orderDate').value;
+  const dau = (new Date(y, m - 1, 1).getDay() + 6) % 7, soNgay = new Date(y, m, 0).getDate();
+  let o = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(t => `<span class="ol-dow">${t}</span>`).join('');
+  for (let i = 0; i < dau; i++) o += '<span></span>';
+  for (let d = 1; d <= soNgay; d++) {
+    const ds = `${_lichThang}-${String(d).padStart(2, '0')}`;
+    const qua = ds < homNay;
+    o += `<button type="button" class="ol-d${ds === chon ? ' on' : ''}${ds === homNay ? ' nay' : ''}" ${qua ? 'disabled' : `onclick="chonNgayLich('${ds}')"`}>${d}</button>`;
+  }
+  const lui = _lichThang <= homNay.slice(0, 7);
+  pop.innerHTML = `
+<div class="ol-h">
+  <button type="button" onclick="doiThangLich(-1)" ${lui ? 'disabled' : ''} aria-label="Tháng trước">${ic('left')}</button>
+  <b>Tháng ${m}/${y}</b>
+  <button type="button" onclick="doiThangLich(1)" aria-label="Tháng sau">${ic('right')}</button>
+</div>
+<div class="ol-g">${o}</div>`;
+}
+function chonNgayLich(ds) {
+  document.getElementById('orderDate').value = ds;
+  document.getElementById('omLich').style.display = 'none';
+  dongBoNgayGiao();
+}
+// Bấm ra ngoài lịch thì đóng. Chặn lỗi "tự đóng khi bấm ‹ ›": nút vừa bấm bị vẽ lại
+// (gỡ khỏi trang) → closest() trả null → tưởng bấm ra ngoài. Xem CLAUDE.md (bẫy popover).
+document.addEventListener('click', e => {
+  const pop = document.getElementById('omLich');
+  if (!pop || pop.style.display === 'none' || !e.target.isConnected) return;
+  if (!e.target.closest('.omx-lich-wrap')) pop.style.display = 'none';
+});
+
+// Ô không hợp lệ (vd email sai) nằm trong mục đang GẤP → trình duyệt chặn gửi nhưng không đưa
+// khách tới ô đó được (ô bị ẩn) → khách bấm "Gửi đơn" mà không thấy gì xảy ra. Mở mục ra trước.
+document.addEventListener('invalid', e => {
+  const than = e.target && e.target.closest && e.target.closest('.omx-than');
+  if (than && than.previousElementSibling) than.previousElementSibling.classList.add('open');
+}, true);
 
 // Nút −/+ của ô Số lượng. Giữ trong 1–99 để không có đơn 0 bó hay gõ nhầm 1000.
 function stepQty(delta) {
@@ -1132,7 +1210,7 @@ document.addEventListener('keydown', e => {
   if (links && links.classList.contains('open')) {
     links.classList.remove('open');
     const t = document.getElementById('menuToggle');
-    if (t) t.textContent = '☰';
+    if (t) t.innerHTML = ic('menu');
   }
 });
 
@@ -1145,7 +1223,7 @@ async function submitOrder(event) {
   // Bẫy bot: ô ẩn có giá trị nghĩa là bot điền → giả vờ thành công, không tạo đơn
   if (document.getElementById('orderWebsite')?.value) {
     document.getElementById('orderModalBody').innerHTML = `
-<div class="order-success"><div class="o-icon">🌸</div><h3>Đã nhận đơn của bạn!</h3></div>`;
+<div class="order-success"><div class="o-icon">${ic('check')}</div><h3>Đã nhận đơn của bạn!</h3></div>`;
     return;
   }
 
@@ -1157,8 +1235,8 @@ async function submitOrder(event) {
   const phoneDigits = normalizePhone(phone);
   if (!isValidPhone(phone)) {
     btn.disabled = false;
-    btn.textContent = '🌸 Gửi đơn đặt hàng';
-    showMiniToast('📞 Số điện thoại chưa đúng, bạn xem lại giúp nhé');
+    btn.textContent = 'Gửi đơn';
+    showMiniToast('Số điện thoại chưa đúng, bạn xem lại giúp nhé');
     focusOrderField('orderPhone');
     return;
   }
@@ -1166,13 +1244,21 @@ async function submitOrder(event) {
   // Email không bắt buộc — nhưng đã điền thì phải đúng định dạng
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     btn.disabled = false;
-    btn.textContent = '🌸 Gửi đơn đặt hàng';
-    showMiniToast('✉️ Email chưa đúng định dạng, bạn xem lại giúp nhé');
+    btn.textContent = 'Gửi đơn';
+    showMiniToast('Email chưa đúng định dạng, bạn xem lại giúp nhé');
     focusOrderField('orderEmail');
     return;
   }
 
-  const { error } = await sb.rpc('place_order', {
+  const tangKhac = document.querySelector('#omNhan .om-chip2.on')?.dataset.v === '1';
+  const ghiChu = ghepGhiChuDon({
+    nguoiNhan: tangKhac ? document.getElementById('orderRecvName').value : '',
+    sdtNhan:   tangKhac ? document.getElementById('orderRecvPhone').value : '',
+    gio:       document.getElementById('orderTime').value,
+    ghiChu:    document.getElementById('orderNote').value,
+  });
+
+  const { data: maMoi, error } = await sb.rpc('place_order', {
     p_phone: phoneDigits,   // lưu dạng đã chuẩn hoá để sổ khách không bị trùng
     p_name: document.getElementById('orderName').value.trim(),
     p_address: document.getElementById('orderAddress').value.trim(),
@@ -1181,15 +1267,15 @@ async function submitOrder(event) {
     p_quantity: parseInt(document.getElementById('orderQty').value) || 1,
     p_delivery_date: document.getElementById('orderDate').value || null,
     p_message_card: document.getElementById('orderMessage').value.trim() || null,
-    p_note: document.getElementById('orderNote').value.trim() || null,
+    p_note: ghiChu || null,
     p_delivery_area: null,   // đã bỏ ô này ở cả web khách lẫn admin
     p_email: email || null,
   });
 
   if (error) {
     btn.disabled = false;
-    btn.textContent = '🌸 Gửi đơn đặt hàng';
-    showMiniToast('❌ Có lỗi xảy ra, vui lòng thử lại hoặc nhắn Zalo.');
+    btn.textContent = 'Gửi đơn';
+    showMiniToast('Có lỗi xảy ra, vui lòng thử lại hoặc nhắn Zalo.');
     return;
   }
 
@@ -1197,17 +1283,17 @@ async function submitOrder(event) {
   const zalo = zaloURL(contactInfo?.zalo || contactInfo?.phone);
   document.getElementById('orderModalBody').innerHTML = `
 <div class="order-success">
-  <div class="o-icon">🌸</div>
+  <div class="o-icon">${ic('check')}</div>
   <h3>Đã nhận đơn của bạn!</h3>
-  <p style="color:var(--text-mid);margin-top:10px;line-height:1.75;">
-    Đơn đặt <strong>${esc(_orderProduct.name)}</strong> đã được ghi nhận.<br>
-    Chúng mình sẽ liên hệ số <strong>${esc(phone)}</strong> qua Zalo/điện thoại
-    trong <strong>15–30 phút</strong> để xác nhận và báo phí giao (nếu có).
-    ${email ? `<br>💌 Xác nhận đơn đã được gửi tới <strong>${esc(email)}</strong>.` : ''}
+  <p class="os-txt">
+    Shop sẽ gọi / nhắn Zalo số <strong>${esc(phone)}</strong> trong <strong>15–30 phút</strong> để xác nhận.
+    Ảnh bó hoa sẽ gửi bạn duyệt trước khi giao.
+    ${email ? `<br>Xác nhận đơn đã gửi tới <strong>${esc(email)}</strong>.` : ''}
   </p>
-  <div style="display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap;">
-    <a href="${zalo}" target="_blank" class="btn btn-primary">💬 Nhắn Zalo luôn</a>
-    <button class="btn btn-outline" onclick="closeOrderModal()">Đóng</button>
+  ${maMoi ? `<div class="os-ma">Mã đơn: <b>${maDon(maMoi)}</b></div>` : ''}
+  <div class="os-nut">
+    <a href="${zalo}" target="_blank" class="btn btn-primary">${ic('chat')}Nhắn Zalo cho shop</a>
+    <a href="san-pham" class="btn btn-outline">Xem thêm mẫu hoa</a>
   </div>
 </div>`;
 }
@@ -1330,18 +1416,24 @@ async function loadProductDetail() {
     <a href="san-pham" class="detail-back">← Quay lại sản phẩm</a>
     ${bstCuaMau(p.id).length
       ? `<div class="detail-bst">${bstCuaMau(p.id).map(c =>
-          `<a href="san-pham?bst=${encodeURIComponent(c.slug || '')}">${esc(c.emoji || '🌸')} ${esc(c.name)}</a>`).join('')}</div>`
+          `<a href="san-pham?bst=${encodeURIComponent(c.slug || '')}">${esc(c.name)}</a>`).join('')}</div>`
       : ''}
     <h1 class="detail-name">${esc(p.name)}</h1>
     <div class="detail-price">${esc(fmtPrice(p.price))}</div>
     <p class="detail-desc">${esc(p.description)}</p>
+    <div class="detail-cam">
+      <div>${ic('truck')}Giao nội thành miễn phí</div>
+      <div>${ic('camera')}Gửi ảnh duyệt trước khi giao</div>
+      <div>${ic('card')}COD hoặc chuyển khoản</div>
+    </div>
+    <!-- Máy tính: khối nút ngay dưới. Điện thoại: CSS ghim khối này xuống đáy màn hình -->
     <div class="detail-actions">
-      <button type="button" class="btn btn-primary" style="font-size:1rem;" onclick="openOrderModal(${p.id}, '${jsAttr(p.name)}')">
-        🌸 Đặt hàng ngay
-      </button>
-      <a href="#" class="btn btn-outline order-btn" data-product="${encodeURIComponent(p.name)}">
-        📞 Hỏi qua Zalo
+      <a href="#" class="btn btn-outline order-btn detail-zalo" data-product="${encodeURIComponent(p.name)}" aria-label="Hỏi qua Zalo">
+        ${ic('chat')}<span>Hỏi qua Zalo</span>
       </a>
+      <button type="button" class="btn btn-primary" onclick="openOrderModal(${p.id}, '${jsAttr(p.name)}')">
+        Đặt mẫu này
+      </button>
     </div>
   </div>
 </div>`;
@@ -1376,7 +1468,27 @@ async function loadRelated(excludeId) {
   wireOrderButtons();
   staggerReveal(grid.querySelectorAll('.reveal'));
   initScrollReveal(grid);
+  const h = section.querySelector('h2');
+  if (h) h.textContent = cung.length ? 'Cùng bộ sưu tập' : 'Có thể bạn cũng thích';
   section.style.display = 'block';
+}
+
+// ─── Thanh tab dưới đáy cho khách (điện thoại) — cùng kiểu thanh tab của admin ──
+// Trang chi tiết mẫu hoa KHÔNG có thanh này (đáy đã dành cho nút "Đặt mẫu này").
+function veThanhTabKhach() {
+  if (document.querySelector('.w-tabs') || document.getElementById('detailContent')) return;
+  const ten = p => (p || '').split(/[?#]/)[0].split('/').pop().replace(/\.html$/, '') || 'index';
+  const dang = ten(location.pathname);
+  const muc = [['./', 'index', 'dash', 'Trang chủ'], ['san-pham', 'san-pham', 'bag', 'Sản phẩm'],
+               ['khoanh-khac', 'khoanh-khac', 'img', 'Khoảnh khắc'], ['lien-he', 'lien-he', 'phone', 'Liên hệ']];
+  document.body.insertAdjacentHTML('beforeend', `<nav class="w-tabs" aria-label="Chuyển trang nhanh">${
+    muc.map(([href, key, i, nhan]) => `<a href="${href}" class="${key === dang ? 'on' : ''}">${ic(i)}<span>${nhan}</span></a>`).join('')}</nav>`);
+  document.body.classList.add('co-w-tabs');
+  const laO = el => el && el.matches && el.matches('input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), textarea, select');
+  document.addEventListener('focusin', e => { if (laO(e.target)) document.body.classList.add('dang-go'); });
+  document.addEventListener('focusout', () => setTimeout(() => {
+    if (!laO(document.activeElement)) document.body.classList.remove('dang-go');
+  }, 80));
 }
 
 // ─── Init ─────────────────────────────────────────────────
@@ -1386,8 +1498,8 @@ function injectZaloIcons() {
   const ci = document.getElementById('zaloIcon'); if (ci) ci.innerHTML = img;
   const bi = document.querySelector('#zaloBtn .zi'); if (bi) bi.innerHTML = img;
   document.querySelectorAll('.zalo-float').forEach(fl => {
-    const ic = fl.querySelector('span:not(.zalo-label)');
-    if (ic) ic.innerHTML = img;
+    const o = fl.querySelector('span:not(.zalo-label)');
+    if (o) o.innerHTML = img;
   });
 }
 
@@ -1476,6 +1588,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadFeatured();
   loadProducts();
   loadGallery();
+  veThanhTabKhach();
   loadTestimonials();
   loadProductDetail();
   initScrollReveal();

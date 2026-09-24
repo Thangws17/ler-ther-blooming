@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test giao diện web khách — Ler &amp; Ther Blooming</title>
+<style>
+  body { margin: 0; padding: 24px; font: 14px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; background: #FAF8F5; color: #2B2B2B; }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; } .sub { color: #6B6B6B; margin: 0 0 20px; }
+  #tongket { padding: 12px 16px; border-radius: 10px; font-weight: 600; margin-bottom: 18px; }
+  .ok-box { background: #E8F5E9; color: #1B5E20; border: 1px solid #A5D6A7; }
+  .fail-box { background: #FFEBEE; color: #B71C1C; border: 1px solid #EF9A9A; }
+  h2 { font-size: 15px; margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #E5DFD7; }
+  .ca { display: flex; gap: 8px; padding: 4px 0; align-items: baseline; }
+  .dau { flex: 0 0 18px; font-weight: 700; } .ok .dau { color: #2E7D32; } .fail .dau { color: #C62828; }
+  .fail { background: #FFF5F5; border-radius: 6px; padding-left: 6px; } .ten { flex: 1; }
+  .chitiet { display: block; color: #C62828; font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; white-space: pre-wrap; margin-top: 2px; }
+  iframe { border: 0; position: absolute; left: -9999px; top: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Test giao diện web khách</h1>
+  <p class="sub">Mở từng trang ở khổ <b>360 / 390 / 1280px</b>: không tràn ngang, không lỗi JS, nút có tên, không emoji trong nút,
+    thanh tab + nút nổi đúng chỗ, và BẤM THẬT các luồng chính. Trang chỉ ĐỌC dữ liệu thật; gửi đơn dùng <b>database giả</b>
+    (không tạo đơn). Mất khoảng 1–2 phút.</p>
+  <div id="tongket">Đang chạy…</div>
+  <div id="kq"></div>
+</div>
+<script src="gia-lap-sb.js"></script>
+<script>
+let soOk = 0, soFail = 0
+const boxKq = document.getElementById('kq')
+function nhom(t) { const h = document.createElement('h2'); h.textContent = t; boxKq.appendChild(h) }
+function test(ten, fn) {
+  const row = document.createElement('div'); row.className = 'ca'
+  row.innerHTML = '<span class="dau"></span><span class="ten"></span>'
+  const dau = row.querySelector('.dau'), t = row.querySelector('.ten'); t.textContent = ten
+  try { fn(); soOk++; row.classList.add('ok'); dau.textContent = '✓' }
+  catch (e) { soFail++; row.classList.add('fail'); dau.textContent = '✕'
+    const c = document.createElement('span'); c.className = 'chitiet'; c.textContent = e.message; t.appendChild(c) }
+  boxKq.appendChild(row)
+}
+function bang(thuc, mong, ghi = '') {
+  const a = JSON.stringify(thuc), b = JSON.stringify(mong)
+  if (a !== b) throw new Error((ghi ? ghi + '\n' : '') + 'mong đợi: ' + b + '\nnhận được: ' + a)
+}
+const cho = ms => new Promise(r => setTimeout(r, ms))
+const EMOJI = /[\u{1F300}-\u{1FAFF}\u{1F100}-\u{1F2FF}\u{2600}-\u{2604}\u{2607}-\u{2712}\u{2714}\u{2716}-\u{27BF}]/u
+
+async function moTrang(duong, rong, cao = 800) {
+  const f = document.createElement('iframe')
+  f.style.width = rong + 'px'; f.style.height = cao + 'px'; f.src = '../' + duong
+  document.body.appendChild(f)
+  await new Promise(res => f.addEventListener('load', res, { once: true }))
+  const w = f.contentWindow, d = f.contentDocument, loi = []
+  w.addEventListener('error', e => loi.push(e.message))
+  w.addEventListener('unhandledrejection', e => loi.push('Promise: ' + (e.reason && e.reason.message || e.reason)))
+  // Khung test nằm NGOÀI màn hình → trình duyệt dừng hiệu ứng chuyển động giữa chừng, đo sai vị trí.
+  // Tắt hiệu ứng trong khung test (chỉ ở đây, web thật không bị ảnh hưởng).
+  const z0 = d.querySelector('.zalo-float')
+  const zaloChuyenDong = z0 ? w.getComputedStyle(z0).transitionProperty : ''   // đọc TRƯỚC khi tắt hiệu ứng
+  d.head.insertAdjacentHTML('beforeend', '<style>*,*::before,*::after{animation:none!important;transition:none!important}</style>')
+  await cho(2200)                                  // chờ dữ liệu (đọc Supabase thật) + vẽ xong
+  // hiệu ứng "hiện dần" không ảnh hưởng bố cục — bật hết cho dễ đo
+  d.querySelectorAll('.reveal').forEach(x => x.classList.add('in-view'))
+  return { f, w, d, loi, zaloChuyenDong, id: x => d.getElementById(x) }
+}
+function nutThieuTen(goc) {
+  return [...goc.querySelectorAll('button, a[href]')].filter(el => {
+    if (!el.offsetParent && getComputedStyle(el).position !== 'fixed') return false
+    const r = el.getBoundingClientRect(); if (!r.width || !r.height) return false
+    return !(el.textContent || '').trim() && !el.getAttribute('aria-label') && !el.getAttribute('title') && !el.querySelector('img[alt]:not([alt=""])')
+  }).map(el => el.outerHTML.slice(0, 90))
+}
+function nutCoEmoji(d) {
+  return [...d.querySelectorAll('button, .nav-links a, .w-tabs a, .btn, .filter-tab')]
+    .filter(el => el.offsetParent && !el.closest('.bst-card, .bst-banner, .logo'))
+    .filter(el => EMOJI.test(el.textContent)).map(el => el.textContent.trim().slice(0, 40))
+}
+const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length
+
+;(async function main() {
+  // ── 1. Mọi trang × 3 khổ: tràn ngang, lỗi JS, nút, thanh tab ──
+  let idMau = null
+  const TRANG = [['', 'index'], ['san-pham', 'san-pham'], ['khoanh-khac', 'khoanh-khac'], ['lien-he', 'lien-he'],
+                 ['cau-chuyen', 'cau-chuyen'], ['chinh-sach', 'chinh-sach']]
+  for (const rong of [360, 390, 1280]) {
+    nhom(`1. Mọi trang — khổ ${rong}px`)
+    for (const [duong, ten] of TRANG) {
+      const T = await moTrang(duong, rong)
+      const { w, d } = T
+      if (!idMau && ten === 'san-pham') {
+        const a = d.querySelector('.product-card a[href*="chi-tiet?id="]')
+        if (a) idMau = new URL(a.href).searchParams.get('id')
+      }
+      test(`[${ten}] không tràn ngang`, () => {
+        const thua = d.documentElement.scrollWidth - w.innerWidth
+        if (thua > 1) {
+          const tran = [...d.querySelectorAll('body *')].filter(el => el.getBoundingClientRect().right > w.innerWidth + 1 && getComputedStyle(el).position !== 'fixed')
+            .filter(el => !el.closest('.bst-grid, .filter-tabs, #relatedGrid, .omx-gio')).slice(0, 3).map(el => el.className || el.tagName)
+          throw new Error('tràn ' + thua + 'px — ' + tran.join(' | '))
+        }
+      })
+      test(`[${ten}] không lỗi JS`, () => bang(T.loi, []))
+      test(`[${ten}] nút / link chỉ có biểu tượng đều có tên`, () => bang(nutThieuTen(d.body), []))
+      test(`[${ten}] không còn emoji trong nút / menu`, () => bang(nutCoEmoji(d), []))
+      const tabs = d.querySelector('.w-tabs')
+      if (rong <= 640) {
+        test(`[${ten}] có thanh tab dưới đáy, sáng đúng trang`, () => {
+          if (!tabs || getComputedStyle(tabs).display === 'none') throw new Error('không thấy thanh tab')
+          const on = [...tabs.querySelectorAll('a.on')].map(a => a.getAttribute('href'))
+          const mong = ten === 'index' ? ['./'] : ['san-pham', 'khoanh-khac', 'lien-he'].includes(ten) ? [ten] : []
+          bang(on, mong)
+        })
+        test(`[${ten}] ô tab đủ lớn cho ngón cái (≥ 44px)`, () => {
+          const h = tabs.querySelector('a').offsetHeight; if (h < 44) throw new Error(h + 'px')
+        })
+        if (T.zaloChuyenDong) test(`[${ten}] nút Zalo KHÔNG trượt vị trí khi tải trang (chỉ chuyển động khi rê chuột)`, () => {
+          if (/(^|,\s*)all(,|$)|bottom|right/.test(T.zaloChuyenDong)) throw new Error('transition: ' + T.zaloChuyenDong)
+        })
+        const z = d.querySelector('.zalo-float')
+        if (z && getComputedStyle(z).display !== 'none') test(`[${ten}] nút Zalo nổi nằm TRÊN thanh tab (không đè)`, () => {
+          const a = z.getBoundingClientRect(), b = tabs.getBoundingClientRect()
+          if (a.bottom > b.top + 1) throw new Error(`Zalo đáy ${Math.round(a.bottom)} > thanh tab ${Math.round(b.top)} (bottom=${getComputedStyle(z).bottom}, body=${d.body.className}, h=${w.innerHeight}, rộng=${w.innerWidth})`)
+        })
+      } else {
+        test(`[${ten}] máy tính: KHÔNG hiện thanh tab dưới đáy`, () => bang(!tabs || getComputedStyle(tabs).display === 'none', true))
+      }
+
+      // Kiểm riêng từng trang (khổ 390 + 1280)
+      if (ten === 'index' && rong === 390) {
+        test('[trang chủ] ảnh đầu trang đã có ảnh', () => { if (!/url\(/.test(T.id('heroBg').style.backgroundImage)) throw new Error('chưa có ảnh') })
+        test('[trang chủ] 3 ô cam kết', () => bang(d.querySelectorAll('.trust3 > div').length, 3))
+        test('[trang chủ] bộ sưu tập là hàng trượt ngang', () => bang(getComputedStyle(T.id('bstGrid')).display, 'flex'))
+        test('[trang chủ] mẫu nổi bật 2 cột', () => bang(soCot(T.id('featuredGrid')), 2))
+        test('[trang chủ] thẻ bộ sưu tập KHUẤT bên phải vẫn hiện sẵn (không "trồi lên" khi lướt tới — lỗi iPhone 24/09)', () => {
+          const the = d.createElement('a'); the.className = 'bst-card reveal'   // thẻ chưa từng "được thấy"
+          T.id('bstGrid').appendChild(the)
+          const cs = w.getComputedStyle(the)
+          bang([cs.opacity, cs.transform], ['1', 'none']); the.remove()
+        })
+        test('[trang chủ] hàng bộ sưu tập: bắt dính NHẸ + kéo quá mép không làm cả trang nảy ngang', () => {
+          const cs = w.getComputedStyle(T.id('bstGrid'))
+          // "x" = "x proximity" (trình duyệt ghi gọn vì proximity là mặc định); cấm "x mandatory"
+          bang([/mandatory/.test(cs.scrollSnapType), cs.overscrollBehaviorX], [false, 'contain'])
+        })
+        test('[trang chủ] cả trang không kéo ngang được (overflow-x: clip)', () =>
+          bang(w.getComputedStyle(d.documentElement).overflowX, 'clip'))
+      }
+      if (ten === 'san-pham' && rong === 390) {
+        const grid = T.id('productsGrid')
+        test('[sản phẩm] lưới 2 cột', () => bang(soCot(grid), 2))
+        test('[sản phẩm] chip lọc 1 hàng (không xuống dòng)', () => bang(getComputedStyle(T.id('productFilters')).flexWrap, 'nowrap'))
+        const tong = grid.querySelectorAll('.product-card').length
+        const chip = d.querySelectorAll('#productFilters .filter-tab')[1]
+        if (chip) {
+          chip.click(); await cho(80)
+          test('[sản phẩm] bấm chip bộ sưu tập → địa chỉ có ?bst=, chip sáng, số mẫu ≤ tất cả', () => {
+            if (!/[?&]bst=/.test(w.location.search)) throw new Error('địa chỉ: ' + w.location.search)
+            bang(chip.classList.contains('active'), true)
+            if (grid.querySelectorAll('.product-card').length > tong) throw new Error('lọc ra nhiều hơn tất cả')
+          })
+          d.querySelector('#productFilters .filter-tab[data-bst="all"]').click(); await cho(80)
+          test('[sản phẩm] bấm "Tất cả" → đủ lại mọi mẫu', () => bang(grid.querySelectorAll('.product-card').length, tong))
+        }
+        const o = T.id('productSearch')
+        o.value = 'zzzkhongcohoanay'; o.dispatchEvent(new w.Event('input'))
+        test('[sản phẩm] tìm không ra → báo rõ + nút "Xoá tìm kiếm"', () => {
+          if (!/Không tìm thấy/.test(grid.textContent)) throw new Error(grid.textContent.slice(0, 80))
+        })
+        grid.querySelector('button').click(); await cho(50)
+        test('[sản phẩm] bấm "Xoá tìm kiếm" → đủ lại mọi mẫu', () => bang(grid.querySelectorAll('.product-card').length, tong))
+        o.focus(); o.dispatchEvent(new w.FocusEvent('focusin', { bubbles: true })); await cho(50)
+        test('[sản phẩm] đang gõ tìm → tạm ẩn thanh tab (bàn phím iPhone)', () => bang(getComputedStyle(d.querySelector('.w-tabs')).display, 'none'))
+        o.blur(); o.dispatchEvent(new w.FocusEvent('focusout', { bubbles: true })); await cho(150)
+        test('[sản phẩm] gõ xong → thanh tab hiện lại', () => bang(getComputedStyle(d.querySelector('.w-tabs')).display, 'flex'))
+        const menu = T.id('menuToggle')
+        menu.click(); await cho(30)
+        test('[sản phẩm] bấm menu ☰ → mở menu, nút đổi sang ✕', () => {
+          bang(T.id('navLinks').classList.contains('open'), true)
+          bang(!!menu.querySelector('use[href="#i-x"]'), true)
+        })
+        menu.click()
+
+        // ── Form đặt hoa (bấm nút thật trên thẻ mẫu hoa) ──
+        const nhatKy = giaLapSb(w, {})   // chỉ để CHẶN gửi đơn thật (rpc giả); đọc dữ liệu đã xong
+        grid.querySelector('.product-btn').click(); await cho(120)
+        const modal = d.querySelector('.order-modal')
+        test('[đặt hoa] bấm nút ＋ trên thẻ → mở form', () => bang(T.id('orderOverlay').classList.contains('open'), true))
+        test('[đặt hoa] form không tràn ngang', () => { const t = modal.scrollWidth - modal.clientWidth; if (t > 1) throw new Error('tràn ' + t + 'px') })
+        test('[đặt hoa] giờ giao là lưới 7 cột (thấy đủ 8h–21h)', () => bang(soCot(T.id('omGio')), 7))
+        test('[đặt hoa] nút Gửi đơn ghim ở đáy, nằm trong màn hình', () => {
+          const r = d.querySelector('.omx-ft').getBoundingClientRect()
+          if (r.bottom > w.innerHeight + 1) throw new Error('đáy chân form ' + Math.round(r.bottom) + ' > ' + w.innerHeight)
+        })
+        test('[đặt hoa] nút trong form đều có tên', () => bang(nutThieuTen(modal), []))
+        T.id('orderSubmitBtn').click(); await cho(80)
+        test('[đặt hoa] để trống tên → KHÔNG gửi (trình duyệt chặn)', () => {
+          bang(nhatKy.filter(x => x.lenh === 'rpc').length, 0)
+          bang(T.id('orderName').validity.valueMissing, true)
+        })
+        T.id('orderName').value = 'Test'; T.id('orderPhone').value = '123'; T.id('orderAddress').value = 'Q.1'
+        T.id('orderSubmitBtn').click(); await cho(120)
+        test('[đặt hoa] SĐT sai → KHÔNG gửi, báo lỗi', () => {
+          bang(nhatKy.filter(x => x.lenh === 'rpc').length, 0)
+          if (!/Số điện thoại chưa đúng/.test(T.id('miniToast')?.textContent || '')) throw new Error('không báo')
+        })
+        test('[đặt hoa] thông báo hiện ở TRÊN (không đè nút Gửi đơn)', () => {
+          const t = T.id('miniToast').getBoundingClientRect(), g = T.id('orderSubmitBtn').getBoundingClientRect()
+          if (t.bottom > g.top && t.top < g.bottom) throw new Error('thông báo đè lên nút Gửi đơn')
+        })
+        T.id('orderPhone').value = '0912345678'; T.id('orderEmail').value = 'sai-email'
+        T.id('orderSubmitBtn').click(); await cho(300)
+        test('[đặt hoa] email sai → KHÔNG gửi, tự mở mục email để sửa', () => {
+          bang(nhatKy.filter(x => x.lenh === 'rpc').length, 0)
+          bang(T.id('orderEmail').closest('.omx-than').previousElementSibling.classList.contains('open'), true)
+        })
+        T.id('orderEmail').value = ''
+        T.id('orderSubmitBtn').click(); await cho(150)
+        test('[đặt hoa] đủ thông tin → gửi 1 lần (database giả), hiện màn cảm ơn + mã đơn', () => {
+          bang(nhatKy.filter(x => x.lenh === 'rpc').length, 1)
+          if (!/#LT-0999/.test(T.id('orderModalBody').textContent)) throw new Error('không thấy mã đơn')
+        })
+        test('[đặt hoa] ngày giao mặc định = ngày mai', () =>
+          bang(nhatKy[0].thamSo.p_delivery_date, new Date(Date.now() + 864e5).toLocaleDateString('sv-SE')))
+      }
+      if (ten === 'san-pham' && rong === 1280) {
+        test('[sản phẩm] máy tính: lưới ≥ 3 cột', () => { if (soCot(T.id('productsGrid')) < 3) throw new Error(soCot(T.id('productsGrid')) + ' cột') })
+      }
+      if (ten === 'khoanh-khac') {
+        const mong = rong <= 860 ? 2 : 4
+        test(`[khoảnh khắc] ${mong} cột ảnh ở khổ ${rong}px`, () => bang(d.querySelectorAll('#galleryGrid .gallery-col').length, mong))
+        if (rong === 390) {
+          const anh = d.querySelector('#galleryGrid .gallery-item')
+          if (anh) {
+            anh.click(); await cho(350)
+            const lb = d.querySelector('.lightbox')
+            test('[khoảnh khắc] bấm ảnh → mở ảnh lớn có nút "Đặt mẫu này"', () => {
+              if (!lb) throw new Error('không mở')
+              bang(!!lb.querySelector('.lightbox-order'), true)
+            })
+            test('[khoảnh khắc] nút trong ảnh lớn đều có tên', () => bang(lb ? nutThieuTen(lb) : ['không mở'], []))
+            lb && lb.querySelector('.lightbox-close').click(); await cho(350)
+            test('[khoảnh khắc] bấm ✕ → đóng ảnh lớn', () => bang(!!d.querySelector('.lightbox.show'), false))
+          }
+        }
+      }
+      T.f.remove()
+    }
+  }
+
+  // ── 2. Trang chi tiết mẫu hoa ──
+  nhom('2. Trang chi tiết mẫu hoa')
+  if (!idMau) test('Tìm được 1 mẫu hoa để mở trang chi tiết', () => { throw new Error('không có mẫu hoa nào') })
+  else for (const rong of [390, 1280]) {
+    const T = await moTrang('chi-tiet?id=' + idMau, rong)
+    const { w, d } = T
+    test(`[${rong}px] không tràn ngang, không lỗi JS`, () => {
+      const thua = d.documentElement.scrollWidth - w.innerWidth; if (thua > 1) throw new Error('tràn ' + thua)
+      bang(T.loi, [])
+    })
+    test(`[${rong}px] nút có tên, không emoji`, () => { bang(nutThieuTen(d.body), []); bang(nutCoEmoji(d), []) })
+    const bar = d.querySelector('.detail-actions')
+    if (rong === 390) {
+      test('Nút "Zalo + Đặt mẫu này" ghim sát đáy màn hình', () => {
+        bang(getComputedStyle(bar).position, 'fixed')
+        const r = bar.getBoundingClientRect(); if (Math.abs(r.bottom - w.innerHeight) > 1) throw new Error('đáy ' + r.bottom + ' / ' + w.innerHeight)
+      })
+      test('Trang chi tiết KHÔNG có thanh tab (đáy dành cho nút đặt)', () => bang(d.querySelector('.w-tabs'), null))
+      test('Nút Zalo nổi ẩn (đã có Zalo ở thanh đáy)', () => {
+        const z = d.querySelector('.zalo-float'); bang(!z || getComputedStyle(z).display === 'none', true)
+      })
+      test('Nút Zalo ở thanh đáy có tên (chỉ còn biểu tượng)', () => bang(nutThieuTen(bar), []))
+    } else {
+      test('Máy tính: khối nút nằm trong trang (không ghim)', () => bang(getComputedStyle(bar).position, 'static'))
+    }
+    test('Mục gợi ý có tiêu đề đúng (không còn "cùng danh mục")', () => {
+      const h = d.querySelector('#relatedSection h2').textContent
+      if (!['Cùng bộ sưu tập', 'Có thể bạn cũng thích'].includes(h)) throw new Error(h)
+    })
+    T.f.remove()
+  }
+
+  // ── 3. Link cũ vẫn chạy ──
+  nhom('3. Trang chuyển hướng (link cũ trên Facebook/Zalo)')
+  for (const [cu, moi] of [['gallery.html', 'khoanh-khac'], ['dang-sau-nhung-bo-hoa.html', 'cau-chuyen'], ['san-pham-chi-tiet.html', 'chi-tiet']]) {
+    const txt = await (await fetch('../' + cu, { cache: 'no-store' })).text()
+    test(`${cu} → ${moi}`, () => { if (!txt.includes(`location.replace('${moi}'`)) throw new Error('không chuyển sang ' + moi) })
+  }
+
+  const tk = document.getElementById('tongket')
+  tk.className = soFail ? 'fail-box' : 'ok-box'
+  tk.textContent = soFail ? '✕ ' + soFail + ' ca FAIL / ' + (soOk + soFail) + ' ca' : '✓ Tất cả ' + soOk + ' ca đều PASS'
+})().catch(e => {
+  const tk = document.getElementById('tongket'); tk.className = 'fail-box'; tk.textContent = 'Lỗi khi chạy test: ' + e.message
+})
+</script>
+</body>
+</html>

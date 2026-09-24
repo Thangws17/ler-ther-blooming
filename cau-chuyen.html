@@ -85,7 +85,7 @@
       <span class="logo-icon">🌸</span>
       <span>Ler &amp; Ther <span class="logo-accent">Blooming</span></span>
     </a>
-    <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></button>
     <ul class="nav-links" id="navLinks">
       <li><a href="./">Trang chủ</a></li>
       <li><a href="san-pham">Sản phẩm</a></li>
@@ -98,7 +98,7 @@
 
 <!-- ── Banner ────────────────────────────────────────────── -->
 <div id="siteBanner" class="site-banner" style="display:none">
-  <div class="banner-inner"><span id="bannerText"></span><button class="banner-close" onclick="closeBanner()">✕</button></div>
+  <div class="banner-inner"><span id="bannerText"></span><button class="banner-close" onclick="closeBanner()" aria-label="Đóng"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
 </div>
 
 <!-- ── Page Header ────────────────────────────────────── -->
@@ -141,17 +141,17 @@
     <!-- Values -->
     <div class="story-values">
       <div class="story-value reveal">
-        <div class="story-value-icon">🌸</div>
+        <div class="story-value-icon"><svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg></div>
         <h3>Tâm huyết</h3>
         <p>Mỗi bó hoa được cắm với toàn bộ cảm xúc, không phải chỉ bằng tay.</p>
       </div>
       <div class="story-value reveal" style="--reveal-delay:.08s">
-        <div class="story-value-icon">🤝</div>
+        <div class="story-value-icon"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></div>
         <h3>Đồng hành</h3>
         <p>Ther luôn ở đó — từ những chuyến đi nhập hoa sớm đến từng đơn hàng.</p>
       </div>
       <div class="story-value reveal" style="--reveal-delay:.16s">
-        <div class="story-value-icon">💌</div>
+        <div class="story-value-icon"><svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg></div>
         <h3>Gửi gắm</h3>
         <p>Hoa là cách Ler nói những điều khó nói — và gửi chúng đến tay bạn.</p>
       </div>
@@ -160,7 +160,7 @@
     <!-- CTA -->
     <div class="story-cta reveal">
       <p style="color:var(--text-mid)">Muốn để Ler gửi gắm điều gì đó qua một bó hoa?</p>
-      <a href="san-pham" class="btn btn-primary">🌺 Xem sản phẩm</a>
+      <a href="san-pham" class="btn btn-primary">Xem sản phẩm</a>
     </div>
 
   </div>
@@ -177,8 +177,8 @@
         </a>
         <p>Shop hoa tươi với tâm huyết — mỗi bông hoa là một lời yêu thương được gửi đi.</p>
         <div class="footer-contact">
-          <span id="footAddress" class="foot-line" style="display:none">📍 <span></span></span>
-          <a id="footPhone" class="foot-line" href="#" style="display:none">📞 <span></span></a>
+          <span id="footAddress" class="foot-line" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg><span></span></span>
+          <a id="footPhone" class="foot-line" href="#" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span></span></a>
         </div>
       </div>
       <div class="footer-col">
@@ -207,7 +207,7 @@
   </div>
 </footer>
 
-<a href="#" class="zalo-float" id="zaloFloat" target="_blank" aria-label="Chat Zalo">
+<a href="#" class="zalo-float" id="zaloFloat" target="_blank" aria-label="Chat Zalo" title="Chat Zalo">
   <span>💬</span>
   <span class="zalo-label">Chat Zalo</span>
 </a>

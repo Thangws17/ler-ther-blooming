@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test người nhận + giờ giao — Ler &amp; Ther Blooming</title>
+<style>
+  body { margin: 0; padding: 24px; font: 14px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; background: #FAF8F5; color: #2B2B2B; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6B6B6B; margin: 0 0 20px; }
+  #tongket { padding: 12px 16px; border-radius: 10px; font-weight: 600; margin-bottom: 18px; }
+  .ok-box { background: #E8F5E9; color: #1B5E20; border: 1px solid #A5D6A7; }
+  .fail-box { background: #FFEBEE; color: #B71C1C; border: 1px solid #EF9A9A; }
+  h2 { font-size: 15px; margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #E5DFD7; }
+  .ca { display: flex; gap: 8px; padding: 5px 0; align-items: baseline; }
+  .dau { flex: 0 0 18px; font-weight: 700; }
+  .ok .dau { color: #2E7D32; } .fail .dau { color: #C62828; }
+  .fail { background: #FFF5F5; border-radius: 6px; padding-left: 6px; }
+  .ten { flex: 1; }
+  .chitiet { display: block; color: #C62828; font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; white-space: pre-wrap; margin-top: 2px; }
+  iframe { width: 390px; height: 760px; border: 0; position: absolute; left: -9999px; top: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Test "người nhận + giờ giao"</h1>
+  <p class="sub">Web khách GHÉP người nhận + giờ vào ghi chú đơn, admin TÁCH ra. Kiểm cả 2 phía bằng cách bấm nút thật.
+     Gửi đơn dùng <b>database giả</b> (thay <code>sb.rpc</code>) — không tạo đơn thật.</p>
+  <div id="tongket">Đang chạy…</div>
+  <div id="kq"></div>
+</div>
+<iframe id="web" src="../san-pham"></iframe>
+<iframe id="adm" src="../admin/index.html"></iframe>
+<script src="../js/dungchung.js"></script>
+<script>
+let soOk = 0, soFail = 0
+const boxKq = document.getElementById('kq')
+function nhom(t) { const h = document.createElement('h2'); h.textContent = t; boxKq.appendChild(h) }
+function test(ten, fn) {
+  const row = document.createElement('div'); row.className = 'ca'
+  row.innerHTML = '<span class="dau"></span><span class="ten"></span>'
+  const dau = row.querySelector('.dau'), t = row.querySelector('.ten'); t.textContent = ten
+  try { fn(); soOk++; row.classList.add('ok'); dau.textContent = '✓' }
+  catch (e) { soFail++; row.classList.add('fail'); dau.textContent = '✕'
+    const c = document.createElement('span'); c.className = 'chitiet'; c.textContent = e.message; t.appendChild(c) }
+  boxKq.appendChild(row)
+}
+function bang(thuc, mong, ghi = '') {
+  const a = JSON.stringify(thuc), b = JSON.stringify(mong)
+  if (a !== b) throw new Error((ghi ? ghi + '\n' : '') + 'mong đợi: ' + b + '\nnhận được: ' + a)
+}
+const cho = ms => new Promise(r => setTimeout(r, ms))
+function doiKhung(f) {
+  return new Promise(res => {
+    const xong = () => { try { return f.contentDocument.readyState === 'complete' && f.contentWindow.location.href !== 'about:blank' } catch { return false } }
+    if (xong()) return res()
+    f.addEventListener('load', res, { once: true })
+  })
+}
+
+;(async function main() {
+  // ── 1. Hàm dùng chung ──
+  nhom('1. Ghép / tách ghi chú (js/dungchung.js)')
+  test('Đủ cả 3 thứ → đúng mẫu, mỗi thứ 1 dòng', () =>
+    bang(ghepGhiChuDon({ nguoiNhan: 'Lan', sdtNhan: '0912345678', gio: '15h', ghiChu: 'Kèm thiệp' }),
+      'Người nhận: Lan · 0912345678\nGiờ giao: 15h\nKèm thiệp'))
+  test('Không có gì → chuỗi rỗng (không ghi "Người nhận:" trống)', () => bang(ghepGhiChuDon({}), ''))
+  test('Chỉ có ghi chú → giữ nguyên ghi chú, không thêm dòng lạ', () => bang(ghepGhiChuDon({ ghiChu: '  giao trước 10h ' }), 'giao trước 10h'))
+  test('Chỉ tên người nhận, không SĐT', () => bang(ghepGhiChuDon({ nguoiNhan: 'Bà nội' }), 'Người nhận: Bà nội'))
+  const mau = [
+    { nguoiNhan: 'Lan', sdtNhan: '0912345678', gio: '15h', ghiChu: 'Kèm thiệp\nnơ đỏ' },
+    { nguoiNhan: '', sdtNhan: '', gio: '9h', ghiChu: '' },
+    { nguoiNhan: 'Chị Hà', sdtNhan: '', gio: '', ghiChu: 'Gọi trước khi tới' },
+    { nguoiNhan: '', sdtNhan: '', gio: '', ghiChu: 'Ghi chú thường của đơn cũ' },
+  ]
+  mau.forEach((m, i) => test(`Ghép rồi tách lại ra đúng như cũ (mẫu ${i + 1})`, () => bang(tachGhiChuDon(ghepGhiChuDon(m)), m)))
+  test('Đơn cũ (ghi chú tự do) → cả chuỗi là ghi chú, không bị nuốt mất', () =>
+    bang(tachGhiChuDon('Người nhận thích màu hồng'), { nguoiNhan: '', sdtNhan: '', gio: '', ghiChu: 'Người nhận thích màu hồng' }))
+  test('Ghi chú rỗng / null không lỗi', () => bang(tachGhiChuDon(null), { nguoiNhan: '', sdtNhan: '', gio: '', ghiChu: '' }))
+  test('Chip giờ giao: 8h → 21h, mỗi giờ 1 chip', () => bang(GIO_GIAO.length, 14))
+  test('Mã đơn giống admin: #LT-0153', () => bang(maDon(153), '#LT-0153'))
+
+  // ── 2. Web khách: form đặt hoa — bấm thật ──
+  const web = document.getElementById('web')
+  await doiKhung(web); await cho(1500)
+  const w = web.contentWindow, d = web.contentDocument, id = x => d.getElementById(x)
+  nhom('2. Web khách — form đặt hoa (bấm nút thật)')
+  if (typeof w.openOrderModal !== 'function') { test('Trang sản phẩm nạp được JS', () => { throw new Error('không có openOrderModal') }) }
+  else {
+    w.openOrderModal(1, 'Tulip thử')
+    await cho(50)
+    const mai = new Date(Date.now() + 864e5).toLocaleDateString('sv-SE')
+    const kia = new Date(Date.now() + 2 * 864e5).toLocaleDateString('sv-SE')
+    test('KHÔNG còn ô lịch iPhone (input type=date) trong form', () => bang(d.querySelectorAll('#orderForm input[type="date"]').length, 0))
+    test('Mặc định giao NGÀY MAI, chip "Ngày mai" sáng', () => {
+      bang(id('orderDate').value, mai)
+      bang(d.querySelector('#omNgay .om-chip2.on')?.textContent.trim(), 'Ngày mai')
+    })
+    d.querySelector('#omNgay [data-d="2"]').click()
+    test('Bấm "Ngày kia" → ngày giao = ngày kia', () => bang(id('orderDate').value, kia))
+    id('omNgayKhac').click(); await cho(20)
+    test('Bấm "Chọn ngày" → lịch mở', () => bang(id('omLich').style.display, 'block'))
+    const nutSau = d.querySelectorAll('#omLich .ol-h button')[1]
+    nutSau.click(); await cho(20)
+    test('Bấm › trên lịch → lịch VẪN MỞ (bẫy popover tự đóng)', () => bang(id('omLich').style.display, 'block'))
+    test('Ngày đã qua không bấm được', () => {
+      w.doiThangLich(-1)
+      const hn = new Date().getDate()
+      if (hn > 1) {
+        const hqua = [...d.querySelectorAll('#omLich .ol-d')].find(b => b.textContent === String(hn - 1))
+        bang(hqua.disabled, true)
+      }
+    })
+    const ngay20 = [...d.querySelectorAll('#omLich .ol-d:not([disabled])')].pop()
+    ngay20.click()
+    test('Chọn 1 ngày trên lịch → lịch đóng, chip lịch hiện dd/mm', () => {
+      bang(id('omLich').style.display, 'none')
+      const v = id('orderDate').value
+      bang(id('omNgayKhac').textContent.trim(), v.slice(8, 10) + '/' + v.slice(5, 7))
+    })
+    d.querySelector('#omGio [data-gio="15h"]').click()
+    test('Bấm chip 15h → giờ giao = 15h', () => bang(id('orderTime').value, '15h'))
+    d.querySelector('#omGio [data-gio="15h"]').click()
+    test('Bấm lại 15h → bỏ chọn giờ', () => bang(id('orderTime').value, ''))
+    d.querySelector('#omGio [data-gio="16h"]').click()
+    test('Mặc định "Tôi nhận" → ô người nhận ẩn', () => bang(id('omNhanKhac').style.display, 'none'))
+    d.querySelector('#omNhan [data-v="1"]').click()
+    test('Bấm "Tặng người khác" → hiện ô tên + SĐT người nhận', () => bang(id('omNhanKhac').style.display, ''))
+
+    // Điền + gửi với database GIẢ
+    let goi = null
+    w.eval('sb').rpc = (ten, thamSo) => { goi = { ten, thamSo }; return Promise.resolve({ data: 153, error: null }) }
+    id('orderName').value = 'Minh Anh'; id('orderPhone').value = '0912 345 678'
+    id('orderAddress').value = '12 Lê Lợi'; id('orderRecvName').value = 'Lan'; id('orderRecvPhone').value = '0987654321'
+    id('orderNote').value = 'Kèm thiệp'
+    const hanGui = id('orderDate').value
+    id('orderSubmitBtn').click(); await cho(80)
+    test('Gọi place_order (database giả)', () => bang(goi && goi.ten, 'place_order'))
+    test('Ghi chú đơn = người nhận + giờ + ghi chú, đúng mẫu', () =>
+      bang(goi.thamSo.p_note, 'Người nhận: Lan · 0987654321\nGiờ giao: 16h\nKèm thiệp'))
+    test('Ngày giao gửi đi đúng ngày đã chọn', () => bang(goi.thamSo.p_delivery_date, hanGui))
+    test('SĐT người đặt được chuẩn hoá', () => bang(goi.thamSo.p_phone, '0912345678'))
+    test('Màn cảm ơn hiện mã đơn #LT-0153', () => {
+      if (!/#LT-0153/.test(id('orderModalBody').textContent)) throw new Error(id('orderModalBody').textContent.slice(0, 200))
+    })
+
+    w.closeOrderModal(); w.openOrderModal(1, 'Tulip thử'); await cho(30)
+    goi = null
+    id('orderName').value = 'Khách B'; id('orderPhone').value = '0912345678'; id('orderAddress').value = 'Q.3'
+    id('orderSubmitBtn').click(); await cho(80)
+    test('Không tặng, không giờ, không ghi chú → ghi chú rỗng (null)', () => bang(goi.thamSo.p_note, null))
+  }
+
+  // ── 3. Admin: tách ra khi sửa, ghép lại khi lưu ──
+  const adm = document.getElementById('adm')
+  await doiKhung(adm); await cho(1500)
+  const a = adm.contentWindow, ad = adm.contentDocument, aid = x => ad.getElementById(x)
+  nhom('3. Admin — chi tiết đơn + form sửa đơn')
+  if (typeof a.openOrderEditModal !== 'function') { test('Admin nạp được JS', () => { throw new Error('không có openOrderEditModal') }) }
+  else {
+    aid('appWrap').style.display = 'flex'
+    const don = { id: 777, customer_name: 'Minh Anh', customers: { name: 'Minh Anh', phone: '0912345678' }, product_name: 'Tulip', quantity: 1,
+      unit_price: 600000, shipping_fee: 0, total: 600000, status: 'Mới', delivery_date: new Date().toLocaleDateString('sv-SE'),
+      delivery_address: '12 Lê Lợi', note: 'Người nhận: Lan · 0987654321\nGiờ giao: 16h\nKèm thiệp', created_at: new Date().toISOString() }
+    a.cacheOrders([don])
+    a.viewOrderDetail(777)
+    const txt = aid('customerOrdersBody').textContent
+    test('Chi tiết đơn hiện "Người nhận: Lan · 0987654321"', () => { if (!/Người nhận\s*Lan · 0987654321/.test(txt)) throw new Error(txt.slice(0, 300)) })
+    test('Chi tiết đơn hiện giờ giao 16h cạnh ngày', () => { if (!/16h/.test(txt)) throw new Error('không thấy 16h') })
+    test('Khung "Ghi chú" chỉ còn phần ghi chú thật', () => {
+      const g = ad.querySelector('#customerOrdersBody .od-ghichu')
+      bang(g && g.textContent.replace('Ghi chú', '').trim(), 'Kèm thiệp')
+    })
+    a.openOrderEditModal(777); await cho(30)
+    test('Sửa đơn: ô người nhận / SĐT / giờ / ghi chú tự điền đúng', () => {
+      bang([aid('oeRecvName').value, aid('oeRecvPhone').value, aid('oeGio').value, aid('oeNote').value], ['Lan', '0987654321', '16h', 'Kèm thiệp'])
+    })
+    test('Sửa đơn: chip 16h sáng', () => bang(ad.querySelector('[data-gio-for="oeGio"] .on')?.dataset.v, '16h'))
+    test('Sửa đơn: mục "Người nhận" có dữ liệu nên tự mở', () => {
+      const nut = [...ad.querySelectorAll('#orderEditModal .fx-more')].find(b => b.textContent.includes('Người nhận'))
+      bang(nut.classList.contains('open'), true)
+    })
+    test('Lưu lại không đổi gì → ghi chú y hệt ban đầu', () => bang(a.ghiChuTuForm('oe'), don.note))
+    ad.querySelector('[data-gio-for="oeGio"] [data-v="18h"]').click()
+    test('Đổi sang 18h → ghi chú đổi đúng dòng giờ', () =>
+      bang(a.ghiChuTuForm('oe'), 'Người nhận: Lan · 0987654321\nGiờ giao: 18h\nKèm thiệp'))
+    aid('orderEditModal').dataset.dirty = ''; a.closeOrderEditModal()
+
+    a.openNewOrderModal(); await cho(30)
+    test('Thêm đơn: giờ + người nhận trống khi mở form', () =>
+      bang([aid('noGio').value, aid('noRecvName').value, aid('noRecvPhone').value], ['', '', '']))
+    ad.querySelector('[data-gio-for="noGio"] [data-v="10h"]').click()
+    aid('noRecvName').value = 'Bà nội'
+    test('Thêm đơn: ghép ghi chú giống hệt web khách', () => bang(a.ghiChuTuForm('no'), 'Người nhận: Bà nội\nGiờ giao: 10h'))
+    aid('orderNewModal').dataset.dirty = ''; a.closeNewOrderModal()
+  }
+
+  const tk = document.getElementById('tongket')
+  tk.className = soFail ? 'fail-box' : 'ok-box'
+  tk.textContent = soFail ? '✕ ' + soFail + ' ca FAIL / ' + (soOk + soFail) + ' ca' : '✓ Tất cả ' + soOk + ' ca đều PASS'
+})().catch(e => {
+  soFail++
+  const tk = document.getElementById('tongket'); tk.className = 'fail-box'; tk.textContent = '✕ Lỗi khi chạy test: ' + e.message
+})
+</script>
+</body>
+</html>

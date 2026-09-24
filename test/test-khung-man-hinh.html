@@ -135,8 +135,57 @@ const dt = document.getElementById('dt')
   test('.content có min-height: 0 để co được, không tràn ra ngoài', () =>
     bang(css(content).minHeight, '0px',
       'Thiếu min-height:0 thì nội dung dài tràn khỏi khung thay vì cuộn bên trong'))
-  test('Thanh trên + khung cuộn vừa đúng chiều cao khung app', () =>
-    gan(topbar.offsetHeight + content.offsetHeight, appWrap.offsetHeight, 1))
+  const tabs = d.querySelector('.bottom-tabs')
+  test('Thanh trên + khung cuộn + thanh tab dưới vừa đúng chiều cao khung app', () =>
+    gan(topbar.offsetHeight + content.offsetHeight + (tabs ? tabs.offsetHeight : 0), appWrap.offsetHeight, 1))
+
+  // ── 2b. Thanh tab dưới đáy (23/09/2026) — cùng luật với thanh trên ──
+  nhom('2b. Thanh tab dưới đáy nằm ngoài khung cuộn')
+  test('Có thanh tab dưới đáy', () => { if (!tabs) throw new Error('không thấy .bottom-tabs') })
+  if (tabs) {
+    test('.bottom-tabs KHÔNG nằm trong .content (iOS vẽ sai phần tử dính trong khung cuộn)', () =>
+      bang(content.contains(tabs), false))
+    test('.bottom-tabs là con trực tiếp của #appWrap, đứng SAU .content', () => {
+      bang(tabs.parentElement === appWrap, true)
+      bang(!!(content.compareDocumentPosition(tabs) & w.Node.DOCUMENT_POSITION_FOLLOWING), true)
+    })
+    test('Thanh tab KHÔNG dùng position fixed/sticky (xếp trong khung dọc là đủ)', () =>
+      bang(css(tabs).position, 'static'))
+    test('Thanh tab hiện trên điện thoại và không bị co', () => {
+      bang(css(tabs).display, 'flex')
+      bang(css(tabs).flexShrink, '0')
+    })
+    test('Đáy thanh tab chạm đúng đáy khung app (không hở, không tràn)', () =>
+      gan(tabs.getBoundingClientRect().bottom, appWrap.getBoundingClientRect().bottom, 1))
+    test('Có đủ 5 nút: Tổng quan, Đơn hàng, Lịch giao, Chi phí, Menu', () =>
+      bang([...tabs.querySelectorAll('.bt-item span')].map(s => s.textContent),
+        ['Tổng quan', 'Đơn hàng', 'Lịch giao', 'Chi phí', 'Menu']))
+    test('Nút cao ≥ 44px — đủ lớn cho ngón cái', () => {
+      const h = tabs.querySelector('.bt-item').offsetHeight
+      if (h < 44) throw new Error('nút tab chỉ cao ' + h + 'px')
+    })
+
+    // Lỗi thật khi làm (23/09): class đánh dấu lên <body> trùng tên class dùng để ẩn nút
+    // → mở tab Đơn hàng trên điện thoại là CẢ TRANG trắng. Kiểm từng tab, bấm nút thật.
+    const fab = d.getElementById('fabAdd')
+    for (const [tab, coFab] of [['Orders', true], ['Expenses', true], ['Delivery', false], ['Dashboard', false]]) {
+      w.syncBottomTabs(tab)
+      test(`[${tab}] trang vẫn hiện (body không bị ẩn), khung app vẫn cao đủ`, () => {
+        bang(css(d.body).display !== 'none', true, 'body bị display:none → màn hình trắng trơn')
+        gan(appWrap.offsetHeight, w.innerHeight, 2)
+      })
+      test(`[${tab}] nút ＋ nổi ${coFab ? 'HIỆN' : 'ẩn'}`, () =>
+        bang(css(fab).display !== 'none', coFab))
+      test(`[${tab}] đúng 1 nút tab sáng`, () =>
+        bang(tabs.querySelectorAll('.bt-item.active').length, 1))
+    }
+    w.syncBottomTabs('Products')
+    test('Tab không có ở thanh dưới (Sản phẩm) → nút "Menu" sáng', () =>
+      bang(tabs.querySelector('.bt-more').classList.contains('active'), true))
+    test('Nút "Thêm đơn" ở đầu tab ẩn trên điện thoại (đã có nút ＋ nổi)', () =>
+      bang(css(d.querySelector('#panelOrders .panel-topbar .btn-green')).display, 'none'))
+    w.syncBottomTabs('Dashboard')
+  }
 
   // ── 3. Chiều cao khung app — LỖI GỐC ────────────────────────────
   nhom('3. Chiều cao khung app không chạy theo bàn phím (lỗi "trắng thông tin")')

@@ -18,12 +18,17 @@ Không có bước build, không `npm install`. Vẫn nên mở trình duyệt x
 mấy trang test chạy trong trình duyệt (vẫn server 8765 đó):
 
 - `/test/test-gia-san-pham.html` — ô giá sản phẩm: chèn dấu chấm, giữ con trỏ, dãy giá hay dùng
-- `/test/test-khung-man-hinh.html` — khung màn hình admin trên iPhone (xem "Bẫy đã biết")
-- `/test/test-form-chi-phi.html` — ô ngày + ô tiền trong form chi phí
+- `/test/test-khung-man-hinh.html` — khung màn hình admin trên iPhone + thanh tab dưới đáy (xem "Bẫy đã biết")
+- `/test/test-form-chi-phi.html` — ô ngày + ô tiền + chip / mục gấp của form chi phí và form thêm đơn
 - `/test/test-phan-trang-don.html` — phân trang đơn: kiểm đúng URL truy vấn gửi lên Supabase
 - `/test/test-sao-luu.html` — bộ tạo Excel + nút sao lưu thật trong admin (xuất file mẫu base64 để mở lại bằng openpyxl)
 - `/test/test-do-luong.html` — Google Analytics + Clarity: khi nào đếm / không đếm, kiểm mã, hàng chờ thao tác
 - `/test/test-bo-suu-tap.html` — bộ sưu tập: luật hiện/ẩn, đuôi link, tắt bộ không làm mất mẫu hoa
+- `/test/test-nguoi-nhan.html` — người nhận + giờ giao: web ghép vào ghi chú đơn, admin tách ra (bấm thật, database giả)
+- `/test/test-web-khach.html` — mọi trang web khách × 3 khổ (360/390/1280): tràn ngang, lỗi JS, nút có tên, emoji,
+  thanh tab, nút nổi, lọc/tìm/xem ảnh/menu, form đặt hoa + các lỗi nhập (gửi đơn bằng database giả), trang chi tiết
+- `/test/test-admin-giao-dien.html` — admin × 2 khổ (390/1280) với DATABASE GIẢ (`test/gia-lap-sb.js`): từng tab không
+  lỗi / không tràn, số đỏ, nút ＋ nổi, Tổng quan, Lịch giao, chi phí, bộ sưu tập, album, nguyên liệu, cảnh báo nhập dở
 - `/test/test-cu-phap.html` — biên dịch thử toàn bộ JS (web + admin). Chạy sau mọi lần sửa file lớn
 
 Trang test **bốc hàm/DOM thật ra khỏi `admin/index.html`** chứ không copy code, nên sửa admin là test
@@ -158,6 +163,50 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
   đã bị gỡ trả `null` → tưởng bấm ra ngoài → đóng lịch ngay (lỗi thật 17/09: không chuyển được tháng). Trình
   xử lý chung đã chặn bằng `if (!e.target.isConnected) return`. Viết popover mới cũng phải nhớ điều này.
   **Test UI phải BẤM NÚT THẬT (`.click()`)**, đừng gọi thẳng hàm — test cũ gọi `fdStepMonth()` nên không bắt được.
+- **Biểu tượng: MỘT bộ duy nhất trong `js/dungchung.js` (`BIEU_TUONG` + `ic('ten')`)**, dùng cho cả admin lẫn
+  web khách; file đó tự chèn bộ `<symbol>` vào đầu `<body>`. HTML tĩnh viết `<svg class="ic"><use href="#i-ten"/></svg>`.
+  **Không thêm emoji vào nút/menu nữa** (23/09/2026 đã đổi hết sang biểu tượng nét mảnh). Emoji shop tự đặt cho
+  Bộ sưu tập / nhóm ảnh là NỘI DUNG — giữ ở thẻ bìa, bỏ ở nút lọc. Logo 🌸 / favicon là thương hiệu — giữ.
+  Chèn `${ic(...)}` thì chuỗi bao ngoài phải là template (dấu `), chuỗi nháy đơn sẽ lỗi cú pháp cả admin.
+- **Nút thao tác trong danh sách admin dùng `nutTT(ten, nhan, onclick, {xoa, tat})`**: máy tính chỉ hiện biểu
+  tượng (rê chuột ra tên), thẻ điện thoại `.mc-actions` hiện cả chữ. Đừng viết lại nút "✏️ Sửa / 🗑 Xóa" kiểu cũ.
+- **Thanh tab dưới đáy `.bottom-tabs` (điện thoại) cùng luật với `.admin-topbar`**: là anh em của `.content`,
+  KHÔNG nằm trong khung cuộn, không fixed/sticky. Tab nào có nút ＋ nổi thì khai ở `FAB_THEO_TAB`.
+- **Tên class đặt lên `<body>` không được trùng class dùng cho phần tử.** Lỗi thật 23/09: `body.co-fab` trùng
+  `.co-fab { display:none }` → mở tab Đơn hàng trên điện thoại là cả trang trắng. Giờ là `body.dang-co-nut-noi`
+  và `.an-tren-dt`; test-khung-man-hinh kiểm từng tab.
+- **`<td>` không được `display:flex`** — rớt khỏi bố cục bảng, cột nút lệch/tràn mép (lỗi cũ của `.actions`).
+- **Form Thêm đơn + Thêm chi phí kiểu mới** (chip, mục gấp `.fx-more`, ô ẩn giữ đúng id cũ): chip chọn giá trị
+  qua `segSet(id, v)` (trạng thái đơn, loại chi phí), ngày nhanh qua `qdPick` và `fdSync` tự tô chip. `form.reset()`
+  KHÔNG đặt lại ô hidden → mở form phải tự `segSet` về mặc định. Chip do JS xử lý không bắn `input` nên tự gọi
+  `danhDauDangNhap(el)` để cảnh báo "đang nhập dở" còn chạy. Ô đơn giá / phí ship của form thêm đơn giờ là ô tiền
+  có dấu chấm (`moneyNum`), không còn `type="number"`.
+- **Số đỏ trên biểu tượng** (menu bên + thanh dưới) đều do `refreshNewOrderBadge()` vẽ: Đơn hàng = đơn chưa giao ("Mới" + "Đã xác nhận", `BADGE_DON_STATUSES`);
+  Lịch giao = đơn giao hôm nay + mai chưa xong. Thêm số đếm mới thì dùng `ganSoDem([...], n)`.
+- **Tổng quan xếp theo việc cần làm**: đơn mới → Giao hôm nay → Sắp giao (3 ngày, chia theo ngày, `ngayNhan()`) →
+  số liệu tháng (gọn) → công cụ. Khung sao lưu giữ id `backupBox/backupLast/backupStatus/backupBtn` + chữ nút
+  "Tải file sao lưu" (test-sao-luu kiểm).
+- **Xem admin với dữ liệu giả**: `/demo/xem-admin.html?v=tq|ds|don|sua|ct|lg|ex|chi|nl|nls|menu` (thư mục `demo/`
+  không lên git). Thay `sb.from` bằng bản giả, không đụng Supabase — dùng để chụp màn hình kiểm giao diện.
+  Trình duyệt chạy ngầm không vẽ iframe, nên trang này nạp thẳng mã admin chứ không nhúng.
+- **Trang test chạy trong khung ẩn NGOÀI màn hình → trình duyệt dừng hiệu ứng chuyển động giữa chừng** (đo vị trí sai).
+  Trang test web khách tự tắt hiệu ứng trong khung. Và đừng để hiệu ứng `transition: all` trên phần tử nổi (nút Zalo):
+  vị trí đổi lúc tải trang sẽ thành "trượt giật" — chỉ cho chuyển động transform / bóng.
+- **Ô không hợp lệ nằm trong mục đang gấp** (vd email sai trong form đặt hoa) → trình duyệt chặn gửi nhưng không tới
+  được ô ẩn → khách bấm Gửi không thấy gì. Có trình bắt sự kiện `invalid` tự mở mục đó — mục gấp mới phải dùng class
+  `.omx-than` (web) để được hưởng.
+- **Người nhận + giờ giao nằm trong GHI CHÚ đơn, không có cột riêng.** Mẫu cố định (mỗi thứ 1 dòng đầu ghi chú):
+  `Người nhận: Lan · 0912…` / `Giờ giao: 15h`. Ghép bằng `ghepGhiChuDon()`, tách bằng `tachGhiChuDon()` (js/dungchung.js)
+  — web khách + form Thêm/Sửa đơn admin + chi tiết đơn + Lịch giao đều dùng 2 hàm này. **Đừng đổi chữ "Người nhận:" /
+  "Giờ giao:"** — đơn cũ sẽ không tách được. Giờ chọn bằng chip `GIO_GIAO` (8h–21h), không dùng ô giờ của iOS.
+- **Web khách trên điện thoại có thanh tab dưới đáy** (`veThanhTabKhach()` trong main.js chèn cho mọi trang, trừ trang
+  chi tiết — đáy trang đó là thanh "Zalo + Đặt mẫu này"). Nút nổi (Zalo, lên đầu trang) phải đứng TRÊN thanh này.
+- **Form đặt hoa web khách không còn `<input type="date">`**: chip Ngày mai / Ngày kia + lịch tự vẽ (`veLichGiao`),
+  giá trị vẫn ở `#orderDate` (hidden). Trang chủ chỉ còn 1 ảnh to (`#heroBg`); 2 ô ảnh phụ trong admin đã ẩn.
+- **Khoảnh khắc trong admin theo ALBUM** (mỗi nhóm ảnh = 1 album, `kkAlbum`/`kkMoAlbum`). Album chỉ là lớp vỏ trên
+  `galleryFilterCat` cũ: tải ảnh trong album → `#galleryCategory` tự đặt = album đó.
+- **Chọn mẫu hoa khi lên đơn chỉ lấy giá khi là số tiền thuần** (`!_priceIsText`). Giá "Từ 2xx" để trống — cùng
+  bẫy "2 đồng" với `place_order`.
 - **Đừng đặt `position: sticky` cho phần tử nằm TRONG `.content`.** `.content` là khung cuộn;
   sticky bên trong khung cuộn là chỗ iOS vẽ sai toạ độ → thấy phần tử nhưng bấm không trúng.
   `.admin-topbar` vì vậy là anh em của `.content`, không phải con.

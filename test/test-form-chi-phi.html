@@ -117,13 +117,16 @@ const dt = document.getElementById('dt')
     bang(id('expenseModal').style.display, 'flex')
     if (id('exDateBtn').offsetHeight < 20) throw new Error('nút ngày cao ' + id('exDateBtn').offsetHeight + 'px')
   })
-  test('Nút ngày cao bằng ô nhập khác (không lệch khung như iOS)', () => {
-    const a = id('exDateBtn').offsetHeight, b = id('exItem').offsetHeight
-    if (Math.abs(a - b) > 2) throw new Error('nút ngày ' + a + 'px, ô Mặt hàng ' + b + 'px — lệch nhau')
+  // Form kiểu mới (23/09/2026): nút lịch là 1 chip trong hàng "Hôm nay · Hôm qua · lịch"
+  test('Nút lịch cao bằng chip ngày cùng hàng (không lệch khung như iOS)', () => {
+    const chip = d.querySelector('.qd-row[data-for="exDate"] .fx-chip[data-d="0"]')
+    const a = id('exDateBtn').offsetHeight, b = chip.offsetHeight
+    if (Math.abs(a - b) > 2) throw new Error('nút lịch ' + a + 'px, chip "Hôm nay" ' + b + 'px — lệch nhau')
   })
-  test('Nút ngày rộng đúng bằng ô nhập khác', () => {
-    const a = id('exDateBtn').offsetWidth, b = id('exCategory').offsetWidth
-    if (Math.abs(a - b) > 2) throw new Error('nút ' + a + 'px vs select ' + b + 'px')
+  test('Chip ngày + nút lịch nằm trên CÙNG MỘT hàng (không rớt dòng)', () => {
+    const tops = [...d.querySelectorAll('.qd-row[data-for="exDate"] .fx-chip, #exDateBtn')]
+      .map(e => Math.round(e.getBoundingClientRect().top))
+    if (Math.max(...tops) - Math.min(...tops) > 2) throw new Error('lệch hàng: ' + tops.join(', '))
   })
 
   // ── 2. Mở form là có sẵn ngày hôm nay ───────────────────────────
@@ -381,6 +384,132 @@ const dt = document.getElementById('dt')
   test('[Sổ chi phí] tháng 01/2027 bấm ‹ → 12/2026', () => bang(id('expenseMonth').value, '2026-12'))
   nutTrong('panelExpenses', 1).click(); nutTrong('panelExpenses', 1).click()
   test('[Sổ chi phí] bấm › hai lần → 02/2027', () => bang(id('expenseMonth').value, '2027-02'))
+
+  // ── 5f. Form kiểu mới (23/09/2026) — BẤM NÚT THẬT ────────────────
+  nhom('5f. Form chi phí kiểu mới — chip, mục gấp, sửa dòng cũ')
+  const homQua = new Date(Date.now() - 86400000).toLocaleDateString('sv-SE')
+  const qdRow = f => d.querySelector(`.qd-row[data-for="${f}"]`)
+  w.openExpenseModal()
+  await new Promise(res => setTimeout(res, 50))
+  test('Mở form mới: mọi mục tuỳ chọn đều gấp lại', () =>
+    bang(d.querySelectorAll('#expenseModal .fx-more.open').length, 0))
+  test('Mở form mới: loại mặc định "Khác" và ô đó được tô', () => {
+    bang(id('exCategory').value, 'Khác')
+    bang(d.querySelector('#expenseModal [data-seg="exCategory"] .on')?.dataset.v, 'Khác')
+  })
+  test('Mở form mới: chip "Hôm nay" sáng, nút lịch chỉ ghi "Ngày khác"', () => {
+    bang(qdRow('exDate').querySelector('[data-d="0"]').classList.contains('on'), true)
+    bang(qdRow('exDate').classList.contains('qd-hit'), true)
+  })
+  qdRow('exDate').querySelector('[data-d="-1"]').click()
+  test('Bấm chip "Hôm qua" → ngày = hôm qua, chip đó sáng', () => {
+    bang(id('exDate').value, homQua)
+    bang(qdRow('exDate').querySelector('[data-d="-1"]').classList.contains('on'), true)
+    bang(qdRow('exDate').querySelector('[data-d="0"]').classList.contains('on'), false)
+  })
+  test('Bấm chip ngày cũng tính là "đang nhập dở"', () => bang(id('expenseModal').dataset.dirty, '1'))
+  w.fdPick('exDate', ngayXa)
+  test('Chọn ngày xa trên lịch → không chip nào sáng, nút lịch hiện ngày đó', () => {
+    bang(qdRow('exDate').querySelectorAll('.fx-chip.on').length, 0)
+    bang(qdRow('exDate').classList.contains('qd-custom'), true)
+    bang(id('exDateBtn').querySelector('.db-txt').textContent, dmy(ngayXa))
+  })
+  d.querySelector('#expenseModal [data-seg="exCategory"] [data-v="Hoa"]').click()
+  test('Bấm ô loại "Hoa" → lưu đúng "Hoa" vào ô ẩn', () => bang(id('exCategory').value, 'Hoa'))
+  id('exCalcToggle').click()
+  test('Bấm "Tính theo số lượng × đơn giá" → mục mở ra', () =>
+    bang(id('exCalcToggle').classList.contains('open'), true))
+  id('exQty').value = '20'; go(id('exUnitPrice'), '12000'); w.exUpdateAmount()
+  test('SL 20 × 12.000 → số tiền to ở đầu form = 240.000', () => bang(id('exAmount').value, '240.000'))
+  test('Dòng giải thích hiện đúng phép tính', () => {
+    if (!/240\.000/.test(id('exCalcNote').textContent)) throw new Error(id('exCalcNote').textContent)
+  })
+  id('exCalcToggle').click()
+  test('Bấm lần nữa → mục gấp lại', () => bang(id('exCalcToggle').classList.contains('open'), false))
+  id('expenseModal').dataset.dirty = ''
+  w.closeExpenseModal()
+
+  // Sửa dòng cũ: số tiền gõ tay KHÔNG được bị SL × đơn giá đè; mục có dữ liệu tự mở
+  w.eval(`expenses = [{ id: 987654, expense_date: '2026-09-01', category: 'Phụ kiện', item: 'Ruy băng',
+    quantity: 10, unit_price: 5000, amount: 60000, note: 'mua thêm', image: '' }]`)
+  w.openExpenseModal(987654)
+  await new Promise(res => setTimeout(res, 50))
+  test('Sửa dòng cũ: số tiền giữ nguyên 60.000 (không bị 10 × 5.000 = 50.000 đè)', () =>
+    bang(id('exAmount').value, '60.000'))
+  test('Sửa dòng cũ: loại "Phụ kiện" được tô', () =>
+    bang(d.querySelector('#expenseModal [data-seg="exCategory"] .on')?.dataset.v, 'Phụ kiện'))
+  test('Sửa dòng cũ: mục SL × đơn giá và Ghi chú tự mở, mục Ảnh (trống) vẫn gấp', () => {
+    const mo = [...d.querySelectorAll('#expenseModal .fx-more')].map(b => b.classList.contains('open'))
+    bang(mo, [true, true, false])
+  })
+  test('Chip "mặt hàng hay mua" lấy từ các dòng chi phí', () =>
+    bang([...d.querySelectorAll('#exQuickItems .fx-chip')].map(b => b.textContent), ['Ruy băng']))
+  id('expenseModal').dataset.dirty = ''
+  w.closeExpenseModal()
+  w.eval('expenses = []')
+
+  nhom('5g. Form thêm đơn kiểu mới — tiền có dấu chấm, chip, chọn mẫu')
+  w.openNewOrderModal()
+  await new Promise(res => setTimeout(res, 50))
+  test('Ô đơn giá + phí ship là type=text + inputmode=numeric (trước là type=number, không có dấu chấm)', () => {
+    for (const f of ['noUnitPrice', 'noShipping']) {
+      bang(id(f).type, 'text'); bang(id(f).getAttribute('inputmode'), 'numeric')
+    }
+  })
+  test('Trạng thái mặc định "Đã xác nhận", có chip cho mọi trạng thái trừ "Đã hủy"', () => {
+    bang(id('noStatus').value, 'Đã xác nhận')
+    bang([...d.querySelectorAll('[data-seg="noStatus"] [data-v]')].map(b => b.dataset.v),
+      w.eval('ORDER_STATUSES').filter(s => s !== 'Đã hủy'))
+  })
+  d.querySelector('[data-seg="noStatus"] [data-v="Mới"]').click()
+  test('Bấm chip "Mới" → trạng thái lưu đúng "Mới"', () => bang(id('noStatus').value, 'Mới'))
+  test('Phí ship mặc định miễn phí: ô để trống, chip "Miễn phí" sáng', () => {
+    bang(id('noShipping').value, '')
+    bang(d.querySelector('#noShipChips .fx-chip.on')?.textContent, 'Miễn phí')
+  })
+  go(id('noUnitPrice'), '350000'); w.noUpdateTotalPreview()
+  test('Gõ đơn giá 350000 → "350.000", tổng = 350.000đ', () => {
+    bang(id('noUnitPrice').value, '350.000')
+    if (!/350\.000/.test(id('noTotalPreview').textContent)) throw new Error(id('noTotalPreview').textContent)
+  })
+  d.querySelector('#noShipChips .fx-chip[data-v="30000"]').click()
+  test('Bấm chip ship 30.000 → ô ship "30.000", tổng = 380.000đ', () => {
+    bang(id('noShipping').value, '30.000')
+    if (!/380\.000/.test(id('noTotalPreview').textContent)) throw new Error(id('noTotalPreview').textContent)
+  })
+  go(id('noShipping'), '25000'); w.shipSync()
+  test('Gõ phí ship số khác → không chip nào sáng', () =>
+    bang(d.querySelectorAll('#noShipChips .fx-chip.on').length, 0))
+
+  w.eval(`products = [
+    { id: 91001, name: 'Tulip thử', price: 'Từ 2xx (Theo size order)', image: '' },
+    { id: 91002, name: 'Hồng thử', price: '600,000đ', image: '' }]`)
+  w.pickProduct(91001)
+  test('Chọn mẫu giá "Từ 2xx" → đơn giá để TRỐNG, không thành 2đ (lỗi cũ)', () =>
+    bang(id('noUnitPrice').value, ''))
+  test('Chọn mẫu → ô tìm + ô tên ẩn đi, thẻ mẫu đã chọn hiện ra, tên tự điền', () => {
+    bang(id('noProdSearchWrap').style.display, 'none')
+    bang(id('noProductNameRow').style.display, 'none')
+    bang(id('noProdPicked').style.display, 'block')
+    bang(id('noProductName').value, 'Tulip thử')
+  })
+  w.pickProduct(91002)
+  test('Chọn mẫu giá "600,000đ" → đơn giá "600.000"', () => bang(id('noUnitPrice').value, '600.000'))
+  id('noProdPicked').querySelector('.act').click()
+  test('Bấm ✕ bỏ chọn mẫu → ô tìm + ô tên hiện lại', () => {
+    bang(id('noProdSearchWrap').style.display, '')
+    bang(id('noProductNameRow').style.display, '')
+  })
+  test('Mục thiếp / ghi chú / ảnh gấp lại khi mở form', () =>
+    bang(d.querySelectorAll('#orderNewModal .fx-more.open').length, 0))
+  qdRow('noDate').querySelector('[data-d="1"]').click()
+  test('Bấm chip "Mai" → ngày giao = ngày mai', () =>
+    bang(id('noDate').value, new Date(Date.now() + 86400000).toLocaleDateString('sv-SE')))
+  w.eval('products = []')
+  id('orderNewModal').dataset.dirty = ''
+  w.closeNewOrderModal()
+  w.openExpenseModal()                    // nhóm 6 bên dưới kiểm trên form chi phí đang mở
+  await new Promise(res => setTimeout(res, 50))
 
   // ── 6. Form không bị đẩy lên cụt đầu ────────────────────────────
   nhom('6. Form không bị đẩy lên / cụt đầu')

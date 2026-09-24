@@ -29,7 +29,7 @@
       <span class="logo-icon">🌸</span>
       <span>Ler &amp; Ther <span class="logo-accent">Blooming</span></span>
     </a>
-    <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></button>
     <ul class="nav-links" id="navLinks">
       <li><a href="./">Trang chủ</a></li>
       <li><a href="san-pham">Sản phẩm</a></li>
@@ -42,7 +42,7 @@
 
 <!-- ── Banner ────────────────────────────────────────────── -->
 <div id="siteBanner" class="site-banner" style="display:none">
-  <div class="banner-inner"><span id="bannerText"></span><button class="banner-close" onclick="closeBanner()">✕</button></div>
+  <div class="banner-inner"><span id="bannerText"></span><button class="banner-close" onclick="closeBanner()" aria-label="Đóng"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
 </div>
 
 <!-- ── Page Header ────────────────────────────────────── -->
@@ -58,7 +58,7 @@
 <section>
   <div class="container">
     <div class="filter-tabs" style="margin-bottom:32px" id="galleryFilters">
-      <button class="filter-tab gallery-filter-tab active" data-category="all">🌸 Tất cả</button>
+      <button class="filter-tab gallery-filter-tab active" data-category="all">Tất cả</button>
     </div>
     <div class="gallery-grid" id="galleryGrid">
       <div class="gallery-col"><div class="sk-box sk-tile" style="height:230px"></div><div class="sk-box sk-tile" style="height:180px"></div></div>
@@ -72,7 +72,7 @@
 <!-- ── Order Modal (đặt hoa theo mẫu ảnh trong lightbox) ── -->
 <div class="order-overlay" id="orderOverlay" onclick="if(event.target===this) closeOrderModal()">
   <div class="order-modal">
-    <button class="order-close" onclick="closeOrderModal()" aria-label="Đóng">✕</button>
+    <button class="order-close" onclick="closeOrderModal()" aria-label="Đóng"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
     <div id="orderModalBody"></div>
   </div>
 </div>
@@ -82,7 +82,7 @@
   <div class="container reveal">
     <h2>Thích những bó hoa này?</h2>
     <p>Liên hệ ngay để đặt hoa hoặc tham khảo thêm mẫu tại shop nhé!</p>
-    <a href="lien-he" class="btn btn-white">Liên hệ đặt hoa 🌸</a>
+    <a href="lien-he" class="btn btn-white">Liên hệ đặt hoa</a>
   </div>
 </section>
 
@@ -97,8 +97,8 @@
         </a>
         <p>Shop hoa tươi với tâm huyết — mỗi bông hoa là một lời yêu thương được gửi đi.</p>
         <div class="footer-contact">
-          <span id="footAddress" class="foot-line" style="display:none">📍 <span></span></span>
-          <a id="footPhone" class="foot-line" href="#" style="display:none">📞 <span></span></a>
+          <span id="footAddress" class="foot-line" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg><span></span></span>
+          <a id="footPhone" class="foot-line" href="#" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span></span></a>
         </div>
       </div>
       <div class="footer-col">
@@ -128,7 +128,7 @@
 </footer>
 
 <!-- ── Floating Zalo ──────────────────────────────────── -->
-<a href="#" class="zalo-float" id="zaloFloat" target="_blank" aria-label="Chat Zalo">
+<a href="#" class="zalo-float" id="zaloFloat" target="_blank" aria-label="Chat Zalo" title="Chat Zalo">
   <span>💬</span>
   <span class="zalo-label">Chat Zalo</span>
 </a>

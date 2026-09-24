@@ -28,7 +28,7 @@
       <span class="logo-icon">🌸</span>
       <span>Ler &amp; Ther <span class="logo-accent">Blooming</span></span>
     </a>
-    <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></button>
     <ul class="nav-links" id="navLinks">
       <li><a href="./">Trang chủ</a></li>
       <li><a href="san-pham">Sản phẩm</a></li>
@@ -43,7 +43,7 @@
 <section id="detailSection" style="padding:60px 0;">
   <div class="container">
     <div id="detailContent">
-      <div class="loading"><div class="l-icon">🌸</div><p>Đang tải sản phẩm…</p></div>
+      <div class="loading"><div class="l-icon"><svg class="ic" aria-hidden="true"><use href="#i-flower"/></svg></div><p>Đang tải sản phẩm…</p></div>
     </div>
   </div>
 </section>
@@ -51,7 +51,7 @@
 <!-- ── Order Modal ────────────────────────────────────── -->
 <div class="order-overlay" id="orderOverlay" onclick="if(event.target===this) closeOrderModal()">
   <div class="order-modal">
-    <button class="order-close" onclick="closeOrderModal()" aria-label="Đóng">✕</button>
+    <button class="order-close" onclick="closeOrderModal()" aria-label="Đóng"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
     <div id="orderModalBody"></div>
   </div>
 </div>
@@ -60,7 +60,7 @@
 <section id="relatedSection" style="background:#fff; display:none;">
   <div class="container">
     <div class="section-header reveal">
-      <h2>Sản phẩm cùng danh mục</h2>
+      <h2>Cùng bộ sưu tập</h2>
     </div>
     <div class="products-grid" id="relatedGrid"></div>
   </div>
@@ -77,8 +77,8 @@
         </a>
         <p>Shop hoa tươi với tâm huyết — mỗi bông hoa là một lời yêu thương được gửi đi.</p>
         <div class="footer-contact">
-          <span id="footAddress" class="foot-line" style="display:none">📍 <span></span></span>
-          <a id="footPhone" class="foot-line" href="#" style="display:none">📞 <span></span></a>
+          <span id="footAddress" class="foot-line" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg><span></span></span>
+          <a id="footPhone" class="foot-line" href="#" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span></span></a>
         </div>
       </div>
       <div class="footer-col">
@@ -108,7 +108,7 @@
 </footer>
 
 <!-- ── Floating Zalo ──────────────────────────────────── -->
-<a href="#" class="zalo-float" id="zaloFloat" target="_blank" aria-label="Chat Zalo">
+<a href="#" class="zalo-float" id="zaloFloat" target="_blank" aria-label="Chat Zalo" title="Chat Zalo">
   <span>💬</span>
   <span class="zalo-label">Chat Zalo</span>
 </a>

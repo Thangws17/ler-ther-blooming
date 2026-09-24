@@ -29,7 +29,7 @@
       <span class="logo-icon">🌸</span>
       <span>Ler &amp; Ther <span class="logo-accent">Blooming</span></span>
     </a>
-    <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></button>
     <ul class="nav-links" id="navLinks">
       <li><a href="./">Trang chủ</a></li>
       <li><a href="san-pham">Sản phẩm</a></li>
@@ -42,7 +42,7 @@
 
 <!-- ── Banner ────────────────────────────────────────────── -->
 <div id="siteBanner" class="site-banner" style="display:none">
-  <div class="banner-inner"><span id="bannerText"></span><button class="banner-close" onclick="closeBanner()">✕</button></div>
+  <div class="banner-inner"><span id="bannerText"></span><button class="banner-close" onclick="closeBanner()" aria-label="Đóng"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
 </div>
 
 <!-- ── Page Header ────────────────────────────────────── -->
@@ -64,7 +64,7 @@
         <h3>Thông tin liên hệ</h3>
 
         <div class="c-item">
-          <div class="c-icon g">📞</div>
+          <div class="c-icon g"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg></div>
           <div>
             <label>Điện thoại</label>
             <span id="cPhone">Đang tải…</span>
@@ -84,7 +84,7 @@
         </div>
 
         <div class="c-item">
-          <div class="c-icon b">📍</div>
+          <div class="c-icon b"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg></div>
           <div>
             <label>Địa chỉ</label>
             <span id="cAddress">Đang tải…</span>
@@ -92,7 +92,7 @@
         </div>
 
         <div class="c-item">
-          <div class="c-icon g">🕐</div>
+          <div class="c-icon g"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg></div>
           <div>
             <label>Giờ mở cửa</label>
             <span id="cHours">Đang tải…</span>
@@ -136,13 +136,13 @@
           Nhắn tin qua Zalo hoặc gọi điện trực tiếp —
           chúng tôi sẽ tư vấn mẫu hoa phù hợp và báo giá nhanh nhất có thể.
         </p>
-        <div class="response-badge">⏱ Thường phản hồi trong 15–30 phút</div>
+        <div class="response-badge"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Thường phản hồi trong 15–30 phút</div>
         <div class="contact-cta-btns">
           <a href="#" class="btn-zalo" id="zaloBtn" target="_blank">
             <span class="zi"></span> Nhắn Zalo ngay
           </a>
           <a href="#" class="btn-call" id="callBtn">
-            📞 Gọi điện
+            <svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg>Gọi điện
           </a>
         </div>
         <div id="ctaSocialSection" style="display:none">
@@ -174,8 +174,8 @@
         </a>
         <p>Shop hoa tươi với tâm huyết — mỗi bông hoa là một lời yêu thương được gửi đi.</p>
         <div class="footer-contact">
-          <span id="footAddress" class="foot-line" style="display:none">📍 <span></span></span>
-          <a id="footPhone" class="foot-line" href="#" style="display:none">📞 <span></span></a>
+          <span id="footAddress" class="foot-line" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg><span></span></span>
+          <a id="footPhone" class="foot-line" href="#" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span></span></a>
         </div>
       </div>
       <div class="footer-col">

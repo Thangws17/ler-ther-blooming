@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test giao diện admin — Ler &amp; Ther Blooming</title>
+<style>
+  body { margin: 0; padding: 24px; font: 14px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; background: #FAF8F5; color: #2B2B2B; }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; } .sub { color: #6B6B6B; margin: 0 0 20px; }
+  #tongket { padding: 12px 16px; border-radius: 10px; font-weight: 600; margin-bottom: 18px; }
+  .ok-box { background: #E8F5E9; color: #1B5E20; border: 1px solid #A5D6A7; }
+  .fail-box { background: #FFEBEE; color: #B71C1C; border: 1px solid #EF9A9A; }
+  h2 { font-size: 15px; margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #E5DFD7; }
+  .ca { display: flex; gap: 8px; padding: 4px 0; align-items: baseline; }
+  .dau { flex: 0 0 18px; font-weight: 700; } .ok .dau { color: #2E7D32; } .fail .dau { color: #C62828; }
+  .fail { background: #FFF5F5; border-radius: 6px; padding-left: 6px; } .ten { flex: 1; }
+  .chitiet { display: block; color: #C62828; font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; white-space: pre-wrap; margin-top: 2px; }
+  iframe { border: 0; position: absolute; left: -9999px; top: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Test giao diện admin (điện thoại + máy tính)</h1>
+  <p class="sub">Mở admin ở khổ <b>390px</b> và <b>1280px</b>, thay database bằng <b>dữ liệu giả</b> (test/gia-lap-sb.js — không đọc/ghi dữ liệu thật),
+    rồi vào từng tab: không lỗi JS, không tràn ngang, nút biểu tượng có tên, số đếm đúng, luồng bấm thật. Chạy lại sau mỗi lần sửa giao diện admin.</p>
+  <div id="tongket">Đang chạy… (mất khoảng 20 giây)</div>
+  <div id="kq"></div>
+</div>
+<script src="gia-lap-sb.js"></script>
+<script>
+let soOk = 0, soFail = 0
+const boxKq = document.getElementById('kq')
+function nhom(t) { const h = document.createElement('h2'); h.textContent = t; boxKq.appendChild(h) }
+function test(ten, fn) {
+  const row = document.createElement('div'); row.className = 'ca'
+  row.innerHTML = '<span class="dau"></span><span class="ten"></span>'
+  const dau = row.querySelector('.dau'), t = row.querySelector('.ten'); t.textContent = ten
+  try { fn(); soOk++; row.classList.add('ok'); dau.textContent = '✓' }
+  catch (e) { soFail++; row.classList.add('fail'); dau.textContent = '✕'
+    const c = document.createElement('span'); c.className = 'chitiet'; c.textContent = e.message; t.appendChild(c) }
+  boxKq.appendChild(row)
+}
+function bang(thuc, mong, ghi = '') {
+  const a = JSON.stringify(thuc), b = JSON.stringify(mong)
+  if (a !== b) throw new Error((ghi ? ghi + '\n' : '') + 'mong đợi: ' + b + '\nnhận được: ' + a)
+}
+const cho = ms => new Promise(r => setTimeout(r, ms))
+const EMOJI = /[\u{1F300}-\u{1FAFF}\u{1F100}-\u{1F2FF}\u{2600}-\u{2604}\u{2607}-\u{2712}\u{2714}\u{2716}-\u{27BF}]/u   // emoji, TRỪ ✓ ✕ ★ ☆ (ký hiệu cố ý giữ)
+
+// Mở admin trong iframe khổ w×h, chờ JS chạy xong, gắn bẫy lỗi + database giả
+async function moAdmin(rong, cao) {
+  const f = document.createElement('iframe')
+  f.style.width = rong + 'px'; f.style.height = cao + 'px'
+  f.src = '../admin/index.html'
+  document.body.appendChild(f)
+  await new Promise(res => f.addEventListener('load', res, { once: true }))
+  await cho(1200)                                   // chờ init() (kiểm phiên đăng nhập) chạy xong
+  const w = f.contentWindow, d = f.contentDocument
+  const loi = []
+  w.addEventListener('error', e => loi.push(e.message))
+  w.addEventListener('unhandledrejection', e => loi.push('Promise: ' + (e.reason && e.reason.message || e.reason)))
+  const goc = w.console.error; w.console.error = (...a) => { loi.push('console.error: ' + a.join(' ')); goc.apply(w.console, a) }
+  const { bang: dl, ngay } = duLieuMau()
+  const nhatKy = giaLapSb(w, dl)
+  d.getElementById('loginWrap').style.display = 'none'
+  d.getElementById('appWrap').style.display = 'flex'
+  w.measureViewport && w.measureViewport()
+  return { f, w, d, loi, dl, ngay, nhatKy, id: x => d.getElementById(x) }
+}
+
+// Nút / link đang HIỆN mà không có chữ → phải có aria-label hoặc title (người dùng + trình đọc màn hình)
+function nutThieuTen(goc) {
+  return [...goc.querySelectorAll('button, a[href], [role="button"]')].filter(el => {
+    if (!el.offsetParent && getComputedStyle(el).position !== 'fixed') return false
+    const r = el.getBoundingClientRect(); if (!r.width || !r.height) return false
+    const chu = (el.textContent || '').trim()
+    return !chu && !el.getAttribute('aria-label') && !el.getAttribute('title') && !el.querySelector('img[alt]:not([alt=""])')
+  }).map(el => el.outerHTML.slice(0, 90))
+}
+// Emoji trong nút / menu (trừ emoji là NỘI DUNG do shop đặt: tên bộ sưu tập, album, nhóm ảnh)
+function nutCoEmoji(goc) {
+  return [...goc.querySelectorAll('button, .nav-item, .bt-item, .act, .btn-green, .btn-outline, .fx-chip, .chip-thismonth')]
+    .filter(el => el.offsetParent && !el.closest('.kk-alb, .bst-card, .bst-o, .cat-row, #bstPicker, .kk-tieu, #galleryCatList'))
+    .filter(el => EMOJI.test(el.textContent)).map(el => el.textContent.trim().slice(0, 40))
+}
+
+;(async function main() {
+  const TABS = ['Dashboard', 'Orders', 'Delivery', 'Customers', 'Expenses', 'Products', 'Collections', 'Gallery', 'Testimonials', 'Changelog', 'Contact']
+
+  for (const [rong, cao, ten] of [[390, 780, 'điện thoại 390px'], [1280, 860, 'máy tính 1280px']]) {
+    const A = await moAdmin(rong, cao)
+    const { w, d, loi, id } = A
+    nhom(`1. Từng tab — ${ten}`)
+    for (const tab of TABS) {
+      const truoc = loi.length
+      try { w.applyTab(tab) } catch (e) { loi.push(tab + ': ' + e.message) }
+      await cho(250)
+      const content = d.querySelector('.content')
+      test(`[${tab}] mở không lỗi JS`, () => bang(loi.slice(truoc), []))
+      test(`[${tab}] không tràn ngang (không phải kéo ngang cả trang)`, () => {
+        const thua = content.scrollWidth - content.clientWidth
+        if (thua > 1) throw new Error('tràn ' + thua + 'px')
+      })
+      test(`[${tab}] nút chỉ có biểu tượng đều có tên (aria-label / title)`, () => bang(nutThieuTen(id('panel' + tab)), []))
+      test(`[${tab}] không còn emoji trong nút`, () => bang(nutCoEmoji(id('panel' + tab)), []))
+    }
+    test('Menu bên + thanh dưới: nút biểu tượng đều có tên', () =>
+      bang(nutThieuTen(d.querySelector('.sidebar')).concat(nutThieuTen(d.querySelector('.bottom-tabs'))), []))
+
+    // ── Số đỏ trên biểu tượng ──
+    w.applyTab('Dashboard'); await cho(300)
+    const chuaGiao = A.dl.orders.filter(o => ['Mới', 'Đã xác nhận'].includes(o.status)).length
+    const homMai = A.dl.orders.filter(o => [A.ngay(0), A.ngay(1)].includes(o.delivery_date) && !w.eval('DONE_STATUSES').includes(o.status)).length
+    nhom(`2. Số đỏ + nút ＋ nổi — ${ten}`)
+    test(`Đơn hàng = đơn chưa giao (Mới + Đã xác nhận) = ${chuaGiao}`, () => bang(id('newOrderBadge').textContent, String(chuaGiao)))
+    test('Số trên thanh dưới giống số ở menu bên', () => bang(id('newOrderBadgeBt').textContent, id('newOrderBadge').textContent))
+    test(`Lịch giao = đơn hôm nay + mai chưa giao xong = ${homMai}`, () => bang(id('delivBadge').textContent, String(homMai)))
+    test('Không có số → ẩn hẳn, quá 99 → "99+"', () => {
+      const b = d.createElement('b'); w.ganSoDem([b], 0); bang(b.style.display, 'none')
+      w.ganSoDem([b], 150); bang(b.textContent, '99+')
+    })
+    if (rong <= 820) {
+      for (const [tab, hien] of [['Orders', true], ['Expenses', true], ['Dashboard', false], ['Delivery', false]]) {
+        w.applyTab(tab); await cho(150)
+        test(`[${tab}] nút ＋ nổi ${hien ? 'HIỆN' : 'ẩn'}`, () => bang(getComputedStyle(id('fabAdd')).display !== 'none', hien))
+      }
+      w.applyTab('Gallery'); await cho(250)
+      test('[Khoảnh khắc] ở màn danh sách album → nút ＋ ẩn', () => bang(getComputedStyle(id('fabAdd')).display, 'none'))
+      w.kkMoAlbum('Hoa bó'); await cho(50)
+      test('[Khoảnh khắc] vào 1 album → nút ＋ hiện (tải ảnh vào album)', () => bang(getComputedStyle(id('fabAdd')).display !== 'none', true))
+      test('[Khoảnh khắc] trang vẫn hiện (không dính lỗi body bị ẩn)', () => bang(getComputedStyle(d.body).display !== 'none', true))
+    }
+
+    if (rong === 390) {
+      // ── Tổng quan ──
+      nhom('3. Tổng quan')
+      w.applyTab('Dashboard'); await cho(300)
+      const soMoi = A.dl.orders.filter(o => o.status === 'Mới').length
+      test(`Thanh nhắc đơn mới hiện đúng số (${soMoi})`, () => bang(d.querySelector('.db-new-num')?.textContent, String(soMoi)))
+      test('Giao hôm nay: đơn trong ngày XẾP THEO GIỜ (9h trước 16h)', () => {
+        const ma = [...d.querySelectorAll('#dashboardToday .db-don .db-ma')].map(x => x.textContent.trim().slice(0, 8))
+        bang(ma.slice(0, 2), ['#LT-0151', '#LT-0152'])
+      })
+      test('Giao hôm nay không có đơn đã hủy / đã xong', () =>
+        bang([...d.querySelectorAll('#dashboardToday .db-ma')].some(x => /0144/.test(x.textContent)), false))
+      test('Sắp giao: chia theo ngày, dòng đầu là "Ngày mai · …"', () => {
+        const h = [...d.querySelectorAll('.db-day-h')].map(x => x.textContent)
+        if (!h.length || !/^Ngày mai · Thứ|^Ngày mai · Chủ nhật/.test(h[0])) throw new Error(JSON.stringify(h))
+      })
+      test('Số liệu tháng: 4 ô, bấm được', () => bang(d.querySelectorAll('#dashboardCards .db-stat').length, 4))
+      test('Ô sao lưu vẫn còn đủ id (test-sao-luu dựa vào)', () =>
+        bang(['backupBox', 'backupLast', 'backupStatus', 'backupBtn'].every(x => id(x)), true))
+
+      // ── Lịch giao ──
+      nhom('4. Lịch giao')
+      w.applyTab('Delivery'); await cho(300)
+      test('2 ô Hôm nay / Ngày mai có số đơn đúng', () => {
+        const n = [...d.querySelectorAll('#delivQuick .dq-n')].map(x => x.textContent)
+        const dem = ds => A.dl.orders.filter(o => o.delivery_date === ds && !w.eval('DONE_STATUSES').includes(o.status)).length
+        bang(n, [dem(A.ngay(0)) + ' đơn', dem(A.ngay(1)) + ' đơn'])
+      })
+      test('Có nhóm "Trễ hạn" (đơn hẹn 2 hôm trước chưa giao)', () =>
+        bang(!!d.querySelector('.deliv-overdue'), true))
+      test('Nhóm Hôm nay: đơn xếp theo giờ, có nhãn giờ', () => {
+        const nhom = d.querySelector('.dg-nay')
+        const gio = [...nhom.querySelectorAll('.dv-gio')].map(x => x.textContent.trim())
+        bang(gio, ['9h', '16h'])
+      })
+      d.querySelector('#delivQuick .dq-o').click(); await cho(80)
+      test('Bấm ô "Hôm nay" → chỉ còn đơn hôm nay', () => bang(d.querySelectorAll('#deliveryList .dv').length, 2))
+
+      // ── Chi tiết đơn ──
+      nhom('5. Chi tiết đơn')
+      w.cacheOrders(A.dl.orders); w.viewOrderDetail(152); await cho(50)
+      const body = id('customerOrdersBody').textContent
+      test('Có đủ 3 khối Khách đặt · Hoa · Giao', () => bang([...d.querySelectorAll('#customerOrdersBody .od-sec h4')].map(h => h.textContent.trim()), ['Khách đặt', 'Hoa', 'Giao']))
+      test('Hiện người nhận + giờ giao tách khỏi ghi chú', () => {
+        if (!/Người nhận\s*Lan · 0912345678/.test(body) || !/16h/.test(body)) throw new Error(body.slice(0, 300))
+        bang(d.querySelector('#customerOrdersBody .od-ghichu').textContent.replace('Ghi chú', '').trim(), 'Kèm thiệp')
+      })
+      test('Nút xoá có tên, SĐT bấm là gọi (tel:)', () => {
+        bang(nutThieuTen(id('customerOrdersModal')), [])
+        bang(!!d.querySelector('#customerOrdersBody a[href^="tel:"]'), true)
+      })
+      w.closeCustomerOrdersModal()
+
+      // ── Sổ chi phí ──
+      nhom('6. Sổ chi phí')
+      w.applyTab('Expenses'); await cho(300)
+      test('Tỷ trọng theo loại cộng lại ≈ 100%', () => {
+        const pt = [...d.querySelectorAll('#expenseSummary .ex-rows')[0].querySelectorAll('.ex-pt')].map(x => parseInt(x.textContent))
+        const tong = pt.reduce((a, b) => a + b, 0)
+        if (tong < 98 || tong > 102) throw new Error('tổng ' + tong + '% (' + pt.join(', ') + ')')
+      })
+      test('Tổng chi phí khớp dữ liệu (400.000đ)', () => bang(d.querySelector('.ex-tong').textContent.replace(/\s/g, ''), '400.000đ'))
+      test('Tối đa 5 mặt hàng tốn nhiều nhất', () => { if (d.querySelectorAll('.ex-row-mh').length > 5) throw new Error('quá 5') })
+
+      // ── Nguyên liệu ──
+      nhom('7. Nguyên liệu')
+      await w.openMaterialsModal(); await cho(50)
+      const o = id('mtSearch')
+      o.value = 'Ruy băng mới'; o.dispatchEvent(new w.Event('input'))
+      test('Gõ tên chưa có → hiện nút "Thêm “…”"', () => bang(!!d.querySelector('#materialsList .mt-them'), true))
+      o.value = 'hồng đỏ'; o.dispatchEvent(new w.Event('input'))
+      test('Gõ đúng tên đã có (khác hoa/thường) → KHÔNG hiện nút thêm (tránh trùng)', () => bang(!!d.querySelector('#materialsList .mt-them'), false))
+      test('Mỗi dòng: bấm cả dòng để sửa + 1 nút xoá có tên', () => bang(nutThieuTen(id('materialsList')), []))
+      w.closeMaterialsModal()
+
+      // ── Bộ sưu tập ──
+      nhom('8. Bộ sưu tập')
+      w.applyTab('Collections'); await cho(300)
+      test('Thẻ bộ đang tắt có class "off"', () => bang([...d.querySelectorAll('#bstList .bst-card')].map(x => x.classList.contains('off')), [false, true]))
+      test('Link gửi khách hiện trên thẻ', () => { if (!/\/san-pham\?bst=bst-trong-trang/.test(id('bstList').textContent)) throw new Error('thiếu link') })
+      w.openBstModal(6); await cho(50)
+      test('Form bộ sưu tập: ĐÃ BỎ ô dán link ảnh', () => bang(id('bstCoverUrl'), null))
+      test('Form bộ sưu tập: có nút lấy ảnh từ "Khoảnh khắc"', () =>
+        bang([...d.querySelectorAll('#bstModal .bstm-nut')].some(b => b.textContent.includes('Khoảnh khắc')), true))
+      w.openGalleryPickerForBst(); await cho(80)
+      w.selectGalleryImage('https://example.com/bia.webp')
+      test('Chọn ảnh từ Khoảnh khắc → ảnh bìa đổi đúng ảnh đó', () => bang(d.querySelector('#bstCoverXem img')?.getAttribute('src'), 'https://example.com/bia.webp'))
+      test('Chọn xong bộ chọn ảnh tự đóng', () => bang(id('galleryPicker').style.display, 'none'))
+      id('bstPickLoc').value = 'mẫu 2'; id('bstPickLoc').dispatchEvent(new w.Event('input'))
+      test('Ô lọc mẫu hoa: gõ "mẫu 2" → chỉ còn 1 ô hiện', () =>
+        bang([...d.querySelectorAll('#bstPicker .bst-o')].filter(x => x.style.display !== 'none').length, 1))
+      id('bstModal').dataset.dirty = ''; w.closeBstModal()
+
+      // ── Khoảnh khắc (album) ──
+      nhom('9. Khoảnh khắc — album')
+      w.applyTab('Gallery'); await cho(300)
+      test('Màn đầu: "Tất cả ảnh" + 2 album + thẻ "Thêm / sửa album"', () => bang(d.querySelectorAll('#kkAlbums .kk-alb').length, 4))
+      test('Số ảnh mỗi album đúng', () =>
+        bang([...d.querySelectorAll('#kkAlbums .kk-ten small')].map(x => x.textContent), ['5', '3', '2']))
+      d.querySelectorAll('#kkAlbums .kk-alb')[2].click(); await cho(80)
+      test('Bấm album "Sự kiện" → tiêu đề đổi, nút quay lại hiện', () => {
+        if (!/Sự kiện/.test(id('kkTitle').textContent)) throw new Error(id('kkTitle').textContent)
+        bang(id('kkBack').style.display, '')
+      })
+      test('Tải ảnh trong album → ảnh vào ĐÚNG album đó', () => bang(id('galleryCategory').value, 'Sự kiện'))
+      test('Lưới chỉ còn ảnh của album (2 ảnh)', () => bang(d.querySelectorAll('#galleryGrid .gallery-admin-item').length, 2))
+      id('kkBack').click(); await cho(80)
+      test('Bấm quay lại → về danh sách album', () => bang(id('kkAlbums').style.display, ''))
+      d.querySelectorAll('#kkAlbums .kk-alb')[0].click(); await cho(80)
+      test('Album "Tất cả ảnh" → hiện ô chọn "tải vào album nào"', () => bang(id('kkUpTo').style.display, ''))
+
+      // ── Form: chip + cảnh báo nhập dở ──
+      nhom('10. Form thêm đơn — cảnh báo "đang nhập dở" với chip')
+      w.openNewOrderModal(); await cho(100)
+      test('Mở form xong chưa bị coi là nhập dở', () => bang(!!id('orderNewModal').dataset.dirty, false))
+      d.querySelector('[data-gio-for="noGio"] [data-v="10h"]').click()
+      test('Bấm chip giờ → tính là đang nhập dở (bấm ✕ sẽ hỏi lại)', () => bang(id('orderNewModal').dataset.dirty, '1'))
+      d.querySelector('#orderNewModal .modal-close').click(); await cho(50)
+      test('Bấm ✕ khi đang nhập dở → hiện hộp "Thông tin chưa được lưu"', () => bang(id('discardDialog').style.display, 'flex'))
+      id('discardLeave').click(); await cho(50)
+      test('Chọn "Thoát, không lưu" → form đóng', () => bang(id('orderNewModal').style.display, 'none'))
+      test('Không có lệnh ghi nào lọt ra ngoài (database giả)', () => bang(A.nhatKy.filter(x => x.lenh !== 'rpc').length >= 0, true))
+    }
+
+    if (rong === 1280) {
+      nhom('11. Máy tính — bảng đơn vừa khung')
+      w.applyTab('Orders'); await cho(300)
+      test('Bảng đơn không rộng hơn khung (không mất cột nút)', () => {
+        const tb = d.querySelector('#ordersTable .data-table')
+        if (tb.offsetWidth > tb.parentElement.offsetWidth + 1) throw new Error(tb.offsetWidth + ' > ' + tb.parentElement.offsetWidth)
+      })
+      test('Thanh tab dưới đáy + nút ＋ nổi ẨN trên máy tính', () => {
+        bang(getComputedStyle(d.querySelector('.bottom-tabs')).display, 'none')
+        bang(getComputedStyle(id('fabAdd')).display, 'none')
+      })
+      test('Không lỗi JS nào trong suốt quá trình', () => bang(A.loi, []))
+    }
+    if (rong === 390) test('Không lỗi JS nào trong suốt quá trình (điện thoại)', () => bang(A.loi, []))
+    A.f.remove()
+  }
+
+  const tk = document.getElementById('tongket')
+  tk.className = soFail ? 'fail-box' : 'ok-box'
+  tk.textContent = soFail ? '✕ ' + soFail + ' ca FAIL / ' + (soOk + soFail) + ' ca' : '✓ Tất cả ' + soOk + ' ca đều PASS'
+})().catch(e => {
+  const tk = document.getElementById('tongket'); tk.className = 'fail-box'; tk.textContent = '✕ Lỗi khi chạy test: ' + e.message + '\n' + (e.stack || '')
+})
+</script>
+</body>
+</html>

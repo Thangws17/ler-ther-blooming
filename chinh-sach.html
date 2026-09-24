@@ -29,7 +29,7 @@
       <span class="logo-icon">🌸</span>
       <span>Ler &amp; Ther <span class="logo-accent">Blooming</span></span>
     </a>
-    <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></button>
     <ul class="nav-links" id="navLinks">
       <li><a href="./">Trang chủ</a></li>
       <li><a href="san-pham">Sản phẩm</a></li>
@@ -42,7 +42,7 @@
 
 <!-- ── Banner ────────────────────────────────────────────── -->
 <div id="siteBanner" class="site-banner" style="display:none">
-  <div class="banner-inner"><span id="bannerText"></span><button class="banner-close" onclick="closeBanner()">✕</button></div>
+  <div class="banner-inner"><span id="bannerText"></span><button class="banner-close" onclick="closeBanner()" aria-label="Đóng"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
 </div>
 
 <!-- ── Page Header ────────────────────────────────────── -->
@@ -59,19 +59,19 @@
   <div class="container policy-wrap">
 
     <div class="policy-card reveal">
-      <div class="policy-icon">🚚</div>
+      <div class="policy-icon"><svg class="ic" aria-hidden="true"><use href="#i-truck"/></svg></div>
       <h2>Giao hàng</h2>
       <div class="policy-body" id="policyDelivery">Đang tải…</div>
     </div>
 
     <div class="policy-card reveal" style="--reveal-delay:.08s">
-      <div class="policy-icon">💳</div>
+      <div class="policy-icon"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg></div>
       <h2>Thanh toán</h2>
       <div class="policy-body" id="policyPayment">Đang tải…</div>
     </div>
 
     <div class="policy-card reveal" style="--reveal-delay:.16s">
-      <div class="policy-icon">🌸</div>
+      <div class="policy-icon"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg></div>
       <h2>Cam kết chất lượng</h2>
       <div class="policy-body" id="policyQuality">Đang tải…</div>
     </div>
@@ -145,7 +145,7 @@
   <div class="container reveal">
     <h2>Sẵn sàng đặt hoa?</h2>
     <p>Còn thắc mắc gì về giao hàng hay thanh toán, nhắn Zalo để được tư vấn ngay nhé!</p>
-    <a href="san-pham" class="btn btn-white">Xem sản phẩm 🌸</a>
+    <a href="san-pham" class="btn btn-white">Xem sản phẩm</a>
   </div>
 </section>
 
@@ -160,8 +160,8 @@
         </a>
         <p>Shop hoa tươi với tâm huyết — mỗi bông hoa là một lời yêu thương được gửi đi.</p>
         <div class="footer-contact">
-          <span id="footAddress" class="foot-line" style="display:none">📍 <span></span></span>
-          <a id="footPhone" class="foot-line" href="#" style="display:none">📞 <span></span></a>
+          <span id="footAddress" class="foot-line" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg><span></span></span>
+          <a id="footPhone" class="foot-line" href="#" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span></span></a>
         </div>
       </div>
       <div class="footer-col">
@@ -191,7 +191,7 @@
 </footer>
 
 <!-- ── Floating Zalo ──────────────────────────────────── -->
-<a href="#" class="zalo-float" id="zaloFloat" target="_blank" aria-label="Chat Zalo">
+<a href="#" class="zalo-float" id="zaloFloat" target="_blank" aria-label="Chat Zalo" title="Chat Zalo">
   <span>💬</span>
   <span class="zalo-label">Chat Zalo</span>
 </a>
