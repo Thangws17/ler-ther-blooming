@@ -168,7 +168,7 @@ const dt = document.getElementById('dt')
     // Lỗi thật khi làm (23/09): class đánh dấu lên <body> trùng tên class dùng để ẩn nút
     // → mở tab Đơn hàng trên điện thoại là CẢ TRANG trắng. Kiểm từng tab, bấm nút thật.
     const fab = d.getElementById('fabAdd')
-    for (const [tab, coFab] of [['Orders', true], ['Expenses', true], ['Delivery', false], ['Dashboard', false]]) {
+    for (const [tab, coFab] of [['Orders', true], ['Expenses', true], ['Products', true], ['Delivery', false], ['Dashboard', false]]) {
       w.syncBottomTabs(tab)
       test(`[${tab}] trang vẫn hiện (body không bị ẩn), khung app vẫn cao đủ`, () => {
         bang(css(d.body).display !== 'none', true, 'body bị display:none → màn hình trắng trơn')
@@ -184,6 +184,8 @@ const dt = document.getElementById('dt')
       bang(tabs.querySelector('.bt-more').classList.contains('active'), true))
     test('Nút "Thêm đơn" ở đầu tab ẩn trên điện thoại (đã có nút ＋ nổi)', () =>
       bang(css(d.querySelector('#panelOrders .panel-topbar .btn-green')).display, 'none'))
+    test('Nút "Thêm sản phẩm" ở đầu tab cũng ẩn trên điện thoại (dùng nút ＋ nổi)', () =>
+      bang(css(d.querySelector('#panelProducts .panel-topbar .btn-green')).display, 'none'))
     w.syncBottomTabs('Dashboard')
   }
 

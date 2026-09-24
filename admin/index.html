@@ -1553,6 +1553,75 @@
     .fx .bst-o.on .ten { background: #FFF3E0; color: #7a3e00; font-weight: 700; }
     .fx .bst-o:not(.on) img { opacity: .78; }
     .bstm-dem { color: #E65100; }
+    /* ── Tab Sản phẩm kiểu danh sách gọn (24/09): ngôi sao = trang chủ, bấm hàng = sửa ── */
+    .sp-top-nut { display: flex; gap: 8px; align-items: center; }
+    #spXepBtn { height: 38px; }
+    #spXepBtn.on { background: #2E7D32; border-color: #2E7D32; color: #fff; }
+    .sp-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; margin-bottom: 12px; }
+    .sp-chips::-webkit-scrollbar { display: none; }
+    .sp-chips .fx-chip { flex-shrink: 0; height: 34px; padding: 0 13px; font-size: .82rem; }
+    .sp-chips .fx-chip small { color: #9aa79a; font-weight: 700; font-size: .78rem; }
+    .sp-chips .fx-chip .ic { width: 14px; height: 14px; }
+    .sp-chips .fx-chip.canh { border-color: #FFCC80; color: #E65100; }
+    .sp-chips .fx-chip.canh.on { background: #FFF3E0; }
+    .sp-tc { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; max-width: 560px; margin-bottom: 14px;
+             background: #fff; border: 1px solid #e6ece5; border-radius: 14px; padding: 9px 12px; }
+    .sp-tc-h { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+    .sp-tc-h span { display: flex; align-items: center; gap: 5px; font-size: .86rem; font-weight: 800; color: #3d4a3c; }
+    .sp-tc-h .ic { width: 15px; height: 15px; color: #F9A825; fill: #FBC02D; }
+    .sp-tc-h small { font-size: .76rem; font-weight: 700; color: #7A9879; }
+    .sp-tc-o { display: grid; grid-template-columns: repeat(4, 48px); gap: 6px; }
+    .sp-tc-o > * { width: 48px; height: 48px; border-radius: 9px; position: relative; overflow: hidden; padding: 0;
+                   background: #f1f4f0; border: 1.5px dashed #cfd8ce; display: grid; place-items: center;
+                   color: #b5c0b4; font: inherit; font-size: .64rem; font-weight: 700; }
+    .sp-tc-o button { border: 0; cursor: pointer; }
+    .sp-tc-o img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .sp-tc-o b { position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: rgba(0,0,0,.55);
+                 color: #fff; font-size: .62rem; display: grid; place-items: center; }
+    .sp-tc-thua { flex-basis: 100%; font-size: .8rem; color: #E65100; font-weight: 700; line-height: 1.45; }
+    .sp-bsts { display: flex; flex-wrap: wrap; gap: 4px; }
+    .sp-bst { font-size: .72rem; font-weight: 700; padding: 1px 8px; border-radius: 6px; background: #f1f5f0; color: #5d6b5c; white-space: nowrap; }
+    .sp-bst.tat { background: none; color: #b0b9af; text-decoration: line-through; padding: 1px 3px; }
+    .sp-bst.cho { background: none; color: #9aa79a; box-shadow: inset 0 0 0 1px #d5ddd4; }
+    .sp-bst.khong { background: #FFF3E0; color: #E65100; }
+    .sp-sao { width: 40px; height: 40px; border-radius: 50%; border: 0; background: none; padding: 0; flex-shrink: 0;
+              display: grid; place-items: center; color: #c3ccc2; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .sp-sao:hover { background: #f4f7f3; }
+    .sp-sao .ic { width: 22px; height: 22px; }
+    .sp-sao.on { color: #F9A825; }
+    .sp-sao.on .ic { fill: #FBC02D; }
+    #productsTable .sp-tr { cursor: pointer; }
+    #productsTable .sp-tr:hover td { background: #f8fbf7; }
+    .sp-ten { font-weight: 800; font-size: .95rem; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .sp-gia { font-size: .82rem; font-weight: 800; color: #2E7D32; margin: 2px 0 4px; }
+    .sp-xep-bao { max-width: 720px; margin-bottom: 12px; padding: 10px 14px; border-radius: 12px; background: #FFFDE7; border: 1px solid #FFF59D;
+                  font-size: .86rem; line-height: 1.5; color: #5d5a2e; }
+    .sp-xep { max-width: 720px; background: #fff; border: 1px solid #e6ece5; border-radius: 14px; overflow: hidden; }
+    .sp-xep-hang { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-top: 1px solid #f0f3ef; }
+    .sp-xep-hang:first-child { border-top: 0; }
+    .sp-xep-hang .thumb { width: 44px; height: 44px; flex-shrink: 0; }
+    .sp-xep-hang .sp-ten { flex: 1; min-width: 0; font-size: .88rem; }
+    .sp-xep-so { width: 22px; flex-shrink: 0; text-align: center; font-size: .78rem; font-weight: 800; color: #9aa79a; }
+    .sp-xep-nut { display: flex; gap: 4px; flex-shrink: 0; }
+    .sp-xep-nut button { height: 36px; min-width: 36px; padding: 0 8px; border-radius: 10px; border: 1px solid #e0e6df; background: #fff;
+                         color: #3d4a3c; display: grid; place-items: center; cursor: pointer; font: inherit; font-size: .74rem; font-weight: 800; }
+    .sp-xep-nut button:disabled { opacity: .3; cursor: default; }
+    .sp-xep-nut .ic { width: 18px; height: 18px; }
+    .sp-xoa-mau { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 18px; padding: 10px;
+                  border: 0; border-radius: 10px; background: none; color: #C62828; font: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; }
+    .sp-xoa-mau:hover { background: #FFEBEE; }
+    .sp-xoa-mau .ic { width: 16px; height: 16px; }
+    @media (max-width: 820px) {
+      .cards-mobile.sp-ds { gap: 0; background: #fff; border: 1px solid #e6ece5; border-radius: 14px; overflow: hidden; }
+      .sp-hang { display: flex; align-items: center; gap: 11px; padding: 9px 4px 9px 10px; border-top: 1px solid #f0f3ef;
+                 cursor: pointer; -webkit-tap-highlight-color: rgba(46,125,50,.08); }
+      .sp-hang:first-child { border-top: 0; }
+      .sp-hang:active { background: #f6f9f5; }
+      .sp-hang .thumb { width: 60px; height: 60px; border-radius: 10px; flex-shrink: 0; }
+      .sp-hang-tt { flex: 1; min-width: 0; }
+      .sp-tc { max-width: none; }
+      .sp-xep-hang { padding: 8px; gap: 8px; }
+    }
   </style>
 </head>
 <body>
@@ -1683,10 +1752,19 @@
     <div id="panelProducts" class="panel" style="display:none">
       <div class="panel-topbar">
         <h1>Sản phẩm</h1>
-        <button class="btn-green" onclick="openModal()"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Thêm sản phẩm</button>
+        <div class="sp-top-nut">
+          <button type="button" id="spXepBtn" class="fx-chip" onclick="spBatXep()"><svg class="ic" aria-hidden="true"><use href="#i-grip"/></svg>Sắp xếp</button>
+          <button class="btn-green an-tren-dt" onclick="openModal()"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Thêm sản phẩm</button>
+        </div>
       </div>
-      <div class="filter-bar">
-        <input type="search" id="productSearch" class="filter-search" placeholder="Tìm theo tên hoặc bộ sưu tập…" oninput="renderProducts()">
+      <div id="spLocWrap">
+        <div class="filter-bar">
+          <input type="search" id="productSearch" class="filter-search" placeholder="Tìm tên mẫu hoa…" oninput="renderProducts()">
+        </div>
+        <!-- Lọc nhanh: Tất cả · Trang chủ · từng BST đang bật · Chưa vào BST (spVeLoc vẽ) -->
+        <div id="spChips" class="sp-chips"></div>
+        <!-- 4 ô trang chủ: web chỉ lấy 4 mẫu nổi bật đầu tiên (loadFeatured, .limit(4)) -->
+        <div id="spTrangChu"></div>
       </div>
       <div id="productsTable"><div class="loading-state">Đang tải…</div></div>
     </div>
@@ -2075,15 +2153,15 @@
               </div>
             </div>
           </div>
-          <div class="field-group">
-            <label>Thứ tự hiển thị</label>
-            <input type="number" id="fOrder" value="0" min="0">
-          </div>
-          <div class="check-row">
+          <!-- Thứ tự không gõ số nữa: đổi bằng nút "Sắp xếp" ở danh sách (spDoiCho) -->
+          <input type="hidden" id="fOrder" value="0">
+          <div class="check-row" style="grid-column:1/-1">
             <input type="checkbox" id="fFeatured">
-            <label for="fFeatured">Hiển thị ở trang chủ</label>
+            <label for="fFeatured">Hiện ở trang chủ <span style="font-weight:400;color:#7A9879;">(ngôi sao — trang chủ có 4 ô)</span></label>
           </div>
         </div>
+        <!-- Xoá nằm cuối form, không đứng cạnh nút Sửa ngoài danh sách nữa (dễ bấm nhầm) -->
+        <button type="button" id="fXoaMau" class="sp-xoa-mau" onclick="spXoaTuForm()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Xoá mẫu này</button>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn-outline" onclick="closeModal()">Hủy</button>
@@ -2844,6 +2922,7 @@ function applyTab(tab) {
   if (tab === 'Delivery')      loadDelivery()
   if (tab === 'Expenses')      loadExpenses()
   if (tab === 'Collections')   loadCollections()
+  if (tab === 'Products')      { spXep = false; loadProducts() }   // mở lại tab = thoát chế độ Sắp xếp, lấy BST mới nhất
   if (tab === 'Gallery')       { kkAlbum = null; galleryFilterCat = 'all'; loadGallery() }
   if (tab === 'Customers')     loadCustomers()
   if (tab === 'Testimonials')  loadTestimonials()
@@ -2858,6 +2937,7 @@ const FAB_THEO_TAB = {
   Orders:   { nhan: 'Thêm đơn',     mo: () => openNewOrderModal() },
   Expenses: { nhan: 'Thêm chi phí', mo: () => openExpenseModal() },
   Gallery:  { nhan: 'Tải ảnh vào album', mo: () => kkTaiAnh() },   // chỉ hiện khi đang trong 1 album (kkVe)
+  Products: { nhan: 'Thêm mẫu hoa', mo: () => openModal() },
 }
 function syncBottomTabs(tab) {
   let co = false
@@ -4064,68 +4144,220 @@ async function loadProducts() {
   renderProducts()
 }
 
+// Tab Sản phẩm kiểu "danh sách gọn" (24/09/2026): bấm cả hàng = sửa, ngôi sao = hiện ở trang chủ,
+// Xoá chuyển vào cuối form sửa. Thứ tự đổi bằng chế độ "Sắp xếp" (▲▼), không gõ số nữa.
+let spLoc = 'all'     // lọc nhanh: 'all' | 'nb' (trang chủ) | 'khong' (chưa vào BST) | id bộ sưu tập
+let spXep = false     // đang ở chế độ Sắp xếp
+const SP_TRANG_CHU = 4   // web chỉ lấy 4 mẫu nổi bật đầu tiên (loadFeatured trong js/main.js, .limit(4))
+
+// Mẫu nổi bật theo đúng thứ tự trang chủ web lấy (products đã xếp theo order_index)
+function spNoiBat() { return products.filter(p => p.featured) }
+// Có nằm trong BST nào đang BẬT không (BST hẹn ngày vẫn tính) — không thì web chỉ thấy ở mục "Tất cả"
+function spTrongBst(p) { return bstCuaMau(p.id).some(c => c.active) }
+function spTenBst(c, emoji = true) { return (emoji ? (c.emoji || '🌸') + ' ' : '') + String(c.name || '').replace(/^BST\s+/i, '') }
+
+// Nhãn BST của 1 mẫu: BST đã tắt → mờ + gạch; bật nhưng chưa tới / đã qua ngày hẹn → viền đứt
+function spNhanBst(p) {
+  const ds = bstCuaMau(p.id)
+  const nhan = ds.map(c => {
+    const loai = !c.active ? 'tat' : bstDangHien(c) ? '' : 'cho'
+    return `<span class="sp-bst ${loai}"${loai ? ` title="${esc(bstLyDoAn(c))}"` : ''}>${esc(spTenBst(c))}</span>`
+  })
+  if (!bstChuaCaiDat && !spTrongBst(p)) nhan.push('<span class="sp-bst khong">Chưa vào BST</span>')
+  return `<div class="sp-bsts">${nhan.join('')}</div>`
+}
+
+function spSao(p) {
+  return `<button type="button" class="sp-sao${p.featured ? ' on' : ''}" onclick="event.stopPropagation();toggleFeatured(${p.id})"
+    aria-label="Hiện ở trang chủ" aria-pressed="${p.featured}" title="${p.featured ? 'Đang ở trang chủ — bấm để bỏ' : 'Bấm để đưa lên trang chủ'}">${ic('star')}</button>`
+}
+
+function spChonLoc(k) { spLoc = k; resetListLimit('products'); renderProducts() }
+
+function spVeLoc() {
+  const el = document.getElementById('spChips')
+  if (!el) return
+  const bstBat = bstList.filter(c => c.active)
+  if (!['all', 'nb', 'khong'].includes(spLoc) && !bstBat.some(c => String(c.id) === spLoc)) spLoc = 'all'
+  const nb = spNoiBat().length
+  const khong = bstChuaCaiDat ? 0 : products.filter(p => !spTrongBst(p)).length
+  if (spLoc === 'khong' && !khong) spLoc = 'all'
+  const chip = (k, nhan, dem, cls = '') =>
+    `<button type="button" class="fx-chip ${cls}${spLoc === k ? ' on' : ''}" onclick="spChonLoc('${k}')">${nhan} <small>${dem}</small></button>`
+  el.innerHTML = [
+    chip('all', 'Tất cả', products.length),
+    chip('nb', `${ic('star')}Trang chủ`, `${nb}/${SP_TRANG_CHU}`, nb > SP_TRANG_CHU ? 'canh' : ''),
+    // Nút lọc KHÔNG kèm emoji BST (emoji là nội dung — chỉ giữ ở thẻ bìa, nhãn)
+    ...bstBat.map(c => chip(String(c.id), esc(spTenBst(c, false)), bstSoMau(c.id))),
+    khong ? chip('khong', 'Chưa vào BST', khong, 'canh') : '',
+  ].join('')
+}
+
+// 4 ô trang chủ: đúng những gì khách thấy. Gắn sao quá 4 mẫu → báo rõ mẫu nào bị dư.
+function spVeTrangChu(hien) {
+  const el = document.getElementById('spTrangChu')
+  if (!el) return
+  if (!hien) { el.innerHTML = ''; return }
+  const nb = spNoiBat()
+  const o = Array.from({ length: SP_TRANG_CHU }, (_, i) => {
+    const p = nb[i]
+    if (!p) return '<span>trống</span>'
+    return `<button type="button" onclick="openModal(${p.id})" title="${esc(p.name)}" aria-label="Ô ${i + 1}: ${esc(p.name)}">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : ic('flower')}<b>${i + 1}</b></button>`
+  }).join('')
+  const thua = nb.slice(SP_TRANG_CHU)
+  el.innerHTML = `<div class="sp-tc">
+    <div class="sp-tc-h"><span>${ic('star')}Trang chủ</span><small>đang dùng ${Math.min(nb.length, SP_TRANG_CHU)}/${SP_TRANG_CHU} ô</small></div>
+    <div class="sp-tc-o">${o}</div>
+    ${thua.length ? `<div class="sp-tc-thua">Trang chủ chỉ có ${SP_TRANG_CHU} ô → ${thua.map(p => `“${esc(p.name)}”`).join(', ')} đang gắn sao nhưng khách KHÔNG thấy. Bỏ sao một mẫu khác để đổi.</div>` : ''}
+  </div>`
+}
+
 function renderProducts() {
   const el = document.getElementById('productsTable')
+  const xepBtn = document.getElementById('spXepBtn')
+  if (xepBtn) {
+    xepBtn.classList.toggle('on', spXep)
+    xepBtn.innerHTML = spXep ? `${ic('check')}Xong` : `${ic('grip')}Sắp xếp`
+    xepBtn.style.display = products.length > 1 ? '' : 'none'
+  }
+  const locWrap = document.getElementById('spLocWrap')
+  if (locWrap) locWrap.style.display = spXep || !products.length ? 'none' : ''
   if (!products.length) {
+    spVeTrangChu(false)
     el.innerHTML = '<div class="empty-state">Chưa có sản phẩm. Nhấn "+ Thêm sản phẩm" để bắt đầu.</div>'
     return
   }
+  if (spXep) { spVeXep(el); return }
+  spVeLoc()
   const q = (document.getElementById('productSearch')?.value || '').trim().toLowerCase()
-  const list = q
-    ? products.filter(p => `${p.name || ''} ${bstCuaMau(p.id).map(c => c.name).join(' ')}`.toLowerCase().includes(q))
-    : products
+  spVeTrangChu(spLoc === 'all' && !q)
+  let list = products
+  if (spLoc === 'nb') list = list.filter(p => p.featured)
+  else if (spLoc === 'khong') list = list.filter(p => !spTrongBst(p))
+  else if (spLoc !== 'all') list = list.filter(p => bstCuaMau(p.id).some(c => String(c.id) === spLoc))
+  if (q) list = list.filter(p => `${p.name || ''} ${bstCuaMau(p.id).map(c => c.name).join(' ')}`.toLowerCase().includes(q))
   if (!list.length) {
-    el.innerHTML = '<div class="empty-state">Không tìm thấy sản phẩm khớp. <a href="#" onclick="document.getElementById(\'productSearch\').value=\'\';renderProducts();return false" style="color:#2E7D32;font-weight:700;">Xóa tìm</a></div>'
+    el.innerHTML = `<div class="empty-state">${q ? 'Không tìm thấy mẫu khớp.' : 'Không có mẫu nào ở mục này.'} <a href="#" onclick="document.getElementById('productSearch').value='';spChonLoc('all');return false" style="color:#2E7D32;font-weight:700;">Xem tất cả</a></div>`
     return
   }
   const { shown: prodShown, more: prodMore } = limitList('products', list)
+  const anh = p => `<div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : ic('flower')}</div>`
   el.innerHTML = `
 <div class="table-desktop">
 <table class="data-table">
   <thead><tr>
     <th>Ảnh</th><th>Tên sản phẩm</th><th>Bộ sưu tập</th>
-    <th>Giá</th><th>Nổi bật</th><th>Thứ tự</th><th></th>
+    <th>Giá</th><th>Trang chủ</th><th></th>
   </tr></thead>
   <tbody>${prodShown.map(p => `
-  <tr>
-    <td><div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="">` : ic('flower')}</div></td>
+  <tr class="sp-tr" onclick="openModal(${p.id})">
+    <td>${anh(p)}</td>
     <td><strong>${esc(p.name)}</strong></td>
-    <td>${bstNhanHTML(p.id)}</td>
+    <td>${spNhanBst(p)}</td>
     <td>${fmtPriceText(p.price)}</td>
-    <td><button class="toggle-btn ${p.featured ? 'on' : ''}" onclick="toggleFeatured(${p.id},${p.featured})">${p.featured ? '✓ Có' : '— Không'}</button></td>
-    <td>${p.order_index}</td>
+    <td>${spSao(p)}</td>
     <td class="actions">
-      ${nutTT('pen', 'Sửa', `openModal(${p.id})`)}
-      ${nutTT('trash', 'Xoá', `deleteProduct(${p.id})`, { xoa: true })}
+      ${nutTT('pen', 'Sửa', `event.stopPropagation();openModal(${p.id})`)}
+      ${nutTT('trash', 'Xoá', `event.stopPropagation();deleteProduct(${p.id})`, { xoa: true })}
     </td>
   </tr>`).join('')}</tbody>
 </table>
 </div>
-<div class="cards-mobile">${prodShown.map(p => `
-  <div class="m-card prod-card">
-    <div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="">` : ic('flower')}</div>
-    <div class="prod-info">
-      <div class="mc-title">${esc(p.name)}</div>
-      <div class="mc-sub">${bstNhanChu(p.id)} · ${fmtPriceText(p.price)}</div>
-      <div class="mc-actions">
-        <button class="toggle-btn ${p.featured ? 'on' : ''}" onclick="toggleFeatured(${p.id},${p.featured})">${p.featured ? '★ Nổi bật' : '☆ Nổi bật'}</button>
-        ${nutTT('pen', 'Sửa', `openModal(${p.id})`)}
-        ${nutTT('trash', 'Xoá', `deleteProduct(${p.id})`, { xoa: true })}
-      </div>
+<div class="cards-mobile sp-ds">${prodShown.map(p => `
+  <div class="sp-hang" onclick="openModal(${p.id})">
+    ${anh(p)}
+    <div class="sp-hang-tt">
+      <div class="sp-ten">${esc(p.name)}</div>
+      <div class="sp-gia">${fmtPriceText(p.price)}</div>
+      ${spNhanBst(p)}
     </div>
+    ${spSao(p)}
   </div>`).join('')}</div>${moreBtnHTML('products', prodMore, 'renderProducts', 'sản phẩm')}`
 }
 
-async function toggleFeatured(id, current) {
-  await sb.from('products').update({ featured: !current }).eq('id', id)
-  loadProducts()
+// Bấm sao: đổi ngay trên màn (không tải lại cả danh sách), lỗi thì trả lại như cũ
+async function toggleFeatured(id) {
+  const p = products.find(x => x.id === id)
+  if (!p) return
+  const moi = !p.featured
+  p.featured = moi
+  renderProducts()
+  const { error } = await sb.from('products').update({ featured: moi }).eq('id', id)
+  if (error) {
+    p.featured = !moi; renderProducts()
+    showToast('Lỗi: ' + error.message, 'error'); return
+  }
+  const nb = spNoiBat()
+  if (!moi) showToast('Đã bỏ khỏi trang chủ')
+  else if (nb.indexOf(p) < SP_TRANG_CHU) showToast(`Đã đưa lên trang chủ (${Math.min(nb.length, SP_TRANG_CHU)}/${SP_TRANG_CHU} ô)`)
+  else showToast(`Trang chủ đã đủ ${SP_TRANG_CHU} ô — mẫu này chưa hiện. Bỏ sao một mẫu khác để đổi.`, 'error')
 }
 
+// ── Sắp xếp: thứ tự ở đây = thứ tự khách thấy trên web ──
+function spBatXep() {
+  spXep = !spXep
+  document.querySelector('.content')?.scrollTo(0, 0)
+  renderProducts()
+}
+
+function spVeXep(el) {
+  const n = products.length
+  el.innerHTML = `
+<div class="sp-xep-bao">Bấm ▲ ▼ để đổi chỗ, <b>Lên đầu</b> để đưa mẫu lên trên cùng. Thứ tự này = <b>thứ tự khách thấy</b> trên web. Đổi là tự lưu, xong bấm <b>Xong</b>.</div>
+<div class="sp-xep">${products.map((p, i) => `
+  <div class="sp-xep-hang">
+    <span class="sp-xep-so">${i + 1}</span>
+    <div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : ic('flower')}</div>
+    <div class="sp-ten">${esc(p.name)}</div>
+    <div class="sp-xep-nut">
+      <button type="button" onclick="spLenDau(${i})" ${i ? '' : 'disabled'} aria-label="Đưa lên đầu">Lên đầu</button>
+      <button type="button" onclick="spDoiCho(${i},-1)" ${i ? '' : 'disabled'} aria-label="Lên một bậc">${ic('up')}</button>
+      <button type="button" onclick="spDoiCho(${i},1)" ${i < n - 1 ? '' : 'disabled'} aria-label="Xuống một bậc">${ic('down')}</button>
+    </div>
+  </div>`).join('')}</div>`
+}
+
+function spDoiCho(i, d) {
+  const j = i + d
+  if (j < 0 || j >= products.length) return
+  ;[products[i], products[j]] = [products[j], products[i]]
+  spLuuThuTu()
+}
+function spLenDau(i) {
+  if (i <= 0) return
+  products.unshift(products.splice(i, 1)[0])
+  spLuuThuTu()
+  document.querySelector('.content')?.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// Đánh số lại 0,1,2… theo vị trí; chỉ ghi những mẫu đổi số. Lần đầu có thể ghi nhiều (thứ tự
+// cũ hay trùng số), các lần sau chỉ 2 mẫu. Xếp hàng lần lượt để lần bấm sau không bị lần trước ghi đè.
+let _spLuuXep = Promise.resolve()
+function spLuuThuTu() {
+  const doi = []
+  products.forEach((p, i) => { if (p.order_index !== i) { p.order_index = i; doi.push({ id: p.id, order_index: i }) } })
+  renderProducts()
+  if (!doi.length) return
+  _spLuuXep = _spLuuXep.then(async () => {
+    const kq = await Promise.all(doi.map(x => sb.from('products').update({ order_index: x.order_index }).eq('id', x.id)))
+    const loi = kq.find(r => r.error)
+    if (loi) { showToast('Lỗi lưu thứ tự: ' + loi.error.message, 'error'); loadProducts() }
+  })
+}
+
+// Trả về true nếu đã xoá (form sửa dùng để biết có đóng form không)
 async function deleteProduct(id) {
-  if (!(await askConfirm({ title: 'Xóa sản phẩm?', message: 'Sản phẩm sẽ biến mất khỏi website. Đơn hàng cũ không bị ảnh hưởng.', okLabel: 'Xóa sản phẩm' }))) return
-  await sb.from('products').delete().eq('id', id)
+  if (!(await askConfirm({ title: 'Xóa sản phẩm?', message: 'Sản phẩm sẽ biến mất khỏi website. Đơn hàng cũ không bị ảnh hưởng.', okLabel: 'Xóa sản phẩm' }))) return false
+  const { error } = await sb.from('products').delete().eq('id', id)
+  if (error) { showToast('Lỗi: ' + error.message, 'error'); return false }
   showToast('Đã xóa sản phẩm')
   loadProducts()
+  return true
+}
+
+async function spXoaTuForm() {
+  const id = Number(document.getElementById('productId').value)
+  if (id && await deleteProduct(id)) closeModal()
 }
 
 // ── Product Modal ─────────────────────────────────
@@ -4251,7 +4483,10 @@ function openModal(id = null) {
   } else {
     document.getElementById('modalTitle').textContent = 'Thêm sản phẩm'
     renderProductBstChips([])
+    // Mẫu mới lên ĐẦU danh sách (cả web lẫn admin) — muốn dời thì dùng nút "Sắp xếp"
+    document.getElementById('fOrder').value = Math.min(0, ...products.map(p => p.order_index || 0)) - 1
   }
+  document.getElementById('fXoaMau').style.display = id ? '' : 'none'
   renderProductImagesGrid()
   renderPriceChips()
   onPriceInput(document.getElementById('fPrice'))   // bật/tắt chữ "đ" theo giá đang có
@@ -5191,13 +5426,6 @@ function bstCuaMau(pid) {
 // Mẫu hoa chưa thuộc bộ sưu tập nào — admin cảnh báo để không bỏ quên mẫu nào
 function bstChuaGan() {
   return products.filter(p => !bstGan.some(x => x.product_id === p.id))
-}
-
-// Nhan BST cua mot mau hoa - dung o bang San pham
-function bstNhanHTML(pid) {
-  const ds = bstCuaMau(pid)
-  if (!ds.length) return '<span class="cat-badge" style="background:#FBE9E7;color:#D84315">chưa vào bộ nào</span>'
-  return ds.map(c => `<span class="cat-badge">${esc((c.emoji || '🌸') + ' ' + c.name)}</span>`).join(' ')
 }
 
 function bstNhanChu(pid) {

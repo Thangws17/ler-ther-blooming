@@ -205,6 +205,11 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
   giá trị vẫn ở `#orderDate` (hidden). Trang chủ chỉ còn 1 ảnh to (`#heroBg`); 2 ô ảnh phụ trong admin đã ẩn.
 - **Khoảnh khắc trong admin theo ALBUM** (mỗi nhóm ảnh = 1 album, `kkAlbum`/`kkMoAlbum`). Album chỉ là lớp vỏ trên
   `galleryFilterCat` cũ: tải ảnh trong album → `#galleryCategory` tự đặt = album đó.
+- **Tab Sản phẩm kiểu danh sách gọn (24/09/2026)**: bấm cả hàng = mở form sửa, ngôi sao = `featured` (đổi tại chỗ,
+  không tải lại), nút Xoá nằm cuối form (`fXoaMau`), thêm mẫu bằng nút ＋ nổi. Trang chủ web chỉ lấy **4** mẫu nổi bật
+  (`.limit(4)` trong `loadFeatured`) — `SP_TRANG_CHU` trong admin phải khớp số đó. Thứ tự đổi bằng chế độ **Sắp xếp**
+  (`spDoiCho`/`spLenDau` đánh số lại `order_index` 0,1,2…); ô `fOrder` giờ là input hidden, mẫu mới lấy số nhỏ nhất − 1
+  để lên đầu. Nút lọc BST **không** kèm emoji (test-admin-giao-dien kiểm).
 - **Chọn mẫu hoa khi lên đơn chỉ lấy giá khi là số tiền thuần** (`!_priceIsText`). Giá "Từ 2xx" để trống — cùng
   bẫy "2 đồng" với `place_order`.
 - **Đừng đặt `position: sticky` cho phần tử nằm TRONG `.content`.** `.content` là khung cuộn;
