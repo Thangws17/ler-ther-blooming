@@ -210,6 +210,14 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
   (`.limit(4)` trong `loadFeatured`) — `SP_TRANG_CHU` trong admin phải khớp số đó. Thứ tự đổi bằng chế độ **Sắp xếp**
   (`spDoiCho`/`spLenDau` đánh số lại `order_index` 0,1,2…); ô `fOrder` giờ là input hidden, mẫu mới lấy số nhỏ nhất − 1
   để lên đầu. Nút lọc BST **không** kèm emoji (test-admin-giao-dien kiểm).
+- **Font (24/09/2026, phương án B "dịu mắt")**: web = Nunito cho tiêu đề/nút (tối đa nét 700, không dùng 800/900 nữa)
+  + **Be Vietnam Pro** cho nội dung (thay Open Sans); admin = Be Vietnam Pro toàn bộ (trước là font mặc định của máy),
+  nét đậm nhất 700, `b/strong` 600. Biệt danh mẫu hoa vẫn Lora nghiêng. Be Vietnam Pro rộng hơn Segoe → bảng Đơn hàng
+  đã thu gọn đệm/tiêu đề cột cho vừa khổ 1280 (test-admin-giao-dien kiểm "bảng đơn không rộng hơn khung").
+- **Tab Khách hàng kiểu danh bạ gọn (24/09/2026)**: mỗi khách 1 hàng (chữ cái đầu tên · tên · SĐT · số đơn), bấm cả hàng =
+  thẻ khách (`viewCustomerOrders`, dùng chung modal `customerOrdersModal` với chi tiết đơn): Gọi / Zalo / Sửa, các đơn đã mua
+  (bấm = `viewOrderDetail`), Xoá ở cuối. Số đơn / đã mua / lần cuối đếm trong `khTinhSo()` (bỏ đơn "Đã hủy"); chip lọc
+  Tất cả · Khách quen (`KH_QUEN` = từ 2 đơn) · Chưa có đơn. Thêm khách bằng nút ＋ nổi (`FAB_THEO_TAB.Customers`).
 - **Mô tả mẫu hoa viết theo khuôn "tạp chí"** (SQL 23, 24/09/2026): dòng 1 `“Biệt danh”`, dòng có ` · ` = thành phần,
   dòng có ` — ` = chữ khoá, `Phù hợp tặng …`, còn lại (size, kích thước) là dòng phụ. `tachCaption()` (js/dungchung.js)
   tách ra: web hiện biệt danh dưới tên (cả thẻ lẫn trang chi tiết), "Phù hợp tặng" + dòng phụ vào khung `.detail-cam`;

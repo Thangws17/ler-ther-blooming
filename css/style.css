@@ -10,7 +10,7 @@
   --orange-pale: #FBE9E7;
   --bg:          #F1F8E9;
   --white:       #FFFFFF;
-  --text:        #1A2E1A;
+  --text:        #243324;
   --text-mid:    #4A6849;
   --text-light:  #7A9879;
   --border:      #C8E6C9;
@@ -24,14 +24,14 @@
 /* ─── Reset ──────────────────────────────────────────────── */
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 html { scroll-behavior:smooth; }
-body { font-family:'Open Sans',sans-serif; background:var(--bg); color:var(--text); line-height:1.65; }
+body { font-family:'Be Vietnam Pro',sans-serif; background:var(--bg); color:var(--text); line-height:1.72; }
 img  { max-width:100%; height:auto; display:block; }
 a    { text-decoration:none; color:inherit; }
 ul   { list-style:none; }
 button { font-family:inherit; cursor:pointer; }
 
 /* ─── Typography ─────────────────────────────────────────── */
-h1,h2,h3,h4 { font-family:'Nunito',sans-serif; font-weight:800; line-height:1.2; }
+h1,h2,h3,h4 { font-family:'Nunito',sans-serif; font-weight:700; line-height:1.2; }
 h1 { font-size:clamp(2rem,5vw,3.4rem); }
 h2 { font-size:clamp(1.6rem,3vw,2.2rem); }
 h3 { font-size:1.15rem; }
@@ -73,7 +73,7 @@ section    { padding:64px 0; }
 }
 .logo {
   display:flex; align-items:center; gap:10px;
-  font-family:'Nunito',sans-serif; font-weight:800; font-size:1.2rem; color:var(--text);
+  font-family:'Nunito',sans-serif; font-weight:700; font-size:1.2rem; color:var(--text);
 }
 .logo-icon { font-size:1.6rem; }
 .logo-accent { color:var(--green); }
@@ -211,7 +211,7 @@ section    { padding:64px 0; }
   margin-bottom:9px;
 }
 .product-name {
-  font-family:'Nunito',sans-serif; font-weight:800; font-size:1rem;
+  font-family:'Nunito',sans-serif; font-weight:700; font-size:1rem;
   color:var(--text); margin-bottom:10px; line-height:1.35;
 }
 .product-desc {
@@ -223,7 +223,7 @@ section    { padding:64px 0; }
   display:flex; align-items:center; justify-content:space-between; margin-top:auto;
 }
 .product-price {
-  font-family:'Nunito',sans-serif; font-weight:800; font-size:1.18rem; color:var(--green);
+  font-family:'Nunito',sans-serif; font-weight:700; font-size:1.18rem; color:var(--green);
 }
 .product-btn {
   display:inline-flex; align-items:center; gap:5px;
@@ -252,12 +252,12 @@ section    { padding:64px 0; }
 
 /* ─── Kicker: dòng nhỏ phía trên tiêu đề section/trang ───── */
 .sec-kicker {
-  display:block; font-family:'Nunito',sans-serif; font-weight:800;
+  display:block; font-family:'Nunito',sans-serif; font-weight:700;
   font-size:.76rem; letter-spacing:.16em; text-transform:uppercase;
   color:var(--green-mid); margin-bottom:8px;
 }
 .page-kicker {
-  font-family:'Nunito',sans-serif; font-weight:800;
+  font-family:'Nunito',sans-serif; font-weight:700;
   font-size:.76rem; letter-spacing:.16em; text-transform:uppercase;
   opacity:.8; margin-bottom:10px;
 }
@@ -271,7 +271,7 @@ section    { padding:64px 0; }
 .prod-search input {
   width:100%; padding:13px 44px 13px 44px; border-radius:50px;
   border:2px solid var(--border); background:var(--white); color:var(--text);
-  font-family:'Open Sans',sans-serif; font-size:.95rem; transition:var(--t);
+  font-family:'Be Vietnam Pro',sans-serif; font-size:.95rem; transition:var(--t);
   -webkit-appearance:none; appearance:none;
 }
 .prod-search input::placeholder { color:var(--text-light); }
@@ -610,7 +610,7 @@ section    { padding:64px 0; }
 .bst-txt { position:absolute; left:0; right:0; bottom:0; padding:18px 18px 20px; color:#fff; }
 .bst-txt .bst-em { display:block; font-size:1.5rem; line-height:1; margin-bottom:6px; }
 .bst-txt .bst-h {
-  display:block; font-family:'Nunito',sans-serif; font-weight:800; font-size:1.24rem;
+  display:block; font-family:'Nunito',sans-serif; font-weight:700; font-size:1.24rem;
   line-height:1.2; margin-bottom:5px; text-shadow:0 1px 6px rgba(0,0,0,.35);
 }
 .bst-txt .bst-tl {
@@ -652,11 +652,11 @@ section    { padding:64px 0; }
   font-size:.82rem; font-weight:700; font-family:'Nunito',sans-serif;
 }
 .detail-name {
-  font-family:'Nunito',sans-serif; font-weight:800;
+  font-family:'Nunito',sans-serif; font-weight:700;
   font-size:clamp(1.5rem,3vw,2rem); color:var(--text); line-height:1.25;
 }
 .detail-price {
-  font-family:'Nunito',sans-serif; font-weight:800;
+  font-family:'Nunito',sans-serif; font-weight:700;
   font-size:2rem; color:var(--green);
 }
 .detail-desc {
@@ -758,7 +758,7 @@ section    { padding:64px 0; }
 /* Ô nhập nền TRẮNG, bấm vào mới sáng viền xanh — bỏ nền xanh mọi ô gây rối */
 .order-field input, .order-field textarea, .order-field select {
   width:100%; padding:11px 13px; border:1.5px solid var(--border);
-  border-radius:10px; font-family:'Open Sans',sans-serif;
+  border-radius:10px; font-family:'Be Vietnam Pro',sans-serif;
   font-size:.95rem; color:var(--text); outline:none;
   background:var(--white); transition:border-color .15s, box-shadow .15s;
 }
@@ -771,7 +771,7 @@ section    { padding:64px 0; }
 .order-field input[type="date"] {
   -webkit-appearance:none; appearance:none;
   height:44px; min-height:44px; line-height:normal;
-  text-align:left; font-family:'Open Sans',sans-serif; font-size:.95rem;
+  text-align:left; font-family:'Be Vietnam Pro',sans-serif; font-size:.95rem;
 }
 .order-field input[type="date"]::-webkit-date-and-time-value { text-align:left; }
 .order-field input[type="date"]::-webkit-calendar-picker-indicator { opacity:.55; cursor:pointer; }
@@ -783,8 +783,8 @@ section    { padding:64px 0; }
   background:var(--green-pale); display:flex; align-items:center; justify-content:center; font-size:1.6rem;
 }
 .om-eyebrow { font-size:.7rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text-light); margin-bottom:2px; }
-.om-name { font-family:'Nunito',sans-serif; font-weight:900; font-size:1.08rem; line-height:1.3; }
-.om-price { color:var(--green); font-weight:800; font-size:.92rem; margin-top:2px; }
+.om-name { font-family:'Nunito',sans-serif; font-weight:700; font-size:1.08rem; line-height:1.3; }
+.om-price { color:var(--green); font-weight:700; font-size:.92rem; margin-top:2px; }
 .om-chips { display:flex; flex-wrap:wrap; gap:7px; padding:12px 0 4px; }
 .om-chip {
   display:inline-flex; align-items:center; gap:5px;
@@ -794,11 +794,11 @@ section    { padding:64px 0; }
 .om-chip-link:hover { background:var(--green); color:#fff; }
 .om-group { padding-top:14px; }
 .om-group + .om-group { border-top:1px solid var(--border); margin-top:6px; }
-.g-title { display:flex; align-items:center; gap:7px; font-family:'Nunito',sans-serif; font-weight:800; font-size:.92rem; margin-bottom:12px; }
+.g-title { display:flex; align-items:center; gap:7px; font-family:'Nunito',sans-serif; font-weight:700; font-size:.92rem; margin-bottom:12px; }
 .g-title .lbl-opt { font-weight:400; color:var(--text-light); font-size:.8rem; }
 .g-num {
   width:20px; height:20px; border-radius:50%; background:var(--green); color:#fff;
-  font-size:.72rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  font-size:.72rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
 .om-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 /* Ngày cần rộng, số lượng chỉ cần vừa đủ 2 chữ số → chia lệch chứ không 50/50 */
@@ -814,7 +814,7 @@ section    { padding:64px 0; }
 .qty-step button {
   flex-shrink:0; width:38px; height:42px; border:none;
   background:var(--green-pale); color:var(--green);
-  font-family:'Nunito',sans-serif; font-size:1.15rem; font-weight:800; line-height:1;
+  font-family:'Nunito',sans-serif; font-size:1.15rem; font-weight:700; line-height:1;
   transition:var(--t);
 }
 .qty-step button:hover { background:var(--green); color:#fff; }
@@ -823,7 +823,7 @@ section    { padding:64px 0; }
 .qty-step input[type="number"] {
   width:50px; min-width:0; height:42px; padding:0; text-align:center;
   border:none; border-radius:0; background:transparent;
-  font-weight:800; font-size:1rem; -moz-appearance:textfield; appearance:textfield;
+  font-weight:700; font-size:1rem; -moz-appearance:textfield; appearance:textfield;
 }
 .qty-step input[type="number"]:focus { box-shadow:none; }
 .qty-step input::-webkit-outer-spin-button,
@@ -1188,7 +1188,7 @@ section    { padding:64px 0; }
 .omx-grp { padding: 16px 0 6px; }
 .omx-grp + .omx-grp { border-top: 1px solid #eef1ed; }
 .omx-gt { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-family: 'Nunito', sans-serif;
-  font-size: .74rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #7a877a; }
+  font-size: .74rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #7a877a; }
 .omx-gt .ic { width: 15px; height: 15px; }
 .omx-lb { font-family: 'Nunito', sans-serif; font-size: .8rem; font-weight: 700; color: #7a877a; margin: 4px 0 6px; }
 .omx-lb small { font-weight: 600; color: #9aa79a; margin-left: 4px; }
@@ -1197,7 +1197,7 @@ section    { padding:64px 0; }
 .omx-in:focus-within { border-color: var(--green); box-shadow: 0 0 0 3px rgba(46,125,50,.1); }
 .omx-in > .ic { color: #9aa79a; }
 .omx-in input, .omx-in textarea { flex: 1; min-width: 0; border: 0; outline: 0; background: none; padding: 12px 0;
-  font-family: 'Open Sans', sans-serif; font-size: .95rem; color: var(--text); }
+  font-family: 'Be Vietnam Pro', sans-serif; font-size: .95rem; color: var(--text); }
 .omx-in input::placeholder, .omx-in textarea::placeholder { color: #aab5a9; }
 .omx-in textarea { resize: vertical; min-height: 60px; }
 .omx-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }

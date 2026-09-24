@@ -71,7 +71,8 @@ function duLieuMau() {
         { id: 2, expense_date: ngay(-2), category: 'Phụ kiện', item: 'Giấy gói', quantity: 20, unit_price: 3000, amount: 60000, note: '', image: '' },
         { id: 3, expense_date: ngay(-3), category: 'Vận chuyển', item: 'Grab', quantity: null, unit_price: null, amount: 40000, note: '', image: '' },
       ],
-      customers: [{ id: 152, name: 'Chị Tuyền', phone: '0908123456', address: 'Q.1', created_at: ngay(-30) }],
+      customers: [{ id: 152, name: 'Chị Tuyền', phone: '0908123456', address: 'Q.1', created_at: ngay(-30) },
+        { id: 900, name: 'Phan Khánh Linh', phone: '0382705589', address: null, created_at: ngay(-2) }],   // chưa có đơn
       products: [1, 2, 3, 4].map(i => ({ id: i, name: 'Mẫu ' + i, price: i === 1 ? '600,000đ' : 'Từ 2xx', image: IMG, order_index: i, featured: i < 3, category: '' })),
       collections: [
         { id: 6, name: 'BST Trông Trăng', slug: 'bst-trong-trang', emoji: '🌕', tagline: 'Trung thu', cover_url: IMG, order_index: 1, active: true, start_date: null, end_date: null },

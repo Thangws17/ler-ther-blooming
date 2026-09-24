@@ -121,7 +121,7 @@ function nutCoEmoji(goc) {
       w.ganSoDem([b], 150); bang(b.textContent, '99+')
     })
     if (rong <= 820) {
-      for (const [tab, hien] of [['Orders', true], ['Expenses', true], ['Dashboard', false], ['Delivery', false]]) {
+      for (const [tab, hien] of [['Orders', true], ['Expenses', true], ['Customers', true], ['Dashboard', false], ['Delivery', false]]) {
         w.applyTab(tab); await cho(150)
         test(`[${tab}] nút ＋ nổi ${hien ? 'HIỆN' : 'ẩn'}`, () => bang(getComputedStyle(id('fabAdd')).display !== 'none', hien))
       }
@@ -183,6 +183,44 @@ function nutCoEmoji(goc) {
         bang(nutThieuTen(id('customerOrdersModal')), [])
         bang(!!d.querySelector('#customerOrdersBody a[href^="tel:"]'), true)
       })
+      w.closeCustomerOrdersModal()
+
+      // ── Khách hàng (danh bạ gọn, 24/09) ──
+      nhom('5b. Khách hàng')
+      w.applyTab('Customers'); await cho(300)
+      const hangKh = () => [...d.querySelectorAll('#customersTable .kh-hang')]
+      test('Mỗi khách 1 hàng gọn: chữ cái đầu tên + số đơn', () => {
+        bang(hangKh().length, 2)
+        const tuyen = hangKh().find(h => h.textContent.includes('Chị Tuyền'))
+        bang(tuyen.querySelector('.kh-av').textContent, 'T')
+        bang(tuyen.querySelector('.kh-n').textContent, '1 đơn')
+        bang(tuyen.querySelector('.kh-sdt').textContent, '0908 123 456')
+      })
+      test('Không còn 3 nút Xem đơn / Sửa / Xoá dưới từng khách', () => bang(d.querySelectorAll('#customersTable .cards-mobile .act').length, 0))
+      test('Nút "Thêm khách" trên đầu ẩn trên điện thoại (đã có nút ＋ nổi)', () =>
+        bang(getComputedStyle(d.querySelector('#panelCustomers .panel-topbar .btn-green')).display, 'none'))
+      test('Chip lọc: Tất cả 2 · Khách quen 0 · Chưa có đơn 1', () =>
+        bang([...d.querySelectorAll('#khChips .fx-chip small')].map(x => x.textContent), ['2', '0', '1']))
+      d.querySelectorAll('#khChips .fx-chip')[2].click(); await cho(30)
+      test('Bấm "Chưa có đơn" → chỉ còn khách chưa mua', () => bang(hangKh().map(h => h.querySelector('.kh-ten').textContent), ['Phan Khánh Linh']))
+      d.querySelectorAll('#khChips .fx-chip')[0].click(); await cho(30)
+      id('customerSearch').value = 'tuyen'; id('customerSearch').dispatchEvent(new Event('input')); await cho(30)
+      test('Tìm "tuyen" (không dấu) → ra Chị Tuyền', () => bang(hangKh().map(h => h.querySelector('.kh-ten').textContent), ['Chị Tuyền']))
+      id('customerSearch').value = '0382 705'; id('customerSearch').dispatchEvent(new Event('input')); await cho(30)
+      test('Tìm SĐT có dấu cách "0382 705" → ra đúng khách', () => bang(hangKh().map(h => h.querySelector('.kh-ten').textContent), ['Phan Khánh Linh']))
+      id('customerSearch').value = ''; id('customerSearch').dispatchEvent(new Event('input')); await cho(30)
+      hangKh().find(h => h.textContent.includes('Chị Tuyền')).click(); await cho(150)
+      test('Bấm cả hàng → mở thẻ khách: Gọi (tel:) · Zalo · Sửa · Xoá ở cuối', () => {
+        bang(id('customerOrdersModal').style.display, 'flex')
+        bang(!!d.querySelector('#customerOrdersBody a[href="tel:0908123456"]'), true)
+        bang(!!d.querySelector('#customerOrdersBody a[href="https://zalo.me/0908123456"]'), true)
+        bang(d.querySelector('#customerOrdersBody .kh-the > :last-child').textContent.trim(), 'Xoá')
+        bang(nutThieuTen(id('customerOrdersModal')), [])
+      })
+      test('Thẻ khách: 1 đơn · 650.000đ đã mua', () =>
+        bang([...d.querySelectorAll('.kh-so3 b')].slice(0, 2).map(b => b.textContent.replace(/\s/g, '')), ['1', '650.000đ']))
+      d.querySelector('#customerOrdersBody .kh-don').click(); await cho(50)
+      test('Bấm vào đơn trong thẻ khách → mở chi tiết đơn', () => bang(d.querySelectorAll('#customerOrdersBody .od-sec').length, 3))
       w.closeCustomerOrdersModal()
 
       // ── Sổ chi phí ──
@@ -262,6 +300,12 @@ function nutCoEmoji(goc) {
       test('Bảng đơn không rộng hơn khung (không mất cột nút)', () => {
         const tb = d.querySelector('#ordersTable .data-table')
         if (tb.offsetWidth > tb.parentElement.offsetWidth + 1) throw new Error(tb.offsetWidth + ' > ' + tb.parentElement.offsetWidth)
+      })
+      test('Ô trạng thái trong bảng: chữ không đè lên chấm màu (lỗi thật 24/09)', () => {
+        const sel = d.querySelector('#ordersTable .data-table .status-select')
+        const cs = getComputedStyle(sel)
+        const cham = parseFloat((cs.backgroundImage.match(/circle at (\d+(?:\.\d+)?)px/) || [])[1])
+        if (!(parseFloat(cs.paddingLeft) >= cham + 8)) throw new Error('chấm ở ' + cham + 'px, chữ bắt đầu ' + cs.paddingLeft)
       })
       test('Thanh tab dưới đáy + nút ＋ nổi ẨN trên máy tính', () => {
         bang(getComputedStyle(d.querySelector('.bottom-tabs')).display, 'none')

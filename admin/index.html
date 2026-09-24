@@ -2,6 +2,9 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Lora:ital,wght@1,500&display=swap" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản trị — Ler & Ther Blooming</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
@@ -14,9 +17,10 @@
        lệch lên (mất thanh Admin, chữ "Đơn hàng" bị cắt), đáy trống một khúc.
        Cao đúng bằng vùng nhìn thấy (--apph) thì trang không còn chỗ nào để cuộn. */
     html { height: 100%; overflow: hidden; }
-    body { font-family: 'Segoe UI', sans-serif; background: #f4f7f4; color: #1a2e1a;
+    body { font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif; background: #f4f7f4; color: #243324;
            height: 100%; height: var(--apph, 100dvh); overflow: hidden; overscroll-behavior: none; }
     input, textarea, select, button { font-family: inherit; font-size: .95rem; }
+    b, strong { font-weight: 600; }   /* Be Vietnam Pro: 600 đã đủ đậm, 700 nhìn nặng (font dịu mắt 24/09) */
     a { text-decoration: none; color: inherit; }
 
     /* ── Login ────────────────────────────────── */
@@ -30,7 +34,7 @@
       background: #fff; border-radius: 16px; padding: 44px 40px;
       width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,.18);
     }
-    .login-brand { font-size: 1.5rem; font-weight: 800; color: #2E7D32; margin-bottom: 8px; }
+    .login-brand { font-size: 1.5rem; font-weight: 700; color: #2E7D32; margin-bottom: 8px; }
     .login-card h2 { font-size: 1.1rem; color: #555; font-weight: 500; margin-bottom: 28px; }
     .field-group { margin-bottom: 18px; }
     .field-group label { display: block; font-size: .82rem; font-weight: 600; color: #555; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
@@ -62,7 +66,7 @@
     .qty-step button {
       flex-shrink: 0; width: 38px; height: 42px; border: none;
       background: #E8F5E9; color: #2E7D32;
-      font-size: 1.15rem; font-weight: 800; line-height: 1; cursor: pointer;
+      font-size: 1.15rem; font-weight: 700; line-height: 1; cursor: pointer;
       transition: all .2s;
     }
     .qty-step button:hover { background: #2E7D32; color: #fff; }
@@ -71,7 +75,7 @@
     .qty-step input[type="number"] {
       width: 50px; min-width: 0; height: 42px; padding: 0; text-align: center;
       border: none; border-radius: 0; background: transparent;
-      font-weight: 800; font-size: 1rem;
+      font-weight: 700; font-size: 1rem;
       -moz-appearance: textfield; appearance: textfield;
     }
     .qty-step input[type="number"]:focus { background: transparent; }
@@ -89,7 +93,7 @@
       display: flex; flex-direction: column; padding: 0 0 20px;
     }
     .sidebar-brand {
-      padding: 24px 20px 20px; font-size: 1.15rem; font-weight: 800;
+      padding: 24px 20px 20px; font-size: 1.15rem; font-weight: 700;
       border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: 12px;
     }
     .sidebar-nav { display: flex; flex-direction: column; gap: 4px; padding: 0 10px; flex: 1; }
@@ -104,7 +108,7 @@
     .nav-badge {
       margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px;
       border-radius: 10px; background: #E53935; color: #fff;
-      font-size: .74rem; font-weight: 800; line-height: 20px; text-align: center;
+      font-size: .74rem; font-weight: 700; line-height: 20px; text-align: center;
       box-shadow: 0 0 0 2px rgba(229,57,53,.25);
     }
     .sidebar-bottom { padding: 0 10px; display: flex; flex-direction: column; gap: 8px; }
@@ -129,51 +133,51 @@
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 28px;
     }
-    .panel-topbar h1 { font-size: 1.55rem; font-weight: 800; }
+    .panel-topbar h1 { font-size: 1.55rem; font-weight: 700; }
 
     /* ── Buttons ──────────────────────────────── */
     .btn-green {
       background: #2E7D32; color: #fff; border: none;
       padding: 10px 22px; border-radius: 8px; cursor: pointer;
-      font-weight: 700; font-size: .92rem; transition: background .2s;
+      font-weight: 600; font-size: .92rem; transition: background .2s;
     }
     .btn-green:hover { background: #1B5E20; }
     .btn-green:disabled { background: #aaa; cursor: not-allowed; }
     .btn-outline {
       background: transparent; color: #2E7D32; border: 1.5px solid #2E7D32;
       padding: 10px 22px; border-radius: 8px; cursor: pointer;
-      font-weight: 700; font-size: .92rem; transition: all .2s;
+      font-weight: 600; font-size: .92rem; transition: all .2s;
     }
     .btn-outline:hover { background: #E8F5E9; }
     .btn-edit {
       background: #E8F5E9; color: #2E7D32; border: none;
       padding: 6px 14px; border-radius: 6px; cursor: pointer;
-      font-size: .82rem; font-weight: 700; transition: background .2s;
+      font-size: .82rem; font-weight: 600; transition: background .2s;
     }
     .btn-edit:hover { background: #C8E6C9; }
     .btn-edit:disabled { background: #f0f0f0; color: #aaa; cursor: not-allowed; }
     .btn-delete {
       background: #FBE9E7; color: #E64A19; border: none;
       padding: 6px 14px; border-radius: 6px; cursor: pointer;
-      font-size: .82rem; font-weight: 700; transition: background .2s;
+      font-size: .82rem; font-weight: 600; transition: background .2s;
     }
     .btn-delete:hover { background: #FFCCBC; }
     .btn-delete-sm {
       background: rgba(230,74,25,.12); color: #E64A19; border: none;
       padding: 4px 10px; border-radius: 6px; cursor: pointer;
-      font-size: .8rem; font-weight: 700; flex-shrink: 0;
+      font-size: .8rem; font-weight: 600; flex-shrink: 0;
     }
 
     /* ── Table ────────────────────────────────── */
     .data-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
-    .data-table th { background: #f8faf8; padding: 12px 16px; text-align: left; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #7A9879; border-bottom: 1px solid #e8f0e8; white-space: nowrap; }
-    .data-table td { padding: 12px 16px; border-bottom: 1px solid #f0f4f0; vertical-align: middle; }
+    .data-table th { background: #f8faf8; padding: 12px 16px; text-align: left; font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #7A9879; border-bottom: 1px solid #e8f0e8; white-space: nowrap; }
+    .data-table td { padding: 12px 16px; border-bottom: 1px solid #f0f4f0; vertical-align: middle; font-size: .9rem; }
     .data-table tr:last-child td { border-bottom: none; }
     .data-table tr:hover td { background: #fafcfa; }
     .data-table th:last-child, .data-table td:last-child { width: 1%; }
     .thumb { width: 48px; height: 48px; border-radius: 8px; overflow: hidden; background: #E8F5E9; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
     .thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .cat-badge { background: #E8F5E9; color: #2E7D32; border-radius: 50px; padding: 3px 10px; font-size: .75rem; font-weight: 700; white-space: nowrap; }
+    .cat-badge { background: #E8F5E9; color: #2E7D32; border-radius: 50px; padding: 3px 10px; font-size: .75rem; font-weight: 600; white-space: nowrap; }
     .actions { display: flex; gap: 6px; flex-wrap: nowrap; white-space: nowrap; }
 
     /* Thanh tìm kiếm / lọc */
@@ -186,10 +190,10 @@
     .btn-clear:hover { border-color: #E64A19; color: #E64A19; }
     /* Điều hướng tháng (Sổ chi phí) */
     .month-nav { display: inline-flex; align-items: center; gap: 6px; }
-    .month-arrow { width: 34px; height: 36px; border-radius: 8px; border: 1.5px solid #ddd; background: #fff; color: #2E7D32; font-size: 1.15rem; font-weight: 800; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all .15s; }
+    .month-arrow { width: 34px; height: 36px; border-radius: 8px; border: 1.5px solid #ddd; background: #fff; color: #2E7D32; font-size: 1.15rem; font-weight: 700; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all .15s; }
     .month-arrow:hover { border-color: #2E7D32; background: #E8F5E9; }
-    .month-display { padding: 8px 16px; border: 1.5px solid #ddd; border-radius: 8px; font-size: .9rem; font-weight: 700; color: #2E7D32; background: #fff; min-width: 128px; text-align: center; display: inline-block; }
-    .chip-thismonth { padding: 8px 16px; border-radius: 50px; border: 1.5px solid #2E7D32; background: #fff; color: #2E7D32; font-weight: 700; font-size: .85rem; cursor: pointer; transition: all .15s; }
+    .month-display { padding: 8px 16px; border: 1.5px solid #ddd; border-radius: 8px; font-size: .9rem; font-weight: 600; color: #2E7D32; background: #fff; min-width: 128px; text-align: center; display: inline-block; }
+    .chip-thismonth { padding: 8px 16px; border-radius: 50px; border: 1.5px solid #2E7D32; background: #fff; color: #2E7D32; font-weight: 600; font-size: .85rem; cursor: pointer; transition: all .15s; }
     .chip-thismonth:hover { background: #E8F5E9; }
     .chip-thismonth.active { background: #2E7D32; color: #fff; cursor: default; }
     .month-label { color: #7A9879; font-size: .9rem; font-weight: 600; margin-left: auto; }
@@ -200,9 +204,9 @@
       .btn-edit, .btn-delete { padding: 5px 10px; font-size: .78rem; }
       .btn-green, .btn-outline { padding: 9px 16px; font-size: .88rem; }
     }
-    .toggle-btn { padding: 5px 12px; border-radius: 50px; border: none; cursor: pointer; font-size: .78rem; font-weight: 700; background: #eee; color: #999; transition: all .2s; }
+    .toggle-btn { padding: 5px 12px; border-radius: 50px; border: none; cursor: pointer; font-size: .78rem; font-weight: 600; background: #eee; color: #999; transition: all .2s; }
     .toggle-btn.on { background: #C8E6C9; color: #2E7D32; }
-    .status-select { padding: 6px 10px; border-radius: 8px; border: 1.5px solid #ddd; font-size: .82rem; font-weight: 700; background: #fafafa; color: #555; cursor: pointer; }
+    .status-select { padding: 6px 10px; border-radius: 8px; border: 1.5px solid #ddd; font-size: .82rem; font-weight: 600; background: #fafafa; color: #555; cursor: pointer; }
     .status-select.s-moi        { background: #FFF3E0; color: #E65100; border-color: #FFCC80; }
     .status-select.s-xacnhan    { background: #E3F2FD; color: #1565C0; border-color: #90CAF9; }
     .status-select.s-danggiao   { background: #F3E5F5; color: #6A1B9A; border-color: #CE93D8; }
@@ -216,21 +220,21 @@
     .qs-list { display: flex; flex-direction: column; gap: 9px; }
     .qs-item {
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
-      width: 100%; padding: 14px 16px; font-size: .95rem; font-weight: 700;
+      width: 100%; padding: 14px 16px; font-size: .95rem; font-weight: 600;
       font-family: inherit; text-align: left; cursor: pointer; transition: all .18s;
     }
     .qs-item:hover { filter: brightness(.96); }
     .qs-item.qs-current { box-shadow: 0 0 0 2px currentColor inset; }
-    .qs-tick { font-weight: 800; }
+    .qs-tick { font-weight: 700; }
 
     /* Chip lọc trạng thái đơn — chọn được nhiều, sáng màu khi được chọn */
     .status-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 18px; }
-    .status-filter .lbl { font-size: .8rem; color: #7A9879; font-weight: 700; margin-right: 2px; }
+    .status-filter .lbl { font-size: .8rem; color: #7A9879; font-weight: 600; margin-right: 2px; }
     /* các chip nằm trong span này → phải cho flex + gap thì chúng mới cách nhau */
     #orderStatusChips { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
     .st-chip {
       padding: 8px 16px; border-radius: 50px; border: 1.5px solid #e2e2e2;
-      background: #fff; color: #888; font-weight: 700; font-size: .82rem;
+      background: #fff; color: #888; font-weight: 600; font-size: .82rem;
       cursor: pointer; transition: all .13s; line-height: 1.4;
     }
     .st-chip:hover { border-color: #bdbdbd; color: #555; }
@@ -245,7 +249,7 @@
 
     /* ── Cảnh báo chuẩn bị hàng ───────────────── */
     .prep-alert { background: #FFF8E1; border: 1.5px solid #FFCC80; border-left: 5px solid #FB8C00; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; }
-    .prep-alert-head { font-size: 1.02rem; font-weight: 700; color: #E65100; margin-bottom: 12px; }
+    .prep-alert-head { font-size: 1.02rem; font-weight: 600; color: #E65100; margin-bottom: 12px; }
     .prep-alert-list { display: flex; flex-wrap: wrap; gap: 8px; }
     .prep-chip { background: #fff; border: 1px solid #FFCC80; border-radius: 50px; padding: 6px 14px; font-size: .85rem; color: #5d4037; cursor: pointer; transition: all .15s; }
     .prep-chip:hover { background: #FB8C00; color: #fff; border-color: #FB8C00; }
@@ -254,7 +258,7 @@
     .dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 16px; }
     .dash-card { background: #fff; border-radius: 14px; padding: 20px 16px; box-shadow: 0 2px 12px rgba(0,0,0,.06); text-align: center; min-width: 0; overflow: hidden; }
     /* cỡ chữ co giãn theo bề rộng thẻ để số tiền lớn không tràn ra ngoài */
-    .dash-num { font-size: clamp(1.35rem, 1.05rem + 1vw, 1.9rem); font-weight: 800; line-height: 1.15; overflow-wrap: break-word; }
+    .dash-num { font-size: clamp(1.35rem, 1.05rem + 1vw, 1.9rem); font-weight: 700; line-height: 1.15; overflow-wrap: break-word; }
     .dash-label { margin-top: 8px; color: #7A9879; font-size: .9rem; font-weight: 600; }
     @media (max-width: 720px) { .dash-cards { grid-template-columns: 1fr; } }
 
@@ -266,13 +270,13 @@
     .stat-row { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border: 1px solid #eef3ee; border-radius: 10px; margin-bottom: 8px; cursor: pointer; background: #fff; transition: background .12s, border-color .12s; }
     .stat-row:hover { background: #F7FBF7; border-color: #CDE3CD; }
     .stat-row-main { flex: 1; min-width: 0; }
-    .stat-row-main .sr-code { font-weight: 800; color: #2E7D32; }
+    .stat-row-main .sr-code { font-weight: 700; color: #2E7D32; }
     .stat-row-main .sr-sub { font-size: .82rem; color: #7A9879; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .stat-row-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
-    .stat-row-side .sr-total { font-weight: 800; }
-    .sr-date { font-size: .74rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #E8F1E8; color: #4E6B4E; }
+    .stat-row-side .sr-total { font-weight: 700; }
+    .sr-date { font-size: .74rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: #E8F1E8; color: #4E6B4E; }
     .sr-date.sr-fallback { background: #FFF3E0; color: #E65100; }
-    .stat-total-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding: 12px 14px; background: #2E7D32; color: #fff; border-radius: 10px; font-weight: 700; }
+    .stat-total-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding: 12px 14px; background: #2E7D32; color: #fff; border-radius: 10px; font-weight: 600; }
     .stat-total-bar strong { font-size: 1.1rem; }
     .profit-line { display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; border-bottom: 1px dashed #DCEBDC; font-size: .95rem; }
     .profit-line strong { font-size: 1.05rem; }
@@ -280,7 +284,7 @@
     .backup-box { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; justify-content: space-between; margin-top: 32px; padding: 20px 22px; background: #E8F5E9; border: 1.5px solid #A5D6A7; border-radius: 14px; }
     .backup-box.qua-han { background: #FBE9E7; border-color: #FFAB91; }
     .backup-box p.bk-mo-ta { font-size: .85rem; color: #5b7a5a; margin-top: 4px; max-width: 640px; }
-    .backup-box .bk-cuoi { font-size: .85rem; font-weight: 700; margin-top: 6px; color: #2E7D32; }
+    .backup-box .bk-cuoi { font-size: .85rem; font-weight: 600; margin-top: 6px; color: #2E7D32; }
     .backup-box.qua-han .bk-cuoi { color: #BF360C; }
     .backup-box .bk-trang-thai { flex: 1 1 100%; font-size: .85rem; color: #555; margin: 0; }
     .backup-box .bk-trang-thai:empty { display: none; }
@@ -289,7 +293,7 @@
     /* ── Lịch giao: lịch tháng mini ───────────── */
     .deliv-calendar { background: #fff; border: 1px solid #eef3ee; border-radius: 14px; padding: 14px 14px 10px; margin-bottom: 22px; box-shadow: 0 1px 6px rgba(0,0,0,.04); }
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-    .cal-dow { text-align: center; font-size: .72rem; font-weight: 700; color: #7A9879; text-transform: uppercase; padding: 4px 0 8px; }
+    .cal-dow { text-align: center; font-size: .72rem; font-weight: 600; color: #7A9879; text-transform: uppercase; padding: 4px 0 8px; }
     .cal-day {
       position: relative; aspect-ratio: 1; max-height: 52px; border-radius: 10px;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -297,8 +301,8 @@
     }
     .cal-day.cal-empty { visibility: hidden; }
     .cal-day.cal-past { color: #c5cfc5; }
-    .cal-day.cal-today { border-color: #2E7D32; color: #2E7D32; font-weight: 800; }
-    .cal-day.cal-has { background: #E8F5E9; color: #1B5E20; cursor: pointer; font-weight: 800; }
+    .cal-day.cal-today { border-color: #2E7D32; color: #2E7D32; font-weight: 700; }
+    .cal-day.cal-has { background: #E8F5E9; color: #1B5E20; cursor: pointer; font-weight: 700; }
     .cal-day.cal-has:hover { background: #C8E6C9; }
     .cal-day.cal-overdue { background: #FFEBEE; color: #C62828; }
     .cal-day.cal-overdue:hover { background: #FFCDD2; }
@@ -306,7 +310,7 @@
     .cal-count {
       position: absolute; top: 3px; right: 3px; min-width: 17px; height: 17px; padding: 0 4px;
       background: #2E7D32; color: #fff; border-radius: 50px;
-      font-size: .66rem; font-weight: 800; display: flex; align-items: center; justify-content: center;
+      font-size: .66rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
     }
     .cal-day.cal-overdue .cal-count { background: #C62828; }
     @media (max-width: 520px) { .cal-day { font-size: .8rem; border-radius: 8px; } .cal-count { min-width: 15px; height: 15px; font-size: .6rem; } }
@@ -320,7 +324,7 @@
       width: 302px; max-width: calc(100vw - 40px);
     }
     .date-pop-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-    .date-pop-title { font-weight: 800; color: #2E7D32; font-size: .92rem; }
+    .date-pop-title { font-weight: 700; color: #2E7D32; font-size: .92rem; }
     .date-pop .cal-day { cursor: pointer; max-height: 40px; }
     .date-pop .cal-day:hover { background: #E8F5E9; }
     .date-pop .cal-day.cal-selected { background: #2E7D32; color: #fff; border-color: #2E7D32; }
@@ -352,18 +356,18 @@
     .date-today-btn {
       width: 100%; margin-top: 8px; padding: 9px; border: 1.5px solid #2E7D32;
       background: #fff; border-radius: 8px; color: #2E7D32; font-family: inherit;
-      font-size: .86rem; font-weight: 700; cursor: pointer;
+      font-size: .86rem; font-weight: 600; cursor: pointer;
     }
     .date-today-btn:hover { background: #2E7D32; color: #fff; }
     /* Nhật ký cập nhật */
     .cl-card { background: #fff; border: 1px solid #eef3ee; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 1px 6px rgba(0,0,0,.04); }
     .cl-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .cl-date { background: #E8F5E9; color: #2E7D32; font-weight: 800; font-size: .8rem; padding: 4px 12px; border-radius: 50px; white-space: nowrap; }
+    .cl-date { background: #E8F5E9; color: #2E7D32; font-weight: 700; font-size: .8rem; padding: 4px 12px; border-radius: 50px; white-space: nowrap; }
     .cl-title { flex: 1; min-width: 200px; font-size: 1.02rem; }
     .cl-actions { display: flex; gap: 6px; }
     .cl-details { white-space: pre-line; color: #555; font-size: .9rem; line-height: 1.7; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e8f0e8; }
     .cl-note { margin-top: 12px; background: #FFF8E1; border: 1px solid #FFE082; border-radius: 10px; padding: 10px 12px; }
-    .cl-note label { display: block; font-size: .76rem; font-weight: 700; color: #B27B00; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+    .cl-note label { display: block; font-size: .76rem; font-weight: 600; color: #B27B00; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
     .cl-note textarea { width: 100%; border: none; background: transparent; resize: vertical; font-size: .9rem; color: #5d4037; outline: none; min-height: 40px; }
 
     /* Gợi ý nguyên liệu (autocomplete) + danh sách nguyên liệu */
@@ -385,7 +389,7 @@
       background: #E8F5E9; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
     }
     .prod-row .s-cust { flex: 1; }
-    .prod-row .s-price { white-space: nowrap; font-weight: 800; color: #2E7D32; font-size: .85rem; }
+    .prod-row .s-price { white-space: nowrap; font-weight: 700; color: #2E7D32; font-size: .85rem; }
     /* Thẻ mẫu đã chọn — đứng yên ngay dưới ô tìm, không phải thông báo bay ngang */
     .prod-picked {
       display: flex; align-items: center; gap: 11px; margin-top: 8px;
@@ -394,11 +398,11 @@
     }
     .prod-picked .pp-info { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
     .prod-picked .pp-info strong { font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .prod-picked .pp-info small { color: #2E7D32; font-weight: 700; font-size: .8rem; }
-    .suggest-row .s-price { color: #2E7D32; font-weight: 700; font-size: .85rem; white-space: nowrap; }
-    .suggest-add { color: #2E7D32; font-weight: 700; }
-    .mt-name { flex: 1; min-width: 0; font-weight: 700; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .mt-price { color: #2E7D32; font-weight: 700; font-size: .85rem; white-space: nowrap; }
+    .prod-picked .pp-info small { color: #2E7D32; font-weight: 600; font-size: .8rem; }
+    .suggest-row .s-price { color: #2E7D32; font-weight: 600; font-size: .85rem; white-space: nowrap; }
+    .suggest-add { color: #2E7D32; font-weight: 600; }
+    .mt-name { flex: 1; min-width: 0; font-weight: 600; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mt-price { color: #2E7D32; font-weight: 600; font-size: .85rem; white-space: nowrap; }
     .mt-history { background: #f8faf8; border: 1px solid #eef3ee; border-radius: 8px; padding: 8px 12px; margin: -2px 0 8px; font-size: .83rem; color: #555; }
     .mt-history .h-row { padding: 3px 0; border-bottom: 1px dashed #e8f0e8; display: flex; justify-content: space-between; gap: 10px; }
     .mt-history .h-row:last-child { border-bottom: none; }
@@ -411,11 +415,11 @@
     /* ── Lịch giao ────────────────────────────── */
     .deliv-group { margin-bottom: 26px; }
     .deliv-head { font-size: 1rem; color: #2E7D32; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
-    .deliv-count { font-size: .78rem; font-weight: 700; color: #7A9879; background: #E8F5E9; padding: 2px 10px; border-radius: 50px; }
+    .deliv-count { font-size: .78rem; font-weight: 600; color: #7A9879; background: #E8F5E9; padding: 2px 10px; border-radius: 50px; }
     .deliv-row { display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #f0f4f0; border-radius: 10px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer; transition: all .15s; }
     .deliv-row:hover { border-color: #C8E6C9; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
-    .deliv-code { font-weight: 800; color: #2E7D32; min-width: 78px; }
-    .deliv-name { font-weight: 700; min-width: 120px; }
+    .deliv-code { font-weight: 700; color: #2E7D32; min-width: 78px; }
+    .deliv-name { font-weight: 600; min-width: 120px; }
     .deliv-area { color: #555; font-size: .85rem; min-width: 90px; }
     .deliv-prod { color: #555; font-size: .88rem; flex: 1; }
     @media (max-width: 720px) { .deliv-row { flex-wrap: wrap; gap: 6px 12px; } .deliv-prod { flex: 1 1 100%; } }
@@ -428,7 +432,7 @@
     .cat-fold {
       display: flex; align-items: center; gap: 10px; width: 100%;
       background: none; border: none; padding: 4px 0; cursor: pointer;
-      font-family: inherit; font-size: .98rem; font-weight: 800; color: #2E7D32; text-align: left;
+      font-family: inherit; font-size: .98rem; font-weight: 700; color: #2E7D32; text-align: left;
     }
     .cat-fold-count { font-weight: 600; color: #7A9879; font-size: .84rem; }
     .cat-fold-caret { margin-left: auto; color: #7A9879; transition: transform .2s; }
@@ -443,7 +447,7 @@
     .bst-bia { width: 62px; height: 78px; border-radius: 10px; object-fit: cover; flex: 0 0 auto; background: #EEF5EE; }
     .bst-bia-trong { display: grid; place-items: center; background: #EEF5EE; color: #A5C6A4; font-size: 1.5rem; }
     .bst-than { flex: 1; min-width: 0; }
-    .bst-ten { font-weight: 800; font-size: 1rem; color: #1a2e1a; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; overflow-wrap: anywhere; }
+    .bst-ten { font-weight: 700; font-size: 1rem; color: #1a2e1a; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; overflow-wrap: anywhere; }
     .bst-tl { font-size: .84rem; color: #5b7a5a; margin-top: 2px; overflow-wrap: anywhere; }
     .bst-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
     .bst-chip { font-size: .75rem; color: #2E7D32; background: #E8F5E9; border-radius: 50px; padding: 3px 10px; white-space: nowrap; }
@@ -455,7 +459,7 @@
     /* Cảnh báo mẫu hoa chưa thuộc BST nào */
     .bst-warn { background: #FFF8E1; border-left: 4px solid #FFA000; border-radius: 10px; padding: 13px 16px; margin-bottom: 16px; font-size: .88rem; color: #6D4C41; line-height: 1.6; }
     .bst-warn-ds { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-    .bst-warn-nut { background: #fff; border: 1.5px solid #FFCC80; color: #E65100; border-radius: 50px; padding: 4px 12px; font: 700 .8rem inherit; font-family: inherit; }
+    .bst-warn-nut { background: #fff; border: 1.5px solid #FFCC80; color: #E65100; border-radius: 50px; padding: 4px 12px; font: 600 .8rem inherit; font-family: inherit; }
     .bst-warn-nut:hover { background: #FFF3E0; }
 
     /* Công tắc bật/tắt */
@@ -472,7 +476,7 @@
     .bst-cover-xem { width: 92px; height: 116px; border-radius: 10px; object-fit: cover; flex: 0 0 auto; }
     .bst-cover-cot { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 190px; }
     .bst-cover-nut { display: flex; gap: 7px; flex-wrap: wrap; }
-    .bst-cover-nut button { background: #fff; border: 1.5px solid #C8E6C9; color: #2E7D32; border-radius: 8px; padding: 7px 12px; font: 700 .82rem inherit; font-family: inherit; }
+    .bst-cover-nut button { background: #fff; border: 1.5px solid #C8E6C9; color: #2E7D32; border-radius: 8px; padding: 7px 12px; font: 600 .82rem inherit; font-family: inherit; }
     .bst-cover-nut button:hover { background: #E8F5E9; }
     .bst-cover-nut button.bo { border-color: #FFCDD2; color: #C62828; }
     .bst-cover-nut button.bo:hover { background: #FFEBEE; }
@@ -485,14 +489,14 @@
 
     /* Lưới tick chọn mẫu hoa cho BST */
     .bst-pick-dau { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 7px; }
-    .bst-pick-dem { font-size: .82rem; color: #2E7D32; font-weight: 700; }
+    .bst-pick-dem { font-size: .82rem; color: #2E7D32; font-weight: 600; }
     .bst-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; max-height: 320px; overflow-y: auto; padding: 8px; border: 1.5px solid #e8f0e8; border-radius: 10px; background: #fafcfa; }
     .bst-o { position: relative; display: block; border-radius: 9px; overflow: hidden; cursor: pointer; border: 2.5px solid transparent; background: #fff; }
     .bst-o.on { border-color: #2E7D32; }
     .bst-o input { position: absolute; opacity: 0; width: 0; height: 0; }
     .bst-o img, .bst-o-trong { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; }
     .bst-o-trong { display: grid; place-items: center; background: #EEF5EE; font-size: 1.3rem; }
-    .bst-o .tick { position: absolute; top: 5px; right: 5px; width: 21px; height: 21px; border-radius: 50%; background: rgba(255,255,255,.92); display: grid; place-items: center; font-size: .72rem; font-weight: 800; color: transparent; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
+    .bst-o .tick { position: absolute; top: 5px; right: 5px; width: 21px; height: 21px; border-radius: 50%; background: rgba(255,255,255,.92); display: grid; place-items: center; font-size: .72rem; font-weight: 700; color: transparent; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
     .bst-o.on .tick { background: #2E7D32; color: #fff; }
     .bst-o .ten { display: block; font-size: .68rem; line-height: 1.25; padding: 4px 5px 5px; color: #1a2e1a; height: 2.8em; overflow: hidden; }
     .bst-o input:focus-visible ~ .tick { outline: 2px solid #2E7D32; outline-offset: 2px; }
@@ -518,7 +522,7 @@
     .cat-row .cat-count { margin-right: auto; }
     .cat-row .cat-emoji:focus, .cat-row .cat-name:focus { border-color: #2E7D32; outline: none; }
     .cat-count { font-size: .78rem; color: #7A9879; background: #E8F5E9; border-radius: 50px; padding: 3px 10px; white-space: nowrap; }
-    .cat-move { background: #eef3ee; border: none; border-radius: 6px; width: 28px; height: 30px; cursor: pointer; color: #2E7D32; font-weight: 800; font-size: .85rem; }
+    .cat-move { background: #eef3ee; border: none; border-radius: 6px; width: 28px; height: 30px; cursor: pointer; color: #2E7D32; font-weight: 700; font-size: .85rem; }
     .cat-move:hover { background: #C8E6C9; }
     .cat-move:disabled { opacity: .35; cursor: not-allowed; }
     /* flex-wrap + min-width:0 để ô nhập co lại được, không đẩy modal rộng quá màn hình */
@@ -542,7 +546,7 @@
     }
     .upload-zone:hover { border-color: #2E7D32; background: #f0faf0; }
     .upload-icon { font-size: 2.5rem; margin-bottom: 10px; }
-    .upload-text { font-weight: 700; color: #2E7D32; font-size: 1rem; }
+    .upload-text { font-weight: 600; color: #2E7D32; font-size: 1rem; }
     .upload-hint { color: #7A9879; font-size: .85rem; margin-top: 4px; }
     .img-upload-area {
       border: 1.5px dashed #C8E6C9; border-radius: 8px;
@@ -555,7 +559,7 @@
     /* 3 ô ảnh hero: máy tính 3 cột, điện thoại xuống 1 cột */
     .hero-slots { display: grid; grid-template-columns: minmax(0, 420px); gap: 12px; }
     .hero-slot { background: #f8faf8; border: 1px solid #eef3ee; border-radius: 12px; padding: 12px; }
-    .hero-slot-name { font-size: .8rem; font-weight: 700; color: #555; margin-bottom: 8px; }
+    .hero-slot-name { font-size: .8rem; font-weight: 600; color: #555; margin-bottom: 8px; }
     .hero-slot-btns { display: flex; gap: 6px; }
     .hero-slot-btns .img-upload-area { flex: 1; padding: 10px 8px; font-size: .82rem; }
     @media (max-width: 720px) { .hero-slots { grid-template-columns: 1fr; } }
@@ -568,7 +572,7 @@
 
     /* ── Gallery admin grid ───────────────────── */
     .gal-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
-    .gal-cat-badge { position: absolute; top: 6px; left: 6px; background: rgba(46,125,50,.88); color: #fff; font-size: .68rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; pointer-events: none; max-width: calc(100% - 12px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .gal-cat-badge { position: absolute; top: 6px; left: 6px; background: rgba(46,125,50,.88); color: #fff; font-size: .68rem; font-weight: 600; padding: 2px 9px; border-radius: 999px; pointer-events: none; max-width: calc(100% - 12px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .gallery-drag { position: relative; }
     .gallery-admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 8px; }
     .gallery-admin-item { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.07); transition: outline .12s, opacity .12s; }
@@ -589,7 +593,7 @@
       position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%;
       background: rgba(255,255,255,.92); border: 2px solid #C8E6C9;
       display: flex; align-items: center; justify-content: center;
-      font-size: .82rem; font-weight: 800; color: #C8E6C9;
+      font-size: .82rem; font-weight: 700; color: #C8E6C9;
       cursor: pointer; padding: 0; transition: all .15s;
     }
     .gal-tick:hover { border-color: #2E7D32; color: #2E7D32; }
@@ -598,7 +602,7 @@
     /* Nhãn ảnh vừa upload — để biết cái nào cần đặt chú thích */
     .gallery-admin-item.gal-fresh .gallery-drag::after {
       content: 'MỚI'; position: absolute; bottom: 6px; right: 6px;
-      background: #FF7043; color: #fff; font-size: .62rem; font-weight: 800;
+      background: #FF7043; color: #fff; font-size: .62rem; font-weight: 700;
       padding: 2px 8px; border-radius: 50px; letter-spacing: .04em; pointer-events: none;
     }
 
@@ -613,7 +617,7 @@
     .bulk-bar.show { transform: translate(-50%, 0); }
     .bulk-bar b { font-size: .95rem; white-space: nowrap; }
     .bulk-select { padding: 8px 10px; border-radius: 8px; border: none; font-family: inherit; font-size: .86rem; }
-    .bulk-bar button { border: none; border-radius: 8px; padding: 9px 14px; font-family: inherit; font-weight: 800; font-size: .86rem; cursor: pointer; }
+    .bulk-bar button { border: none; border-radius: 8px; padding: 9px 14px; font-family: inherit; font-weight: 700; font-size: .86rem; cursor: pointer; }
     .bulk-move { background: #4CAF50; color: #fff; }
     .bulk-del  { background: #E53935; color: #fff; }
     .bulk-none { background: rgba(255,255,255,.16); color: #fff; }
@@ -627,7 +631,7 @@
     .gi-arrow {
       flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
       border: 1.5px solid #C8E6C9; background: #fff; color: #2E7D32;
-      font-size: 1rem; font-weight: 800; cursor: pointer; transition: all .18s;
+      font-size: 1rem; font-weight: 700; cursor: pointer; transition: all .18s;
     }
     .gi-arrow:hover:not(:disabled) { background: #2E7D32; border-color: #2E7D32; color: #fff; }
     .gi-arrow:disabled { opacity: .3; cursor: default; }
@@ -644,7 +648,7 @@
     .price-wrap { position: relative; }
     .price-wrap .price-suffix {
       position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-      color: #7A9879; font-weight: 700; pointer-events: none; display: none;
+      color: #7A9879; font-weight: 600; pointer-events: none; display: none;
     }
     .price-wrap.has-num .price-suffix { display: block; }
     .price-wrap.has-num > input { padding-right: 30px; }
@@ -659,7 +663,7 @@
       flex-shrink: 0;
       border: 1.5px solid #C8E6C9; background: #fff; color: #2E7D32;
       border-radius: 50px; padding: 7px 15px;
-      font-family: inherit; font-size: .82rem; font-weight: 700; cursor: pointer;
+      font-family: inherit; font-size: .82rem; font-weight: 600; cursor: pointer;
       transition: all .18s;
     }
     .price-chip:hover { background: #2E7D32; border-color: #2E7D32; color: #fff; }
@@ -746,7 +750,7 @@
     .confirm-box h3 { font-size: 1.15rem; color: #1A2E1A; margin-bottom: 8px; }
     .confirm-box p { font-size: .92rem; color: #5A6B59; line-height: 1.6; margin-bottom: 22px; }
     .confirm-actions { display: flex; gap: 10px; }
-    .confirm-actions button { flex: 1; padding: 12px 14px; border-radius: 10px; font-weight: 800; font-size: .9rem; cursor: pointer; font-family: inherit; }
+    .confirm-actions button { flex: 1; padding: 12px 14px; border-radius: 10px; font-weight: 700; font-size: .9rem; cursor: pointer; font-family: inherit; }
     .btn-discard { background: #E53935; color: #fff; border: none; }
     .btn-discard:hover { background: #C62828; }
     @media (max-width: 480px) { .confirm-actions { flex-direction: column-reverse; } }
@@ -758,7 +762,7 @@
       border: 2px solid #2E7D32; cursor: pointer;
       background: #fff; color: #2E7D32;
       padding: 11px 20px; border-radius: 50px;
-      font-weight: 700; font-size: .92rem; line-height: 1;
+      font-weight: 600; font-size: .92rem; line-height: 1;
       box-shadow: 0 4px 20px rgba(46,125,50,.25);
       visibility: hidden; transform: translateX(calc(100% + 32px));  /* nấp ngoài mép phải */
       transition: transform .35s cubic-bezier(.25,.8,.35,1), visibility .35s, background .15s, color .15s;
@@ -776,7 +780,7 @@
     /* ── Toast ────────────────────────────────── */
     .toast {
       position: fixed; bottom: 28px; right: 28px; z-index: 9999;
-      padding: 13px 22px; border-radius: 10px; font-weight: 700; font-size: .92rem;
+      padding: 13px 22px; border-radius: 10px; font-weight: 600; font-size: .92rem;
       box-shadow: 0 8px 24px rgba(0,0,0,.15); animation: slideUp .3s ease;
     }
     .toast.success { background: #2E7D32; color: #fff; }
@@ -809,7 +813,7 @@
       .cards-mobile { display: flex; flex-direction: column; gap: 10px; }
       .m-card { background: #fff; border: 1px solid #eef3ee; border-radius: 14px; padding: 13px 15px; box-shadow: 0 1px 6px rgba(0,0,0,.05); }
       .mc-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-      .mc-title { font-weight: 800; }
+      .mc-title { font-weight: 700; }
       .mc-sub { color: #7A9879; font-size: .85rem; margin-top: 2px; }
       .mc-actions { display: flex; gap: 8px; margin-top: 10px; }
       .mc-actions button { flex: 1; padding: 10px 8px; font-size: .88rem; }
@@ -831,9 +835,9 @@
       .oc-wrap .thumb { width: 56px; height: 56px; flex-shrink: 0; }
       .oc-body { flex: 1; min-width: 0; }
       .oc-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
-      .oc-code { color: #2E7D32; font-weight: 800; }
-      .oc-badge { font-size: .76rem; font-weight: 700; padding: 4px 11px; border-radius: 50px; border: 1.5px solid transparent; }
-      .oc-cust { font-weight: 700; font-size: .92rem; margin-bottom: 2px; }
+      .oc-code { color: #2E7D32; font-weight: 700; }
+      .oc-badge { font-size: .76rem; font-weight: 600; padding: 4px 11px; border-radius: 50px; border: 1.5px solid transparent; }
+      .oc-cust { font-weight: 600; font-size: .92rem; margin-bottom: 2px; }
       .oc-cust small { font-weight: 400; color: #7A9879; }
       .oc-prod { color: #555; font-size: .88rem; margin-bottom: 8px; }
       .oc-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .85rem; }
@@ -877,7 +881,7 @@
         background: #162816; color: #fff; padding: 11px 14px;
       }
       .admin-topbar .hamburger { background: none; border: none; color: #fff; font-size: 1.5rem; line-height: 1; cursor: pointer; padding: 2px 8px; }
-      .admin-topbar .tb-brand { font-weight: 800; font-size: 1.1rem; }
+      .admin-topbar .tb-brand { font-weight: 700; font-size: 1.1rem; }
       /* Chừa khoảng trống cuối trang: nút "Xem thêm…" ở dòng cuối luôn cuộn lên được
          khỏi thanh công cụ trình duyệt / vạch home, không bị dính sát mép dưới */
       .content > .panel { padding: 16px 14px calc(84px + env(safe-area-inset-bottom, 0px)); }
@@ -971,9 +975,14 @@
     /* Bảng đơn 10 cột: đệm 16px/bên là 320px chỉ riêng khoảng trắng → tràn khung, mất cột nút.
        Thu đệm lại; màn hẹp vẫn tràn thì cuộn ngang chứ KHÔNG cắt mất cột. */
     #ordersTable .data-table th, #ordersTable .data-table td { padding-left: 10px; padding-right: 10px; }
+    /* Be Vietnam Pro rộng hơn Segoe UI (đổi font 24/09) → tiêu đề cột + ô trạng thái gọn lại cho vừa khổ 1280 */
+    #ordersTable .data-table th { letter-spacing: .02em; font-size: .74rem; }
+    /* Chấm màu trạng thái vẽ bằng nền (xem .status-select bên dưới) → dời chấm vào 11px thì chữ phải chừa ≥ 20px, không là đè chữ */
+    #ordersTable .data-table .status-select { font-size: .78rem; padding-left: 21px; padding-right: 6px;
+      background-image: radial-gradient(circle at 11px 50%, var(--st, #bdbdbd) 0 4px, transparent 4.6px); }
     .orders-desktop, .table-desktop { overflow-x: auto; }
     /* Mã đơn trong bảng: bấm để xem chi tiết (thay cho nút 👁 riêng — tiết kiệm 1 cột nút) */
-    .ma-don { background: none; border: 0; padding: 0; font: inherit; font-weight: 800; color: #2E7D32; cursor: pointer; white-space: nowrap; }
+    .ma-don { background: none; border: 0; padding: 0; font: inherit; font-weight: 700; color: #2E7D32; cursor: pointer; white-space: nowrap; }
     .ma-don:hover { text-decoration: underline; }
 
     /* Ô tìm kiếm: kính lúp vẽ sẵn, không còn 🔍 trong chữ mờ */
@@ -999,7 +1008,7 @@
     }
 
     /* Ô nhập: viền mảnh, bo tròn, nhãn chữ thường (bỏ IN HOA) */
-    .field-group label { text-transform: none; letter-spacing: 0; font-size: .84rem; font-weight: 700; color: #4a5a49; }
+    .field-group label { text-transform: none; letter-spacing: 0; font-size: .84rem; font-weight: 600; color: #4a5a49; }
     .field-group input, .field-group textarea, .field-group select, .date-btn {
       border: 1px solid #dfe5de; border-radius: 12px; background: #fff;
     }
@@ -1012,7 +1021,7 @@
     .qty-step button { background: none; color: #1f2a1f; }
     .qty-step button:hover { background: #f0f3ef; color: #1f2a1f; }
     .img-upload-area {
-      border: 1px solid #dfe5de; border-radius: 12px; color: #1f2a1f; font-weight: 700;
+      border: 1px solid #dfe5de; border-radius: 12px; color: #1f2a1f; font-weight: 600;
       display: flex; align-items: center; justify-content: center; gap: 8px;
     }
     .img-upload-area:hover { border-color: #2E7D32; background: #f7fbf7; }
@@ -1035,9 +1044,9 @@
     .fx-grp { padding: 14px 0 6px; }
     .fx-grp + .fx-grp { border-top: 1px solid #eef1ed; }
     .fx-gt { display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
-             font-size: .76rem; font-weight: 800; letter-spacing: .05em; color: #7a877a; text-transform: uppercase; }
+             font-size: .76rem; font-weight: 700; letter-spacing: .05em; color: #7a877a; text-transform: uppercase; }
     .fx-gt .ic { width: 15px; height: 15px; }
-    .fx-lb { font-size: .8rem; font-weight: 700; color: #7a877a; margin: 2px 0 6px; }
+    .fx-lb { font-size: .8rem; font-weight: 600; color: #7a877a; margin: 2px 0 6px; }
     .fx-in {
       display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 12px; margin-bottom: 8px;
       border: 1px solid #dfe5de; border-radius: 12px; background: #fff; cursor: text;
@@ -1050,7 +1059,7 @@
       font: inherit; font-size: .95rem; color: #1f2a1f;
     }
     .fx-in textarea { resize: vertical; min-height: 64px; }
-    .fx-suf { color: #7a877a; font-weight: 700; }
+    .fx-suf { color: #7a877a; font-weight: 600; }
     .fx-row { display: flex; gap: 10px; align-items: flex-end; }
     .fx-row > .fx-col { flex: 1; min-width: 0; }
     .fx-row > .fx-col-auto { flex: 0 0 auto; }
@@ -1063,7 +1072,7 @@
     .fx-chip {
       display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px;
       border: 1px solid #dfe5de; border-radius: 999px; background: #fff; color: #5d6b5c;
-      font: inherit; font-size: .86rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+      font: inherit; font-size: .86rem; font-weight: 600; cursor: pointer; white-space: nowrap;
       transition: background .15s, border-color .15s, color .15s;
     }
     .fx-chip:hover { border-color: #b9c6b8; }
@@ -1077,7 +1086,7 @@
     /* Nút ngày trong hàng chip: bé như chip. Khi ngày trùng chip nhanh (Hôm nay/Mai)
        thì nút chỉ ghi "Ngày khác" cho đỡ lặp chữ — chữ thật vẫn nằm ở .db-txt */
     .qd-row .date-pick-wrap { display: inline-block; }
-    .qd-row .date-btn { height: 36px; padding: 0 14px; border-radius: 999px; width: auto; font-size: .86rem; font-weight: 700; color: #5d6b5c; }
+    .qd-row .date-btn { height: 36px; padding: 0 14px; border-radius: 999px; width: auto; font-size: .86rem; font-weight: 600; color: #5d6b5c; }
     .qd-row .date-btn .db-ico .ic { width: 15px; height: 15px; }
     .qd-row .db-alt { display: none; }
     .qd-row.qd-custom .date-btn { background: #E8F5E9; border-color: #2E7D32; color: #2E7D32; }
@@ -1088,7 +1097,7 @@
     .fx-more {
       display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 2px;
       border: 0; border-bottom: 1px dashed #e3e8e2; background: none; cursor: pointer;
-      font: inherit; font-size: .92rem; font-weight: 700; color: #1f2a1f; text-align: left;
+      font: inherit; font-size: .92rem; font-weight: 600; color: #1f2a1f; text-align: left;
     }
     .fx-more .ic { color: #7a877a; transition: transform .2s; }
     .fx-more.open .ic { transform: rotate(45deg); }
@@ -1105,15 +1114,15 @@
     .fx-amt { text-align: center; padding: 14px 0 6px; }
     .fx-amt input {
       width: 100%; border: 0; outline: 0; background: none; text-align: center;
-      font: inherit; font-size: 2.3rem !important; font-weight: 800; color: #1f2a1f; padding: 4px 0;
+      font: inherit; font-size: 2.3rem !important; font-weight: 700; color: #1f2a1f; padding: 4px 0;
     }
     .fx-amt input::placeholder { color: #cfd6ce; }
-    .fx-amt small { display: block; color: #7a877a; font-weight: 700; font-size: .8rem; }
+    .fx-amt small { display: block; color: #7a877a; font-weight: 600; font-size: .8rem; }
     .fx-cat { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0 12px; }
     .fx-cat button {
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
       padding: 10px 4px; min-height: 64px; border: 1px solid #dfe5de; border-radius: 12px; background: #fff;
-      color: #5d6b5c; font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; line-height: 1.2; text-align: center;
+      color: #5d6b5c; font: inherit; font-size: .78rem; font-weight: 600; cursor: pointer; line-height: 1.2; text-align: center;
     }
     .fx-cat button .ic { width: 22px; height: 22px; }
     .fx-cat button.on { border-color: #2E7D32; background: #E8F5E9; color: #2E7D32; }
@@ -1122,7 +1131,7 @@
     /* Chân form: tổng tiền bên trái, nút chính bên phải */
     .fx-foot { align-items: center; }
     .fx-sum { flex: 1; min-width: 0; line-height: 1.2; }
-    .fx-sum small { display: block; font-size: .74rem; font-weight: 700; color: #7a877a; }
+    .fx-sum small { display: block; font-size: .74rem; font-weight: 600; color: #7a877a; }
     .fx-sum b { font-size: 1.15rem; color: #1f2a1f; }
     .fx-foot .btn-green { padding: 12px 26px; border-radius: 12px; font-size: .95rem; }
 
@@ -1136,13 +1145,13 @@
       .bt-item {
         flex: 1; min-width: 0; position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px;
         padding: 7px 2px 5px; border: 0; background: none; color: #8a978a; cursor: pointer;
-        font: inherit; font-size: .68rem; font-weight: 700; -webkit-tap-highlight-color: transparent;
+        font: inherit; font-size: .68rem; font-weight: 600; -webkit-tap-highlight-color: transparent;
       }
       .bt-item .ic { width: 23px; height: 23px; }
       .bt-item.active { color: #2E7D32; }
       .bt-badge {
         position: absolute; top: 1px; left: calc(50% + 5px); min-width: 18px; height: 18px; padding: 0 5px;
-        border-radius: 9px; background: #E53935; color: #fff; font-size: .66rem; font-weight: 800; line-height: 18px; text-align: center;
+        border-radius: 9px; background: #E53935; color: #fff; font-size: .66rem; font-weight: 700; line-height: 18px; text-align: center;
       }
       .fab-add {
         display: flex; align-items: center; justify-content: center;
@@ -1163,7 +1172,7 @@
       /* Thẻ trên điện thoại: nút thao tác có chữ, viền mảnh; nút xoá chỉ biểu tượng */
       .mc-actions .act {
         flex: 1; width: auto; height: 40px; padding: 0 10px; border: 1px solid #e3e8e2;
-        color: #3d4a3c; font-size: .86rem; font-weight: 700;
+        color: #3d4a3c; font-size: .86rem; font-weight: 600;
       }
       .mc-actions .act .act-txt { display: inline; }
       .mc-actions .act.act-xoa { flex: 0 0 44px; }
@@ -1175,26 +1184,26 @@
     /* ══ Góp ý đợt 2 (24/09/2026): Tổng quan · chi tiết đơn · Lịch giao · Sổ chi phí · Nguyên liệu ══ */
     /* Nhãn trạng thái dạng chấm + chữ (không phải ô chọn) */
     .st-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 8px; border: 1px solid #e3e8e2;
-               border-radius: 999px; background: #fff; font-size: .74rem; font-weight: 700; color: #3d4a3c; white-space: nowrap; }
+               border-radius: 999px; background: #fff; font-size: .74rem; font-weight: 600; color: #3d4a3c; white-space: nowrap; }
     .st-pill::before, .st-dot-only { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--st, #bdbdbd); flex-shrink: 0; }
     .st-dot-only { display: inline-block; }
 
     /* Khối trang: tiêu đề nhỏ + nội dung */
     .db-sec { margin-bottom: 26px; }
     .db-sec-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
-    .db-sec-head h2 { font-size: 1.05rem; font-weight: 800; color: #1f2a1f; }
+    .db-sec-head h2 { font-size: 1.05rem; font-weight: 700; color: #1f2a1f; }
     .db-sub { font-size: .82rem; color: #7a877a; font-weight: 600; }
     .db-empty { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border: 1px dashed #dfe5de; border-radius: 12px;
                 color: #7a877a; font-size: .88rem; font-weight: 600; background: #fff; }
     .db-empty .ic { color: #43A047; }
-    .db-ma { font-weight: 800; color: #2E7D32; white-space: nowrap; }
+    .db-ma { font-weight: 700; color: #2E7D32; white-space: nowrap; }
 
     /* Thanh nhắc đơn mới */
     .db-new { display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 18px; padding: 12px 16px;
               border: 1px solid #FFCC80; border-radius: 14px; background: #FFF8E1; cursor: pointer; font: inherit; text-align: left; color: #5d4037; }
     .db-new:hover { border-color: #FB8C00; }
     .db-new-num { min-width: 38px; height: 38px; padding: 0 8px; border-radius: 12px; background: #FB8C00; color: #fff;
-                  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; }
+                  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; }
     .db-new-txt { flex: 1; display: flex; flex-direction: column; }
     .db-new-txt small { color: #8d6e63; font-size: .78rem; }
 
@@ -1206,7 +1215,7 @@
     .db-don .thumb { width: 64px; height: 64px; border-radius: 10px; flex-shrink: 0; }
     .db-don-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
     .db-don-r { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .db-don-kh { font-weight: 700; }
+    .db-don-kh { font-weight: 600; }
     .db-don-bo { font-size: .88rem; color: #4a5a49; }
     .db-don-dc { font-size: .8rem; color: #7a877a; display: flex; gap: 4px; align-items: flex-start; }
     .db-don-dc .ic, .dv-dc .ic, .dv-thiep .ic { width: 14px; height: 14px; margin-top: 2px; }
@@ -1215,13 +1224,13 @@
     .db-up { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
     .db-day { background: #fff; border: 1px solid #e3e8e2; border-radius: 14px; padding: 6px 6px 8px; }
     .db-day-h { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px 6px;
-                font-weight: 800; font-size: .9rem; color: #1f2a1f; }
-    .db-day-h span { font-size: .75rem; font-weight: 700; color: #7a877a; }
+                font-weight: 700; font-size: .9rem; color: #1f2a1f; }
+    .db-day-h span { font-size: .75rem; font-weight: 600; color: #7a877a; }
     .db-line { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.3fr) 10px; gap: 10px; align-items: center; width: 100%;
                padding: 9px 10px; border: 0; border-radius: 10px; background: none; cursor: pointer; font: inherit; font-size: .88rem; text-align: left; color: #1f2a1f; }
     .db-line:hover { background: #f4f8f4; }
     .db-line + .db-line { border-top: 1px solid #f0f3ef; border-radius: 0; }
-    .db-kh { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .db-kh { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .db-bo { color: #5d6b5c; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     /* Số liệu tháng: gọn, chữ nhỏ */
@@ -1230,8 +1239,8 @@
                background: #fff; cursor: pointer; font: inherit; text-align: left; color: #1f2a1f; min-width: 0; }
     .db-stat:hover:not(:disabled) { border-color: #b9d6b9; }
     .db-stat:disabled { cursor: default; }
-    .db-stat-l { font-size: .76rem; font-weight: 700; color: #7a877a; }
-    .db-stat-n { font-size: 1.08rem; font-weight: 800; }
+    .db-stat-l { font-size: .76rem; font-weight: 600; color: #7a877a; }
+    .db-stat-n { font-size: 1.08rem; font-weight: 700; }
     .db-stat-p { font-size: .74rem; color: #7a877a; }
 
     /* Công cụ: 2 dòng nhỏ */
@@ -1255,11 +1264,11 @@
     .od-img-trong { background: #f0f3ef; display: flex; align-items: center; justify-content: center; color: #9aa79a; cursor: default; }
     .od-img-trong .ic { width: 30px; height: 30px; }
     .od-top-b { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
-    .od-sp { font-weight: 800; font-size: 1.02rem; line-height: 1.3; }
-    .od-sp small { color: #7a877a; font-weight: 700; }
-    .od-tong { font-weight: 800; font-size: 1.2rem; color: #2E7D32; }
+    .od-sp { font-weight: 700; font-size: 1.02rem; line-height: 1.3; }
+    .od-sp small { color: #7a877a; font-weight: 600; }
+    .od-tong { font-weight: 700; font-size: 1.2rem; color: #2E7D32; }
     .od-sec { border-top: 1px solid #eef1ed; padding: 12px 0 4px; }
-    .od-sec h4 { display: flex; align-items: center; gap: 6px; font-size: .74rem; font-weight: 800; letter-spacing: .05em;
+    .od-sec h4 { display: flex; align-items: center; gap: 6px; font-size: .74rem; font-weight: 700; letter-spacing: .05em;
                  text-transform: uppercase; color: #7a877a; margin-bottom: 6px; }
     .od-sec h4 .ic { width: 15px; height: 15px; }
     .od-row { display: flex; gap: 12px; padding: 4px 0; font-size: .92rem; }
@@ -1270,7 +1279,7 @@
     .od-thiep, .od-ghichu { margin-top: 8px; padding: 10px 12px; border-radius: 10px; font-size: .9rem; line-height: 1.5; overflow-wrap: anywhere; }
     .od-thiep { background: #FFF8E1; border: 1px dashed #FFCC80; font-style: italic; }
     .od-ghichu { background: #f4f7f4; }
-    .od-thiep span, .od-ghichu span { display: block; font-style: normal; font-size: .72rem; font-weight: 800; color: #7a877a;
+    .od-thiep span, .od-ghichu span { display: block; font-style: normal; font-size: .72rem; font-weight: 700; color: #7a877a;
                                        text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
     .od-meta { font-size: .76rem; color: #9aa79a; padding-top: 10px; }
     /* Hàng nút chi tiết đơn: máy tính 1 dòng [trạng thái | Sửa đơn | xoá]; điện thoại trạng thái 1 dòng,
@@ -1288,12 +1297,12 @@
     .dq-o.co-don { border-color: #A5D6A7; background: #F1F8F1; }
     .dq-o.on { border-color: #2E7D32; box-shadow: 0 0 0 2px rgba(46,125,50,.2); }
     .dq-so { width: 46px; height: 46px; border-radius: 12px; background: #f0f3ef; color: #5d6b5c; flex-shrink: 0;
-             display: flex; align-items: center; justify-content: center; font-size: 1.35rem; font-weight: 800; }
+             display: flex; align-items: center; justify-content: center; font-size: 1.35rem; font-weight: 700; }
     .dq-o.co-don .dq-so { background: #2E7D32; color: #fff; }
     .dq-b { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-    .dq-ten { font-weight: 800; }
+    .dq-ten { font-weight: 700; }
     .dq-thu { font-size: .76rem; color: #7a877a; }
-    .dq-n { font-size: .82rem; font-weight: 800; color: #7a877a; white-space: nowrap; }
+    .dq-n { font-size: .82rem; font-weight: 700; color: #7a877a; white-space: nowrap; }
     .dq-o.co-don .dq-n { color: #2E7D32; }
 
     /* Lịch tháng: ngày có đơn đậm hơn, hôm nay có viền, ngày đang chọn tô đặc */
@@ -1307,7 +1316,7 @@
     .deliv-group { margin-bottom: 22px; }
     .dg-h { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
     .dg-so { width: 44px; height: 44px; border-radius: 12px; background: #E8F5E9; color: #2E7D32; flex-shrink: 0;
-             display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800; }
+             display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700; }
     .dg-nay .dg-so { background: #2E7D32; color: #fff; }
     .deliv-overdue .dg-so { background: #FFEBEE; color: #C62828; }
     .dg-so-trong .ic { width: 20px; height: 20px; }
@@ -1337,15 +1346,15 @@
     .dv-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
     .dv-r1 { display: flex; align-items: center; gap: 8px; }
     .dv-r1 .st-pill { margin-left: auto; }
-    .dv-tre { display: inline-flex; align-items: center; gap: 3px; font-size: .74rem; font-weight: 800; color: #C62828; }
+    .dv-tre { display: inline-flex; align-items: center; gap: 3px; font-size: .74rem; font-weight: 700; color: #C62828; }
     .dv-tre .ic { width: 13px; height: 13px; }
-    .dv-kh { font-weight: 700; font-size: .92rem; }
+    .dv-kh { font-weight: 600; font-size: .92rem; }
     .dv-bo { font-weight: 500; color: #5d6b5c; }
     .dv-dc { font-size: .82rem; color: #5d6b5c; display: flex; gap: 4px; align-items: flex-start; }
-    .dv-thiep { font-size: .76rem; color: #E65100; display: flex; gap: 4px; align-items: center; font-weight: 700; }
+    .dv-thiep { font-size: .76rem; color: #E65100; display: flex; gap: 4px; align-items: center; font-weight: 600; }
 
     /* Sổ chi phí: tỷ trọng */
-    .ex-tong { margin-left: auto; font-weight: 800; font-size: 1.1rem; color: #C62828; }
+    .ex-tong { margin-left: auto; font-weight: 700; font-size: 1.1rem; color: #C62828; }
     .ex-card { background: #fff; border: 1px solid #e3e8e2; border-radius: 14px; padding: 16px; }
     .ex-bar { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: #f0f3ef; margin-bottom: 14px; }
     .ex-bar span { display: block; height: 100%; }
@@ -1354,11 +1363,11 @@
     .ex-row { display: flex; align-items: center; gap: 10px; padding: 8px 2px; font-size: .95rem; }
     .ex-row + .ex-row { border-top: 1px solid #f0f3ef; }
     .ex-dot { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; }
-    .ex-ten { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .ex-pt { font-weight: 800; color: #5d6b5c; min-width: 42px; text-align: right; }
-    .ex-so { font-weight: 800; min-width: 96px; text-align: right; }
+    .ex-ten { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ex-pt { font-weight: 700; color: #5d6b5c; min-width: 42px; text-align: right; }
+    .ex-so { font-weight: 700; min-width: 96px; text-align: right; }
     .ex-cot .ex-h5:first-child { margin-top: 0; }
-    .ex-h5 { margin: 16px 0 4px; font-size: .74rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #7a877a; }
+    .ex-h5 { margin: 16px 0 4px; font-size: .74rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #7a877a; }
     .ex-row-mh { font-size: .88rem; }
     .ex-row-mh .ex-ten { font-weight: 600; flex: 0 1 38%; }
     .ex-mini { flex: 1; height: 6px; background: #f0f3ef; border-radius: 3px; overflow: hidden; }
@@ -1384,7 +1393,7 @@
     .fx-goi-y { margin-top: -2px; }
     .fx-goi-y .fx-chip { height: 30px; padding: 0 11px; font-size: .8rem; border-style: dashed; }
     .fx-goi-y .fx-chip .ic { width: 13px; height: 13px; }
-    .fx-goi-y-l { font-size: .76rem; font-weight: 700; color: #9aa79a; }
+    .fx-goi-y-l { font-size: .76rem; font-weight: 600; color: #9aa79a; }
 
     /* Nguyên liệu */
     .mt-mo-ta { font-size: .83rem; color: #7a877a; margin-bottom: 12px; }
@@ -1393,11 +1402,11 @@
     .mt-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #e3e8e2;
                border-radius: 12px; background: #fff; cursor: pointer; font: inherit; text-align: left; color: #1f2a1f; }
     .mt-main:hover { border-color: #b9d6b9; }
-    .mt-main .mt-name { flex: 1; min-width: 0; font-weight: 700; display: flex; flex-direction: column; }
+    .mt-main .mt-name { flex: 1; min-width: 0; font-weight: 600; display: flex; flex-direction: column; }
     .mt-main .mt-name small { font-weight: 600; color: #7a877a; font-size: .76rem; }
-    .mt-main .mt-price { font-weight: 800; color: #2E7D32; white-space: nowrap; }
+    .mt-main .mt-price { font-weight: 700; color: #2E7D32; white-space: nowrap; }
     .mt-them { display: flex; align-items: center; gap: 8px; width: 100%; padding: 11px 12px; border: 1px dashed #2E7D32; border-radius: 12px;
-               background: #F1F8F1; color: #2E7D32; font: inherit; font-weight: 800; cursor: pointer; text-align: left; }
+               background: #F1F8F1; color: #2E7D32; font: inherit; font-weight: 700; cursor: pointer; text-align: left; }
     .modal-footer .act { flex: 0 0 44px; width: 44px; height: 44px; border: 1px solid #e3e8e2; padding: 0; }
     .fx-in select { flex: 1; min-width: 0; border: 0; outline: 0; background: none; padding: 12px 0; font: inherit; font-size: .95rem; color: #1f2a1f; cursor: pointer; }
     .fx-in input:disabled { color: #9aa79a; cursor: not-allowed; }
@@ -1418,18 +1427,18 @@
     .kk-anh span:only-child { grid-column: 1 / 3; }
     .kk-anh-trong { display: flex; align-items: center; justify-content: center; color: #9aa79a; }
     .kk-anh-trong .ic { width: 32px; height: 32px; }
-    .kk-ten { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 10px 12px; font-weight: 800; font-size: .92rem; }
+    .kk-ten { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 10px 12px; font-weight: 700; font-size: .92rem; }
     .kk-ten span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .kk-ten small { color: #9aa79a; font-weight: 700; }
-    .kk-alb-them { align-items: center; justify-content: center; gap: 8px; border-style: dashed; color: #7a877a; font-weight: 800; min-height: 180px; }
+    .kk-ten small { color: #9aa79a; font-weight: 600; }
+    .kk-alb-them { align-items: center; justify-content: center; gap: 8px; border-style: dashed; color: #7a877a; font-weight: 700; min-height: 180px; }
     .kk-alb-them .ic { width: 26px; height: 26px; }
-    .kk-upto { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; font-size: .86rem; font-weight: 700; color: #5d6b5c; }
+    .kk-upto { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; font-size: .86rem; font-weight: 600; color: #5d6b5c; }
     .kk-upto select { padding: 8px 12px; border: 1px solid #dfe5de; border-radius: 10px; background: #fff; font: inherit; }
     .kk-them-hang { display: flex; gap: 8px; align-items: center; }
     .kk-them-hang .fx-in { margin: 0; }
     .gallery-admin-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
     .gallery-admin-item { border-radius: 10px; }
-    .gal-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 8px 6px; font-size: .7rem; font-weight: 700; color: #fff;
+    .gal-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 8px 6px; font-size: .7rem; font-weight: 600; color: #fff;
                background: linear-gradient(transparent, rgba(0,0,0,.6)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
     .gal-tick .ic { width: 13px; height: 13px; stroke-width: 3; }
     @media (max-width: 820px) {
@@ -1441,7 +1450,7 @@
       .kk-them-hang .btn-green { width: 100%; }
     }
     .dv-gio { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 999px; background: #E8F5E9;
-              color: #2E7D32; font-size: .74rem; font-weight: 800; white-space: nowrap; }
+              color: #2E7D32; font-size: .74rem; font-weight: 700; white-space: nowrap; }
     .dv-gio .ic { width: 12px; height: 12px; }
     .fx-gio { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
     .fx-gio::-webkit-scrollbar { display: none; }
@@ -1482,7 +1491,7 @@
     .bst-card .bst-ten { font-size: 1rem; }
     .bst-card .bst-tl { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .bst-card .bst-meta { margin-top: 8px; }
-    .bst-chip { display: inline-flex; align-items: center; gap: 4px; background: #f0f5f0; color: #3d5a3c; font-weight: 700; }
+    .bst-chip { display: inline-flex; align-items: center; gap: 4px; background: #f0f5f0; color: #3d5a3c; font-weight: 600; }
     .bst-chip .ic { width: 12px; height: 12px; margin: 0; }
     .bst-card .bst-nut {
       grid-area: nut; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: nowrap;
@@ -1555,7 +1564,7 @@
     .bstm-bo-x .ic { width: 13px; height: 13px; stroke-width: 2.4; }
     .bstm-bia-nut { display: flex; flex-direction: row; flex-wrap: wrap; gap: 6px; align-items: center; }
     .bstm-nut { display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 11px; border: 1px solid #dfe5de; border-radius: 999px;
-                background: #fff; color: #3d4a3c; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; }
+                background: #fff; color: #3d4a3c; font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; }
     .bstm-nut:hover { border-color: #2E7D32; color: #2E7D32; }
     .bstm-nut .ic { width: 14px; height: 14px; }
     .bstm-gt-sw { cursor: pointer; }
@@ -1564,7 +1573,7 @@
     .fx .bst-o { border: 2px solid transparent; }
     .fx .bst-o.on { border-color: #F57C00; box-shadow: 0 0 0 2px rgba(245,124,0,.25); }
     .fx .bst-o.on .tick { background: #F57C00; color: #fff; box-shadow: none; }
-    .fx .bst-o.on .ten { background: #FFF3E0; color: #7a3e00; font-weight: 700; }
+    .fx .bst-o.on .ten { background: #FFF3E0; color: #7a3e00; font-weight: 600; }
     .fx .bst-o:not(.on) img { opacity: .78; }
     .bstm-dem { color: #E65100; }
     /* ── Tab Sản phẩm kiểu danh sách gọn (24/09): ngôi sao = trang chủ, bấm hàng = sửa ── */
@@ -1574,27 +1583,27 @@
     .sp-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; margin-bottom: 12px; }
     .sp-chips::-webkit-scrollbar { display: none; }
     .sp-chips .fx-chip { flex-shrink: 0; height: 34px; padding: 0 13px; font-size: .82rem; }
-    .sp-chips .fx-chip small { color: #9aa79a; font-weight: 700; font-size: .78rem; }
+    .sp-chips .fx-chip small { color: #9aa79a; font-weight: 600; font-size: .78rem; }
     .sp-chips .fx-chip .ic { width: 14px; height: 14px; }
     .sp-chips .fx-chip.canh { border-color: #FFCC80; color: #E65100; }
     .sp-chips .fx-chip.canh.on { background: #FFF3E0; }
     .sp-tc { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; max-width: 560px; margin-bottom: 14px;
              background: #fff; border: 1px solid #e6ece5; border-radius: 14px; padding: 9px 12px; }
     .sp-tc-h { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-    .sp-tc-h span { display: flex; align-items: center; gap: 5px; font-size: .86rem; font-weight: 800; color: #3d4a3c; }
+    .sp-tc-h span { display: flex; align-items: center; gap: 5px; font-size: .86rem; font-weight: 700; color: #3d4a3c; }
     .sp-tc-h .ic { width: 15px; height: 15px; color: #F9A825; fill: #FBC02D; }
-    .sp-tc-h small { font-size: .76rem; font-weight: 700; color: #7A9879; }
+    .sp-tc-h small { font-size: .76rem; font-weight: 600; color: #7A9879; }
     .sp-tc-o { display: grid; grid-template-columns: repeat(4, 48px); gap: 6px; }
     .sp-tc-o > * { width: 48px; height: 48px; border-radius: 9px; position: relative; overflow: hidden; padding: 0;
                    background: #f1f4f0; border: 1.5px dashed #cfd8ce; display: grid; place-items: center;
-                   color: #b5c0b4; font: inherit; font-size: .64rem; font-weight: 700; }
+                   color: #b5c0b4; font: inherit; font-size: .64rem; font-weight: 600; }
     .sp-tc-o button { border: 0; cursor: pointer; }
     .sp-tc-o img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .sp-tc-o b { position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: rgba(0,0,0,.55);
                  color: #fff; font-size: .62rem; display: grid; place-items: center; }
-    .sp-tc-thua { flex-basis: 100%; font-size: .8rem; color: #E65100; font-weight: 700; line-height: 1.45; }
+    .sp-tc-thua { flex-basis: 100%; font-size: .8rem; color: #E65100; font-weight: 600; line-height: 1.45; }
     .sp-bsts { display: flex; flex-wrap: wrap; gap: 4px; }
-    .sp-bst { font-size: .72rem; font-weight: 700; padding: 1px 8px; border-radius: 6px; background: #f1f5f0; color: #5d6b5c; white-space: nowrap; }
+    .sp-bst { font-size: .72rem; font-weight: 600; padding: 1px 8px; border-radius: 6px; background: #f1f5f0; color: #5d6b5c; white-space: nowrap; }
     .sp-bst.tat { background: none; color: #b0b9af; text-decoration: line-through; padding: 1px 3px; }
     .sp-bst.cho { background: none; color: #9aa79a; box-shadow: inset 0 0 0 1px #d5ddd4; }
     .sp-bst.khong { background: #FFF3E0; color: #E65100; }
@@ -1606,8 +1615,8 @@
     .sp-sao.on .ic { fill: #FBC02D; }
     #productsTable .sp-tr { cursor: pointer; }
     #productsTable .sp-tr:hover td { background: #f8fbf7; }
-    .sp-ten { font-weight: 800; font-size: .95rem; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .sp-gia { font-size: .82rem; font-weight: 800; color: #2E7D32; margin: 2px 0 4px; }
+    .sp-ten { font-weight: 700; font-size: .95rem; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .sp-gia { font-size: .82rem; font-weight: 700; color: #2E7D32; margin: 2px 0 4px; }
     .sp-nick { font-style: italic; font-size: .8rem; color: #7A9879; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sp-xep-bao { max-width: 720px; margin-bottom: 12px; padding: 10px 14px; border-radius: 12px; background: #FFFDE7; border: 1px solid #FFF59D;
                   font-size: .86rem; line-height: 1.5; color: #5d5a2e; }
@@ -1616,16 +1625,67 @@
     .sp-xep-hang:first-child { border-top: 0; }
     .sp-xep-hang .thumb { width: 44px; height: 44px; flex-shrink: 0; }
     .sp-xep-hang .sp-ten { flex: 1; min-width: 0; font-size: .88rem; }
-    .sp-xep-so { width: 22px; flex-shrink: 0; text-align: center; font-size: .78rem; font-weight: 800; color: #9aa79a; }
+    .sp-xep-so { width: 22px; flex-shrink: 0; text-align: center; font-size: .78rem; font-weight: 700; color: #9aa79a; }
     .sp-xep-nut { display: flex; gap: 4px; flex-shrink: 0; }
     .sp-xep-nut button { height: 36px; min-width: 36px; padding: 0 8px; border-radius: 10px; border: 1px solid #e0e6df; background: #fff;
-                         color: #3d4a3c; display: grid; place-items: center; cursor: pointer; font: inherit; font-size: .74rem; font-weight: 800; }
+                         color: #3d4a3c; display: grid; place-items: center; cursor: pointer; font: inherit; font-size: .74rem; font-weight: 700; }
     .sp-xep-nut button:disabled { opacity: .3; cursor: default; }
     .sp-xep-nut .ic { width: 18px; height: 18px; }
     .sp-xoa-mau { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 18px; padding: 10px;
-                  border: 0; border-radius: 10px; background: none; color: #C62828; font: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; }
+                  border: 0; border-radius: 10px; background: none; color: #C62828; font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; }
     .sp-xoa-mau:hover { background: #FFEBEE; }
     .sp-xoa-mau .ic { width: 16px; height: 16px; }
+    /* Tab Khách hàng kiểu danh bạ gọn (24/09/2026) */
+    .kh-av { width: 40px; height: 40px; border-radius: 50%; display: inline-grid; place-items: center; flex-shrink: 0;
+             font-weight: 700; font-size: .98rem; }
+    .kh-ten-o { display: inline-flex; align-items: center; gap: 12px; }
+    #customersTable .kh-tr { cursor: pointer; }
+    #customersTable .kh-tr:hover td { background: #f8fbf7; }
+    .kh-n { font-size: .84rem; font-weight: 700; color: #2E7D32; white-space: nowrap; }
+    .kh-n.kh-chua { color: #a3ada2; font-weight: 600; }
+    .kh-the { display: flex; flex-direction: column; }
+    .kh-dau { display: flex; align-items: center; gap: 12px; }
+    .kh-av-to { width: 52px; height: 52px; font-size: 1.25rem; }
+    .kh-dau-sdt { font-weight: 700; font-size: 1.02rem; }
+    .kh-dau-tu { font-size: .8rem; color: #7a877a; margin-top: 2px; }
+    .kh-so3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0; }
+    .kh-so3 div { background: #f6f9f5; border-radius: 12px; padding: 9px 11px; min-width: 0; }
+    .kh-so3 b { display: block; font-size: .98rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .kh-so3 span { font-size: .72rem; color: #7A9879; font-weight: 600; }
+    .kh-nut3 { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
+    .kh-nut { height: 44px; border-radius: 12px; border: 1px solid #e3e8e2; background: #fff; font: inherit; font-weight: 700;
+              font-size: .86rem; color: #3d4d3c; display: flex; align-items: center; justify-content: center; gap: 6px;
+              text-decoration: none; cursor: pointer; }
+    .kh-nut:hover { border-color: #b9d6b9; }
+    .kh-nut.chinh { background: #2E7D32; border-color: #2E7D32; color: #fff; }
+    .kh-nut .ic { width: 17px; height: 17px; }
+    .kh-dc { display: flex; gap: 8px; font-size: .86rem; color: #4d5d4c; margin-top: 14px; line-height: 1.45; }
+    .kh-dc .ic { width: 16px; height: 16px; color: #7A9879; margin-top: 2px; flex-shrink: 0; }
+    .kh-h { font-size: .74rem; font-weight: 700; color: #7A9879; text-transform: uppercase; letter-spacing: .06em; margin: 18px 0 6px; }
+    .kh-don { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 4px; border: 0; border-top: 1px solid #f0f3ef;
+              background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; border-radius: 0; }
+    .kh-h + .kh-don { border-top: 0; }
+    .kh-don:hover { background: #f8fbf7; }
+    .kh-don .thumb { width: 46px; height: 46px; border-radius: 9px; flex-shrink: 0; }
+    .kh-don-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .kh-don-ma { font-weight: 700; font-size: .86rem; color: #2E7D32; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .kh-don-ma .st-pill { font-size: .68rem; padding: 1px 8px 1px 6px; color: #3d4d3c; }
+    .kh-don-sp { font-size: .82rem; color: #5d6b5c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .kh-don-gt { text-align: right; font-size: .76rem; color: #7a877a; flex-shrink: 0; }
+    .kh-don-gt b { display: block; font-size: .86rem; color: #1f2a1f; }
+    @media (max-width: 820px) {
+      .cards-mobile.kh-ds { gap: 0; background: #fff; border: 1px solid #e6ece5; border-radius: 14px; overflow: hidden; }
+      .kh-hang { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-top: 1px solid #f0f3ef;
+                 cursor: pointer; -webkit-tap-highlight-color: rgba(46,125,50,.08); }
+      .kh-hang:first-child { border-top: 0; }
+      .kh-hang:active { background: #f6f9f5; }
+      .kh-tt { flex: 1; min-width: 0; }
+      .kh-ten { font-weight: 700; font-size: .94rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .kh-sdt { font-size: .8rem; color: #6b7a6a; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .kh-phai { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+      .kh-ngay { font-size: .72rem; color: #9aa79a; font-weight: 600; }
+      .kh-ngay:empty { display: none; }
+    }
     @media (max-width: 820px) {
       .cards-mobile.sp-ds { gap: 0; background: #fff; border: 1px solid #e6ece5; border-radius: 14px; overflow: hidden; }
       .sp-hang { display: flex; align-items: center; gap: 11px; padding: 9px 4px 9px 10px; border-top: 1px solid #f0f3ef;
@@ -1938,11 +1998,13 @@
     <div id="panelCustomers" class="panel" style="display:none">
       <div class="panel-topbar">
         <h1>Khách hàng</h1>
-        <button class="btn-green" onclick="openCustomerModal()"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Thêm khách</button>
+        <button class="btn-green an-tren-dt" onclick="openCustomerModal()"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Thêm khách</button>
       </div>
       <div class="filter-bar">
         <input type="search" id="customerSearch" class="filter-search" placeholder="Tìm theo tên hoặc SĐT…" oninput="renderCustomers()">
       </div>
+      <!-- Lọc nhanh: Tất cả · Khách quen (từ 2 đơn) · Chưa có đơn (khVeLoc vẽ) -->
+      <div id="khChips" class="sp-chips"></div>
       <div id="customersTable"><div class="loading-state">Đang tải…</div></div>
     </div>
 
@@ -2179,7 +2241,7 @@
           </div>
         </div>
         <!-- Xoá nằm cuối form, không đứng cạnh nút Sửa ngoài danh sách nữa (dễ bấm nhầm) -->
-        <button type="button" id="fXoaMau" class="sp-xoa-mau" onclick="spXoaTuForm()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Xoá mẫu này</button>
+        <button type="button" id="fXoaMau" class="sp-xoa-mau" onclick="spXoaTuForm()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Xoá</button>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn-outline" onclick="closeModal()">Hủy</button>
@@ -2193,7 +2255,7 @@
 <div id="galleryPicker" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;padding:24px;overflow-y:auto;" onclick="closeGalleryPickerOutside(event)">
   <div style="background:#fff;border-radius:16px;max-width:820px;margin:0 auto;box-shadow:0 24px 64px rgba(0,0,0,.25);">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #eee;">
-      <h2 style="font-size:1.2rem;font-weight:800;">Chọn ảnh từ Khoảnh khắc</h2>
+      <h2 style="font-size:1.2rem;font-weight:700;">Chọn ảnh từ Khoảnh khắc</h2>
       <button onclick="closeGalleryPicker()" class="modal-close" aria-label="Đóng"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <div id="galleryPickerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:20px 24px 24px;"></div>
@@ -2964,6 +3026,7 @@ const FAB_THEO_TAB = {
   Expenses: { nhan: 'Thêm chi phí', mo: () => openExpenseModal() },
   Gallery:  { nhan: 'Tải ảnh vào album', mo: () => kkTaiAnh() },   // chỉ hiện khi đang trong 1 album (kkVe)
   Products: { nhan: 'Thêm mẫu hoa', mo: () => openModal() },
+  Customers: { nhan: 'Thêm khách', mo: () => openCustomerModal() },
 }
 function syncBottomTabs(tab) {
   let co = false
@@ -3306,7 +3369,7 @@ function openStatDetail(kind, src) {
     body = `
 <div class="stat-explain">Lãi gộp = <strong>doanh thu thực tế</strong> (đơn Giao thành công / Hoàn thành trong tháng) trừ <strong>tổng chi phí</strong> đã ghi trong Sổ chi phí ${mLabel}.</div>
 <div class="profit-line"><span>Doanh thu thực tế (${revList.length} đơn)</span><strong style="color:#2E7D32">${fmtVnd(rev)}</strong></div>
-${Object.entries(byCat).map(([c, s]) => `<div class="profit-line"><span style="color:#7A9879;padding-left:14px;">− Chi phí ${esc(c)}</span><span style="color:#C62828;font-weight:700;">−${fmtVnd(s)}</span></div>`).join('')}
+${Object.entries(byCat).map(([c, s]) => `<div class="profit-line"><span style="color:#7A9879;padding-left:14px;">− Chi phí ${esc(c)}</span><span style="color:#C62828;font-weight:600;">−${fmtVnd(s)}</span></div>`).join('')}
 <div class="profit-line" style="border-bottom:none;"><span><strong>= ${profit >= 0 ? 'Lãi gộp' : 'Lỗ'}</strong></span><strong style="color:${profit >= 0 ? '#1565C0' : '#C62828'};font-size:1.2rem;">${fmtVnd(profit)}</strong></div>
 <button class="btn-green" style="width:100%;margin-top:14px;" onclick="openStatDetail('revActual'${src === 'ex' ? ", 'ex'" : ''})">Xem ${revList.length} đơn được tính doanh thu →</button>`
   }
@@ -4263,7 +4326,7 @@ function renderProducts() {
   else if (spLoc !== 'all') list = list.filter(p => bstCuaMau(p.id).some(c => String(c.id) === spLoc))
   if (q) list = list.filter(p => `${p.name || ''} ${bstCuaMau(p.id).map(c => c.name).join(' ')}`.toLowerCase().includes(q))
   if (!list.length) {
-    el.innerHTML = `<div class="empty-state">${q ? 'Không tìm thấy mẫu khớp.' : 'Không có mẫu nào ở mục này.'} <a href="#" onclick="document.getElementById('productSearch').value='';spChonLoc('all');return false" style="color:#2E7D32;font-weight:700;">Xem tất cả</a></div>`
+    el.innerHTML = `<div class="empty-state">${q ? 'Không tìm thấy mẫu khớp.' : 'Không có mẫu nào ở mục này.'} <a href="#" onclick="document.getElementById('productSearch').value='';spChonLoc('all');return false" style="color:#2E7D32;font-weight:600;">Xem tất cả</a></div>`
     return
   }
   const { shown: prodShown, more: prodMore } = limitList('products', list)
@@ -4405,7 +4468,7 @@ function renderProductImagesGrid() {
   grid.innerHTML = newImages.map((url, i) => `
 <div style="position:relative;flex-shrink:0;">
   <img src="${url}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:${i===0?'2.5px solid #2E7D32':'1.5px solid #ddd'};">
-  ${i===0?'<span style="position:absolute;bottom:2px;left:2px;background:#2E7D32;color:#fff;font-size:.55rem;padding:1px 5px;border-radius:3px;font-weight:700;">Chính</span>':''}
+  ${i===0?'<span style="position:absolute;bottom:2px;left:2px;background:#2E7D32;color:#fff;font-size:.55rem;padding:1px 5px;border-radius:3px;font-weight:600;">Chính</span>':''}
   <button type="button" onclick="removeProductImage(${i})" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#E64A19;color:#fff;border:none;cursor:pointer;font-size:.6rem;display:flex;align-items:center;justify-content:center;">✕</button>
 </div>`).join('')
 }
@@ -6614,7 +6677,7 @@ function renderOrders() {
     if (date) parts.push('ngày giao <strong>' + date.split('-').reverse().join('/') + '</strong>')
     if (q) parts.push('từ khoá “<strong>' + esc(q) + '</strong>”')
     const desc = parts.length ? ' ở ' + parts.join(' · ') : ''
-    el.innerHTML = `<div class="empty-state">Chưa có đơn nào${desc}. <a href="#" onclick="clearOrderFilters();return false" style="color:#2E7D32;font-weight:700;">Xem tất cả đơn</a></div>`
+    el.innerHTML = `<div class="empty-state">Chưa có đơn nào${desc}. <a href="#" onclick="clearOrderFilters();return false" style="color:#2E7D32;font-weight:600;">Xem tất cả đơn</a></div>`
     return
   }
   const fmtDayShort = d => d ? d.slice(8, 10) + '/' + d.slice(5, 7) : ''
@@ -7159,11 +7222,59 @@ let customers = []
 async function loadCustomers() {
   const ct = document.getElementById('customersTable')
   if (ct && !customers.length) ct.innerHTML = skeletonTable(5)
-  const { data, error } = await sb.from('customers').select('*').order('created_at', { ascending: false })
-  if (error) { if (ct) ct.innerHTML = loadErrorHTML('loadCustomers'); return }
-  customers = data || []
+  // Kèm vài cột của đơn để đếm "mấy đơn · đã mua bao nhiêu · lần cuối" cho từng khách
+  const [res, donRes] = await Promise.all([
+    sb.from('customers').select('*').order('created_at', { ascending: false }),
+    sb.from('orders').select('customer_id, total, status, delivery_date, created_at').not('customer_id', 'is', null),
+  ])
+  if (res.error) { if (ct) ct.innerHTML = loadErrorHTML('loadCustomers'); return }
+  customers = res.data || []
+  khTinhSo(donRes.data || [])
   resetListLimit('customers')
   renderCustomers()
+}
+
+// ── Tab Khách hàng kiểu "danh bạ gọn" (24/09/2026, phương án A) ──────────────
+// Mỗi khách 1 hàng: chữ cái đầu · tên · SĐT · số đơn. Bấm cả hàng = mở thẻ khách
+// (viewCustomerOrders): Gọi / Zalo / Sửa, các đơn đã mua, Xoá khách ở cuối.
+let khLoc = 'all'     // 'all' | 'quen' (từ 2 đơn) | 'chua' (chưa có đơn)
+let _khSo = {}        // customer_id → { n, tong, cuoi } — không tính đơn đã huỷ
+const KH_QUEN = 2
+function khTinhSo(list) {
+  _khSo = {}
+  list.forEach(o => {
+    if (o.status === 'Đã hủy') return
+    const k = _khSo[o.customer_id] || (_khSo[o.customer_id] = { n: 0, tong: 0, cuoi: '' })
+    k.n++
+    k.tong += Number(o.total) || 0
+    const ngay = o.delivery_date || String(o.created_at || '').slice(0, 10)
+    if (ngay > k.cuoi) k.cuoi = ngay
+  })
+}
+function khSo(c) { return _khSo[c.id] || { n: 0, tong: 0, cuoi: '' } }
+// Chữ cái đầu của TÊN (chữ cuối): "Chị Tuyền" → T, "Phan Khánh Linh" → L
+function khChuDau(ten) {
+  const w = String(ten || '').trim().split(/\s+/)
+  return (w[w.length - 1] || '?').charAt(0).toUpperCase() || '?'
+}
+const KH_MAU = [['#E8F5E9', '#2E7D32'], ['#FCE4EC', '#AD1457'], ['#E3F2FD', '#1565C0'], ['#FFF3E0', '#E65100'], ['#EDE7F6', '#5E35B1'], ['#E0F2F1', '#00695C']]
+function khAvatar(c, cls = '') {
+  let h = 0
+  for (const ch of String(c.name || c.phone || '')) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+  const [nen, chu] = KH_MAU[h % KH_MAU.length]
+  return `<span class="kh-av ${cls}" style="background:${nen};color:${chu}">${esc(khChuDau(c.name || c.phone))}</span>`
+}
+function khSdtDep(s) { return esc(String(s || '').replace(/^(\d{4})(\d{3})(\d{3})$/, '$1 $2 $3')) }
+function khNgay(ymd) { return ymd ? ymd.slice(8, 10) + '/' + ymd.slice(5, 7) : '' }
+function khChonLoc(k) { khLoc = k; resetListLimit('customers'); renderCustomers() }
+function khVeLoc() {
+  const el = document.getElementById('khChips')
+  if (!el) return
+  const quen = customers.filter(c => khSo(c).n >= KH_QUEN).length
+  const chua = customers.filter(c => !khSo(c).n).length
+  const chip = (k, nhan, dem) =>
+    `<button type="button" class="fx-chip${khLoc === k ? ' on' : ''}" onclick="khChonLoc('${k}')">${nhan} <small>${dem}</small></button>`
+  el.innerHTML = chip('all', 'Tất cả', customers.length) + chip('quen', 'Khách quen', quen) + chip('chua', 'Chưa có đơn', chua)
 }
 
 function openCustomerModal(id) {
@@ -7207,43 +7318,48 @@ async function saveCustomer(e) {
 
 function renderCustomers() {
   const el = document.getElementById('customersTable')
-  const q = document.getElementById('customerSearch').value.trim().toLowerCase()
-  const list = q ? customers.filter(c => c.name.toLowerCase().includes(q) || c.phone.includes(q)) : customers
+  khVeLoc()
+  const q = noAccent(document.getElementById('customerSearch').value.trim())
+  const qSo = q.replace(/[\s.]/g, '')
+  let list = customers
+  if (khLoc === 'quen') list = list.filter(c => khSo(c).n >= KH_QUEN)
+  if (khLoc === 'chua') list = list.filter(c => !khSo(c).n)
+  if (q) list = list.filter(c => noAccent(c.name).includes(q) || (qSo && String(c.phone || '').includes(qSo)))
   if (!list.length) {
-    el.innerHTML = '<div class="empty-state">Chưa có khách hàng nào.</div>'
+    el.innerHTML = customers.length
+      ? `<div class="empty-state">Không tìm thấy khách khớp. <a href="#" onclick="document.getElementById('customerSearch').value='';khChonLoc('all');return false" style="color:#2E7D32;font-weight:600;">Xem tất cả</a></div>`
+      : '<div class="empty-state">Chưa có khách hàng nào.</div>'
     return
   }
   const { shown: cuShown, more: cuMore } = limitList('customers', list)
+  const soDon = c => { const k = khSo(c); return k.n ? `<span class="kh-n">${k.n} đơn</span>` : '<span class="kh-n kh-chua">Chưa có đơn</span>' }
   el.innerHTML = `
 <div class="table-desktop">
 <table class="data-table">
-  <thead><tr><th>Tên</th><th>SĐT</th><th>Địa chỉ</th><th>Ngày tạo</th><th></th></tr></thead>
-  <tbody>${cuShown.map(c => `
-  <tr>
-    <td><strong>${esc(c.name)}</strong></td>
-    <td>${esc(c.phone)}</td>
+  <thead><tr><th>Khách</th><th>SĐT</th><th>Địa chỉ</th><th>Số đơn</th><th>Đã mua</th><th>Lần cuối</th><th></th></tr></thead>
+  <tbody>${cuShown.map(c => { const k = khSo(c); return `
+  <tr class="kh-tr" onclick="viewCustomerOrders(${c.id})">
+    <td><span class="kh-ten-o">${khAvatar(c)}<strong>${esc(c.name)}</strong></span></td>
+    <td>${khSdtDep(c.phone)}</td>
     <td style="max-width:280px;color:#555;font-size:.88rem;">${esc(c.address || '—')}</td>
-    <td style="font-size:.82rem;color:#7A9879;">${new Date(c.created_at).toLocaleDateString('vi-VN')}</td>
+    <td>${soDon(c)}</td>
+    <td>${k.n ? fmtVnd(k.tong) : '—'}</td>
+    <td style="font-size:.85rem;color:#7A9879;">${khNgay(k.cuoi) || '—'}</td>
     <td class="actions">
-      ${nutTT('box', 'Xem đơn', `viewCustomerOrders(${c.id})`)}
-      ${nutTT('pen', 'Sửa', `openCustomerModal(${c.id})`)}
-      ${nutTT('trash', 'Xoá', `deleteCustomer(${c.id})`, { xoa: true })}
+      ${nutTT('pen', 'Sửa', `event.stopPropagation();openCustomerModal(${c.id})`)}
+      ${nutTT('trash', 'Xoá', `event.stopPropagation();deleteCustomer(${c.id})`, { xoa: true })}
     </td>
-  </tr>`).join('')}</tbody>
+  </tr>` }).join('')}</tbody>
 </table>
 </div>
-<div class="cards-mobile">${cuShown.map(c => `
-  <div class="m-card">
-    <div class="mc-row">
-      <span class="mc-title">${esc(c.name)}</span>
-      <span class="mc-sub">${new Date(c.created_at).toLocaleDateString('vi-VN')}</span>
+<div class="cards-mobile kh-ds">${cuShown.map(c => `
+  <div class="kh-hang" onclick="viewCustomerOrders(${c.id})">
+    ${khAvatar(c)}
+    <div class="kh-tt">
+      <div class="kh-ten">${esc(c.name)}</div>
+      <div class="kh-sdt">${khSdtDep(c.phone)}</div>
     </div>
-    <div class="mc-sub">${esc(c.phone)}${c.address ? ' · ' + esc(c.address) : ''}</div>
-    <div class="mc-actions">
-      ${nutTT('box', 'Xem đơn', `viewCustomerOrders(${c.id})`)}
-      ${nutTT('pen', 'Sửa', `openCustomerModal(${c.id})`)}
-      ${nutTT('trash', 'Xoá', `deleteCustomer(${c.id})`, { xoa: true })}
-    </div>
+    <div class="kh-phai">${soDon(c)}<span class="kh-ngay">${khNgay(khSo(c).cuoi)}</span></div>
   </div>`).join('')}</div>${moreBtnHTML('customers', cuMore, 'renderCustomers', 'khách')}`
 }
 
@@ -7289,25 +7405,48 @@ async function deleteCustomer(id) {
   if (orders.length) loadOrders()   // đơn liên quan cần vẽ lại theo số vừa chép
 }
 
+// Thẻ khách: 3 con số · Gọi / Zalo / Sửa · địa chỉ · các đơn đã mua (bấm = chi tiết đơn) · Xoá ở cuối
 async function viewCustomerOrders(id) {
   const c = customers.find(x => x.id === id)
   if (!c) return
-  const { data } = await sb.from('orders').select('*').eq('customer_id', id).order('created_at', { ascending: false })
-  document.getElementById('customerOrdersTitle').textContent = `Lịch sử đơn — ${c.name}`
-  // Dòng linh hoạt thay bảng ngang → không tràn trên điện thoại, thêm mã đơn + tổng tiền
-  document.getElementById('customerOrdersBody').innerHTML = !data?.length
-    ? '<div class="empty-state">Khách này chưa có đơn nào.</div>'
-    : data.map(o => `
-<div class="stat-row" style="cursor:default;">
-  <div class="stat-row-main">
-    <div><span class="sr-code">${orderCode(o.id)}</span> · ${esc(o.product_name)} ×${o.quantity}</div>
-    <div class="sr-sub">Đặt ngày ${new Date(o.created_at).toLocaleDateString('vi-VN')}</div>
+  const { data } = await sb.from('orders').select('*, customers(name, phone), products(image)')
+    .eq('customer_id', id).order('created_at', { ascending: false })
+  const ds = data || []
+  cacheOrders(ds)          // để bấm vào đơn mở được chi tiết (orderById)
+  const tinh = ds.filter(o => o.status !== 'Đã hủy')
+  const tong = tinh.reduce((t, o) => t + (Number(o.total) || 0), 0)
+  const cuoi = tinh.map(o => o.delivery_date || String(o.created_at).slice(0, 10)).sort().pop() || ''
+  const sdt = String(c.phone || '')
+  document.getElementById('customerOrdersTitle').textContent = c.name || 'Khách hàng'
+  document.getElementById('customerOrdersBody').innerHTML = `
+<div class="kh-the">
+  <div class="kh-dau">${khAvatar(c, 'kh-av-to')}
+    <div><div class="kh-dau-sdt">${khSdtDep(sdt) || '—'}</div>
+      <div class="kh-dau-tu">Khách từ ${new Date(c.created_at).toLocaleDateString('vi-VN')}</div></div>
   </div>
-  <div class="stat-row-side">
-    <span class="status-select ${STATUS_CLASS[o.status] || ''}" style="cursor:default;font-size:.72rem;padding-top:3px;padding-bottom:3px;padding-right:9px;">${o.status}</span>
-    <span class="sr-total">${o.total != null ? fmtVnd(o.total) : '—'}</span>
+  <div class="kh-so3">
+    <div><b>${tinh.length}</b><span>đơn</span></div>
+    <div><b>${tinh.length ? fmtVnd(tong) : '—'}</b><span>đã mua</span></div>
+    <div><b>${khNgay(cuoi) || '—'}</b><span>lần cuối</span></div>
   </div>
-</div>`).join('')
+  <div class="kh-nut3">
+    ${sdt ? `<a class="kh-nut chinh" href="tel:${esc(sdt)}">${ic('phone')}Gọi</a>
+    <a class="kh-nut" href="https://zalo.me/${esc(sdt)}" target="_blank" rel="noopener">${ic('chat')}Zalo</a>` : ''}
+    <button type="button" class="kh-nut" onclick="closeCustomerOrdersModal();openCustomerModal(${c.id})">${ic('pen')}Sửa</button>
+  </div>
+  ${c.address ? `<div class="kh-dc">${ic('pin')}<span>${esc(c.address)}</span></div>` : ''}
+  <div class="kh-h">Các đơn đã mua</div>
+  ${!ds.length ? '<div class="empty-state" style="padding:16px 0">Khách này chưa có đơn nào.</div>' : ds.map(o => `
+  <button type="button" class="kh-don" onclick="viewOrderDetail(${o.id})">
+    ${orderThumbHTML(o)}
+    <span class="kh-don-b">
+      <span class="kh-don-ma">${orderCode(o.id)} <span class="st-pill ${STATUS_CLASS[o.status] || ''}">${esc(o.status)}</span></span>
+      <span class="kh-don-sp">${esc(o.product_name || '')}${o.quantity > 1 ? ' ×' + o.quantity : ''}</span>
+    </span>
+    <span class="kh-don-gt"><b>${o.total != null ? fmtVnd(o.total) : '—'}</b>${khNgay(o.delivery_date || String(o.created_at).slice(0, 10))}</span>
+  </button>`).join('')}
+  <button type="button" class="sp-xoa-mau" onclick="closeCustomerOrdersModal();deleteCustomer(${c.id})">${ic('trash')}Xoá</button>
+</div>`
   document.getElementById('customerOrdersModal').style.display = 'flex'
 }
 
