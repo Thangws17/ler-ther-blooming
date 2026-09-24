@@ -502,6 +502,46 @@ const dt = document.getElementById('dt')
   })
   test('Mục thiếp / ghi chú / ảnh gấp lại khi mở form', () =>
     bang(d.querySelectorAll('#orderNewModal .fx-more.open').length, 0))
+
+  // Form SỬA đơn: trước 24/09 chỉ là ô chữ trơn, không gợi ý được mẫu có sẵn
+  w.eval(`customers = customers.length ? customers : [{ id: 1, name: 'Khách thử', phone: '' }]`)
+  w.eval(`_donCache[99001] = { id: 99001, product_id: 91002, product_name: 'Hồng thử (bó to)', quantity: 1,
+    unit_price: 650000, status: 'Mới', image: '' }`)
+  w.eval(`_donCache[99002] = { id: 99002, product_id: null, product_name: 'Bó tự chọn', quantity: 1, unit_price: 500000, status: 'Mới' }`)
+  w.openOrderEditModal(99001)
+  test('Sửa đơn đã gắn mẫu → hiện thẻ mẫu, giữ đúng tên ghi trên đơn', () => {
+    bang(id('oeProdPicked').style.display, 'block')
+    bang(id('oeProdSearchWrap').style.display, 'none')
+    bang(id('oeProductPick').value, '91002')
+    if (!id('oeProdPicked').textContent.includes('Hồng thử (bó to)')) throw new Error(id('oeProdPicked').textContent)
+  })
+  id('oeProdPicked').querySelector('.act').click()
+  test('Sửa đơn: bấm ✕ → hiện ô tìm mẫu + ô tên (tên cũ còn nguyên)', () => {
+    bang(id('oeProdSearchWrap').style.display, '')
+    bang(id('oeProductName').value, 'Hồng thử (bó to)')
+    bang(id('oeProductPick').value, '')
+  })
+  id('oeProdSearch').value = 'tulip'
+  id('oeProdSearch').dispatchEvent(new Event('input'))
+  test('Sửa đơn: gõ "tulip" → gợi ý đúng mẫu có sẵn', () => {
+    bang(id('oeProdSuggest').style.display, 'block')
+    bang(d.querySelectorAll('#oeProdSuggest .prod-row').length, 1)
+  })
+  d.querySelector('#oeProdSuggest .prod-row').click()
+  test('Sửa đơn: chọn mẫu giá "Từ 2xx" → GIỮ giá đã chốt 650.000, không xoá trắng / thành 2đ', () => {
+    bang(id('oeProductPick').value, '91001')
+    bang(id('oeProductName').value, 'Tulip thử')
+    bang(id('oeUnitPrice').value, '650.000')
+  })
+  w.openOrderEditModal(99002)
+  test('Sửa đơn chưa gắn mẫu → hiện ô tìm mẫu + tên gõ tay', () => {
+    bang(id('oeProdPicked').style.display, 'none')
+    bang(id('oeProductNameRow').style.display, '')
+    bang(id('oeProductName').value, 'Bó tự chọn')
+    bang(id('oeProductPick').value, '')
+  })
+  w.closeOrderEditModal()
+  w.eval('delete _donCache[99001]; delete _donCache[99002]')
   qdRow('noDate').querySelector('[data-d="1"]').click()
   test('Bấm chip "Mai" → ngày giao = ngày mai', () =>
     bang(id('noDate').value, new Date(Date.now() + 86400000).toLocaleDateString('sv-SE')))

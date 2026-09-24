@@ -1126,7 +1126,7 @@ section    { padding:64px 0; }
 .hero p { font-size: 1.02rem; margin-bottom: 22px; }
 .hero-cta { gap: 10px; }
 .trust3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
-.trust3 div { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #fff; border: 1px solid var(--line);
+.trust3 div { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 16px; background: #fff; border: 1px solid var(--line);
   border-radius: 16px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: .9rem; color: var(--text-mid); line-height: 1.3; }
 .trust3 .ic { width: 22px; height: 22px; color: var(--green); }
 

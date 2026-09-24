@@ -215,7 +215,9 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
   tách ra: web hiện biệt danh dưới tên (cả thẻ lẫn trang chi tiết), "Phù hợp tặng" + dòng phụ vào khung `.detail-cam`;
   admin hiện biệt danh ở danh sách Sản phẩm (`spBietDanh`). Dòng đầu không phải “…” → hiện nguyên chữ (`white-space: pre-line`).
 - **Chọn mẫu hoa khi lên đơn chỉ lấy giá khi là số tiền thuần** (`!_priceIsText`). Giá "Từ 2xx" để trống — cùng
-  bẫy "2 đồng" với `place_order`.
+  bẫy "2 đồng" với `place_order`. Form Thêm đơn (`no`) và Sửa đơn (`oe`) dùng CHUNG bộ chọn
+  `showProdSuggest(k)` / `pickProduct(id, k)` / `renderPickedProduct(p, k)` — thêm ô ở form này thì thêm cả form kia.
+  Sửa đơn: chọn mẫu giá chữ thì GIỮ giá đã chốt; `oeProductPick` giữ `product_id` cũ kể cả khi danh sách mẫu chưa tải.
 - **Đừng đặt `position: sticky` cho phần tử nằm TRONG `.content`.** `.content` là khung cuộn;
   sticky bên trong khung cuộn là chỗ iOS vẽ sai toạ độ → thấy phần tử nhưng bấm không trúng.
   `.admin-topbar` vì vậy là anh em của `.content`, không phải con.

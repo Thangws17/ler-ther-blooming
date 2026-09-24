@@ -1320,6 +1320,20 @@
           cursor: pointer; font: inherit; text-align: left; color: #1f2a1f; min-width: 0; }
     .dv:hover { border-color: #b9d6b9; box-shadow: 0 4px 14px rgba(0,0,0,.05); }
     .dv .thumb { width: 60px; height: 60px; border-radius: 10px; flex-shrink: 0; }
+    /* Máy tính rộng: lịch tháng thu gọn thành ô vuông bên trái, Hôm nay/Ngày mai + danh sách đơn đẩy lên bên phải (góp ý 24/09).
+       Điện thoại giữ thứ tự cũ: 2 ô nhanh → lịch → danh sách. */
+    @media (min-width: 1100px) {
+      .lg-bo .cal-grid { gap: 6px; }
+      .lg-bo .cal-count { top: -6px; right: -6px; }  /* ô nhỏ: đẩy số đếm ra góc, khỏi đè số ngày */
+      .lg-bo { display: grid; grid-template-columns: 360px minmax(0, 1fr); grid-template-rows: auto 1fr;
+               grid-template-areas: "lich nhanh" "lich ds"; column-gap: 20px; align-items: start; }
+      .lg-bo > .dq { grid-area: nhanh; }
+      .lg-bo > .deliv-calendar { grid-area: lich; margin-bottom: 0; }
+      .lg-bo > #deliveryList { grid-area: ds; min-width: 0; }
+    }
+    /* Ảnh trong bảng máy tính: Sản phẩm to hơn hẳn, Đơn hàng nhỉnh hơn một chút (góp ý 24/09) */
+    .sp-tr .thumb { width: 64px; height: 64px; border-radius: 10px; }
+    #ordersTable .data-table .thumb { width: 56px; height: 56px; border-radius: 10px; }
     .dv-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
     .dv-r1 { display: flex; align-items: center; gap: 8px; }
     .dv-r1 .st-pill { margin-left: auto; }
@@ -1744,9 +1758,11 @@
         <button type="button" id="delivThisMonthBtn" class="chip-thismonth" onclick="delivSetThisMonth()">Tháng này</button>
         <span id="delivSelectedLabel" class="month-label"></span>
       </div>
-      <div id="delivQuick" class="dq"></div>
-      <div id="delivCalendar" class="deliv-calendar"></div>
-      <div id="deliveryList"><div class="loading-state">Đang tải…</div></div>
+      <div class="lg-bo">
+        <div id="delivQuick" class="dq"></div>
+        <div id="delivCalendar" class="deliv-calendar"></div>
+        <div id="deliveryList"><div class="loading-state">Đang tải…</div></div>
+      </div>
     </div>
 
     <!-- Sản phẩm -->
@@ -2274,7 +2290,15 @@
 
         <section class="fx-grp">
           <div class="fx-gt"><svg class="ic" aria-hidden="true"><use href="#i-flower"/></svg>Hoa</div>
-          <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-tag"/></svg><input type="text" id="oeProductName" placeholder="Tên hoa"></label>
+          <!-- Cùng bộ chọn mẫu có ảnh như form Thêm đơn (showProdSuggest/pickProduct nhận tiền tố 'oe') -->
+          <div class="date-pick-wrap" id="oeProdSearchWrap">
+            <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input type="text" id="oeProdSearch" placeholder="Tìm mẫu hoa có sẵn…" autocomplete="off"
+                   oninput="showProdSuggest('oe')" onfocus="showProdSuggest('oe')"></label>
+            <div id="oeProdSuggest" class="date-pop suggest-pop prod-pop" style="display:none"></div>
+          </div>
+          <input type="hidden" id="oeProductPick">
+          <div id="oeProdPicked" style="display:none"></div>
+          <label class="fx-in" id="oeProductNameRow"><svg class="ic" aria-hidden="true"><use href="#i-tag"/></svg><input type="text" id="oeProductName" placeholder="Hoặc gõ tên hoa"></label>
           <div class="fx-row">
             <div class="fx-col-auto">
               <div class="fx-lb">Số lượng</div>
@@ -6842,6 +6866,13 @@ function openOrderEditModal(id) {
   document.getElementById('oeCustomerName').value = o.customers?.name || o.customer_name || ''
   document.getElementById('oePhone').value = o.customers?.phone || ''
   document.getElementById('oeProductName').value = o.product_name || ''
+  // Giữ nguyên mẫu đã gắn kể cả khi danh sách mẫu chưa tải xong — lưu không làm rơi mất
+  document.getElementById('oeProductPick').value = o.product_id || ''
+  oeHienMau(o.product_id)
+  // Mở từ tab Đơn hàng thì danh sách mẫu chưa có → tải rồi vẽ lại thẻ mẫu
+  if (!products.length) loadProducts().then(() => {
+    if (document.getElementById('oeId').value == o.id) oeHienMau(o.product_id)
+  })
   document.getElementById('oeQuantity').value = o.quantity || 1
   document.getElementById('oeStatus').innerHTML = ORDER_STATUSES.map(s => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')
   oeUpdateCustomerEditable()
@@ -6886,6 +6917,7 @@ async function saveOrderEdit(e) {
   const status = document.getElementById('oeStatus').value
   const data = {
     product_name:     document.getElementById('oeProductName').value.trim(),
+    product_id:       parseInt(document.getElementById('oeProductPick').value) || null,
     quantity:         parseInt(document.getElementById('oeQuantity').value) || 1,
     unit_price:       priceVal,
     shipping_fee:     moneyNum('oeShipping') || 0,
@@ -6951,10 +6983,11 @@ function noUpdateTotalPreview() {
 
 // ── Chọn sản phẩm CÓ ẢNH khi lên đơn tay ─────────────────────
 // Danh sách hoa toàn tên na ná nhau, chỉ đọc chữ rất dễ chọn nhầm mẫu.
-function showProdSuggest() {
-  const pop = document.getElementById('noProdSuggest')
+// k = tiền tố form: 'no' (Thêm đơn) | 'oe' (Sửa đơn) — 2 form dùng chung bộ chọn này.
+function showProdSuggest(k = 'no') {
+  const pop = document.getElementById(k + 'ProdSuggest')
   if (!pop) return
-  const q = noAccent(document.getElementById('noProdSearch').value)
+  const q = noAccent(document.getElementById(k + 'ProdSearch').value)
   const list = (q
     ? products.filter(p => noAccent(p.name).includes(q) || noAccent(p.category).includes(q))
     : products
@@ -6966,7 +6999,7 @@ function showProdSuggest() {
     return
   }
   pop.innerHTML = list.map(p => `
-<div class="suggest-row prod-row" onclick="pickProduct(${p.id})">
+<div class="suggest-row prod-row" onclick="pickProduct(${p.id}, '${k}')">
   ${p.image
       ? `<img src="${esc(p.image)}" alt="" loading="lazy">`
       : `<span class="prod-ph">${ic('flower')}</span>`}
@@ -6976,49 +7009,68 @@ function showProdSuggest() {
   pop.style.display = 'block'
 }
 
-function hideProdSuggest() {
-  const el = document.getElementById('noProdSuggest')
-  if (el) el.style.display = 'none'
+function hideProdSuggest(k) {
+  ;(k ? [k] : ['no', 'oe']).forEach(x => {
+    const el = document.getElementById(x + 'ProdSuggest')
+    if (el) el.style.display = 'none'
+  })
 }
 
-function pickProduct(id) {
+function pickProduct(id, k = 'no') {
   const p = products.find(x => x.id == id)
   if (!p) return
-  document.getElementById('noProductPick').value = p.id
-  document.getElementById('noProductName').value = p.name
+  const pick = document.getElementById(k + 'ProductPick')
+  const cu = products.find(x => x.id == pick.value)   // mẫu đang chọn trước đó (form Sửa đơn)
+  pick.value = p.id
+  document.getElementById(k + 'ProductName').value = p.name
   // CHỈ lấy giá khi là số tiền thuần ("600,000đ"). Giá dạng chữ "Từ 2xx (Theo size order)"
   // mà bỏ hết ký tự không phải số sẽ ra 2đ — đúng lỗi từng dính ở place_order (CLAUDE.md)
   const num = p.price && !_priceIsText(p.price) ? parseInt(String(p.price).replace(/[^\d]/g, ''), 10) : null
-  moneySet('noUnitPrice', num || null)
-  if (p.image) setOrderImagePreview('no', p.image)   // đơn có sẵn ảnh, khỏi phải chụp lại
-  document.getElementById('noProdSearch').value = ''
-  hideProdSuggest()
-  renderPickedProduct(p)
-  noUpdateTotalPreview()
-  danhDauDangNhap(document.getElementById('noProductPick'))
+  // Sửa đơn: giá chữ thì GIỮ giá đã chốt với khách, đừng xoá trắng
+  if (k === 'no' || num) moneySet(k + 'UnitPrice', num || null)
+  if (k === 'oe') document.getElementById('oeUnitPrice').placeholder = num ? `Giá niêm yết: ${fmtVnd(num)}` : 'VD: 350.000'
+  // Ảnh: đơn có sẵn ảnh mẫu, khỏi phải chụp lại. Sửa đơn thì chỉ thay khi ảnh đang là ảnh
+  // của mẫu cũ (hoặc trống) — ảnh chụp riêng cho đơn thì giữ nguyên.
+  const anhDon = document.getElementById(k + 'Image').value
+  if (p.image && (k === 'no' || !anhDon || (cu && anhDon === cu.image))) setOrderImagePreview(k, p.image)
+  document.getElementById(k + 'ProdSearch').value = ''
+  hideProdSuggest(k)
+  renderPickedProduct(p, k)
+  if (k === 'oe') oeUpdateTotalPreview(); else noUpdateTotalPreview()
+  danhDauDangNhap(pick)
 }
 
 // Thẻ xác nhận mẫu đã chọn — thay cho thông báo bay ngang, nó ĐỨNG YÊN
 // ngay tại chỗ vừa chọn nên nhìn là biết đang lên đơn cho mẫu nào.
-function renderPickedProduct(p) {
-  const box = document.getElementById('noProdPicked')
+function renderPickedProduct(p, k = 'no') {
+  const box = document.getElementById(k + 'ProdPicked')
   if (!box) return
   const an = !!p
-  document.getElementById('noProdSearchWrap').style.display = an ? 'none' : ''
-  document.getElementById('noProductNameRow').style.display = an ? 'none' : ''
+  document.getElementById(k + 'ProdSearchWrap').style.display = an ? 'none' : ''
+  document.getElementById(k + 'ProductNameRow').style.display = an ? 'none' : ''
   if (!p) { box.style.display = 'none'; box.innerHTML = ''; return }
+  // Hiện đúng tên đang ghi trên đơn (đơn cũ có thể ghi tên khác tên mẫu một chút)
+  const ten = document.getElementById(k + 'ProductName').value.trim() || p.name
   box.innerHTML = `
 <div class="prod-picked">
   ${p.image ? `<img src="${esc(p.image)}" alt="">` : `<span class="prod-ph">${ic('flower')}</span>`}
-  <span class="pp-info"><strong>${esc(p.name)}</strong><small>${fmtPriceText(p.price)}</small></span>
-  ${nutTT('x', 'Bỏ chọn mẫu', 'clearPickedProduct()')}
+  <span class="pp-info"><strong>${esc(ten)}</strong><small>${fmtPriceText(p.price)}</small></span>
+  ${nutTT('x', 'Bỏ chọn mẫu', `clearPickedProduct('${k}')`)}
 </div>`
   box.style.display = 'block'
 }
 
-function clearPickedProduct() {
-  document.getElementById('noProductPick').value = ''
-  renderPickedProduct(null)
+function clearPickedProduct(k = 'no') {
+  document.getElementById(k + 'ProductPick').value = ''
+  renderPickedProduct(null, k)
+  if (k === 'oe') danhDauDangNhap(document.getElementById('oeProductPick'))
+}
+
+// Form Sửa đơn: đơn đã gắn mẫu thì hiện thẻ mẫu có ảnh, chưa gắn thì hiện ô tìm mẫu + ô tên
+function oeHienMau(productId) {
+  document.getElementById('oeProdSearch').value = ''
+  hideProdSuggest('oe')
+  renderPickedProduct(products.find(x => x.id === productId) || null, 'oe')
 }
 
 function openNewOrderModal() {
