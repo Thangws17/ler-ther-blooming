@@ -662,6 +662,7 @@ section    { padding:64px 0; }
 .detail-desc {
   color:var(--text-mid); font-size:1rem; line-height:1.8;
   border-top:1px solid var(--border); padding-top:16px;
+  white-space:pre-line; /* giữ xuống dòng shop gõ trong mô tả */
 }
 .detail-actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; }
 
@@ -1370,3 +1371,25 @@ html, body { overflow-x: clip; }
 ::-webkit-scrollbar-thumb { background: #cfd9ce; border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
 ::-webkit-scrollbar-thumb:hover { background: #a9bba8; border: 3px solid transparent; background-clip: padding-box; }
 ::-webkit-scrollbar-button, ::-webkit-scrollbar-corner { display: none; background: transparent; }
+
+/* ─── Caption mẫu hoa kiểu "tạp chí" (tachCaption trong js/dungchung.js) ─────
+   Biệt danh chữ nghiêng Lora dưới tên, thành phần thành viên nhỏ, "Phù hợp tặng"
+   + dòng phụ (size, kích thước…) nằm chung khung cam kết .detail-cam */
+.detail-nick {
+  font-family: 'Lora', Georgia, serif; font-style: italic; font-weight: 500;
+  font-size: 1.12rem; color: var(--text-mid); margin-top: -10px; line-height: 1.35;
+}
+.detail-cap { border-top: 1px solid var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.detail-tp { display: flex; flex-wrap: wrap; gap: 6px; }
+.detail-tp span {
+  background: var(--green-pale); color: var(--green); border-radius: 99px;
+  padding: 3px 11px; font-size: .82rem; font-weight: 600;
+}
+.detail-kw { color: var(--text-mid); font-size: .95rem; font-style: italic; }
+.product-nick {
+  font-family: 'Lora', Georgia, serif; font-style: italic; font-size: .85rem; color: var(--text-light);
+  margin: -4px 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+@media (max-width: 560px) {
+  .product-nick { font-size: .74rem; margin: -2px 0 6px; }
+}

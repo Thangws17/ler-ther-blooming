@@ -145,5 +145,26 @@ function tachGhiChuDon(note) {
   return kq
 }
 
+// ─── Caption mẫu hoa (mô tả sản phẩm) kiểu "tạp chí" ─────────
+//   “Latte buổi sớm”                       ← biệt danh, dòng ĐẦU, trong ngoặc kép
+//   Hồng Capuchino · giấy gói ánh vàng      ← thành phần, cách nhau bằng " · "
+//   Ngọt ngào — tinh tế — rất ăn ảnh.       ← chữ khoá, cách nhau bằng " — "
+//   Phù hợp tặng sinh nhật, lễ tốt nghiệp.
+//   Hoa có đặt theo size                    ← mọi dòng khác (kích thước, tặng kèm…)
+// Dòng đầu không phải biệt danh trong ngoặc kép → trả null, web hiện nguyên chữ shop gõ.
+function tachCaption(desc) {
+  const dong = String(desc || '').split('\n').map(s => s.trim()).filter(Boolean)
+  const m = dong.length ? dong[0].match(/^[“"](.+)[”"]$/) : null
+  if (!m) return null
+  const kq = { bietDanh: m[1].trim(), thanhPhan: [], chuKhoa: '', phuHop: '', them: [] }
+  for (const d of dong.slice(1)) {
+    if (!kq.thanhPhan.length && d.includes('·')) kq.thanhPhan = d.split('·').map(s => s.trim()).filter(Boolean)
+    else if (!kq.chuKhoa && d.includes('—')) kq.chuKhoa = d
+    else if (!kq.phuHop && /^Phù hợp tặng/i.test(d)) kq.phuHop = d.replace(/\.$/, '')
+    else kq.them.push(d)
+  }
+  return kq
+}
+
 // Mã đơn hiển thị: #LT-0152 (giống orderCode trong admin)
 function maDon(id) { return '#LT-' + String(id).padStart(4, '0') }

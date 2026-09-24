@@ -81,7 +81,7 @@ function catStyle(cat) {
 }
 
 // ─── Build product card HTML ──────────────────────────────
-// Thẻ tập trung vào sản phẩm: ảnh 4:5 chiếm phần lớn, chỉ còn tên + giá + nút Đặt ngay.
+// Thẻ tập trung vào sản phẩm: ảnh 4:5 chiếm phần lớn, chỉ còn tên + biệt danh (nếu caption có) + giá + nút Đặt ngay.
 // Mô tả + danh mục vẫn xem đầy đủ ở trang chi tiết.
 function productCardHTML(p) {
   _prodCache[p.id] = { image: p.image, price: p.price };   // cho header form đặt hoa
@@ -90,6 +90,7 @@ function productCardHTML(p) {
     ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy">`
     : `<div class="product-img-ph" style="background:${s.bg}">${s.emoji}</div>`;
   const nameAttr = jsAttr(p.name);
+  const cap = tachCaption(p.description);
   return `
 <div class="product-card reveal" data-category="${esc(p.category)}">
   <a href="chi-tiet?id=${p.id}" class="product-img">${img}</a>
@@ -97,6 +98,7 @@ function productCardHTML(p) {
     <div class="product-name">
       <a href="chi-tiet?id=${p.id}" style="color:inherit">${esc(p.name)}</a>
     </div>
+    ${cap ? `<div class="product-nick">“${esc(cap.bietDanh)}”</div>` : ''}
     <div class="product-footer">
       <span class="product-price">${esc(fmtPrice(p.price))}</span>
       <button type="button" class="product-btn" onclick="openOrderModal(${p.id}, '${nameAttr}')" aria-label="Đặt ${esc(p.name)}">${ic('plus')}<span>Đặt ngay</span></button>
@@ -1401,13 +1403,14 @@ async function loadProductDetail() {
   const _ogDesc  = document.querySelector('meta[property="og:description"]');
   const _ogImg   = document.querySelector('meta[property="og:image"]');
   if (_ogTitle) _ogTitle.content = `${p.name} — Ler & Ther Blooming`;
-  if (_ogDesc)  _ogDesc.content  = p.description || '';
+  if (_ogDesc)  _ogDesc.content  = (p.description || '').replace(/\s*\n\s*/g, ' · ');
   if (_ogImg && p.images?.length) _ogImg.content = p.images[0];
   else if (_ogImg && p.image)     _ogImg.content = p.image;
 
   const s = catStyle(p.category);
   const imgs = (p.images?.length ? p.images : null) || (p.image ? [p.image] : []);
   const imgSection = buildDetailImage(imgs, p.name, s);
+  const cap = tachCaption(p.description);   // null = mô tả không theo khuôn → hiện chữ thường
 
   content.innerHTML = `
 <div class="detail-wrap">
@@ -1419,9 +1422,15 @@ async function loadProductDetail() {
           `<a href="san-pham?bst=${encodeURIComponent(c.slug || '')}">${esc(c.name)}</a>`).join('')}</div>`
       : ''}
     <h1 class="detail-name">${esc(p.name)}</h1>
+    ${cap ? `<div class="detail-nick">“${esc(cap.bietDanh)}”</div>` : ''}
     <div class="detail-price">${esc(fmtPrice(p.price))}</div>
-    <p class="detail-desc">${esc(p.description)}</p>
+    ${cap ? `<div class="detail-cap">
+      ${cap.thanhPhan.length ? `<div class="detail-tp">${cap.thanhPhan.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}
+      ${cap.chuKhoa ? `<div class="detail-kw">${esc(cap.chuKhoa)}</div>` : ''}
+    </div>` : `<p class="detail-desc">${esc(p.description)}</p>`}
     <div class="detail-cam">
+      ${cap?.phuHop ? `<div>${ic('gift')}${esc(cap.phuHop)}</div>` : ''}
+      ${(cap?.them || []).map(d => `<div>${ic('leaf')}${esc(d)}</div>`).join('')}
       <div>${ic('truck')}Giao nội thành miễn phí</div>
       <div>${ic('camera')}Gửi ảnh duyệt trước khi giao</div>
       <div>${ic('card')}COD hoặc chuyển khoản</div>

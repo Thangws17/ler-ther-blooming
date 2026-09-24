@@ -210,6 +210,10 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
   (`.limit(4)` trong `loadFeatured`) — `SP_TRANG_CHU` trong admin phải khớp số đó. Thứ tự đổi bằng chế độ **Sắp xếp**
   (`spDoiCho`/`spLenDau` đánh số lại `order_index` 0,1,2…); ô `fOrder` giờ là input hidden, mẫu mới lấy số nhỏ nhất − 1
   để lên đầu. Nút lọc BST **không** kèm emoji (test-admin-giao-dien kiểm).
+- **Mô tả mẫu hoa viết theo khuôn "tạp chí"** (SQL 23, 24/09/2026): dòng 1 `“Biệt danh”`, dòng có ` · ` = thành phần,
+  dòng có ` — ` = chữ khoá, `Phù hợp tặng …`, còn lại (size, kích thước) là dòng phụ. `tachCaption()` (js/dungchung.js)
+  tách ra: web hiện biệt danh dưới tên (cả thẻ lẫn trang chi tiết), "Phù hợp tặng" + dòng phụ vào khung `.detail-cam`;
+  admin hiện biệt danh ở danh sách Sản phẩm (`spBietDanh`). Dòng đầu không phải “…” → hiện nguyên chữ (`white-space: pre-line`).
 - **Chọn mẫu hoa khi lên đơn chỉ lấy giá khi là số tiền thuần** (`!_priceIsText`). Giá "Từ 2xx" để trống — cùng
   bẫy "2 đồng" với `place_order`.
 - **Đừng đặt `position: sticky` cho phần tử nằm TRONG `.content`.** `.content` là khung cuộn;
