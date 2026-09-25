@@ -30,6 +30,12 @@ mấy trang test chạy trong trình duyệt (vẫn server 8765 đó):
 - `/test/test-admin-giao-dien.html` — admin × 2 khổ (390/1280) với DATABASE GIẢ (`test/gia-lap-sb.js`): từng tab không
   lỗi / không tràn, số đỏ, nút ＋ nổi, Tổng quan, Lịch giao, chi phí, bộ sưu tập, album, nguyên liệu, cảnh báo nhập dở
 - `/test/test-cu-phap.html` — biên dịch thử toàn bộ JS (web + admin). Chạy sau mọi lần sửa file lớn
+- `/test/test-bao-mat.html` — nhồi MÃ ĐỘC vào mọi ô dữ liệu (database giả) rồi mở mọi tab/form admin + mọi trang web:
+  không mã nào chạy, không thẻ lạ / link `javascript:` / onclick bị phá chuỗi; chữ siêu dài / ô trống không làm tràn;
+  lưu thất bại phải báo thật (`ghiDb`); chống spam đơn; thư viện Supabase khoá phiên bản + integrity; `anhNho`
+
+Chạy ngầm không cần mở tay: `chrome --headless=new --virtual-time-budget=90000 --dump-dom http://localhost:8765/test/<tên>.html`
+rồi đọc `#tongket` / các `.ca.fail` (mỗi trang tự in dòng tổng kết).
 
 Trang test **bốc hàm/DOM thật ra khỏi `admin/index.html`** chứ không copy code, nên sửa admin là test
 biết ngay. Không nối Supabase để ghi, chạy bao nhiêu lần cũng không đụng dữ liệu thật.
@@ -51,7 +57,16 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 
 **Admin — `admin/index.html` là một file monolith ~5000 dòng** (HTML + CSS + JS trong cùng file, cố ý giữ vậy). Điều hướng qua `applyTab(tab)`: ẩn/hiện `.panel`, rồi gọi đúng `loadX()` của tab đó. `switchTab()` đẩy `history.pushState` + `#hash` nên nút Back của trình duyệt và F5 đều giữ đúng tab. `applyTab` cũng gọi `closeAllModals()` — modal của tab cũ phải dọn ở đó, đừng để rò sang tab mới.
 
+**Bảo mật database (kiểm 25/09/2026):** Supabase đang MỞ ĐĂNG KÝ (`/auth/v1/settings` → `disable_signup:false`)
+nên "đã đăng nhập" (`authenticated`) KHÔNG có nghĩa là shop. `supabase/24_chi_quan_tri.sql` thêm lớp luật
+RESTRICTIVE "chi quan tri…" trên mọi bảng + kho ảnh: phải nằm trong bảng `quan_tri` (hàm `la_quan_tri()`). File 17/21
+xoá sạch luật cũ nhưng CHỪA tên `chi quan tri%` — viết file SQL mới kiểu "xoá hết luật" cũng phải chừa y vậy. Thêm bảng
+mới: thêm vào danh sách trong file 24.
+
 **Đường ghi đơn hàng đi qua RPC `place_order`** (cả web khách lẫn admin đều gọi, `security definer`): tự dedupe khách theo SĐT đã chuẩn hoá, tự điền giá từ giá niêm yết, cho phép đơn không SĐT, và không cho ghi đè tên/địa chỉ khách cũ. Sửa logic tạo đơn thì thường là sửa hàm SQL này, không phải sửa JS.
+Từ 25/09 hàm này cắt độ dài từng ô, `html_esc()` mọi chữ khách gõ trước khi vào email, và CHỐNG SPAM khi gọi từ web
+(không đăng nhập): 1 SĐT ≤ 3 đơn/10 phút, cả web ≤ 20 đơn/10 phút, 1 email ≤ 3 mail xác nhận/ngày → lỗi `QUA_NHIEU_DON`
+(web khách bắt chữ này để mời nhắn Zalo). Admin đã đăng nhập không bị giới hạn và được giữ tên mẫu tự gõ.
 
 **Danh mục đã bị thay bằng BỘ SƯU TẬP.** Khách không còn thấy "Hoa bó / Sự kiện" nữa — thay bằng `collections` (BST có ảnh bìa, câu giới thiệu, công tắc bật/tắt, hẹn ngày) + bảng nối `collection_products` (**1 mẫu nằm được nhiều BST**). Xem `supabase/21_collections.sql`; 4 BST thật của Ler (Trông Trăng, 20/10, Em Xinh, Anh Trai) tạo ở `22_bst_cua_ler.sql` — file này chỉ chạy lần đầu, 5 BST cũ bị tắt chứ không xoá. Admin quản ở tab 🌿 Bộ sưu tập; form Sản phẩm tick BST thay cho ô "Danh mục" cũ.
 
@@ -62,7 +77,13 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 ## Bẫy đã biết
 
 - **`place_order` được định nghĩa lại ở 4 file SQL.** Bản hiện hành là `supabase/15_notifications_v2.sql` (11 tham số, có `p_email`). Ba bản cũ (10 tham số) đã dồn vào `supabase/da-thay-the/` — chạy vào là **lùi** hàm về bản cũ. Sửa RPC thì sửa trong `15_notifications_v2.sql`.
-- **File SQL đánh số theo thứ tự chạy** (`01_` → `22_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
+- **Hàm nhắc lịch `send_delivery_reminders()` chỉ còn ở `15_notifications_v2.sql`** (Brevo). File 16 trước đây định nghĩa
+  lại bản Telegram/Resend cũ → chạy lại 16 là đè mất bản mới, mất email nhắc 8:30. File 16 giờ chỉ tạo extension + bảng
+  `app_settings`; file 15 cũng tự tạo nền đó nên không phụ thuộc thứ tự. Mọi chữ ghép vào HTML email phải qua `html_esc()`,
+  và chuỗi `'…' || cột` phải `coalesce` từng cột (1 cột null = cả dòng biến mất khỏi `string_agg`).
+- **Admin kiểm quyền sau đăng nhập** (`kiemQuyenQuanTri()` → rpc `la_quan_tri`): tài khoản không có trong `quan_tri` thấy
+  cảnh báo đỏ `#canhBaoQuyen` thay vì danh sách trống không lời giải thích.
+- **File SQL đánh số theo thứ tự chạy** (`01_` → `24_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
 - **Sao lưu Excel (`admin/xlsx.js` + `taiSaoLuu()` trong admin)** tự viết file .xlsx, KHÔNG thêm thư viện.
   Thêm bảng mới vào database thì thêm vào `SAO_LUU_BANG`; cột lạ tự nối vào cuối nên không mất dữ liệu,
   nhưng khai báo thì có tên cột tiếng Việt. **Tuyệt đối không thêm `app_settings`** (chứa token). Ngày sao
@@ -151,7 +172,7 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
   trang đang xem của tab Đơn hàng (đã từng như vậy).
 - **Lịch sử mua hàng của khách (`viewCustomerOrders`) tự truy vấn theo `customer_id`**, không dùng mảng
   `orders`. Nhờ vậy phân trang không ảnh hưởng nó — giữ nguyên cách này.
-- **`js/dungchung.js` giữ hàm dùng chung** (`esc`, `normalizePhone`, `isValidPhone`, `PHONE_OK`) cho CẢ
+- **`js/dungchung.js` giữ hàm dùng chung** (`esc`, `jsAttr`, `linkAnToan`, `anhNho`/`srcNho`, `normalizePhone`, `isValidPhone`, `PHONE_OK`) cho CẢ
   web khách và admin. Sửa ở đây là cả 2 bên đổi theo — đừng viết lại bản riêng như trước. Nạp bằng thẻ
   `<script>` thường (không module), phải nạp TRƯỚC `js/main.js`.
 - **Giá sản phẩm có loại dạng CHỮ CÓ SỐ**: `"Từ 2xx (Theo size order)"`. Viết SQL kiểu "bỏ hết ký tự
@@ -234,7 +255,16 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 
 - **Đơn hàng chủ yếu do shop tự nhập trong admin** (khách chốt qua Facebook/Zalo rồi shop mới lên đơn). Cải tiến về nhập đơn thì làm ở **admin trước**, và **sửa web khách thì phải sửa admin cùng lúc** — đã từng bỏ sót ở cả hai chiều.
 - SĐT trong admin có **3 chỗ nhập**: sửa đơn `oePhone`, thêm đơn tay `noPhone`, sổ khách `cuPhone` — đụng tới SĐT phải rà đủ cả 3.
-- **Luôn `esc()`** dữ liệu người dùng nhập trước khi nhét vào HTML. Chèn vào `onclick` ở web khách thì bọc thêm `jsAttr()` (helper chỉ có trong `js/main.js`; admin chỉ có `esc()`).
+- **Luôn `esc()`** dữ liệu người dùng nhập trước khi nhét vào HTML. Chuỗi nằm TRONG `onclick="f('…')"` thì dùng `jsAttr()`
+  (esc() KHÔNG đủ: trình duyệt đổi `&#39;` về dấu `'` trước khi chạy lệnh). Cả hai ở `js/dungchung.js`, dùng cho cả web lẫn admin.
+  Link do shop nhập (Facebook…) đi qua `linkAnToan()` (chặn `javascript:`). Chạy `test-bao-mat` sau khi thêm chỗ hiển thị dữ liệu.
+- **Ảnh trong thẻ / lưới / ô nhỏ dùng `<img ${srcNho(url, rộng)}>`**, không `src="${esc(url)}"` — Supabase thu nhỏ ảnh 1600px
+  xuống đúng cỡ (gói Pro, `ANH_NHO_BAT` trong dungchung.js), lỗi thì tự về ảnh gốc. Trình xem ảnh lớn thì giữ ảnh gốc.
+  **Shop đang ở gói FREE → `ANH_NHO_BAT = false`** (25/09/2026): `srcNho` trả ảnh gốc. Vẫn viết `srcNho` cho ảnh mới để khi lên Pro chỉ cần bật.
+- **Ghi database trong admin phải kiểm kết quả**: `if (!(await ghiDb(sb.from(…).delete().eq(…).select('id'), 'xoá'))) return`.
+  `.select('id')` để bắt trường hợp hết phiên đăng nhập (không lỗi mà 0 dòng đổi). Đừng `await sb.from(…)` suông rồi báo "Đã xoá".
+- **Thư viện Supabase nạp bản CỐ ĐỊNH `@2.117.1/dist/umd/supabase.js` + `integrity`** ở 8 trang. Nâng phiên bản: đổi cả 8 trang và
+  tính lại sha384 (`openssl dgst -sha384 -binary f.js | openssl base64 -A`). Đừng dùng file `.min.js` của jsDelivr (tự sinh, vân tay đổi).
 - **Không thêm thư viện/framework/build step.** Giữ HTML+CSS+JS thuần.
 - SQL mới phải **idempotent** (`create ... if not exists`, `add column if not exists`) — chủ shop hay chạy lại file cũ.
 - Tránh UI thô: đừng dùng `prompt()`/`alert()`, đừng dùng input `date`/`month` mặc định của trình duyệt — repo đã có sẵn modal, lịch tự vẽ, bottom-sheet; dùng lại chúng. Responsive điện thoại là bắt buộc, kể cả admin.

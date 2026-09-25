@@ -7,9 +7,25 @@
 --  3) NHẮC LỊCH GIAO: 8:30 sáng mỗi ngày, nhắc các đơn giao trong 2 NGÀY TỚI
 --  4) VÁ BẢO MẬT: khóa quyền gọi công khai các hàm gửi tin
 --
--- Cần chạy reminders_setup.sql trước (đã chạy từ trước — bảng app_settings).
 -- Cấu hình Brevo + email nhận báo điền ở cuối file.
+-- Hàm nhắc lịch send_delivery_reminders() CHỈ định nghĩa ở file này (file 16 cũ
+-- đã bỏ bản Telegram/Resend — trước đây chạy lại 16 là đè mất bản mới).
 -- ════════════════════════════════════════════════════════════════
+
+-- Nền (trước ở file 16): extension + bảng cấu hình khoá kín — tự đủ, không phụ thuộc thứ tự
+create extension if not exists pg_cron;
+create extension if not exists pg_net;
+create table if not exists app_settings (
+  id int primary key default 1,
+  telegram_bot_token text,
+  telegram_chat_id   text,
+  resend_api_key     text,
+  reminder_email     text,
+  reminder_from      text default 'onboarding@resend.dev',
+  constraint single_row check (id = 1)
+);
+insert into app_settings (id) values (1) on conflict (id) do nothing;
+alter table app_settings enable row level security;
 
 -- ── Hàm gửi tin cho SHOP — qua EMAIL (Brevo), gửi tới các địa chỉ trong
 --    reminder_email (nhiều mail cách nhau dấu phẩy). Không dùng Telegram/Resend. ──
@@ -83,10 +99,28 @@ end;
 $$;
 revoke execute on function send_customer_email(text, text, text) from public, anon, authenticated;
 
+-- ── Chặn HTML lạ trong email: khách gõ "<a href=…>" vào tên/lời nhắn thì email
+--    chỉ hiện đúng chữ đó, không thành link/ảnh thật (kiểm tra bảo mật 25/09/2026) ──
+create or replace function html_esc(t text) returns text
+language sql immutable as $$
+  select replace(replace(replace(replace(replace(t, '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '"', '&quot;'), '''', '&#39;')
+$$;
+
 -- ── 1) place_order: tạo đơn + BÁO SHOP + GỬI MAIL XÁC NHẬN CHO KHÁCH ──
 -- Đổi chữ ký hàm (thêm p_email) → phải drop bản cũ trước
 drop function if exists place_order(text, text, text, bigint, text, int, date, text, text, text);
 
+-- GIA CỐ 25/09/2026 (đây là cửa DUY NHẤT người lạ ghi được vào database):
+--  • Cắt độ dài từng ô (chặn dán cả trang chữ làm nặng database / email)
+--  • Email khách sai định dạng → bỏ qua, không gửi
+--  • Mọi chữ khách gõ đều qua html_esc() trước khi vào email
+--  • Chống spam (chỉ áp cho web khách; admin đã đăng nhập thì không bị chặn):
+--      - 1 SĐT tối đa 3 đơn / 10 phút
+--      - cả web tối đa 20 đơn / 10 phút
+--      - 1 email khách nhận tối đa 3 mail xác nhận / ngày (đơn vẫn ghi, chỉ không gửi mail)
+--    Bị chặn → lỗi có chữ QUA_NHIEU_DON, web khách hiện lời mời nhắn Zalo (js/main.js).
+--  • Web khách: tên mẫu lấy theo database (không tin tên gửi lên), số lượng 1–99,
+--    ngày giao trong quá khứ / quá 1 năm → bỏ trống cho shop gọi hẹn lại.
 create or replace function place_order(
   p_phone text,
   p_name text,
@@ -105,25 +139,57 @@ security definer
 set search_path = public
 as $$
 declare
+  v_admin boolean := coalesce(auth.role(), '') = 'authenticated';
+  v_phone text := nullif(left(norm_phone(trim(coalesce(p_phone, ''))), 20), '');
+  v_name  text := nullif(left(trim(coalesce(p_name, '')), 100), '');
+  v_addr  text := nullif(left(trim(coalesce(p_address, '')), 300), '');
+  v_pname text := nullif(left(trim(coalesce(p_product_name, '')), 200), '');
+  v_card  text := nullif(left(trim(coalesce(p_message_card, '')), 500), '');
+  v_note  text := nullif(left(trim(coalesce(p_note, '')), 1000), '');
+  v_area  text := nullif(left(trim(coalesce(p_delivery_area, '')), 100), '');
+  v_email text := nullif(left(trim(coalesce(p_email, '')), 200), '');
+  v_date  date := p_delivery_date;
+  v_today date := (now() at time zone 'Asia/Ho_Chi_Minh')::date;
   v_customer_id bigint;
   v_order_id bigint;
-  v_qty int := greatest(coalesce(p_quantity, 1), 1);
+  v_qty int := least(greatest(coalesce(p_quantity, 1), 1), 99);
   v_unit_price numeric;
+  v_db_name text;
   v_total_txt text;
   v_msg text;
   v_code text;
   v_html text;
 begin
+  if v_email is not null and v_email !~* '^[^@[:space:]<>",;]+@[^@[:space:]<>",;]+\.[a-z]{2,}$' then
+    v_email := null;
+  end if;
+
+  if not v_admin then
+    -- Chống spam đơn ảo
+    if v_phone is not null and (
+         select count(*) from orders o join customers c on c.id = o.customer_id
+         where c.phone = v_phone and o.created_at > now() - interval '10 minutes') >= 3 then
+      raise exception 'QUA_NHIEU_DON: số này vừa đặt nhiều đơn liền';
+    end if;
+    if (select count(*) from orders where created_at > now() - interval '10 minutes') >= 20 then
+      raise exception 'QUA_NHIEU_DON: web đang nhận quá nhiều đơn';
+    end if;
+    -- Ngày giao vô lý → để trống, shop gọi hẹn lại
+    if v_date < v_today or v_date > v_today + 365 then
+      v_date := null;
+    end if;
+  end if;
+
   -- Khách: có SĐT → định danh theo SĐT; không ghi đè thông tin khách đã có
-  if p_phone is not null and length(trim(p_phone)) > 0 then
-    select id into v_customer_id from customers where phone = p_phone;
+  if v_phone is not null then
+    select id into v_customer_id from customers where phone = v_phone;
     if v_customer_id is null then
       insert into customers (phone, name, address)
-      values (p_phone, p_name, p_address)
+      values (v_phone, v_name, v_addr)
       returning id into v_customer_id;
     else
       update customers
-        set address    = coalesce(nullif(address, ''), p_address),
+        set address    = coalesce(nullif(address, ''), v_addr),
             updated_at = now()
       where id = v_customer_id;
     end if;
@@ -141,18 +207,21 @@ begin
     select case
              when price ~ '^[0-9][0-9.,[:space:]]*((đ|Đ|d|D)[[:space:]]*)?$'
              then nullif(regexp_replace(price, '[^0-9]', '', 'g'), '')::numeric
-           end
-      into v_unit_price
+           end,
+           name
+      into v_unit_price, v_db_name
     from products
     where id = p_product_id;
+    -- Web khách: tên mẫu theo database. Admin: giữ tên shop gõ (có thể thêm "+ thiệp"…)
+    if not v_admin and v_db_name is not null then v_pname := v_db_name; end if;
   end if;
 
   insert into orders (customer_id, customer_name, product_id, product_name, quantity,
                       unit_price, customer_email,
                       delivery_address, delivery_area, delivery_date, message_card, note)
-  values (v_customer_id, p_name, p_product_id, p_product_name, v_qty,
-          v_unit_price, nullif(trim(coalesce(p_email, '')), ''),
-          p_address, p_delivery_area, p_delivery_date, p_message_card, p_note)
+  values (v_customer_id, v_name, p_product_id, v_pname, v_qty,
+          v_unit_price, v_email,
+          v_addr, v_area, v_date, v_card, v_note)
   returning id into v_order_id;
 
   -- Gửi thông báo — lỗi gửi tin KHÔNG được làm hỏng việc tạo đơn
@@ -161,46 +230,48 @@ begin
     v_total_txt := case when v_unit_price is null then 'Chưa định giá'
       else replace(to_char(v_unit_price * v_qty, 'FM999,999,999'), ',', '.') || 'đ' end;
 
-    -- (a) Báo SHOP
+    -- (a) Báo SHOP (chữ thường → escape cả khối trước khi bọc <pre>)
     v_msg := '🌸 ĐƠN MỚI ' || v_code
-      || E'\n👤 ' || coalesce(p_name, '—') || coalesce(' · ' || nullif(trim(p_phone), ''), '')
-      || coalesce(E'\n✉️ ' || nullif(trim(p_email), ''), '')
-      || E'\n💐 ' || coalesce(p_product_name, '—') || ' ×' || v_qty || ' — ' || v_total_txt
-      || E'\n📅 Giao: ' || coalesce(to_char(p_delivery_date, 'DD/MM/YYYY'), 'chưa hẹn')
-      || coalesce(' · ' || nullif(trim(p_delivery_area), ''), '')
-      || coalesce(E'\n📍 ' || nullif(trim(p_address), ''), '')
-      || coalesce(E'\n💌 "' || nullif(trim(p_message_card), '') || '"', '')
-      || coalesce(E'\n📝 ' || nullif(trim(p_note), ''), '');
+      || E'\n👤 ' || coalesce(v_name, '—') || coalesce(' · ' || v_phone, '')
+      || coalesce(E'\n✉️ ' || v_email, '')
+      || E'\n💐 ' || coalesce(v_pname, '—') || ' ×' || v_qty || ' — ' || v_total_txt
+      || E'\n📅 Giao: ' || coalesce(to_char(v_date, 'DD/MM/YYYY'), 'chưa hẹn')
+      || coalesce(' · ' || v_area, '')
+      || coalesce(E'\n📍 ' || v_addr, '')
+      || coalesce(E'\n💌 "' || v_card || '"', '')
+      || coalesce(E'\n📝 ' || v_note, '');
     perform notify_shop(
       v_msg,
-      '🌸 Đơn mới ' || v_code || ' — ' || coalesce(p_name, ''),
-      '<pre style="font-family:inherit;font-size:15px">' || v_msg || '</pre>'
+      '🌸 Đơn mới ' || v_code || ' — ' || left(coalesce(v_name, ''), 60),
+      '<pre style="font-family:inherit;font-size:15px;white-space:pre-wrap">' || html_esc(v_msg) || '</pre>'
     );
 
-    -- (b) Mail XÁC NHẬN cho KHÁCH (chỉ khi khách để lại email)
-    if nullif(trim(coalesce(p_email, '')), '') is not null then
+    -- (b) Mail XÁC NHẬN cho KHÁCH (chỉ khi email hợp lệ; tối đa 3 mail/ngày/địa chỉ)
+    if v_email is not null and (
+         select count(*) from orders
+         where lower(customer_email) = lower(v_email) and created_at > now() - interval '1 day') <= 3 then
       v_html := '<div style="font-family:Arial,Helvetica,sans-serif;max-width:540px;margin:0 auto;color:#1A2E1A;">'
         || '<h2 style="color:#2E7D32;margin-bottom:4px;">🌸 Ler &amp; Ther Blooming</h2>'
-        || '<p>Chào <b>' || coalesce(p_name, 'bạn') || '</b>, cảm ơn bạn đã đặt hoa!</p>'
+        || '<p>Chào <b>' || html_esc(coalesce(v_name, 'bạn')) || '</b>, cảm ơn bạn đã đặt hoa!</p>'
         || '<p>Đơn <b style="color:#2E7D32;">' || v_code || '</b> đã được ghi nhận:</p>'
         || '<table style="border-collapse:collapse;width:100%;font-size:14px;">'
         || '<tr><td style="padding:6px 0;color:#7A9879;">Sản phẩm</td><td style="text-align:right;"><b>'
-          || coalesce(p_product_name, '—') || ' ×' || v_qty || '</b></td></tr>'
+          || html_esc(coalesce(v_pname, '—')) || ' ×' || v_qty || '</b></td></tr>'
         || '<tr><td style="padding:6px 0;color:#7A9879;">Tạm tính</td><td style="text-align:right;"><b>'
           || v_total_txt || '</b></td></tr>'
         || '<tr><td style="padding:6px 0;color:#7A9879;">Ngày giao mong muốn</td><td style="text-align:right;">'
-          || coalesce(to_char(p_delivery_date, 'DD/MM/YYYY'), 'Shop sẽ hẹn khi gọi xác nhận') || '</td></tr>'
+          || coalesce(to_char(v_date, 'DD/MM/YYYY'), 'Shop sẽ hẹn khi gọi xác nhận') || '</td></tr>'
         || coalesce('<tr><td style="padding:6px 0;color:#7A9879;">Khu vực</td><td style="text-align:right;">'
-          || nullif(trim(p_delivery_area), '') || '</td></tr>', '')
+          || html_esc(v_area) || '</td></tr>', '')
         || coalesce('<tr><td style="padding:6px 0;color:#7A9879;">Lời nhắn trên thiếp</td><td style="text-align:right;">&ldquo;'
-          || nullif(trim(p_message_card), '') || '&rdquo;</td></tr>', '')
+          || html_esc(v_card) || '&rdquo;</td></tr>', '')
         || '</table>'
         || '<p style="margin-top:14px;">Shop sẽ gọi/Zalo cho bạn trong <b>15&ndash;30 phút</b> để xác nhận đơn và chốt phí giao (nếu có). '
         || 'Hoa sẽ được chụp ảnh gửi bạn duyệt trước khi giao 🌷</p>'
         || '<p style="color:#7A9879;font-size:12px;margin-top:18px;">Ler &amp; Ther Blooming — Hoa tươi trao yêu thương</p>'
         || '</div>';
       perform send_customer_email(
-        p_email,
+        v_email,
         '🌸 Ler & Ther Blooming — Đã nhận đơn ' || v_code,
         v_html
       );
@@ -224,10 +295,12 @@ declare
   v_lines text;
   v_msg text;
 begin
+  -- coalesce từng ô: chỉ 1 ô trống (vd đơn chưa ghi tên mẫu) là CẢ DÒNG thành null và
+  -- bị string_agg bỏ qua → email ghi "Cần giao 3 đơn" mà chỉ liệt kê 2 (sửa 25/09/2026)
   select count(*),
          string_agg('• ' || to_char(delivery_date, 'DD/MM') || ' — '
-                    || coalesce(customer_name, '—') || ' — ' || product_name
-                    || coalesce(' (' || delivery_area || ')', '') || ' ×' || quantity,
+                    || coalesce(customer_name, '—') || ' — ' || coalesce(product_name, '(chưa ghi mẫu)')
+                    || coalesce(' (' || delivery_area || ')', '') || ' ×' || coalesce(quantity, 1),
                     E'\n' order by delivery_date, delivery_area nulls last)
     into v_count, v_lines
   from orders
@@ -245,7 +318,8 @@ begin
   perform notify_shop(
     v_msg,
     '🌸 Chuẩn bị hàng 2 ngày tới: ' || v_count || ' đơn',
-    '<pre style="font-family:inherit;font-size:15px">' || v_msg || '</pre>'
+    -- tên khách / tên mẫu do khách gõ trên web → phải lọc trước khi thành HTML email
+    '<pre style="font-family:inherit;font-size:15px;white-space:pre-wrap">' || html_esc(v_msg) || '</pre>'
   );
 end;
 $$;

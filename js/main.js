@@ -4,10 +4,8 @@ const SUPABASE_URL = 'https://oijcwborkebjpavzyisl.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_vDRAF-LBS3nOpw1GHBchvw_xYuMfdqP'
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
-// Escape để chèn an toàn vào HTML (text hoặc thuộc tính bọc dấu ")
-// esc(), normalizePhone(), isValidPhone(), PHONE_OK → js/dungchung.js (dùng chung với admin)
-// Chuỗi an toàn để nhúng vào onclick="fn('...')" — escape lớp JS rồi lớp HTML
-const jsAttr = s => esc(String(s ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"))
+// esc(), jsAttr() (chuỗi trong onclick="fn('…')"), linkAnToan(), normalizePhone(), isValidPhone()
+// → js/dungchung.js (dùng chung với admin)
 
 // Giá hiển thị đẹp: "550000" / "550,000 đ" → "550.000đ"; giá dạng chữ ("Liên hệ") giữ nguyên
 function fmtPrice(raw) {
@@ -87,7 +85,7 @@ function productCardHTML(p) {
   _prodCache[p.id] = { image: p.image, price: p.price };   // cho header form đặt hoa
   const s = catStyle(p.category);
   const img = p.image
-    ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy">`
+    ? `<img ${srcNho(p.image, 600)} alt="${esc(p.name)}" loading="lazy">`
     : `<div class="product-img-ph" style="background:${s.bg}">${s.emoji}</div>`;
   const nameAttr = jsAttr(p.name);
   const cap = tachCaption(p.description);
@@ -196,7 +194,7 @@ async function loadBoSuuTap() {
     const n = bstMauIds(c.id).length;
     return `
 <a class="bst-card reveal" href="san-pham?bst=${encodeURIComponent(c.slug || '')}">
-  ${bia ? `<img src="${esc(bia)}" alt="${esc(c.name)}" loading="lazy">`
+  ${bia ? `<img ${srcNho(bia, 600)} alt="${esc(c.name)}" loading="lazy">`
         : `<div class="bst-ph">${em}</div>`}
   <span class="bst-veil"></span>
   <span class="bst-txt">
@@ -261,7 +259,7 @@ function veBstBanner(c) {
   const n = bstMauIds(c.id).length;
   el.innerHTML = `
 <div class="bst-banner">
-  ${c.cover_url ? `<img src="${esc(c.cover_url)}" alt="" loading="lazy">` : ''}
+  ${c.cover_url ? `<img ${srcNho(c.cover_url, 1000)} alt="" loading="lazy">` : ''}
   <div>
     <h2>${esc(c.emoji || '🌸')} ${esc(c.name)}</h2>
     <p>${c.tagline ? esc(c.tagline) + ' · ' : ''}${n} mẫu</p>
@@ -453,7 +451,7 @@ function getImageRatio(url) {
       resolve(r);
     };
     im.onerror = () => resolve(1.25);
-    im.src = url;
+    im.src = anhNho(url, 600);   // CÙNG link ảnh nhỏ lưới hiển thị → tải 1 lần, đo xong dùng lại luôn
   });
 }
 
@@ -505,7 +503,7 @@ async function renderGalleryPage() {
   ${items.map(({ ph, r, i }) => `
   <div class="gallery-item" style="--ar:1/${r.toFixed(4)};--g:${r.toFixed(4)};animation-delay:${(i * 0.04).toFixed(2)}s"
        data-url="${esc(ph.url)}" data-caption="${esc(ph.caption || '')}" onclick="openLightboxFromEl(this)">
-    <img src="${esc(ph.url)}" alt="${esc(ph.caption || 'Ảnh hoa ' + (start + i + 1))}" loading="lazy">
+    <img ${srcNho(ph.url, 600)} alt="${esc(ph.caption || 'Ảnh hoa ' + (start + i + 1))}" loading="lazy">
   </div>`).join('')}
 </div>`).join('');
 
@@ -836,7 +834,7 @@ async function loadContact() {
   let hasSocial = false;
 
   SOCIALS.forEach(s => {
-    const url = contactInfo[s.key];
+    const url = linkAnToan(contactInfo[s.key]);   // chặn link "javascript:…"
     if (!url) return;
     hasSocial = true;
     const icon = SOCIAL_ICONS[s.key] || '';
@@ -1019,7 +1017,7 @@ function openOrderModal(productId, productName, imgOverride) {
   document.getElementById('orderModalBody').innerHTML = `
 <form id="orderForm" class="omx" onsubmit="submitOrder(event)">
   <div class="omx-sp">
-    ${img ? `<img src="${esc(img)}" alt="${esc(productName)}">` : `<div class="om-ph">${ic('flower')}</div>`}
+    ${img ? `<img ${srcNho(img, 240)} alt="${esc(productName)}">` : `<div class="om-ph">${ic('flower')}</div>`}
     <div class="omx-sp-t">
       <div class="om-name">${esc(productName)}</div>
       ${price ? `<div class="om-price">${esc(price)}</div>` : ''}
@@ -1277,7 +1275,10 @@ async function submitOrder(event) {
   if (error) {
     btn.disabled = false;
     btn.textContent = 'Gửi đơn';
-    showMiniToast('Có lỗi xảy ra, vui lòng thử lại hoặc nhắn Zalo.');
+    // QUA_NHIEU_DON = database chống spam (supabase/15: 1 SĐT tối đa 3 đơn / 10 phút)
+    showMiniToast(/QUA_NHIEU_DON/.test(error.message || '')
+      ? 'Shop đã nhận mấy đơn liền từ số này rồi — bạn nhắn Zalo để shop hỗ trợ nhanh nhé.'
+      : 'Có lỗi xảy ra, vui lòng thử lại hoặc nhắn Zalo.');
     return;
   }
 
@@ -1294,7 +1295,7 @@ async function submitOrder(event) {
   </p>
   ${maMoi ? `<div class="os-ma">Mã đơn: <b>${maDon(maMoi)}</b></div>` : ''}
   <div class="os-nut">
-    <a href="${zalo}" target="_blank" class="btn btn-primary">${ic('chat')}Nhắn Zalo cho shop</a>
+    <a href="${esc(zalo)}" target="_blank" class="btn btn-primary">${ic('chat')}Nhắn Zalo cho shop</a>
     <a href="san-pham" class="btn btn-outline">Xem thêm mẫu hoa</a>
   </div>
 </div>`;
@@ -1361,18 +1362,18 @@ function buildDetailImage(imgs, name, s) {
     return `<div class="detail-img"><div class="detail-img-ph" style="background:${s.bg}">${s.emoji}</div></div>`;
   }
   if (imgs.length === 1) {
-    return `<div class="detail-img"><img src="${imgs[0]}" alt="${name}"></div>`;
+    return `<div class="detail-img"><img ${srcNho(imgs[0], 1000)} alt="${esc(name)}"></div>`;
   }
-  const slides = imgs.map(url => `<img src="${url}" alt="${name}">`).join('');
+  const slides = imgs.map(url => `<img ${srcNho(url, 1000)} alt="${esc(name)}">`).join('');
   const thumbs = imgs.map((url, i) =>
-    `<img src="${url}" class="carousel-thumb${i===0?' active':''}" onclick="_carGoTo(${i})" alt="${name} ${i+1}">`
+    `<img ${srcNho(url, 200)} class="carousel-thumb${i===0?' active':''}" onclick="_carGoTo(${i})" alt="${esc(name)} ${i+1}">`
   ).join('');
   return `
 <div class="detail-carousel">
   <div class="carousel-main">
-    <button class="carousel-arrow carousel-prev" onclick="_carMove(-1)">‹</button>
+    <button type="button" class="carousel-arrow carousel-prev" onclick="_carMove(-1)" aria-label="Ảnh trước">‹</button>
     <div class="carousel-track" id="carouselTrack">${slides}</div>
-    <button class="carousel-arrow carousel-next" onclick="_carMove(1)">›</button>
+    <button type="button" class="carousel-arrow carousel-next" onclick="_carMove(1)" aria-label="Ảnh sau">›</button>
   </div>
   <div class="carousel-thumbs">${thumbs}</div>
 </div>`;

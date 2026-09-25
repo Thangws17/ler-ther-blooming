@@ -11,7 +11,7 @@ function giaLapSb(w, bang) {
     let dl = (bang[ten] || []).slice(), dem = false, mot = false
     const q = {
       select(_, o) { if (o && o.head) dem = true; return q },
-      eq(c, v) { dl = dl.filter(r => r[c] === v); return q },
+      eq(c, v) { dl = dl.filter(r => r[c] === v || (r[c] != null && v != null && String(r[c]) === String(v))); return q },   // ?id=1 trên URL là chuỗi
       neq(c, v) { dl = dl.filter(r => r[c] !== v); return q },
       in(c, v) { dl = dl.filter(r => v.includes(r[c])); return q },
       gte(c, v) { dl = dl.filter(r => (r[c] ?? '') >= v); return q },

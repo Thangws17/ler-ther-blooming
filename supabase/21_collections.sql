@@ -122,6 +122,7 @@ begin
     execute format('alter table public.%I enable row level security', t);
     for pol in
       select policyname from pg_policies where schemaname = 'public' and tablename = t
+        and policyname not like 'chi quan tri%'   -- chừa lớp khoá của file 24
     loop
       execute format('drop policy if exists %I on public.%I', pol.policyname, t);
     end loop;

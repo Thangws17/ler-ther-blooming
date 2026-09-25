@@ -18,6 +18,14 @@ import sys
 from functools import partial
 from urllib.parse import urlsplit
 
+# Chạy ngầm / chuyển hướng ra file thì Windows in bằng bảng mã cũ → chữ Việt làm server
+# chết ngay khi khởi động (UnicodeEncodeError). Ép in UTF-8.
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+except Exception:
+    pass
+
 GOC = os.path.dirname(os.path.abspath(__file__))
 
 

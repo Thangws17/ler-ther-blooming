@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test bảo mật + dữ liệu dị — Ler &amp; Ther Blooming</title>
+<style>
+  body { margin: 0; padding: 24px; font: 14px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; background: #FAF8F5; color: #2B2B2B; }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; } .sub { color: #6B6B6B; margin: 0 0 20px; }
+  #tongket { padding: 12px 16px; border-radius: 10px; font-weight: 600; margin-bottom: 18px; white-space: pre-wrap; }
+  .ok-box { background: #E8F5E9; color: #1B5E20; border: 1px solid #A5D6A7; }
+  .fail-box { background: #FFEBEE; color: #B71C1C; border: 1px solid #EF9A9A; }
+  h2 { font-size: 15px; margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #E5DFD7; }
+  .ca { display: flex; gap: 8px; padding: 4px 0; align-items: baseline; }
+  .dau { flex: 0 0 18px; font-weight: 700; } .ok .dau { color: #2E7D32; } .fail .dau { color: #C62828; }
+  .fail { background: #FFF5F5; border-radius: 6px; padding-left: 6px; } .ten { flex: 1; }
+  .chitiet { display: block; color: #C62828; font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; white-space: pre-wrap; margin-top: 2px; }
+  iframe { border: 0; position: absolute; left: -9999px; top: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Test bảo mật + dữ liệu dị (web khách + admin)</h1>
+  <p class="sub">Nhồi <b>mã độc</b> vào MỌI ô chữ của database giả (tên khách, ghi chú, địa chỉ, tên mẫu, link ảnh…) rồi mở từng màn,
+    từng form: không đoạn mã nào được chạy, không thẻ lạ nào lọt vào trang. Khách lạ gõ được tên/ghi chú qua form đặt hoa —
+    đó là đường kẻ xấu hay dùng để tấn công trang admin. Thêm: dữ liệu <b>trống / siêu dài</b> không làm vỡ giao diện.
+    Chỉ dùng database giả (test/gia-lap-sb.js), không đụng dữ liệu thật.</p>
+  <div id="tongket">Đang chạy… (mất khoảng 30 giây)</div>
+  <div id="kq"></div>
+</div>
+<script src="gia-lap-sb.js"></script>
+<script>
+let soOk = 0, soFail = 0
+const boxKq = document.getElementById('kq')
+function nhom(t) { const h = document.createElement('h2'); h.textContent = t; boxKq.appendChild(h) }
+function test(ten, fn) {
+  const row = document.createElement('div'); row.className = 'ca'
+  row.innerHTML = '<span class="dau"></span><span class="ten"></span>'
+  const dau = row.querySelector('.dau'), t = row.querySelector('.ten'); t.textContent = ten
+  try { fn(); soOk++; row.classList.add('ok'); dau.textContent = '✓' }
+  catch (e) { soFail++; row.classList.add('fail'); dau.textContent = '✕'
+    const c = document.createElement('span'); c.className = 'chitiet'; c.textContent = e.message; t.appendChild(c) }
+  boxKq.appendChild(row)
+}
+function bang(thuc, mong, ghi = '') {
+  const a = JSON.stringify(thuc), b = JSON.stringify(mong)
+  if (a !== b) throw new Error((ghi ? ghi + '\n' : '') + 'mong đợi: ' + b + '\nnhận được: ' + a)
+}
+const cho = ms => new Promise(r => setTimeout(r, ms))
+
+// ── Mã độc. Mỗi mẫu mang 1 nhãn → biết ô nào bị lọt ──
+// Phá được HTML (thẻ <img onerror>), phá được thuộc tính (" '), phá được chuỗi JS trong onclick ('); … //)
+window.__xss = []
+const X = nhan => `${nhan}');top.__xss.push('${nhan}-js');//"'><img src=x onerror="top.__xss.push('${nhan}')"><b data-xss="${nhan}">b</b>`
+// Ô là LINK (ảnh, mạng xã hội): thêm javascript: và thoát thuộc tính
+const XU = nhan => `https://e.invalid/${nhan}.png');top.__xss.push('${nhan}-js');//"'><b data-xss="${nhan}">b</b>`
+const XJ = nhan => `javascript:top.__xss.push('${nhan}')`
+
+// Mọi dấu vết mã độc đang có trong 1 trang
+function dauVet(d) {
+  const ra = []
+  d.querySelectorAll('[data-xss]').forEach(el => ra.push('thẻ lạ lọt vào trang: ' + el.dataset.xss))
+  d.querySelectorAll('img[src="x"]').forEach(el => ra.push('ảnh lạ <img src=x> ' + (el.getAttribute('onerror') || '')))
+  d.querySelectorAll('a[href^="javascript:"], iframe[src^="javascript:"]').forEach(el =>
+    ra.push('link javascript: → ' + el.getAttribute('href') + ' (' + (el.textContent || '').trim().slice(0, 30) + ')'))
+  // Trình xử lý onclick… sau khi bỏ hết chuỗi trong nháy mà vẫn còn lệnh lạ = mã độc đã thoát khỏi chuỗi
+  d.querySelectorAll('*').forEach(el => {
+    for (const a of el.attributes) {
+      if (!/^on/i.test(a.name)) continue
+      const bo = a.value.replace(/'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|`(?:\\.|[^`\\])*`/g, '""')
+      if (/__xss/.test(bo)) ra.push(`${a.name} thoát khỏi chuỗi: <${el.tagName.toLowerCase()} ${a.name}="${a.value.slice(0, 120)}">`)
+    }
+  })
+  return [...new Set(ra)]
+}
+
+// ── Database giả "độc": mọi ô chữ đều là mã độc ──
+function duLieuDoc() {
+  const { bang: dl, ngay } = duLieuMau()
+  dl.orders.forEach((o, i) => {
+    Object.assign(o, {
+      customer_name: X('don' + o.id + '.ten'), product_name: X('don' + o.id + '.sp'),
+      delivery_address: X('don' + o.id + '.dc'), message_card: X('don' + o.id + '.thiep'),
+      customer_email: X('don' + o.id + '.mail'), image: i === 0 ? XU('don.anh') : o.image,
+      customer_phone: o.customer_phone ? X('don' + o.id + '.sdt') : null,
+      note: `Người nhận: ${X('don' + o.id + '.nn')} · ${X('don' + o.id + '.nnsdt')}\nGiờ giao: ${X('don' + o.id + '.gio')}\n${X('don' + o.id + '.gc')}`,
+    })
+    if (o.customers) o.customers = { name: X('don' + o.id + '.kh'), phone: X('don' + o.id + '.khsdt') }
+  })
+  dl.customers.forEach(c => Object.assign(c, { name: X('kh' + c.id + '.ten'), phone: X('kh' + c.id + '.sdt'), address: X('kh' + c.id + '.dc') }))
+  dl.products.forEach(p => Object.assign(p, { name: X('sp' + p.id + '.ten'), price: p.id === 1 ? '600,000đ' : X('sp' + p.id + '.gia'),
+    description: `“${X('sp' + p.id + '.bd')}”\n${X('sp' + p.id + '.tp')} · giấy\nMềm — ${X('sp' + p.id + '.ck')}\nPhù hợp tặng ${X('sp' + p.id + '.tang')}\nSize ${X('sp' + p.id + '.size')}`,
+    image: p.id === 2 ? XU('sp.anh') : p.image, category: X('sp' + p.id + '.dm') }))
+  dl.collections.forEach(c => Object.assign(c, { name: X('bst' + c.id + '.ten'), tagline: X('bst' + c.id + '.tl'), emoji: X('bst' + c.id + '.em'),
+    cover_url: c.id === 6 ? XU('bst.bia') : null }))
+  dl.gallery.forEach(g => Object.assign(g, { caption: X('anh' + g.id + '.cap'), url: g.id === 101 ? XU('anh.url') : g.url }))
+  // Tên nhóm ảnh = tên album: dùng làm khoá trong onclick → mẫu phá chuỗi JS
+  const NHOM = [X('nhom1'), X('nhom2')]
+  dl.gallery.forEach((g, i) => g.category = NHOM[i < 3 ? 0 : 1])
+  dl.gallery_categories.forEach((c, i) => Object.assign(c, { name: NHOM[i], emoji: X('nhom' + i + '.em') }))
+  dl.materials.forEach(m => m.name = X('nl' + m.id))
+  dl.expenses.forEach(e => Object.assign(e, { item: X('cp' + e.id + '.mh'), note: X('cp' + e.id + '.gc'), image: e.id === 1 ? XU('cp.anh') : '' }))
+  dl.testimonials.forEach(t => Object.assign(t, { name: X('dg.ten'), content: X('dg.nd'), context: X('dg.dip') }))
+  dl.changelog.forEach(c => Object.assign(c, { title: X('cl.td'), details: X('cl.ct'), note: X('cl.gc') }))
+  dl.contact[0] = Object.assign(dl.contact[0], {
+    phone: X('lh.sdt'), zalo: X('lh.zalo'), address: X('lh.dc'), hours: X('lh.gio'), email: X('lh.mail'),
+    facebook: XJ('lh.fb'), instagram: XJ('lh.ig'), tiktok: XJ('lh.tt'), hero_image: XU('lh.hero'),
+    banner_active: true, banner_text: X('lh.banner'), policy_delivery: X('lh.cs1'), policy_payment: X('lh.cs2'), policy_quality: X('lh.cs3'),
+    ga4_id: X('lh.ga'), clarity_id: X('lh.cl'),
+  })
+  return { dl, ngay }
+}
+
+// Phần tử "sâu nhất" đang thò ra ngoài khung → biết ngay chỗ cần sửa CSS
+function thuPham(khung) {
+  const phai = khung.getBoundingClientRect().right + 1
+  const ra = [...khung.querySelectorAll('*')].filter(el => el.getBoundingClientRect().right > phai && el.getBoundingClientRect().width)
+  return [...new Set(ra.filter(el => !ra.some(x => x !== el && el.contains(x))).map(el =>
+    el.tagName.toLowerCase() + (el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/).join('.') : '') +
+    ' ← ' + (el.parentElement.className || el.parentElement.tagName)))].slice(0, 6).join(' | ')
+}
+
+async function moKhung(duong, rong, cao) {
+  const f = document.createElement('iframe')
+  f.style.width = rong + 'px'; f.style.height = cao + 'px'; f.src = '../' + duong
+  document.body.appendChild(f)
+  await new Promise(res => f.addEventListener('load', res, { once: true }))
+  const w = f.contentWindow, d = f.contentDocument, loi = []
+  w.addEventListener('error', e => loi.push(e.message))
+  w.addEventListener('unhandledrejection', e => loi.push('Promise: ' + (e.reason && e.reason.message || e.reason)))
+  d.head.insertAdjacentHTML('beforeend', '<style>*,*::before,*::after{animation:none!important;transition:none!important}</style>')
+  return { f, w, d, loi, id: x => d.getElementById(x) }
+}
+
+;(async function main() {
+  // ════════════ PHẦN A. ADMIN — dữ liệu khách gõ vào là mã độc ════════════
+  for (const [rong, cao] of [[390, 780], [1280, 860]]) {
+    const A = await moKhung('admin/index.html', rong, cao)
+    await cho(1200)
+    const { w, d, loi, id } = A
+    const { dl } = duLieuDoc()
+    giaLapSb(w, dl)
+    try { w.localStorage.removeItem('lt_mayCuaShop') } catch {}
+    id('loginWrap').style.display = 'none'; id('appWrap').style.display = 'flex'
+    w.measureViewport && w.measureViewport()
+    const lot = new Set()
+    const quet = buoc => dauVet(d).forEach(x => lot.add(`[${buoc}] ${x}`))
+
+    nhom(`A. Admin ${rong}px — mở từng tab, từng form với dữ liệu độc`)
+    const TABS = ['Dashboard', 'Orders', 'Delivery', 'Customers', 'Expenses', 'Products', 'Collections', 'Gallery', 'Testimonials', 'Changelog', 'Contact']
+    for (const tab of TABS) { try { w.applyTab(tab) } catch (e) { loi.push(tab + ': ' + e.message) } await cho(300); quet(tab) }
+    w.cacheOrders(dl.orders)
+    const buoc = [
+      ...dl.orders.map(o => [`chi tiết đơn ${o.id}`, () => w.viewOrderDetail(o.id), () => w.closeCustomerOrdersModal()]),
+      ...dl.orders.slice(0, 3).map(o => [`sửa đơn ${o.id}`, () => w.openOrderEditModal(o.id), () => { id('orderEditModal') && (id('orderEditModal').dataset.dirty = ''); w.closeAllModals() }]),
+      ...dl.orders.slice(0, 2).map(o => [`đổi nhanh trạng thái ${o.id}`, () => w.openQuickStatus(o.id), () => w.closeAllModals()]),
+      ...dl.customers.map(c => [`thẻ khách ${c.id}`, () => w.viewCustomerOrders(c.id), () => w.closeCustomerOrdersModal()]),
+      ...dl.customers.map(c => [`sửa khách ${c.id}`, () => w.openCustomerModal(c.id), () => w.closeAllModals()]),
+      ['thêm đơn + gợi ý khách/mẫu', () => { w.openNewOrderModal()
+        const o = id('noName'); if (o) { o.value = 'k'; o.dispatchEvent(new w.Event('input')) }
+        const p = id('noProductName'); if (p) { p.value = 's'; p.dispatchEvent(new w.Event('input')); p.dispatchEvent(new w.Event('focus')) } },
+        () => { id('orderNewModal').dataset.dirty = ''; w.closeAllModals() }],
+      ...dl.products.map(p => [`sửa mẫu ${p.id}`, () => w.openModal(p.id), () => w.closeAllModals()]),
+      ['sửa BST 6', () => w.openBstModal(6), () => { id('bstModal').dataset.dirty = ''; w.closeAllModals() }],
+      ...dl.expenses.map(e => [`sửa chi phí ${e.id}`, () => w.openExpenseModal(e.id), () => w.closeAllModals()]),
+      ['nguyên liệu', () => w.openMaterialsModal(), () => w.closeAllModals()],
+      ['sửa đánh giá', () => w.openTestimonialModal(1), () => w.closeAllModals()],
+      ['sửa cập nhật', () => w.openChangelogModal(1), () => w.closeAllModals()],
+      ['album 1', () => { w.applyTab('Gallery'); d.querySelectorAll('#kkAlbums .kk-alb')[1]?.click() }, () => {}],
+      ['xem ảnh khoảnh khắc', () => w.openGalItem(101), () => w.closeAllModals()],
+      ['chi tiết số liệu tháng', () => w.openStatDetail('rev'), () => w.closeAllModals()],
+    ]
+    for (const [ten, mo, dong] of buoc) {
+      const truoc = loi.length
+      try { await mo() } catch (e) { loi.push(ten + ': ' + e.message) }
+      await cho(120); quet(ten)
+      try { await dong() } catch (e) {}
+      if (loi.length > truoc) loi.splice(truoc, loi.length - truoc, ...loi.slice(truoc).map(x => ten + ' → ' + x))
+    }
+    await cho(300)
+    test('Không đoạn mã độc nào CHẠY được', () => bang([...new Set(w.top.__xss)], []))
+    test('Không thẻ lạ / link javascript: / onclick bị phá chuỗi nào lọt vào trang', () => bang([...lot].slice(0, 25), []))
+    test('Không lỗi JS khi dữ liệu toàn ký tự lạ', () => bang(loi, []))
+    window.__xss = []; w.top.__xss = window.__xss
+    A.f.remove()
+  }
+
+  // ════════════ PHẦN B. ADMIN — dữ liệu trống / siêu dài ════════════
+  {
+    const A = await moKhung('admin/index.html', 390, 780)
+    await cho(1200)
+    const { w, d, loi, id } = A
+    const { bang: dl, ngay } = duLieuMau()
+    const DAI = 'Nguyễn' + 'A'.repeat(220)                    // tên dán nhầm, không có dấu cách
+    Object.assign(dl.orders[0], { customer_name: DAI, product_name: 'Mẫu'.repeat(80), delivery_address: 'X'.repeat(300),
+      note: 'Người nhận: ' + DAI + '\nGiờ giao: 15h\n' + 'ghi'.repeat(200), message_card: 'thiệp'.repeat(120) })
+    // Đơn thiếu gần hết thông tin (khách đặt không SĐT, chưa định giá, chưa hẹn ngày)
+    dl.orders.push({ id: 153, customer_name: null, customers: null, customer_phone: null, customer_id: null, product_name: null,
+      product_id: null, quantity: null, unit_price: null, shipping_fee: null, total: null, delivery_address: null, status: 'Mới',
+      image: null, delivery_date: null, note: null, message_card: null, created_at: new Date().toISOString() })
+    dl.customers.push({ id: 901, name: null, phone: '0901000111', address: null, created_at: ngay(-1) },
+                      { id: 902, name: DAI, phone: null, address: 'Y'.repeat(300), created_at: ngay(-1) })
+    dl.products.push({ id: 5, name: 'Z'.repeat(200), price: null, image: null, order_index: 5, featured: false, category: null, description: null })
+    giaLapSb(w, dl)
+    id('loginWrap').style.display = 'none'; id('appWrap').style.display = 'flex'
+    w.measureViewport && w.measureViewport()
+    nhom('B. Admin 390px — dữ liệu trống / chữ siêu dài không làm vỡ màn hình')
+    for (const tab of ['Dashboard', 'Orders', 'Delivery', 'Customers', 'Products']) {
+      const truoc = loi.length
+      try { w.applyTab(tab) } catch (e) { loi.push(tab + ': ' + e.message) }
+      await cho(300)
+      test(`[${tab}] không lỗi JS`, () => bang(loi.slice(truoc), []))
+      test(`[${tab}] không tràn ngang`, () => {
+        const c = d.querySelector('.content'); const thua = c.scrollWidth - c.clientWidth
+        if (thua > 1) throw new Error('tràn ' + thua + 'px — ' + thuPham(c))
+      })
+    }
+    w.cacheOrders(dl.orders)
+    const tranModal = () => {
+      const m = [...d.querySelectorAll('.modal-overlay, .modal')].find(x => x.style.display === 'flex' || getComputedStyle(x).display === 'flex')
+      const hop = m && (m.querySelector('.modal-box, .modal-content, .modal-body') || m)
+      if (!hop) return 'không thấy modal'
+      const thua = hop.scrollWidth - hop.clientWidth
+      return thua > 1 ? 'tràn ' + thua + 'px — ' + thuPham(hop) : ''
+    }
+    for (const [ten, mo] of [['chi tiết đơn chữ siêu dài', () => w.viewOrderDetail(dl.orders[0].id)],
+                             ['chi tiết đơn thiếu hết thông tin', () => w.viewOrderDetail(153)],
+                             ['thẻ khách không tên', () => w.viewCustomerOrders(901)],
+                             ['thẻ khách tên siêu dài, không SĐT', () => w.viewCustomerOrders(902)],
+                             ['sửa đơn thiếu hết thông tin', () => w.openOrderEditModal(153)]]) {
+      const truoc = loi.length
+      try { await mo() } catch (e) { loi.push(e.message) }
+      await cho(150)
+      test(`[${ten}] mở được, không lỗi JS`, () => bang(loi.slice(truoc), []))
+      test(`[${ten}] khung không tràn ngang`, () => bang(tranModal(), ''))
+      try { const m = id('orderEditModal'); if (m) m.dataset.dirty = ''; w.closeAllModals(); w.closeCustomerOrdersModal() } catch {}
+    }
+    test('Đơn thiếu thông tin vẫn hiện trong danh sách (không bị nuốt mất)', () => {
+      w.applyTab('Orders')
+      if (!/0153/.test(id('ordersTable').textContent)) throw new Error('không thấy #LT-0153')
+    })
+    A.f.remove()
+  }
+
+  // ════════════ PHẦN B2. ADMIN — lưu thất bại phải BÁO THẬT ════════════
+  {
+    const A = await moKhung('admin/index.html', 390, 780)
+    await cho(1200)
+    const { w, d, id } = A
+    const { bang: dl } = duLieuMau()
+    giaLapSb(w, dl)
+    id('loginWrap').style.display = 'none'; id('appWrap').style.display = 'flex'
+    w.askConfirm = async () => true                        // bấm "Xoá" trong hộp xác nhận
+    const sbGia = w.eval('sb'), fromGoc = sbGia.from
+    // Kiểu hỏng: 'loi' = mất mạng / database từ chối; 'rong' = hết phiên đăng nhập (không lỗi, 0 dòng đổi)
+    const hong = kieu => sbGia.from = ten => {
+      const q = fromGoc(ten), thenGoc = q.then
+      q.then = (res, rej) => thenGoc.call(q, kq => res(kieu === 'loi' ? { data: null, error: { message: 'Failed to fetch' } } : { ...kq, data: [] }), rej)
+      return q
+    }
+    const toast = () => ({ chu: id('toast').textContent, loai: id('toast').className })
+    nhom('B2. Admin — lưu thất bại phải báo thật, không báo "Đã xoá" suông')
+    hong('loi'); await w.deleteExpense(1); await cho(30)
+    test('Xoá chi phí khi mất mạng → báo lỗi đỏ (không "Đã xóa")', () => {
+      const t = toast(); if (!/Chưa xoá được/.test(t.chu) || !/error/.test(t.loai)) throw new Error(JSON.stringify(t))
+    })
+    hong('rong'); await w.deleteOrder(152); await cho(30)
+    test('Xoá đơn khi hết phiên đăng nhập (0 dòng bị xoá) → nhắc tải lại trang', () => {
+      const t = toast(); if (!/phiên đăng nhập/.test(t.chu) || !/error/.test(t.loai)) throw new Error(JSON.stringify(t))
+    })
+    // Tạo đơn: RPC tạo được nhưng bước lưu giá/ship lỗi → phải nói rõ
+    sbGia.from = fromGoc
+    w.openNewOrderModal(); await cho(80)
+    id('noName').value = 'Khách thử'; id('noProductName').value = 'Hồng'
+    hong('loi')
+    await w.saveNewOrder({ preventDefault() {} }); await cho(50)
+    test('Tạo đơn: bước lưu giá lỗi → báo "CHƯA lưu được giá", không báo xong suông', () => {
+      const t = toast(); if (!/CHƯA lưu được giá/.test(t.chu)) throw new Error(JSON.stringify(t))
+    })
+    sbGia.from = fromGoc
+    // Tài khoản đăng nhập được nhưng KHÔNG có trong bảng quan_tri → cảnh báo đỏ ngay đầu trang
+    const rpcGoc = sbGia.rpc
+    for (const [kq, hien, ten] of [[false, true, 'không phải quản trị → hiện cảnh báo'], [true, false, 'đúng quản trị → không cảnh báo'],
+                                   [{ loi: 1 }, false, 'chưa chạy SQL 24 / lỗi mạng → im lặng']]) {
+      sbGia.rpc = () => Promise.resolve(kq.loi ? { data: null, error: { message: 'x' } } : { data: kq, error: null })
+      await w.kiemQuyenQuanTri()
+      test('Kiểm quyền sau đăng nhập: ' + ten, () => bang(id('canhBaoQuyen').style.display !== 'none', hien))
+    }
+    sbGia.rpc = rpcGoc
+    test('showApp() có gọi kiểm quyền', () => { if (!/kiemQuyenQuanTri\(\)/.test(w.showApp.toString())) throw new Error('thiếu') })
+    A.f.remove()
+  }
+
+  // ════════════ PHẦN C. WEB KHÁCH — dữ liệu admin là mã độc ════════════
+  const TRANG = ['', 'san-pham', 'khoanh-khac', 'lien-he', 'chinh-sach', 'chi-tiet?id=1', 'chi-tiet?id=2']
+  for (const rong of [390, 1280]) {
+    nhom(`C. Web khách ${rong}px — nội dung độc`)
+    for (const duong of TRANG) {
+      const T = await moKhung(duong, rong, 800)
+      const { w, d, loi } = T
+      await cho(1500)
+      const { dl } = duLieuDoc()
+      giaLapSb(w, dl)
+      try { w.sessionStorage.removeItem('banner_dismissed') } catch {}
+      w.eval('_bstReady = null')
+      const truoc = loi.length
+      try {
+        await w.loadContact(); await Promise.all(['loadHeroPriceHint', 'loadBoSuuTap', 'loadFeatured', 'loadProducts', 'loadGallery', 'loadTestimonials', 'loadProductDetail']
+          .map(f => w[f] && w[f]()))
+        w.loadBanner && w.loadBanner()
+      } catch (e) { loi.push('nạp lại: ' + e.message) }
+      await cho(400)
+      const lot = new Set(dauVet(d).map(x => '[trang] ' + x))
+      // Form đặt hoa hiện tên mẫu + giá
+      if (d.getElementById('orderModalBody')) {
+        try { w.openOrderModal(2, dl.products[1].name); await cho(200) } catch (e) { loi.push('form đặt: ' + e.message) }
+      }
+      dauVet(d).forEach(x => lot.add('[form đặt] ' + x))
+      // Bấm xem ảnh (lightbox) nếu có
+      const anh = d.querySelector('.gallery-item, [data-lb], .gal-item')
+      if (anh) { try { anh.click(); await cho(150) } catch (e) {} dauVet(d).forEach(x => lot.add('[xem ảnh] ' + x)) }
+      const ten = duong || 'trang chủ'
+      test(`[${ten}] không mã độc nào chạy`, () => bang([...new Set(w.top.__xss)], []))
+      test(`[${ten}] không thẻ lạ / link javascript: lọt vào trang`, () => bang([...lot].slice(0, 20), []))
+      test(`[${ten}] không lỗi JS`, () => bang(loi.slice(truoc), []))
+      window.__xss = []
+      T.f.remove()
+    }
+  }
+
+  // ════════════ PHẦN D. Hàm chống mã độc dùng chung ════════════
+  nhom('D. Hàm esc / jsAttr / linkAnToan + chống spam đơn')
+  const W = await moKhung('san-pham', 390, 600); await cho(1500)
+  {
+    // Database chặn spam (place_order báo QUA_NHIEU_DON) → khách thấy lời nhắn Zalo, nút Gửi bấm lại được
+    const nhatKy = giaLapSb(W.w, {})
+    W.w.eval('sb').rpc = (ten, thamSo) => { nhatKy.push({ ten, thamSo }); return Promise.resolve({ data: null, error: { message: 'QUA_NHIEU_DON: số này vừa đặt nhiều đơn liền' } }) }
+    const nut = W.d.querySelector('#productsGrid .product-btn')
+    if (nut) {
+      nut.click(); await cho(150)
+      W.id('orderName').value = 'Test'; W.id('orderPhone').value = '0912345678'; W.id('orderAddress').value = 'Q.1'
+      W.id('orderSubmitBtn').click(); await cho(250)
+      test('Bị chống spam → báo "nhắn Zalo", không báo lỗi chung chung', () => {
+        bang(nhatKy.length, 1)
+        if (!/nhắn Zalo để shop hỗ trợ/.test(W.id('miniToast')?.textContent || '')) throw new Error(W.id('miniToast')?.textContent)
+      })
+      test('Bị chống spam → form còn nguyên, nút Gửi bấm lại được', () => {
+        bang(W.id('orderSubmitBtn').disabled, false); bang(W.id('orderName').value, 'Test')
+      })
+    } else test('Có nút đặt trên thẻ mẫu hoa (dữ liệu thật)', () => { throw new Error('không thấy .product-btn') })
+  }
+  {
+    // Thư viện Supabase từ CDN: KHOÁ phiên bản + vân tay (integrity). "@2" trần = CDN đổi file lúc nào
+    // cũng chạy luôn trên trang admin có mật khẩu. Nâng phiên bản: đổi CẢ 8 trang + tính lại sha384.
+    const TRANG_JS = ['index', 'san-pham', 'chi-tiet', 'khoanh-khac', 'lien-he', 'cau-chuyen', 'chinh-sach', 'admin/index']
+    const the = {}
+    for (const t of TRANG_JS) {
+      const html = await (await fetch('../' + t + '.html')).text()
+      the[t] = (html.match(/<script[^>]*supabase-js[^>]*>/g) || []).map(s => s.replace(/\s+defer/, ''))
+    }
+    test('Thư viện Supabase: mọi trang khoá phiên bản + có integrity + crossorigin', () => bang(
+      Object.entries(the).filter(([, s]) => s.length !== 1 || !/supabase-js@\d+\.\d+\.\d+\//.test(s[0]) || !/integrity="sha384-/.test(s[0]) || !/crossorigin="anonymous"/.test(s[0])).map(([t]) => t), []))
+    test('Thư viện Supabase: 8 trang dùng CÙNG một bản', () => bang(new Set(Object.values(the).map(s => s[0])).size, 1))
+    test('Thư viện Supabase đã nạp được thật (integrity khớp — sai là web trắng dữ liệu)', () => bang(typeof W.w.supabase?.createClient, 'function'))
+  }
+  test(`Ảnh thu nhỏ đang ${W.w.eval('ANH_NHO_BAT') ? 'BẬT (gói Pro)' : 'TẮT (gói Free)'} → srcNho ra đúng link`, () => {
+    const html = W.w.eval('srcNho')('https://x.supabase.co/storage/v1/object/public/images/a.webp', 300)
+    bang(html.includes('/render/image/'), W.w.eval('ANH_NHO_BAT'))
+  })
+  test('anhNho (khi bật): link Supabase → bản thu nhỏ, link khác giữ nguyên; lỗi thì quay về ảnh gốc', () => {
+    const f = W.w.eval('anhNho'), goc = 'https://x.supabase.co/storage/v1/object/public/images/a.webp'
+    bang(f(goc, 600, true), 'https://x.supabase.co/storage/v1/render/image/public/images/a.webp?width=600&resize=contain&quality=72')
+    bang(f('https://example.com/a.jpg', 600, true), 'https://example.com/a.jpg')
+    bang(f(goc, 600, false), goc)
+    const el = W.d.createElement('div')
+    el.innerHTML = `<img src="${f(goc, 300, true)}" data-goc="${goc}">`
+    const img = el.firstChild; W.w.anhLoi(img)
+    bang(img.getAttribute('src'), goc)
+  })
+  test('linkAnToan: https giữ nguyên, thiếu https:// tự thêm, javascript:/chữ lạ bị bỏ', () => {
+    const f = W.w.eval('linkAnToan')
+    bang(['https://facebook.com/ler', 'facebook.com/ler', 'javascript:alert(1)', ' JavaScript:x', 'data:text/html,x', 'hello', '', null]
+      .map(f), ['https://facebook.com/ler', 'https://facebook.com/ler', '', '', '', '', '', ''])
+  })
+  test('esc() đổi đủ 5 ký tự nguy hiểm & < > " \'', () => bang(W.w.eval('esc')(`&<>"'`), '&amp;&lt;&gt;&quot;&#39;'))
+  test('esc(null / undefined) = chuỗi rỗng, không ra chữ "null"', () => bang([W.w.eval('esc')(null), W.w.eval('esc')(undefined)], ['', '']))
+  test('jsAttr() giữ chuỗi an toàn khi nằm trong onclick="f(\'…\')"', () => {
+    const el = W.d.createElement('div'); let nhan = null
+    W.w.__nhan = v => nhan = v
+    el.innerHTML = `<button onclick="__nhan('${W.w.eval('jsAttr')(`a'b\\c"d</x>`)}')">x</button>`
+    el.querySelector('button').click()
+    bang(nhan, `a'b\\c"d</x>`)
+  })
+  W.f.remove()
+
+  const tk = document.getElementById('tongket')
+  tk.className = soFail ? 'fail-box' : 'ok-box'
+  tk.textContent = soFail ? '✕ ' + soFail + ' ca FAIL / ' + (soOk + soFail) + ' ca' : '✓ Tất cả ' + soOk + ' ca đều PASS'
+})().catch(e => {
+  const tk = document.getElementById('tongket'); tk.className = 'fail-box'; tk.textContent = '✕ Lỗi khi chạy test: ' + e.message + '\n' + (e.stack || '')
+})
+</script>
+</body>
+</html>

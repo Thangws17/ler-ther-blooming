@@ -10,12 +10,54 @@
 //  không build" của dự án.
 //
 //  Chỉ để những hàm CẢ HAI BÊN đều cần. Hàm riêng của một bên thì để
-//  nguyên bên đó (ví dụ jsAttr chỉ web khách dùng, compressImage chỉ
-//  admin dùng).
+//  nguyên bên đó (ví dụ compressImage chỉ admin dùng).
 // ══════════════════════════════════════════════════════════════════
 
 // Chặn HTML lạ trong dữ liệu người dùng nhập trước khi nhét vào trang
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))
+}
+
+// Chuỗi nằm TRONG onclick="fn('…')" thì esc() chưa đủ: trình duyệt đổi &#39; ngược lại
+// thành dấu ' TRƯỚC khi chạy lệnh → chuỗi bị cắt, phần sau thành lệnh lạ (test-bao-mat bắt).
+// jsAttr: thoát lớp JS (dấu \ và ') rồi mới thoát lớp HTML.
+function jsAttr(s) {
+  return esc(String(s ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"))
+}
+
+// Link do shop nhập (Facebook, TikTok…): chỉ nhận http/https. Gõ thiếu "https://"
+// ("facebook.com/ler") thì tự thêm; còn "javascript:…" hay chữ lạ → bỏ (trả '').
+function linkAnToan(url) {
+  const s = String(url ?? '').trim()
+  if (!s) return ''
+  if (/^https?:\/\//i.test(s)) return s
+  if (/^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(s)) return 'https://' + s
+  return ''
+}
+
+// ── Ảnh NHỎ cho thẻ / lưới / ô xem trước (25/09/2026) ──
+// Ảnh gốc lưu ~1600px (TB 230KB) nhưng thẻ mẫu hoa trên điện thoại chỉ rộng ~180px.
+// Supabase tự thu nhỏ khi đổi /object/public/ → /render/image/public/ (gói Pro; 100 ảnh
+// gốc/tháng miễn phí, sau đó 5$/1000). Ảnh 495KB → ~40KB. Lỗi (hết hạn mức, đổi gói…)
+// thì onerror tự quay về ảnh gốc — web không bao giờ mất ảnh.
+// ĐANG TẮT (25/09/2026): shop dùng gói FREE — tính năng này chỉ dành cho gói Pro, dùng trên gói
+// Free có thể bị Supabase hạn chế cả dự án. Lên gói Pro thì đổi thành true là chạy (test đã sẵn).
+const ANH_NHO_BAT = false
+function anhNho(url, rong, bat = ANH_NHO_BAT) {
+  const s = String(url ?? '')
+  if (!bat || !rong || !s.includes('/storage/v1/object/public/')) return s
+  return s.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') +
+    (s.includes('?') ? '&' : '?') + 'width=' + rong + '&resize=contain&quality=72'
+}
+// Chèn vào <img …>: `<img ${srcNho(p.image, 600)} alt="…">` (đã esc sẵn)
+function srcNho(url, rong) {
+  const goc = String(url ?? ''), nho = anhNho(goc, rong)
+  return nho === goc ? `src="${esc(goc)}"` : `src="${esc(nho)}" data-goc="${esc(goc)}" onerror="anhLoi(this)"`
+}
+function anhLoi(img) {
+  const goc = img.dataset.goc
+  if (goc && img.getAttribute('src') !== goc) { img.removeAttribute('data-goc'); img.src = goc }
+}
 
 // Đưa SĐT về MỘT dạng chuẩn (0…) trước khi lưu.
 // Thiếu bước này thì "0912 345 678" và "+84912345678" thành 2 khách khác

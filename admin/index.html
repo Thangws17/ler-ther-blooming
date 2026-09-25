@@ -778,6 +778,9 @@
     }
 
     /* ── Toast ────────────────────────────────── */
+    .canh-bao-quyen { background: #FFEBEE; color: #B71C1C; border: 1px solid #EF9A9A; border-radius: 12px;
+                      padding: 12px 14px; margin-bottom: 14px; font-size: .88rem; line-height: 1.5; }
+    .canh-bao-quyen code { background: #fff; padding: 0 4px; border-radius: 4px; }
     .toast {
       position: fixed; bottom: 28px; right: 28px; z-index: 9999;
       padding: 13px 22px; border-radius: 10px; font-weight: 600; font-size: .92rem;
@@ -1352,6 +1355,10 @@
     .dv-bo { font-weight: 500; color: #5d6b5c; }
     .dv-dc { font-size: .82rem; color: #5d6b5c; display: flex; gap: 4px; align-items: flex-start; }
     .dv-thiep { font-size: .76rem; color: #E65100; display: flex; gap: 4px; align-items: center; font-weight: 600; }
+    /* Chữ dài liền không dấu cách (khách dán nhầm link, tên dính liền) → xuống dòng
+       thay vì đẩy tràn cả khung sang ngang (test-bao-mat kiểm) */
+    .dv-b, .modal-header h2, .kh-dc span, .kh-the, #customerOrdersBody { overflow-wrap: anywhere; }
+    .modal-header h2, .kh-dc span { min-width: 0; }
 
     /* Sổ chi phí: tỷ trọng */
     .ex-tong { margin-left: auto; font-weight: 700; font-size: 1.1rem; color: #C62828; }
@@ -1754,6 +1761,11 @@
   </div>
 
   <main class="content">
+    <div id="canhBaoQuyen" class="canh-bao-quyen" role="alert" style="display:none">
+      <b>Tài khoản này chưa có trong danh sách quản trị.</b>
+      Database sẽ không cho xem đơn / khách hay lưu thay đổi. Nhờ người làm web thêm email này vào bảng
+      <code>quan_tri</code> (hướng dẫn ở đầu file <code>supabase/24_chi_quan_tri.sql</code>).
+    </div>
 
 
     <!-- Tổng quan -->
@@ -2898,7 +2910,7 @@
 <!-- ── Toast ──────────────────────────────────────── -->
 <div id="toast" class="toast" style="display:none"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js" integrity="sha384-K1nraABOP/zFehpLIUksXebbs7jMpB8gYMlb+uhVKZcWT/9Vkq1+qhv6ndC+1Yuz" crossorigin="anonymous"></script>
 <script src="../js/dungchung.js"></script>
 <script src="xlsx.js"></script>
 <script>
@@ -2958,6 +2970,7 @@ function showApp() {
   document.getElementById('appWrap').style.display = 'flex'
   loadProducts()   // nạp sẵn để modal Sửa đơn gợi ý giá niêm yết
   refreshNewOrderBadge()
+  kiemQuyenQuanTri()
   // F5 mở lại đúng tab đang xem (tab lưu trong URL dạng #Expenses)
   const saved = location.hash.slice(1)
   const startTab = (saved && document.querySelector(`.nav-item[data-tab="${saved}"]`)) ? saved : 'Dashboard'
@@ -2966,6 +2979,16 @@ function showApp() {
   history.replaceState({ adminTab: 'Dashboard' }, '', '#Dashboard')
   if (startTab !== 'Dashboard') history.pushState({ adminTab: startTab }, '', '#' + startTab)
   applyTab(startTab)
+}
+
+// Đăng nhập được chưa chắc là QUẢN TRỊ: database chỉ mở dữ liệu cho tài khoản trong bảng quan_tri
+// (supabase/24). Không có tên → mọi danh sách trống trơn, mọi lần lưu bị từ chối — báo rõ ngay từ đầu
+// thay vì để shop tưởng mất dữ liệu. Hàm chưa có (chưa chạy SQL 24) hay lỗi mạng → im lặng.
+async function kiemQuyenQuanTri() {
+  try {
+    const { data, error } = await sb.rpc('la_quan_tri')
+    document.getElementById('canhBaoQuyen').style.display = !error && data === false ? '' : 'none'
+  } catch {}
 }
 
 // ── Tabs ─────────────────────────────────────────
@@ -3620,7 +3643,7 @@ async function saveChangelogNote(id, value) {
 
 async function deleteChangelog(id) {
   if (!(await askConfirm({ title: 'Xóa bản cập nhật?', message: 'Bản ghi này sẽ bị xóa khỏi nhật ký.', okLabel: 'Xóa' }))) return
-  await sb.from('changelog').delete().eq('id', id)
+  if (!(await ghiDb(sb.from('changelog').delete().eq('id', id).select('id'), 'xoá'))) return
   showToast('Đã xóa')
   loadChangelog()
 }
@@ -4030,7 +4053,7 @@ function renderExpenses(revenueActual, revenueProjected) {
 <thead><tr><th></th><th>Ngày</th><th>Loại</th><th>Mặt hàng</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th><th>Ghi chú</th><th></th></tr></thead>
 <tbody>${expShown.map(e => `
 <tr>
-  <td><div class="thumb">${e.image ? `<img src="${esc(e.image)}" alt="" loading="lazy" style="cursor:pointer" onclick="openImageViewer('${esc(e.image)}')">` : ic('receipt')}</div></td>
+  <td><div class="thumb">${e.image ? `<img ${srcNho(e.image, 200)} alt="" loading="lazy" style="cursor:pointer" onclick="openImageViewer('${jsAttr(e.image)}')">` : ic('receipt')}</div></td>
   <td>${e.expense_date.split('-').reverse().join('/')}</td>
   <td><span class="cat-badge">${esc(e.category)}</span></td>
   <td>${esc(e.item || '—')}</td>
@@ -4046,7 +4069,7 @@ function renderExpenses(revenueActual, revenueProjected) {
 </div>
 <div class="cards-mobile">${expShown.map(e => `
   <div class="m-card exp-card">
-    <div class="thumb">${e.image ? `<img src="${esc(e.image)}" alt="" loading="lazy" onclick="openImageViewer('${esc(e.image)}')">` : ic('receipt')}</div>
+    <div class="thumb">${e.image ? `<img ${srcNho(e.image, 200)} alt="" loading="lazy" onclick="openImageViewer('${jsAttr(e.image)}')">` : ic('receipt')}</div>
     <div class="exp-info">
       <div class="mc-row">
         <span class="mc-title">${esc(e.item || '—')}</span>
@@ -4120,7 +4143,7 @@ function setExpenseImagePreview(url) {
   document.getElementById('exImage').value = url || ''
   document.getElementById('exImagePreview').innerHTML = url
     ? `<div style="position:relative;display:inline-block;">
-         <img src="${esc(url)}" alt="" style="width:120px;height:120px;object-fit:cover;border-radius:10px;display:block;">
+         <img ${srcNho(url, 300)} alt="" style="width:120px;height:120px;object-fit:cover;border-radius:10px;display:block;">
          <button type="button" class="btn-delete-sm" style="position:absolute;top:6px;right:6px;" title="Bỏ ảnh"
            onclick="setExpenseImagePreview('')">✕</button>
        </div>`
@@ -4210,7 +4233,7 @@ async function saveExpense(e) {
 
 async function deleteExpense(id) {
   if (!(await askConfirm({ title: 'Xóa dòng chi phí?', message: 'Số tiền này sẽ không còn được tính vào tổng chi tháng.', okLabel: 'Xóa' }))) return
-  await sb.from('expenses').delete().eq('id', id)
+  if (!(await ghiDb(sb.from('expenses').delete().eq('id', id).select('id'), 'xoá'))) return
   showToast('Đã xóa chi phí')
   loadExpenses()
 }
@@ -4291,7 +4314,7 @@ function spVeTrangChu(hien) {
   const o = Array.from({ length: SP_TRANG_CHU }, (_, i) => {
     const p = nb[i]
     if (!p) return '<span>trống</span>'
-    return `<button type="button" onclick="openModal(${p.id})" title="${esc(p.name)}" aria-label="Ô ${i + 1}: ${esc(p.name)}">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : ic('flower')}<b>${i + 1}</b></button>`
+    return `<button type="button" onclick="openModal(${p.id})" title="${esc(p.name)}" aria-label="Ô ${i + 1}: ${esc(p.name)}">${p.image ? `<img ${srcNho(p.image, 200)} alt="" loading="lazy">` : ic('flower')}<b>${i + 1}</b></button>`
   }).join('')
   const thua = nb.slice(SP_TRANG_CHU)
   el.innerHTML = `<div class="sp-tc">
@@ -4330,7 +4353,7 @@ function renderProducts() {
     return
   }
   const { shown: prodShown, more: prodMore } = limitList('products', list)
-  const anh = p => `<div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : ic('flower')}</div>`
+  const anh = p => `<div class="thumb">${p.image ? `<img ${srcNho(p.image, 200)} alt="" loading="lazy">` : ic('flower')}</div>`
   el.innerHTML = `
 <div class="table-desktop">
 <table class="data-table">
@@ -4403,7 +4426,7 @@ function spVeXep(el) {
 <div class="sp-xep">${products.map((p, i) => `
   <div class="sp-xep-hang">
     <span class="sp-xep-so">${i + 1}</span>
-    <div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : ic('flower')}</div>
+    <div class="thumb">${p.image ? `<img ${srcNho(p.image, 200)} alt="" loading="lazy">` : ic('flower')}</div>
     <div class="sp-ten">${esc(p.name)}</div>
     <div class="sp-xep-nut">
       <button type="button" onclick="spLenDau(${i})" ${i ? '' : 'disabled'} aria-label="Đưa lên đầu">Lên đầu</button>
@@ -4467,7 +4490,7 @@ function renderProductImagesGrid() {
   }
   grid.innerHTML = newImages.map((url, i) => `
 <div style="position:relative;flex-shrink:0;">
-  <img src="${url}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:${i===0?'2.5px solid #2E7D32':'1.5px solid #ddd'};">
+  <img ${srcNho(url, 200)} style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:${i===0?'2.5px solid #2E7D32':'1.5px solid #ddd'};">
   ${i===0?'<span style="position:absolute;bottom:2px;left:2px;background:#2E7D32;color:#fff;font-size:.55rem;padding:1px 5px;border-radius:3px;font-weight:600;">Chính</span>':''}
   <button type="button" onclick="removeProductImage(${i})" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#E64A19;color:#fff;border:none;cursor:pointer;font-size:.6rem;display:flex;align-items:center;justify-content:center;">✕</button>
 </div>`).join('')
@@ -4724,7 +4747,8 @@ async function saveGalleryCat(id, field, value) {
     const oldName = cat.name
     const { error } = await sb.from('gallery_categories').update({ name: value }).eq('id', id)
     if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
-    await sb.from('gallery').update({ category: value }).eq('category', oldName)
+    const { error: loiAnh } = await sb.from('gallery').update({ category: value }).eq('category', oldName)
+    if (loiAnh) { showToast('Đã đổi tên nhóm nhưng chưa chuyển được ảnh: ' + loiAnh.message, 'error'); await loadGalleryCats(); return }
     showToast('Đã đổi tên nhóm ảnh (ảnh đổi theo)!')
     await loadGalleryCats(); await loadGallery()
     return
@@ -4758,7 +4782,8 @@ async function deleteGalleryCat(id) {
   const fallback = galleryCats.find(c => c.id !== id)  // nhóm còn lại đầu tiên
   if (count > 0) {
     if (!(await askConfirm({ title: `Xóa nhóm ảnh "${cat.name}"?`, message: `${count} ảnh đang ở nhóm này sẽ được chuyển sang "${fallback.name}". Mẫu hoa không bị ảnh hưởng.`, okLabel: 'Xóa & chuyển', icon: '🏷️' }))) return
-    await sb.from('gallery').update({ category: fallback.name }).eq('category', cat.name)
+    const { error: loiChuyen } = await sb.from('gallery').update({ category: fallback.name }).eq('category', cat.name)
+    if (loiChuyen) { showToast('Chưa chuyển được ảnh sang nhóm khác: ' + loiChuyen.message, 'error'); return }   // chưa chuyển xong thì KHÔNG xoá nhóm
   } else if (!(await askConfirm({ title: `Xóa nhóm ảnh "${cat.name}"?`, message: 'Nhóm trống, xóa không ảnh hưởng gì.', okLabel: 'Xóa', icon: '🏷️' }))) return
   const { error } = await sb.from('gallery_categories').delete().eq('id', id)
   if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
@@ -4812,7 +4837,7 @@ function veAlbums() {
   const khung = list => {
     const a = list.slice(0, 3)
     return a.length
-      ? `<span class="kk-anh">${a.map(ph => `<span style="background-image:url('${esc(ph.url).replace(/'/g, '%27')}')"></span>`).join('')}</span>`
+      ? `<span class="kk-anh">${a.map(ph => `<span style="background-image:url('${esc(anhNho(ph.url, 300)).replace(/'/g, '%27')}')"></span>`).join('')}</span>`
       : `<span class="kk-anh kk-anh-trong">${ic('img')}</span>`
   }
   const the = (key, ten, list) => `
@@ -4903,7 +4928,7 @@ function renderGalleryGrid() {
   <div class="gallery-drag" draggable="true" title="Bấm để mở · kéo để sắp xếp"
        onclick="openGalItem(${ph.id})"
        ondragstart="galleryDragStart(event, ${ph.id})" ondragend="galleryDragEnd(event)">
-    <img src="${esc(ph.url)}" alt="${esc(ph.caption || '')}" draggable="false">
+    <img ${srcNho(ph.url, 400)} alt="${esc(ph.caption || '')}" draggable="false">
     <button type="button" class="gal-tick" aria-label="Chọn ảnh"
             onclick="event.stopPropagation(); toggleGallerySel(${ph.id})">${ic('check')}</button>
     ${kkAlbum === 'all' ? `<span class="gal-cat-badge">${esc(ph.category || 'Chưa phân loại')}</span>` : ''}
@@ -5157,7 +5182,7 @@ async function deleteGalleryItem(id) {
     const storagePath = ph.url.replace(SUPABASE_URL + '/storage/v1/object/public/images/', '')
     await sb.storage.from('images').remove([storagePath])
   }
-  await sb.from('gallery').delete().eq('id', id)
+  if (!(await ghiDb(sb.from('gallery').delete().eq('id', id).select('id'), 'xoá ảnh'))) return
   showToast('Đã xóa ảnh')
   loadGallery()
 }
@@ -5308,13 +5333,13 @@ function renderTestimonials() {
 }
 
 async function toggleTestimonial(id, current) {
-  await sb.from('testimonials').update({ active: !current }).eq('id', id)
+  if (!(await ghiDb(sb.from('testimonials').update({ active: !current }).eq('id', id).select('id'), 'đổi'))) return
   loadTestimonials()
 }
 
 async function deleteTestimonial(id) {
   if (!(await askConfirm({ title: 'Xóa đánh giá?', message: 'Đánh giá sẽ biến mất khỏi trang chủ.', okLabel: 'Xóa' }))) return
-  await sb.from('testimonials').delete().eq('id', id)
+  if (!(await ghiDb(sb.from('testimonials').delete().eq('id', id).select('id'), 'xoá'))) return
   showToast('Đã xóa đánh giá')
   loadTestimonials()
 }
@@ -5634,7 +5659,7 @@ function renderCollections() {
     <span class="sw-nen"></span>
   </label>
   <div class="bst-nut">
-    <button type="button" class="bst-link" onclick="saoLinkBst('${esc(c.slug || '')}')" title="Bấm để sao chép link gửi khách">
+    <button type="button" class="bst-link" onclick="saoLinkBst('${jsAttr(c.slug || '')}')" title="Bấm để sao chép link gửi khách">
       ${ic('ext')}<span>/san-pham?bst=${esc(c.slug || '')}</span>
     </button>
     <span class="bst-nut-phai">
@@ -5741,8 +5766,8 @@ function toggleBstCoverTuMau() {
   if (dangMo) { box.style.display = 'none'; return }
   const ds = products.filter(p => _bstChon.has(p.id) && p.image)
   box.innerHTML = ds.length
-    ? ds.map(p => `<img src="${esc(p.image)}" alt="${esc(p.name)}" title="${esc(p.name)}" loading="lazy"
-         onclick="datBstCover('${esc(p.image)}')">`).join('')
+    ? ds.map(p => `<img ${srcNho(p.image, 200)} alt="${esc(p.name)}" title="${esc(p.name)}" loading="lazy"
+         onclick="datBstCover('${jsAttr(p.image)}')">`).join('')
     : '<span class="bst-cover-nhac">Chưa tick mẫu hoa nào ở dưới — tick xong mới lấy ảnh được.</span>'
   box.style.display = 'flex'
 }
@@ -5798,7 +5823,7 @@ function veBstPicker() {
   el.innerHTML = products.map(p => `
     <label class="bst-o${_bstChon.has(p.id) ? ' on' : ''}" data-pid="${p.id}" data-ten="${esc(p.name)}">
       <input type="checkbox" ${_bstChon.has(p.id) ? 'checked' : ''} onchange="tickBstMau(${p.id}, this.checked)">
-      ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : `<div class="bst-o-trong">${ic('flower')}</div>`}
+      ${p.image ? `<img ${srcNho(p.image, 300)} alt="" loading="lazy">` : `<div class="bst-o-trong">${ic('flower')}</div>`}
       <span class="tick">${ic('check')}</span>
       <span class="ten">${esc(p.name)}</span>
     </label>`).join('')
@@ -6188,7 +6213,7 @@ const orderTotalLabel = o => (o.unit_price == null ? '<span style="color:#E65100
 const orderImage = o => o.image || o.products?.image || null
 const orderThumbHTML = o => {
   const img = orderImage(o)
-  return `<div class="thumb">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : ic('flower')}</div>`
+  return `<div class="thumb">${img ? `<img ${srcNho(img, 200)} alt="" loading="lazy">` : ic('flower')}</div>`
 }
 // Tên/SĐT khách: ưu tiên khách đã ghép, fallback sang tên snapshot trên đơn (đã escape)
 const orderCustomerName = o => esc(o.customers?.name || o.customer_name || '—')
@@ -6813,7 +6838,7 @@ function viewOrderDetail(id) {
   document.getElementById('customerOrdersBody').innerHTML = `
 <div class="od">
   <div class="od-top">
-    ${img ? `<img src="${esc(img)}" alt="" class="od-img" onclick="openImageViewer('${esc(img)}')" title="Xem ảnh lớn">`
+    ${img ? `<img ${srcNho(img, 500)} alt="" class="od-img" onclick="openImageViewer('${jsAttr(img)}')" title="Xem ảnh lớn">`
           : `<div class="od-img od-img-trong">${ic('flower')}</div>`}
     <div class="od-top-b">
       <span class="st-pill ${STATUS_CLASS[o.status] || ''}">${esc(o.status)}</span>
@@ -6862,7 +6887,7 @@ function setOrderImagePreview(prefix, url) {
   document.getElementById(prefix + 'Image').value = url || ''
   document.getElementById(prefix + 'ImagePreview').innerHTML = url
     ? `<div style="position:relative;display:inline-block;">
-         <img src="${esc(url)}" alt="" style="width:110px;height:110px;object-fit:cover;border-radius:10px;display:block;">
+         <img ${srcNho(url, 300)} alt="" style="width:110px;height:110px;object-fit:cover;border-radius:10px;display:block;">
          <button type="button" class="btn-delete-sm" style="position:absolute;top:6px;right:6px;" title="Bỏ ảnh"
            onclick="setOrderImagePreview('${prefix}', '')">✕</button>
        </div>`
@@ -6884,7 +6909,7 @@ async function handleOrderImageUpload(input, prefix) {
   const { data: maxRow } = await sb.from('gallery').select('order_index').order('order_index', { ascending: false }).limit(1)
   const nextIdx = ((maxRow?.[0]?.order_index) ?? -1) + 1
   const cat = galleryCats.find(c => c.name === 'Khác')?.name || galleryCats[0]?.name || 'Khác'
-  await sb.from('gallery').insert({ url: publicUrl, caption: '', category: cat, order_index: nextIdx })
+  if (!(await ghiDb(sb.from('gallery').insert({ url: publicUrl, caption: '', category: cat, order_index: nextIdx }).select('id'), 'thêm ảnh vào Khoảnh khắc'))) return
   showToast('Đã gắn ảnh & thêm vào Khoảnh khắc!')
 }
 
@@ -6895,7 +6920,7 @@ function openGalleryPickerForOrder(prefix) {
 
 async function deleteOrder(id) {
   if (!(await askConfirm({ title: 'Xóa đơn hàng?', message: 'Đơn sẽ bị xóa vĩnh viễn, doanh thu tính lại tương ứng.', okLabel: 'Xóa đơn' }))) return
-  await sb.from('orders').delete().eq('id', id)
+  if (!(await ghiDb(sb.from('orders').delete().eq('id', id).select('id'), 'xoá đơn'))) return
   showToast('Đã xóa đơn hàng')
   reloadActiveOrderViews()
   refreshNewOrderBadge()
@@ -7064,7 +7089,7 @@ function showProdSuggest(k = 'no') {
   pop.innerHTML = list.map(p => `
 <div class="suggest-row prod-row" onclick="pickProduct(${p.id}, '${k}')">
   ${p.image
-      ? `<img src="${esc(p.image)}" alt="" loading="lazy">`
+      ? `<img ${srcNho(p.image, 200)} alt="" loading="lazy">`
       : `<span class="prod-ph">${ic('flower')}</span>`}
   <span class="s-cust">${esc(p.name)}<small>${esc(p.category || '')}</small></span>
   <span class="s-price">${fmtPriceText(p.price)}</span>
@@ -7116,7 +7141,7 @@ function renderPickedProduct(p, k = 'no') {
   const ten = document.getElementById(k + 'ProductName').value.trim() || p.name
   box.innerHTML = `
 <div class="prod-picked">
-  ${p.image ? `<img src="${esc(p.image)}" alt="">` : `<span class="prod-ph">${ic('flower')}</span>`}
+  ${p.image ? `<img ${srcNho(p.image, 200)} alt="">` : `<span class="prod-ph">${ic('flower')}</span>`}
   <span class="pp-info"><strong>${esc(ten)}</strong><small>${fmtPriceText(p.price)}</small></span>
   ${nutTT('x', 'Bỏ chọn mẫu', `clearPickedProduct('${k}')`)}
 </div>`
@@ -7208,10 +7233,12 @@ async function saveNewOrder(e) {
   if (priceVal != null) patch.unit_price = priceVal
   const noImg = document.getElementById('noImage').value
   if (noImg) patch.image = noImg
-  await sb.from('orders').update(patch).eq('id', newId)
+  const { data: daGhi, error: loiGia } = await sb.from('orders').update(patch).eq('id', newId).select('id')
 
   btn.textContent = 'Tạo đơn'; btn.disabled = false
-  showToast('Đã tạo đơn ' + orderCode(newId) + '!')
+  if (loiGia || !daGhi?.length)   // đơn ĐÃ tạo, chỉ thiếu giá/ship/trạng thái — không được báo "xong" suông
+    showToast('Đã tạo đơn ' + orderCode(newId) + ' nhưng CHƯA lưu được giá / phí ship / trạng thái — mở đơn để sửa lại nhé.', 'error')
+  else showToast('Đã tạo đơn ' + orderCode(newId) + '!')
   closeNewOrderModal()
   reloadActiveOrderViews()
 }
@@ -7473,8 +7500,8 @@ async function openGalleryPicker() {
     return
   }
   grid.innerHTML = data.map(ph => `
-<div onclick="selectGalleryImage('${esc(ph.url)}')" style="cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid transparent;transition:border-color .15s;" onmouseover="this.style.borderColor='#2E7D32'" onmouseout="this.style.borderColor='transparent'">
-  <img src="${esc(ph.url)}" alt="${esc(ph.caption||'')}" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;">
+<div onclick="selectGalleryImage('${jsAttr(ph.url)}')" style="cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid transparent;transition:border-color .15s;" onmouseover="this.style.borderColor='#2E7D32'" onmouseout="this.style.borderColor='transparent'">
+  <img ${srcNho(ph.url, 300)} alt="${esc(ph.caption||'')}" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;">
   ${ph.caption ? `<p style="font-size:.75rem;padding:4px 6px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ph.caption)}</p>` : ''}
 </div>`).join('')
 }
@@ -7529,7 +7556,20 @@ function showToast(msg, type = 'success') {
   t.className = `toast ${type}${modalOpen ? ' toast-top' : ''}`
   t.style.display = 'block'
   clearTimeout(t._timer)
-  t._timer = setTimeout(() => t.style.display = 'none', 3000)
+  t._timer = setTimeout(() => t.style.display = 'none', type === 'error' ? 6000 : 3000)
+}
+
+// Ghi database rồi BÁO THẬT: trước đây xoá/sửa lỗi vẫn hiện "Đã xoá". Truyền câu lệnh có
+// .select('id') ở cuối → phát hiện luôn trường hợp "không lỗi mà không dòng nào đổi" (hết phiên
+// đăng nhập → database coi như khách lạ, lặng lẽ bỏ qua lệnh). Trả true nếu ghi được.
+async function ghiDb(q, viec) {
+  const { data, error } = await q
+  if (error) { showToast(`Chưa ${viec} được: ${error.message}`, 'error'); return false }
+  if (Array.isArray(data) && !data.length) {
+    showToast(`Chưa ${viec} được — có thể phiên đăng nhập đã hết. Tải lại trang (F5) rồi thử lại nhé.`, 'error')
+    return false
+  }
+  return true
 }
 
 // Nút ↑ quay lại đầu trang — admin cuộn trong khung .content nên theo dõi khung đó

@@ -227,6 +227,13 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
           bang(nhatKy[0].thamSo.p_delivery_date, new Date(Date.now() + 864e5).toLocaleDateString('sv-SE')))
       }
       if (ten === 'san-pham' && rong === 1280) {
+        // Ảnh THU NHỎ (anhNho, dữ liệu thật): tải được thật, không âm thầm quay về ảnh gốc 1600px.
+        // FAIL ở đây = Supabase không còn thu nhỏ ảnh (đổi gói / hết hạn mức) → web chậm lại dù vẫn đủ ảnh.
+        const imgs = [...d.querySelectorAll('#productsGrid .product-card img')].slice(0, 6)
+        for (let i = 0; i < 40 && imgs.some(im => !im.complete); i++) await cho(250)
+        if (w.eval('ANH_NHO_BAT')) test('[sản phẩm] ảnh thẻ là bản thu nhỏ Supabase, tải xong, rộng ≤ 600px', () => bang(imgs.filter(im =>
+          !/\/render\/image\//.test(im.currentSrc || im.src) || !im.naturalWidth || im.naturalWidth > 600)
+          .map(im => (im.currentSrc || im.src).slice(-60) + ' w=' + im.naturalWidth), []))
         test('[sản phẩm] máy tính: lưới ≥ 3 cột', () => { if (soCot(T.id('productsGrid')) < 3) throw new Error(soCot(T.id('productsGrid')) + ' cột') })
       }
       if (ten === 'khoanh-khac') {
