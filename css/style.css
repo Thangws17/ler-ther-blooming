@@ -1201,9 +1201,7 @@ section    { padding:64px 0; }
 .omx-in input::placeholder, .omx-in textarea::placeholder { color: #aab5a9; }
 .omx-in textarea { resize: vertical; min-height: 60px; }
 .omx-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-.omx-gio { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
-.omx-gio::-webkit-scrollbar { display: none; }
-@media (min-width: 641px) { .omx-gio { flex-wrap: wrap; overflow: visible; } }   /* màn rộng: hiện đủ 8h–21h */
+/* Giờ giao = bánh xe cuộn — kiểu nằm trong js/dungchung.js (chenKieuBanhXe), dùng chung với admin */
 .om-chip2 { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 15px; flex-shrink: 0;
   border: 1px solid #dfe5de; border-radius: 999px; background: #fff; color: #5d6b5c; cursor: pointer;
   font-family: 'Nunito', sans-serif; font-weight: 700; font-size: .88rem; white-space: nowrap; }
@@ -1301,6 +1299,8 @@ section    { padding:64px 0; }
   /* Chip lọc 1 hàng trượt ngang */
   .filter-tabs { flex-wrap: nowrap; overflow-x: auto; margin: 0 -14px 16px; padding: 0 14px 2px; scrollbar-width: none; }
   .filter-tabs::-webkit-scrollbar { display: none; }
+  /* Dùng chuột (cửa sổ máy tính thu hẹp): chuột không vuốt ngang được → xuống dòng */
+  @media (hover: hover) and (pointer: fine) { .filter-tabs { flex-wrap: wrap; overflow: visible; } }
   .filter-tab { flex-shrink: 0; padding: 7px 14px; font-size: .82rem; }
   .prod-search { max-width: none; }
   .page-header { padding: 22px 0 16px; text-align: left; }
@@ -1344,8 +1344,6 @@ section    { padding:64px 0; }
   .w-tabs .ic { width: 23px; height: 23px; }
   body.dang-go .w-tabs { display: none; }   /* bàn phím đang mở → ẩn thanh tab */
   /* Giờ giao: lưới 2 hàng × 7 ô — thấy đủ 8h–21h, không phải vuốt ngang */
-  .omx-gio { display: grid; grid-template-columns: repeat(7, 1fr); overflow: visible; gap: 5px; }
-  .omx-gio .om-chip2 { padding: 0; justify-content: center; height: 36px; font-size: .82rem; }
   body.co-w-tabs .footer { padding-bottom: 90px; }
   body.co-w-tabs .zalo-float { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); right: 14px; }
   body.co-w-tabs .back-top { bottom: calc(146px + env(safe-area-inset-bottom, 0px)); right: 14px; }

@@ -1013,7 +1013,6 @@ function openOrderModal(productId, productName, imgOverride) {
   // Form kiểu mới (24/09/2026) — cùng kiểu form admin: Người đặt · Người nhận · Giao.
   // Người nhận + giờ giao ghép vào GHI CHÚ đơn (ghepGhiChuDon, js/dungchung.js) → không đổi database.
   // Ngày giao: chip + lịch tự vẽ (bỏ <input type="date"> — iOS vẽ lệch khung, hiện kiểu tháng/ngày).
-  const gioChip = GIO_GIAO.map(g => `<button type="button" class="om-chip2" data-gio="${g}" onclick="chonGioGiao(this)">${g}</button>`).join('')
   document.getElementById('orderModalBody').innerHTML = `
 <form id="orderForm" class="omx" onsubmit="submitOrder(event)">
   <div class="omx-sp">
@@ -1061,7 +1060,7 @@ function openOrderModal(productId, productName, imgOverride) {
     </div>
     <input type="hidden" id="orderDate" value="${_tomorrow}">
     <div class="omx-lb">Giờ giao mong muốn <small>không bắt buộc</small></div>
-    <div class="omx-chips omx-gio" id="omGio">${gioChip}</div>
+    <div class="bxg" id="omGio"></div>
     <input type="hidden" id="orderTime">
   </div>
 
@@ -1091,6 +1090,10 @@ function openOrderModal(productId, productName, imgOverride) {
   _lichThang = _tomorrow.slice(0, 7)
   dongBoNgayGiao();
   document.getElementById('orderOverlay').classList.add('open');
+  // Giờ giao = bánh xe cuộn giờ | phút (banhXeGio, js/dungchung.js) — y hệt form admin (26/09/2026).
+  // Dựng SAU khi form hiện: khung ẩn thì bánh xe không cuộn tới đúng chỗ được.
+  const oTime = document.getElementById('orderTime');
+  banhXeGio(document.getElementById('omGio'), { lay: () => oTime.value, dat: v => { oTime.value = v; }, gon: true });   // web: chỉ bánh xe, không chữ bên cạnh
   lockBodyScroll();
 }
 
@@ -1100,12 +1103,6 @@ function chonNguoiNhan(btn) {
   const khac = btn.dataset.v === '1';
   document.getElementById('omNhanKhac').style.display = khac ? '' : 'none';
   if (khac) document.getElementById('orderRecvName').focus();
-}
-function chonGioGiao(btn) {
-  const bat = !btn.classList.contains('on');   // bấm lại chip đang chọn = bỏ chọn
-  document.querySelectorAll('#omGio .om-chip2').forEach(b => b.classList.remove('on'));
-  btn.classList.toggle('on', bat);
-  document.getElementById('orderTime').value = bat ? btn.dataset.gio : '';
 }
 function _ngayCach(n) { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString('sv-SE'); }
 function chonNgayGiao(btn) {

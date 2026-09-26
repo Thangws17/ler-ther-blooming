@@ -83,7 +83,7 @@ Từ 25/09 hàm này cắt độ dài từng ô, `html_esc()` mọi chữ khách
   và chuỗi `'…' || cột` phải `coalesce` từng cột (1 cột null = cả dòng biến mất khỏi `string_agg`).
 - **Admin kiểm quyền sau đăng nhập** (`kiemQuyenQuanTri()` → rpc `la_quan_tri`): tài khoản không có trong `quan_tri` thấy
   cảnh báo đỏ `#canhBaoQuyen` thay vì danh sách trống không lời giải thích.
-- **File SQL đánh số theo thứ tự chạy** (`01_` → `24_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
+- **File SQL đánh số theo thứ tự chạy** (`01_` → `25_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
 - **Sao lưu Excel (`admin/xlsx.js` + `taiSaoLuu()` trong admin)** tự viết file .xlsx, KHÔNG thêm thư viện.
   Thêm bảng mới vào database thì thêm vào `SAO_LUU_BANG`; cột lạ tự nối vào cuối nên không mất dữ liệu,
   nhưng khai báo thì có tên cột tiếng Việt. **Tuyệt đối không thêm `app_settings`** (chứa token). Ngày sao
@@ -131,7 +131,7 @@ Từ 25/09 hàm này cắt độ dài từng ô, `html_esc()` mọi chữ khách
   còn trỏ vào. Chúng chuyển bằng JS trước để giữ `?id=` sản phẩm (meta refresh làm rơi mất).
 - **Khi có tên miền riêng**, địa chỉ `https://thangws17.github.io/ler-ther-blooming/` đang ghi cứng ở:
   thẻ `og:image` (7 trang), thẻ `canonical` (6 trang), `sitemap.xml`, `robots.txt`, 3 trang chuyển
-  hướng. Tìm hết bằng `grep -rn "thangws17.github.io" --include=*.html --include=*.xml --include=*.txt .`
+  hướng, nút "Mở Lịch giao" trong mail nhắc (`supabase/25_nhac_truoc_gio_giao.sql`). Tìm hết bằng `grep -rn "thangws17.github.io" --include=*.html --include=*.xml --include=*.txt --include=*.sql .`
   Trang `chi-tiet` cố ý **không** có canonical (canonical tĩnh sẽ gộp mọi sản phẩm thành một trang).
   Lưu ý thêm: `robots.txt` chỉ có tác dụng ở GỐC tên miền — trên `github.io/ler-ther-blooming/` hiện
   Google không đọc nó; có tên miền rồi thì nó mới có tác dụng.
@@ -219,7 +219,18 @@ Từ 25/09 hàm này cắt độ dài từng ô, `html_esc()` mọi chữ khách
 - **Người nhận + giờ giao nằm trong GHI CHÚ đơn, không có cột riêng.** Mẫu cố định (mỗi thứ 1 dòng đầu ghi chú):
   `Người nhận: Lan · 0912…` / `Giờ giao: 15h`. Ghép bằng `ghepGhiChuDon()`, tách bằng `tachGhiChuDon()` (js/dungchung.js)
   — web khách + form Thêm/Sửa đơn admin + chi tiết đơn + Lịch giao đều dùng 2 hàm này. **Đừng đổi chữ "Người nhận:" /
-  "Giờ giao:"** — đơn cũ sẽ không tách được. Giờ chọn bằng chip `GIO_GIAO` (8h–21h), không dùng ô giờ của iOS.
+  "Giờ giao:"** — đơn cũ sẽ không tách được. Giờ chọn bằng **bánh xe cuộn** giờ | phút (`banhXeGio()` trong
+  dungchung.js — chủ shop chọn "Kiểu A" 26/09, hiện 3 hàng cho gọn), dùng CHUNG admin + web khách (web gọi với `gon: true`: không viền, không chữ bên cạnh); kiểu CSS cũng nằm trong
+  dungchung.js (`chenKieuBanhXe`). Giờ `GIO_GIAO` (8h–21h), phút `PHUT_GIAO` (00 → 55, bước 5 phút), không dùng ô giờ của iOS. Giá trị
+  `"15h30"`, phút 00 ghi gọn `"15h"` (`ghepGio`/`tachGio`/`soPhutGio`). Code tự đổi ô hidden giờ → gọi lại `veGioChips(id)`
+  (admin) để bánh xe quay theo. Lăn chuột 1 nấc = 1 số (tự bắt `wheel`); chỉ tính là chọn khi có tay/chuột
+  chạm cột trong 2 giây (`tayLuc`) — trình duyệt có lúc tự "hít" cột về 8h khi form vừa hiện, từng đổi ngầm giờ đơn.
+- **Mail nhắc trước giờ giao 2 tiếng** (`supabase/25_nhac_truoc_gio_giao.sql`, cron 5 phút/lần): SQL đọc giờ từ ghi chú bằng
+  `gio_giao_cua()` — regex của nó phải khớp `MAU_GIO` trong dungchung.js. Chỉ nhắc đơn "Mới"/"Đã xác nhận"; cột
+  `orders.nhac_gio_da_gui` nhớ đã nhắc cho giờ nào (đổi giờ → nhắc lại). Đổi "2 tiếng": sửa `v_truoc` trong SQL **và**
+  `NHAC_TRUOC_PHUT` trong admin (dòng "Mail nhắc lúc …" dưới ô giờ + nhãn cam "còn 1g20"/đỏ "tới giờ" của `gioBadge()`).
+- **Dải trượt ngang + chuột**: hàng chip trên máy tính phải xuống dòng (CSS `(hover: hover) and (pointer: fine)`), hàng thẻ
+  thì nhấn-giữ-kéo được nhờ `keoNgangBangChuot()` (dungchung.js) — dải trượt ngang mới thêm vào `KEO_NGANG`.
 - **Web khách trên điện thoại có thanh tab dưới đáy** (`veThanhTabKhach()` trong main.js chèn cho mọi trang, trừ trang
   chi tiết — đáy trang đó là thanh "Zalo + Đặt mẫu này"). Nút nổi (Zalo, lên đầu trang) phải đứng TRÊN thanh này.
 - **Form đặt hoa web khách không còn `<input type="date">`**: chip Ngày mai / Ngày kia + lịch tự vẽ (`veLichGiao`),

@@ -1217,7 +1217,7 @@
     .db-don:hover { border-color: #b9d6b9; border-left-color: #2E7D32; box-shadow: 0 4px 14px rgba(0,0,0,.05); }
     .db-don .thumb { width: 64px; height: 64px; border-radius: 10px; flex-shrink: 0; }
     .db-don-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-    .db-don-r { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .db-don-r { display: flex; align-items: center; justify-content: space-between; gap: 4px 8px; flex-wrap: wrap; }
     .db-don-kh { font-weight: 600; }
     .db-don-bo { font-size: .88rem; color: #4a5a49; }
     .db-don-dc { font-size: .8rem; color: #7a877a; display: flex; gap: 4px; align-items: flex-start; }
@@ -1347,7 +1347,7 @@
     .sp-tr .thumb { width: 64px; height: 64px; border-radius: 10px; }
     #ordersTable .data-table .thumb { width: 56px; height: 56px; border-radius: 10px; }
     .dv-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-    .dv-r1 { display: flex; align-items: center; gap: 8px; }
+    .dv-r1 { display: flex; align-items: center; gap: 4px 8px; flex-wrap: wrap; }   /* nhãn "16h30 · còn 1g20" dài → xuống dòng, không tràn */
     .dv-r1 .st-pill { margin-left: auto; }
     .dv-tre { display: inline-flex; align-items: center; gap: 3px; font-size: .74rem; font-weight: 700; color: #C62828; }
     .dv-tre .ic { width: 13px; height: 13px; }
@@ -1459,9 +1459,13 @@
     .dv-gio { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 999px; background: #E8F5E9;
               color: #2E7D32; font-size: .74rem; font-weight: 700; white-space: nowrap; }
     .dv-gio .ic { width: 12px; height: 12px; }
-    .fx-gio { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
-    .fx-gio::-webkit-scrollbar { display: none; }
-    .fx-gio .fx-chip { flex-shrink: 0; }
+    .dv-gio.sap { background: #FFF3E0; color: #E65100; }
+    .dv-gio.qua { background: #FFEBEE; color: #C62828; }
+    /* Giờ giao = bánh xe cuộn (Kiểu A, 26/09) — kiểu nằm trong js/dungchung.js (chenKieuBanhXe), dùng chung với web khách */
+    /* Máy tính (màn rộng HOẶC dùng chuột): chuột không vuốt ngang được → xếp xuống dòng, hiện đủ hết */
+    @media (min-width: 821px), (hover: hover) and (pointer: fine) {
+      .bst-cover-tumau { flex-wrap: wrap; overflow: visible; }
+    }
     /* Ô kiểu mới (.fx-in là <label>) đặt trong .field-group cũ: chặn kiểu nhãn/ô cũ đè lên */
     .field-group label.fx-in { display: flex; font-size: inherit; font-weight: 400; color: inherit; margin-bottom: 0; }
     .field-group .fx-in input, .field-group .fx-in textarea { width: auto; border: 0; padding: 12px 0; background: none; box-shadow: none; border-radius: 0; }
@@ -1589,6 +1593,7 @@
     #spXepBtn.on { background: #2E7D32; border-color: #2E7D32; color: #fff; }
     .sp-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; margin-bottom: 12px; }
     .sp-chips::-webkit-scrollbar { display: none; }
+    @media (min-width: 821px), (hover: hover) and (pointer: fine) { .sp-chips { flex-wrap: wrap; overflow: visible; } }   /* máy tính: xuống dòng (chuột không vuốt ngang được) */
     .sp-chips .fx-chip { flex-shrink: 0; height: 34px; padding: 0 13px; font-size: .82rem; }
     .sp-chips .fx-chip small { color: #9aa79a; font-weight: 600; font-size: .78rem; }
     .sp-chips .fx-chip .ic { width: 14px; height: 14px; }
@@ -2416,7 +2421,7 @@
           </div>
           <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg><input type="text" id="oeAddress" placeholder="Địa chỉ giao"></label>
           <div class="fx-lb">Giờ giao <small class="bstm-nho">không bắt buộc</small></div>
-          <div class="fx-chips fx-gio" data-gio-for="oeGio"></div>
+          <div class="bxg" data-gio-for="oeGio"></div>
           <input type="hidden" id="oeGio">
         </section>
 
@@ -2522,7 +2527,7 @@
           </div>
           <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg><input type="text" id="noAddress" placeholder="Địa chỉ giao: số nhà, đường, phường…"></label>
           <div class="fx-lb">Giờ giao <small class="bstm-nho">không bắt buộc</small></div>
-          <div class="fx-chips fx-gio" data-gio-for="noGio"></div>
+          <div class="bxg" data-gio-for="noGio"></div>
           <input type="hidden" id="noGio">
           <div class="fx-lb">Trạng thái</div>
           <div class="fx-chips" data-seg="noStatus"></div>
@@ -3254,7 +3259,7 @@ async function loadDashboard() {
         ${theoNgay.map(g => `
         <div class="db-day">
           <div class="db-day-h">${ngayNhan(g.ds)}<span>${g.ds_.length} đơn</span></div>
-          ${g.ds_.map(o => `
+          ${theoGio(g.ds_).map(o => `
           <button type="button" class="db-line" onclick="viewOrderDetail(${o.id})">
             <span class="db-ma">${orderCode(o.id)}</span>
             <span class="db-kh">${orderCustomerName(o)}</span>
@@ -3290,7 +3295,7 @@ async function loadDashboard() {
   <button type="button" class="db-don" onclick="viewOrderDetail(${o.id})">
     ${orderThumbHTML(o)}
     <span class="db-don-b">
-      <span class="db-don-r"><span class="db-ma">${orderCode(o.id)}${gioCua(o) ? ` <small class="dv-gio">${ic('clock')}${esc(gioCua(o))}</small>` : ''}</span><span class="st-pill ${STATUS_CLASS[o.status] || ''}">${esc(o.status)}</span></span>
+      <span class="db-don-r"><span class="db-ma">${orderCode(o.id)} ${gioBadge(o, true)}</span><span class="st-pill ${STATUS_CLASS[o.status] || ''}">${esc(o.status)}</span></span>
       <span class="db-don-kh">${orderCustomerName(o)}</span>
       <span class="db-don-bo">${esc(o.product_name)}${o.quantity > 1 ? ' ×' + o.quantity : ''}</span>
       ${o.delivery_address ? `<span class="db-don-dc">${ic('pin')}${esc(o.delivery_address)}</span>` : ''}
@@ -3300,9 +3305,23 @@ async function loadDashboard() {
 
 // Giờ giao ghi trong ghi chú đơn ("Giờ giao: 15h") — xem ghepGhiChuDon ở js/dungchung.js
 function gioCua(o) { return tachGhiChuDon(o.note).gio }
+// Nhãn giờ giao trên thẻ đơn. Đơn giao HÔM NAY chưa đi giao: còn ≤ 2 tiếng → cam "còn 1g20",
+// tới/quá giờ → đỏ. Tính lúc vẽ (mở tab / tải lại), không tự đếm từng phút.
+function gioBadge(o, homNay) {
+  const g = gioCua(o)
+  if (!g) return ''
+  const so = soPhutGio(g)
+  let cls = '', them = ''
+  if (homNay && so != null && BADGE_DON_STATUSES.includes(o.status)) {
+    const d = new Date(), con = so - (d.getHours() * 60 + d.getMinutes())
+    if (con <= 0) { cls = ' qua'; them = ' · tới giờ' }
+    else if (con <= NHAC_TRUOC_PHUT) { cls = ' sap'; them = ' · còn ' + (con >= 60 ? Math.floor(con / 60) + 'g' + String(con % 60).padStart(2, '0') : con + ' phút') }
+  }
+  return `<span class="dv-gio${cls}">${ic('clock')}${esc(g)}${them}</span>`
+}
 // Xếp đơn trong cùng 1 ngày theo giờ giao (đơn không hẹn giờ xuống cuối)
 function theoGio(ds) {
-  const so = o => { const g = parseInt(gioCua(o), 10); return isNaN(g) ? 99 : g }
+  const so = o => { const g = soPhutGio(gioCua(o)); return g == null ? 9999 : g }
   return ds.slice().sort((a, b) => so(a) - so(b))
 }
 
@@ -3512,7 +3531,7 @@ function renderDeliveryList() {
 <button type="button" class="dv" onclick="viewOrderDetail(${o.id})">
   ${orderThumbHTML(o)}
   <span class="dv-b">
-    <span class="dv-r1"><span class="db-ma">${orderCode(o.id)}</span>${gioCua(o) ? `<span class="dv-gio">${ic('clock')}${esc(gioCua(o))}</span>` : ''}${treHan ? `<span class="dv-tre">${ic('alert')}hẹn ${fmtDay(o.delivery_date)}</span>` : ''}<span class="st-pill ${STATUS_CLASS[o.status] || ''}">${esc(o.status)}</span></span>
+    <span class="dv-r1"><span class="db-ma">${orderCode(o.id)}</span>${gioBadge(o, o.delivery_date === todayStr())}${treHan ? `<span class="dv-tre">${ic('alert')}hẹn ${fmtDay(o.delivery_date)}</span>` : ''}<span class="st-pill ${STATUS_CLASS[o.status] || ''}">${esc(o.status)}</span></span>
     <span class="dv-kh">${orderCustomerName(o)}<span class="dv-bo"> · ${esc(o.product_name)}${o.quantity > 1 ? ' ×' + o.quantity : ''}</span></span>
     <span class="dv-dc">${ic('pin')}${esc(o.delivery_address || 'Chưa có địa chỉ')}</span>
     ${o.message_card ? `<span class="dv-thiep">${ic('mail')}Có lời nhắn thiếp</span>` : ''}
@@ -6443,21 +6462,15 @@ function shipSync() {
   document.querySelectorAll('#noShipChips .fx-chip').forEach(c => c.classList.toggle('on', Number(c.dataset.v) === v))
 }
 
-// Chip giờ giao (dùng chung GIO_GIAO với web khách — js/dungchung.js). Bấm lại chip đang chọn = bỏ.
+// Giờ giao = bánh xe cuộn giờ | phút (banhXeGio trong js/dungchung.js, dùng chung với web khách).
+// Ô hidden giữ "15h" / "15h30" / "" (chưa hẹn). Code đổi ô hidden xong thì gọi lại hàm này để bánh xe quay theo.
 function veGioChips(id) {
-  const box = document.querySelector(`[data-gio-for="${id}"]`)
-  if (!box) return
-  if (!box.children.length)
-    box.innerHTML = GIO_GIAO.map(g => `<button type="button" class="fx-chip" data-v="${g}" onclick="chonGio(this, '${id}')">${g}</button>`).join('')
-  const v = document.getElementById(id).value
-  box.querySelectorAll('.fx-chip').forEach(b => b.classList.toggle('on', b.dataset.v === v))
-}
-function chonGio(btn, id) {
+  const goc = document.querySelector(`[data-gio-for="${id}"]`)
+  if (!goc) return
   const el = document.getElementById(id)
-  el.value = el.value === btn.dataset.v ? '' : btn.dataset.v
-  veGioChips(id)
-  danhDauDangNhap(btn)
+  banhXeGio(goc, { lay: () => el.value, dat: v => { el.value = v; danhDauDangNhap(goc) }, nhacTruoc: NHAC_TRUOC_PHUT })
 }
+const NHAC_TRUOC_PHUT = 120   // khớp v_truoc trong supabase/25_nhac_truoc_gio_giao.sql
 // Gom người nhận + giờ + ghi chú của form admin (tiền tố no / oe) thành 1 chuỗi ghi chú đơn
 function ghiChuTuForm(pre) {
   const v = x => document.getElementById(pre + x).value
@@ -6981,13 +6994,13 @@ function openOrderEditModal(id) {
   document.getElementById('oeRecvName').value = gc.nguoiNhan
   document.getElementById('oeRecvPhone').value = gc.sdtNhan
   document.getElementById('oeGio').value = gc.gio
-  veGioChips('oeGio')
   setOrderImagePreview('oe', o.image || '')
   document.getElementById('oeQuantity').oninput = oeUpdateTotalPreview   // 2 ô tiền đã có oninput riêng
   oeUpdateTotalPreview()
   fxTheoDuLieu('orderEditModal')
   document.getElementById('customerOrdersModal').style.display = 'none'
   document.getElementById('orderEditModal').style.display = 'flex'
+  veGioChips('oeGio')   // SAU khi form hiện: khung ẩn thì bánh xe không cuộn tới đúng giờ được
 }
 
 function closeOrderEditModal() { document.getElementById('orderEditModal').style.display = 'none' }
@@ -7187,9 +7200,9 @@ function openNewOrderModal() {
   document.getElementById('noTotalPreview').textContent = '—'
   setOrderImagePreview('no', '')
   ;['noGio', 'noRecvName', 'noRecvPhone'].forEach(x => { document.getElementById(x).value = '' })   // ô hidden: reset() không xoá
-  veGioChips('noGio')
   fxTheoDuLieu('orderNewModal')      // mục tuỳ chọn gấp lại hết
   document.getElementById('orderNewModal').style.display = 'flex'
+  veGioChips('noGio')   // SAU khi form hiện (xem openOrderEditModal)
 }
 
 function closeNewOrderModal() { document.getElementById('orderNewModal').style.display = 'none' }

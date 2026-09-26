@@ -154,11 +154,190 @@ else document.addEventListener('DOMContentLoaded', chenBoBieuTuong)
 // ── Người nhận + giờ giao (24/09/2026) ──────────────────────────────
 // Không thêm cột database: ghi vào đầu phần GHI CHÚ đơn theo mẫu cố định, mỗi thứ 1 dòng:
 //   Người nhận: Lan · 0912345678
-//   Giờ giao: 15h
+//   Giờ giao: 15h30        (phút 00 thì ghi gọn "15h")
 //   <ghi chú khách gõ>
 // Web khách GHÉP khi gửi đơn; admin TÁCH ra để hiện riêng và để form sửa đơn điền lại.
 // Đổi chữ "Người nhận:" / "Giờ giao:" thì đơn cũ không tách được nữa — đừng đổi.
 const GIO_GIAO = ['8h', '9h', '10h', '11h', '12h', '13h', '14h', '15h', '16h', '17h', '18h', '19h', '20h', '21h']
+// Giờ + phút (26/09/2026): chọn GIỜ ở GIO_GIAO rồi chọn PHÚT ở PHUT_GIAO. Ghi "15h30"; phút 00 ghi gọn "15h"
+// (y như đơn cũ). SQL đọc lại đúng mẫu này để mail nhắc trước 2 tiếng — gio_giao_cua() trong
+// supabase/25_nhac_truoc_gio_giao.sql: đổi mẫu ở đây thì phải đổi cả regex bên đó.
+const PHUT_GIAO = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'))   // 00, 05 … 55 — bước 5 phút (góp ý 26/09)
+const MAU_GIO = /^(\d{1,2})h(\d{2})?$/
+function ghepGio(gio, phut) { return !gio ? '' : phut && phut !== '00' ? gio + phut : gio }
+function tachGio(s) {
+  const m = String(s || '').trim().match(MAU_GIO)
+  return m ? { gio: Number(m[1]) + 'h', phut: m[2] || '00' } : { gio: '', phut: '' }
+}
+// "15h30" → 930 (phút tính từ 0h) để xếp / so giờ. Không đúng mẫu → null.
+function soPhutGio(s) {
+  const m = String(s || '').trim().match(MAU_GIO)
+  return m ? Number(m[1]) * 60 + Number(m[2] || 0) : null
+}
+// 930 → "15h30", 900 → "15h"
+function gioTuSoPhut(n) { return ghepGio(Math.floor(n / 60) + 'h', String(n % 60).padStart(2, '0')) }
+
+// ── Bánh xe chọn giờ giao (Kiểu A — chủ shop chọn 26/09/2026) ─────────
+// 2 cột giờ | phút, hiện 3 hàng (gọn — góp ý "khung hơi to"). Chọn bằng: vuốt, lăn chuột (1 nấc = 1 số),
+// nhấn giữ chuột kéo, bấm thẳng vào số, phím ▲▼. DÙNG CHUNG admin (form Thêm/Sửa đơn) + web khách (form đặt hoa).
+//   goc      : phần tử rỗng (class "bxg")
+//   lay()    : đọc giá trị hiện tại "15h" / "15h30" / "" (chưa hẹn giờ)
+//   dat(v)   : ghi giá trị mới (admin còn đánh dấu "đang nhập dở")
+//   nhacTruoc: số phút mail nhắc trước (admin) → hiện "Mail nhắc lúc …"; web khách bỏ trống
+//   gon      : true = chỉ còn bánh xe, không chữ bên cạnh (web khách — góp ý 26/09)
+// Gọi lại lần 2 trên cùng goc = vẽ lại theo lay() (sau khi code tự đổi giá trị ô hidden).
+// CHỈ tính là chọn khi có tay / chuột chạm vào cột trong ~2 giây gần đây (cờ tayLuc). Mọi lần cuộn khác — do code,
+// hoặc trình duyệt tự "hít" cột về số đầu sau khi form vừa hiện (lỗi thật 26/09: có lúc đổi ngầm giờ đơn thành 8h) —
+// thì bánh xe tự quay lại đúng giá trị đang lưu. Khung đang ẩn (modal chưa mở) không cuộn được → ResizeObserver vẽ lại.
+function banhXeGio(goc, { lay, dat, nhacTruoc = 0, gon = false }) {
+  if (goc._bxg) { goc._bxg.ve(false); return goc._bxg }
+  chenKieuBanhXe()
+  goc.classList.toggle('bxg-gon', gon)
+  const H = GIO_GIAO.map(g => parseInt(g, 10)), P = PHUT_GIAO.map(Number)
+  const CAO = 36, MAC_DINH = 14 * 60   // chưa hẹn giờ → bánh xe đứng mờ ở 14h00
+  goc.innerHTML = `
+    <div class="bxg-banh">
+      <div class="bxg-cot" data-k="h" tabindex="0" role="listbox" aria-label="Giờ">${H.map((h, i) => `<div data-i="${i}">${h}</div>`).join('')}</div>
+      <span class="bxg-hai">h</span>
+      <div class="bxg-cot" data-k="p" tabindex="0" role="listbox" aria-label="Phút">${P.map((p, i) => `<div data-i="${i}">${String(p).padStart(2, '0')}</div>`).join('')}</div>
+    </div>
+    <div class="bxg-ben"><b class="bxg-so"></b><small class="bxg-phu"></small><button type="button" class="bxg-bo">Bỏ giờ</button></div>`
+  const banh = goc.querySelector('.bxg-banh')
+  const cot = { h: goc.querySelector('[data-k="h"]'), p: goc.querySelector('[data-k="p"]') }
+  const ds = { h: H, p: P }
+  const tayLuc = { h: 0, p: 0 }   // lúc người dùng chạm cột gần nhất
+  const soPhut = () => soPhutGio(lay())
+  function chiSo(m) { return { h: Math.max(0, H.indexOf(Math.floor(m / 60))), p: Math.max(0, P.indexOf(m % 60)) } }
+  function hienTai() { const m = soPhut(); return chiSo(m == null ? MAC_DINH : m) }
+
+  function cuon(k, i, muot) {
+    const c = cot[k], top = i * CAO
+    if (!c.clientHeight || Math.abs(c.scrollTop - top) < 1) return
+    c.scrollTo({ top, behavior: muot ? 'smooth' : 'auto' })
+  }
+  function ve(muot) {
+    const m = soPhut(), ci = hienTai()
+    banh.classList.toggle('trong', m == null)
+    for (const k of ['h', 'p']) {
+      cuon(k, ci[k], muot)
+      cot[k].querySelectorAll('[data-i]').forEach((d, i) => {
+        d.classList.toggle('on', m != null && i === ci[k])
+        d.setAttribute('aria-selected', m != null && i === ci[k] ? 'true' : 'false')
+      })
+    }
+    goc.querySelector('.bxg-so').textContent = m == null ? 'Chưa hẹn giờ' : Math.floor(m / 60) + 'h' + String(m % 60).padStart(2, '0')
+    goc.querySelector('.bxg-phu').innerHTML = m == null ? 'Cuộn hoặc bấm số để chọn'
+      : nhacTruoc ? `${ic('mail')}Mail nhắc lúc ${gioTuSoPhut(Math.max(0, m - nhacTruoc))}` : ''
+    goc.querySelector('.bxg-bo').style.display = m == null ? 'none' : ''
+  }
+  // Người dùng chọn số thứ i ở cột k — cột kia giữ nguyên chỗ đang đứng
+  function chon(k, i) {
+    const ci = hienTai()
+    ci[k] = Math.max(0, Math.min(ds[k].length - 1, i))
+    const moi = gioTuSoPhut(H[ci.h] * 60 + P[ci.p])
+    if (moi !== lay()) dat(moi)
+    ve(true)
+  }
+
+  for (const k of ['h', 'p']) {
+    const c = cot[k]
+    const keo = { dang: false, daKeo: false, y: 0, top: 0 }
+    let hen, tich = 0
+    // Vuốt (điện thoại) / cuộn: chờ dừng hẳn rồi đọc số ở giữa
+    c.addEventListener('scroll', () => {
+      clearTimeout(hen)
+      hen = setTimeout(() => {
+        if (keo.dang) return
+        if (Date.now() - tayLuc[k] > 2000) { ve(false); return }   // không ai chạm → không đổi giá trị, quay về chỗ cũ
+        tayLuc[k] = 0
+        chon(k, Math.round(c.scrollTop / CAO))
+      }, 140)
+    }, { passive: true })
+    const cham = () => { tayLuc[k] = Date.now() }
+    c.addEventListener('touchstart', cham, { passive: true })
+    c.addEventListener('touchmove', cham, { passive: true })
+    // Lăn chuột: mỗi nấc đúng 1 số (mặc định trình duyệt nhảy 2–3 số một lần)
+    c.addEventListener('wheel', e => {
+      e.preventDefault()
+      tich += e.deltaMode === 1 ? e.deltaY * 40 : e.deltaY
+      if (Math.abs(tich) < 30) return
+      const buoc = Math.sign(tich)
+      tich = 0
+      chon(k, hienTai()[k] + buoc)
+    }, { passive: false })
+    c.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+      e.preventDefault()
+      chon(k, hienTai()[k] + (e.key === 'ArrowDown' ? 1 : -1))
+    })
+    c.addEventListener('click', e => {
+      const d = e.target.closest('[data-i]')
+      if (d && !keo.daKeo) chon(k, Number(d.dataset.i))
+    })
+    // Chuột: nhấn giữ + kéo lên xuống (bắt con trỏ vào cột → không cần nghe cả trang)
+    c.addEventListener('pointerdown', e => {
+      cham()
+      if (e.pointerType !== 'mouse' || e.button !== 0) return
+      Object.assign(keo, { dang: true, daKeo: false, y: e.clientY, top: c.scrollTop })
+    })
+    c.addEventListener('pointermove', e => {
+      if (!keo.dang) return
+      const dy = e.clientY - keo.y
+      if (!keo.daKeo) {
+        if (Math.abs(dy) < 4) return
+        keo.daKeo = true
+        c.setPointerCapture(e.pointerId)
+        c.style.scrollSnapType = 'none'
+        c.style.cursor = 'grabbing'
+      }
+      c.scrollTop = keo.top - dy
+    })
+    const tha = () => {
+      if (!keo.dang) return
+      keo.dang = false
+      if (!keo.daKeo) return
+      c.style.scrollSnapType = ''; c.style.cursor = ''
+      chon(k, Math.round(c.scrollTop / CAO))
+      setTimeout(() => { keo.daKeo = false }, 0)   // nuốt cú "click" ngay sau khi thả chuột
+    }
+    c.addEventListener('pointerup', tha)
+    c.addEventListener('pointercancel', tha)
+  }
+  goc.querySelector('.bxg-bo').addEventListener('click', () => { dat(''); ve(true) })
+  if (window.ResizeObserver) new ResizeObserver(() => ve(false)).observe(banh)
+  goc._bxg = { ve }
+  ve(false)
+  return goc._bxg
+}
+function chenKieuBanhXe() {
+  if (document.getElementById('kieuBanhXe')) return
+  document.head.insertAdjacentHTML('beforeend', `<style id="kieuBanhXe">
+.bxg { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 10px; }   /* căn giữa form (góp ý 26/09) */
+.bxg-banh { position: relative; flex: 0 0 auto; display: flex; align-items: center; width: 150px; height: 108px; padding: 0 8px;
+  border: 0; border-radius: 14px; background: #fff; overflow: hidden;   /* không viền — góp ý 26/09 */ user-select: none; -webkit-user-select: none; }
+.bxg-banh::before { content: ""; position: absolute; left: 6px; right: 6px; top: 36px; height: 36px; border-radius: 9px; background: #E8F5E9; pointer-events: none; }
+.bxg-banh::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(#fff, rgba(255,255,255,0) 36%, rgba(255,255,255,0) 64%, #fff); }
+.bxg-cot { position: relative; flex: 1; height: 108px; padding: 36px 0; overflow-y: auto; scroll-snap-type: y mandatory;
+  overscroll-behavior: contain; scrollbar-width: none; cursor: grab; outline: 0; touch-action: pan-y; }
+.bxg-cot::-webkit-scrollbar { display: none; }
+.bxg-cot:focus-visible { box-shadow: inset 0 0 0 2px #A5D6A7; border-radius: 9px; }
+.bxg-cot > div { height: 36px; display: grid; place-items: center; scroll-snap-align: center; cursor: pointer;
+  font-size: 1rem; font-weight: 600; color: #9aa79a; font-variant-numeric: tabular-nums; }
+.bxg-cot > div.on { color: #2E7D32; font-weight: 700; font-size: 1.1rem; }
+.bxg-hai { position: relative; z-index: 1; font-weight: 700; font-size: .92rem; color: #2E7D32; }
+.bxg-banh.trong::before { background: #f1f4f0; }
+.bxg-banh.trong .bxg-hai { color: #b8c2b7; }
+.bxg-ben { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; width: 150px; min-width: 0; }   /* rộng cố định: đổi chữ không làm cả cụm xê dịch */
+.bxg-so { font-size: 1.15rem; font-weight: 700; color: #2E7D32; font-variant-numeric: tabular-nums; }
+.bxg-phu { display: inline-flex; align-items: center; gap: 4px; font-size: .74rem; font-weight: 600; color: #E65100; }
+.bxg-phu .ic { width: 12px; height: 12px; }
+.bxg-banh.trong + .bxg-ben .bxg-so { font-size: .92rem; font-weight: 600; color: #7a877a; }
+.bxg-banh.trong + .bxg-ben .bxg-phu { font-weight: 500; color: #9aa79a; }
+.bxg-gon .bxg-ben { display: none; }
+.bxg-bo { border: 0; background: none; padding: 2px 0; font: inherit; font-size: .76rem; color: #7a877a; text-decoration: underline; cursor: pointer; }
+</style>`)
+}
 
 function ghepGhiChuDon({ nguoiNhan = '', sdtNhan = '', gio = '', ghiChu = '' } = {}) {
   const dong = []
@@ -210,3 +389,52 @@ function tachCaption(desc) {
 
 // Mã đơn hiển thị: #LT-0152 (giống orderCode trong admin)
 function maDon(id) { return '#LT-' + String(id).padStart(4, '0') }
+
+// ── Kéo dải trượt ngang bằng CHUỘT (26/09/2026) ──────────────────────
+// Điện thoại vuốt ngang được, chuột thì không (lăn chuột chỉ cuộn dọc) → trước phải bấm vào thanh cuộn
+// mảnh/ẩn mới xem được phần khuất. Hàng chip (giờ giao, lọc) đã tự XUỐNG DÒNG khi dùng chuột (CSS);
+// còn lại các hàng thẻ (Bộ sưu tập, "Cùng bộ sưu tập") thì cho nhấn giữ + kéo. Kéo xong thì nuốt cú
+// bấm — không lỡ mở thẻ vừa kéo qua. Thêm dải trượt mới: thêm vào KEO_NGANG.
+const KEO_NGANG = '.bst-grid, #relatedGrid, .sp-chips, .filter-tabs, .bst-cover-tumau, .keo-ngang'
+function keoNgangBangChuot() {
+  if (window._keoNgang) return
+  window._keoNgang = true
+  let dai = null, x0 = 0, cuon0 = 0, daKeo = false, nuotBam = false
+  document.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'mouse' || e.button !== 0 || !e.target.closest) return
+    const el = e.target.closest(KEO_NGANG)
+    if (!el || el.scrollWidth <= el.clientWidth + 1) return   // không có gì khuất → để yên
+    dai = el; x0 = e.clientX; cuon0 = el.scrollLeft; daKeo = false
+  })
+  document.addEventListener('pointermove', e => {
+    if (!dai) return
+    const dx = e.clientX - x0
+    if (!daKeo) {
+      if (Math.abs(dx) < 6) return   // rung tay khi bấm không tính là kéo
+      daKeo = true
+      dai.style.scrollSnapType = 'none'   // bắt dính trong lúc kéo làm thẻ giật từng nấc
+      dai.style.cursor = 'grabbing'
+    }
+    dai.scrollLeft = cuon0 - dx
+    const chon = window.getSelection && window.getSelection()
+    if (chon && chon.rangeCount) chon.removeAllRanges()
+  })
+  function tha() {
+    if (!dai) return
+    if (daKeo) {
+      dai.style.scrollSnapType = ''; dai.style.cursor = ''
+      nuotBam = true; setTimeout(() => { nuotBam = false }, 0)
+    }
+    dai = null; daKeo = false
+  }
+  document.addEventListener('pointerup', tha)
+  document.addEventListener('pointercancel', tha)
+  document.addEventListener('click', e => {
+    if (nuotBam) { e.preventDefault(); e.stopPropagation(); nuotBam = false }
+  }, true)
+  // Ảnh / link mặc định bị trình duyệt "nhấc lên" khi kéo → mất sự kiện chuột giữa chừng
+  document.addEventListener('dragstart', e => {
+    if (e.target.closest && e.target.closest(KEO_NGANG)) e.preventDefault()
+  })
+}
+keoNgangBangChuot()

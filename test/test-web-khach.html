@@ -148,11 +148,37 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
         })
         test('[trang chủ] cả trang không kéo ngang được (overflow-x: clip)', () =>
           bang(w.getComputedStyle(d.documentElement).overflowX, 'clip'))
+        // Chuột: nhấn giữ + kéo hàng bộ sưu tập (keoNgangBangChuot, 26/09). Kéo xong KHÔNG được mở thẻ vừa thả chuột lên.
+        const hang = T.id('bstGrid'), the0 = hang.querySelector('.bst-card')
+        if (the0 && hang.scrollWidth > hang.clientWidth + 1) {
+          hang.scrollLeft = 0
+          const r = hang.getBoundingClientRect(), y = r.top + r.height / 2, x = r.left + r.width / 2
+          const pe = (loai, px) => new w.PointerEvent(loai, { bubbles: true, cancelable: true, pointerType: 'mouse', button: 0, clientX: px, clientY: y })
+          let moThe = 0
+          const dem = e => { moThe++; e.preventDefault() }
+          the0.addEventListener('click', dem)
+          the0.dispatchEvent(pe('pointerdown', x)); d.dispatchEvent(pe('pointermove', x - 60)); d.dispatchEvent(pe('pointermove', x - 120))
+          const dangKeo = hang.scrollLeft
+          d.dispatchEvent(pe('pointerup', x - 120)); the0.dispatchEvent(new w.MouseEvent('click', { bubbles: true, cancelable: true }))
+          await cho(400)
+          test('[trang chủ] kéo chuột sang trái 120px → hàng bộ sưu tập cuộn theo tay, thả ra vẫn nằm lệch sang phải', () => {
+            // thả chuột thì "hít" vào thẻ gần nhất nên số cuối không đúng 120
+            if (Math.abs(dangKeo - 120) > 2 || hang.scrollLeft < 60) throw new Error('lúc kéo ' + dangKeo + ', thả ra ' + hang.scrollLeft)
+          })
+          test('[trang chủ] kéo xong thả chuột → KHÔNG mở nhầm thẻ', () => bang(moThe, 0))
+          hang.scrollLeft = 0
+          the0.dispatchEvent(pe('pointerdown', x)); d.dispatchEvent(pe('pointerup', x)); the0.dispatchEvent(new w.MouseEvent('click', { bubbles: true, cancelable: true }))
+          test('[trang chủ] bấm thường (không kéo) → vẫn mở thẻ', () => bang(moThe, 1))
+          the0.removeEventListener('click', dem)
+        }
       }
       if (ten === 'san-pham' && rong === 390) {
         const grid = T.id('productsGrid')
         test('[sản phẩm] lưới 2 cột', () => bang(soCot(grid), 2))
-        test('[sản phẩm] chip lọc 1 hàng (không xuống dòng)', () => bang(getComputedStyle(T.id('productFilters')).flexWrap, 'nowrap'))
+        // Điện thoại thật (ngón tay) = 1 hàng trượt ngang. Máy test dùng CHUỘT → xuống dòng (chuột không vuốt ngang được, 26/09)
+        const coChuot = w.matchMedia('(hover: hover) and (pointer: fine)').matches
+        test(`[sản phẩm] chip lọc: ${coChuot ? 'dùng chuột → xuống dòng' : '1 hàng (không xuống dòng)'}`, () =>
+          bang(getComputedStyle(T.id('productFilters')).flexWrap, coChuot ? 'wrap' : 'nowrap'))
         const tong = grid.querySelectorAll('.product-card').length
         const chip = d.querySelectorAll('#productFilters .filter-tab')[1]
         if (chip) {
@@ -190,7 +216,8 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
         const modal = d.querySelector('.order-modal')
         test('[đặt hoa] bấm nút ＋ trên thẻ → mở form', () => bang(T.id('orderOverlay').classList.contains('open'), true))
         test('[đặt hoa] form không tràn ngang', () => { const t = modal.scrollWidth - modal.clientWidth; if (t > 1) throw new Error('tràn ' + t + 'px') })
-        test('[đặt hoa] giờ giao là lưới 7 cột (thấy đủ 8h–21h)', () => bang(soCot(T.id('omGio')), 7))
+        test('[đặt hoa] giờ giao là bánh xe giờ | phút, đủ 8h–21h và phút 00 → 55 (bước 5)', () =>
+          bang([T.id('omGio').querySelectorAll('.bxg-cot[data-k="h"] [data-i]').length, T.id('omGio').querySelectorAll('.bxg-cot[data-k="p"] [data-i]').length], [14, 12]))
         test('[đặt hoa] nút Gửi đơn ghim ở đáy, nằm trong màn hình', () => {
           const r = d.querySelector('.omx-ft').getBoundingClientRect()
           if (r.bottom > w.innerHeight + 1) throw new Error('đáy chân form ' + Math.round(r.bottom) + ' > ' + w.innerHeight)
