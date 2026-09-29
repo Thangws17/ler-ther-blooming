@@ -652,6 +652,13 @@
     }
     .price-wrap.has-num .price-suffix { display: block; }
     .price-wrap.has-num > input { padding-right: 30px; }
+    /* Nút đổi bàn phím số ⇄ chữ: ô giá mở bàn phím SỐ (inputmode numeric) nên trên
+       điện thoại không gõ được "Từ 3xx" — bấm nút này để lấy bàn phím có chữ. */
+    .nut-ban-phim {
+      float: right; border: none; background: none; padding: 0 2px; cursor: pointer;
+      font: inherit; font-size: .78rem; font-weight: 600; color: #2E7D32;
+      text-transform: none; letter-spacing: 0; text-decoration: underline; text-underline-offset: 2px;
+    }
     /* Máy tính: MỘT hàng thẳng, đúng 5 nút — nút thứ 6 ẩn đi vì không đủ chỗ
        (5 nút ≈ 490px trên 544px khung form; 6 nút sẽ tràn). */
     .price-chips {
@@ -2213,11 +2220,11 @@
             <input type="text" id="fName" required placeholder="VD: Bó Hoa Hồng Tình Yêu">
           </div>
           <div class="field-group">
-            <label>Giá *</label>
+            <label>Giá * <button type="button" class="nut-ban-phim" id="fPriceKb" onclick="doiBanPhimGia()">Gõ chữ</button></label>
             <!-- Gõ số trần, dấu chấm hàng nghìn tự chèn. Vẫn gõ chữ được
-                 (vd "Liên hệ") cho mẫu chưa chốt giá. -->
+                 (vd "Từ 3xx", "Liên hệ") — trên điện thoại bấm "Gõ chữ" để đổi sang bàn phím có chữ. -->
             <div class="price-wrap">
-              <input type="text" id="fPrice" required placeholder="250.000"
+              <input type="text" id="fPrice" required placeholder="250.000 hoặc Từ 3xx"
                      inputmode="numeric" autocomplete="off" oninput="onPriceInput(this)">
               <span class="price-suffix">đ</span>
             </div>
@@ -4567,25 +4574,46 @@ function priceToSave(v) {
   return s.replace(/\D/g, '') || s
 }
 
+// Giá dạng "Từ 3xx" / "4xx" (shop dùng nhiều nhất) → được gợi ý như mức giá số.
+// "Liên hệ" và chữ khác thì không.
+const GIA_XX = /^(Từ\s+)?\d+x+$/i
+
+// Bàn phím của ô giá: số (mặc định) hoặc chữ. iOS chỉ đổi bàn phím khi ô nhận focus lại.
+function datBanPhimGia(chu) {
+  const el = document.getElementById('fPrice'), nut = document.getElementById('fPriceKb')
+  el.inputMode = chu ? 'text' : 'numeric'
+  if (nut) nut.textContent = chu ? 'Gõ số' : 'Gõ chữ'
+}
+function doiBanPhimGia() {
+  const el = document.getElementById('fPrice')
+  datBanPhimGia(el.inputMode !== 'text')
+  el.blur(); el.focus()
+}
+
 // Gợi ý các mức giá shop hay dùng — bấm 1 phát khỏi gõ
 function renderPriceChips() {
   const box = document.getElementById('fPriceChips')
   if (!box) return
   const count = {}
   products.forEach(p => {
-    const d = String(p.price ?? '').replace(/\D/g, '')
-    if (d && +d >= 1000) count[d] = (count[d] || 0) + 1
+    const s = String(p.price ?? '').trim().replace(/\s+/g, ' ')
+    if (GIA_XX.test(s)) { count[s] = (count[s] || 0) + 1; return }
+    const d = s.replace(/\D/g, '')
+    if (d && +d >= 1000 && !_priceIsText(s)) count[d] = (count[d] || 0) + 1
   })
+  // "Từ 3xx" xếp như 300.000 để đứng đúng chỗ giữa các mức giá số
+  const giaTri = k => /x/i.test(k) ? +k.replace(/\D/g, '') * 10 ** (k.match(/x/gi).length + 3) : +k
   // HAI bước, đừng gộp làm một:
   //  1. chọn ra 5 mức hay dùng nhất (để gợi ý đúng thứ shop dùng thật)
   //  2. rồi mới xếp 5 mức đó theo giá TĂNG DẦN (để mắt đọc theo thứ tự)
   // Gộp làm một sẽ ra dãy 350 → 450 → 400 → 220, nhìn rất khó dò.
   const top = Object.entries(count)
-    .sort((a, b) => b[1] - a[1] || +a[0] - +b[0])
+    .sort((a, b) => b[1] - a[1] || giaTri(a[0]) - giaTri(b[0]))
     .slice(0, 6)                       // vẽ 6; máy tính ẩn bớt nút thứ 6 bằng CSS
-    .sort((a, b) => +a[0] - +b[0])
+    .sort((a, b) => giaTri(a[0]) - giaTri(b[0]))
   box.innerHTML = top.map(([d]) =>
-    `<button type="button" class="price-chip" onclick="setPriceQuick('${d}')">${Number(d).toLocaleString('vi-VN')}đ</button>`
+    `<button type="button" class="price-chip" onclick="setPriceQuick('${jsAttr(d)}')">${
+      GIA_XX.test(d) ? esc(d) : Number(d).toLocaleString('vi-VN') + 'đ'}</button>`
   ).join('')
   // Shop chưa có sản phẩm nào thì giấu hẳn, đừng để một ô trống lơ lửng
   const wrap = document.getElementById('fPriceChipsWrap')
@@ -4594,7 +4622,7 @@ function renderPriceChips() {
 
 function setPriceQuick(digits) {
   const el = document.getElementById('fPrice')
-  el.value = Number(digits).toLocaleString('vi-VN')
+  el.value = GIA_XX.test(digits) ? digits : Number(digits).toLocaleString('vi-VN')
   onPriceInput(el)
   const ov = el.closest('.modal-overlay')     // bấm chip cũng là "đang nhập dở"
   if (ov) ov.dataset.dirty = '1'
@@ -4628,6 +4656,7 @@ function openModal(id = null) {
   renderProductImagesGrid()
   renderPriceChips()
   onPriceInput(document.getElementById('fPrice'))   // bật/tắt chữ "đ" theo giá đang có
+  datBanPhimGia(_priceIsText(document.getElementById('fPrice').value))   // giá "Từ 3xx" → mở sẵn bàn phím chữ
   document.getElementById('modal').style.display = 'flex'
 }
 

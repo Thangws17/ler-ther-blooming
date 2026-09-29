@@ -36,6 +36,7 @@
   <div id="kq"></div>
 </div>
 
+<script src="../js/dungchung.js"></script>
 <script>
 // ══ Khung test nho nhỏ ═══════════════════════════════════════════════
 // Dự án không có npm/node nên tự viết, đủ dùng là được.
@@ -97,7 +98,7 @@ async function napKhoiGia(stub) {
   }
   // Truyền document/products vào làm tham số để che biến toàn cục của admin
   const tao = new Function('document', 'products', src.slice(i, j) +
-    '\n; return { _priceIsText, onPriceInput, priceToInput, priceToSave, renderPriceChips, setPriceQuick }')
+    '\n; return { _priceIsText, onPriceInput, priceToInput, priceToSave, renderPriceChips, setPriceQuick, datBanPhimGia }')
   return tao(stub.document, stub.products)
 }
 
@@ -285,6 +286,15 @@ function docChip(html) {
   })
   test('Có sản phẩm → khối chip hiện lại', () => bang(r1.wrap.style.display, ''))
 
+  // Shop để giá kiểu "Từ 3xx" cho hầu hết mẫu → phải được gợi ý, xếp đúng chỗ giữa các mức số
+  const r5 = await chipsVoi([
+    ...nhieuLan('Từ 3xx', 6), ...nhieuLan('Từ 2xx', 4), ...nhieuLan('4xx', 2),
+    ...nhieuLan(250000, 3), { price: 'Liên hệ' }, { price: '3' }
+  ])
+  test('Giá "Từ 3xx" / "4xx" có trong dãy gợi ý, xếp theo giá', () =>
+    bang(r5.chips, ['Từ 2xx', '250.000đ', 'Từ 3xx', '4xx'],
+      '"Liên hệ" và giá lỗi "3" không được gợi ý'))
+
   // ── 7. Bấm chip ─────────────────────────────────────────────────
   nhom('7. setPriceQuick — bấm chip điền giá')
   const elQ = taoO('')
@@ -293,6 +303,21 @@ function docChip(html) {
   test('Bấm chip → ô giá thành "450.000"', () => bang(elQ.value, '450.000'))
   test('Bấm chip cũng tính là "đang nhập dở" (chặn đóng modal làm mất dữ liệu)', () =>
     bang(elQ._overlay.dataset.dirty, '1'))
+  MQ.setPriceQuick('Từ 3xx')
+  test('Bấm chip "Từ 3xx" → ô giá giữ nguyên chữ "Từ 3xx"', () => bang(elQ.value, 'Từ 3xx'))
+
+  // ── 8. Nút đổi bàn phím ────────────────────────────────────────
+  nhom('8. Nút "Gõ chữ" — điện thoại gõ được "Từ 3xx"')
+  const elK = taoO(''), nutK = { textContent: '' }
+  const MK = await napKhoiGia({ document: taoDocument({ fPrice: elK, fPriceKb: nutK }), products: [] })
+  MK.datBanPhimGia(true)
+  test('Bật chữ → ô giá mở bàn phím chữ, nút ghi "Gõ số"', () => {
+    bang(elK.inputMode, 'text'); bang(nutK.textContent, 'Gõ số')
+  })
+  MK.datBanPhimGia(false)
+  test('Tắt chữ → về bàn phím số, nút ghi "Gõ chữ"', () => {
+    bang(elK.inputMode, 'numeric'); bang(nutK.textContent, 'Gõ chữ')
+  })
 
   // ── Tổng kết ────────────────────────────────────────────────────
   const tk = document.getElementById('tongket')
