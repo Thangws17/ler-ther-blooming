@@ -35,7 +35,11 @@ mấy trang test chạy trong trình duyệt (vẫn server 8765 đó):
   lưu thất bại phải báo thật (`ghiDb`); chống spam đơn; thư viện Supabase khoá phiên bản + integrity; `anhNho`
 
 Chạy ngầm không cần mở tay: `chrome --headless=new --virtual-time-budget=90000 --dump-dom http://localhost:8765/test/<tên>.html`
-rồi đọc `#tongket` / các `.ca.fail` (mỗi trang tự in dòng tổng kết).
+rồi đọc `#tongket` / các `.ca.fail` (mỗi trang tự in dòng tổng kết). **Riêng `test-bao-mat` (phần E, ảnh tải lên) treo
+với `--virtual-time-budget`** — `createImageBitmap`/`toBlob` không chạy trong thời gian ảo. Chạy trang đó bằng Chrome
+`--remote-debugging-port` (thời gian thật, Python `websocket-client` có sẵn trên máy) rồi đọc `#tongket` qua `Runtime.evaluate`.
+**Dữ liệu giả phải tính ngày theo HÔM NAY**, đừng ghi cứng ngày (01/10/2026 hai test tự hỏng: BST hẹn "2026-10-01", và
+chi phí "1–3 ngày trước" rơi sang tháng trước trong khi tab Chi phí xem tháng này → dùng `ngayTrongThang()`).
 
 Trang test **bốc hàm/DOM thật ra khỏi `admin/index.html`** chứ không copy code, nên sửa admin là test
 biết ngay. Không nối Supabase để ghi, chạy bao nhiêu lần cũng không đụng dữ liệu thật.
@@ -70,7 +74,14 @@ Từ 25/09 hàm này cắt độ dài từng ô, `html_esc()` mọi chữ khách
 
 **Danh mục đã bị thay bằng BỘ SƯU TẬP.** Khách không còn thấy "Hoa bó / Sự kiện" nữa — thay bằng `collections` (BST có ảnh bìa, câu giới thiệu, công tắc bật/tắt, hẹn ngày) + bảng nối `collection_products` (**1 mẫu nằm được nhiều BST**). Xem `supabase/21_collections.sql`; 4 BST thật của Ler (Trông Trăng, 20/10, Em Xinh, Anh Trai) tạo ở `22_bst_cua_ler.sql` — file này chỉ chạy lần đầu, 5 BST cũ bị tắt chứ không xoá. Admin quản ở tab 🌿 Bộ sưu tập; form Sản phẩm tick BST thay cho ô "Danh mục" cũ.
 
-**Ảnh:** upload nào cũng đi qua `compressImage()` trong admin — thu về ≤1600px, xuất WebP q0.78 (fallback JPEG), bỏ qua file <300KB; rồi `sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })`. Thư mục trong bucket: `products/`, `gallery/`, `hero/`, `expenses/` (ảnh hoá đơn không lên web công khai). `optimizeOldImages()` là nút chạy một lần cho ảnh cũ, nhận diện ảnh đã tối ưu qua `_optw_` / đuôi `.webp`.
+**Ảnh:** upload nào cũng đi qua **`taiAnhLen(folder, file, {maxDim, nho, nen})`** trong admin (01/10/2026) — đừng gọi
+`storage.upload` trực tiếp nữa. Nó: `compressImage()` (≤1600px, WebP q0.78, fallback JPEG, bỏ qua file <300KB) → làm
+thêm **bản nhỏ** rộng `ANH_NHO_RONG` (640px, js/dungchung.js) cất ở `nho/<cùng đường dẫn>` → lên kho, cache 1 năm.
+Tên file ảnh có bản nhỏ mang dấu **`<13 chữ số>n_`** (vd `products/1790791559234n_hoa.webp`); `anhNho()` thấy dấu đó +
+cỡ xin ≤ 640 thì trả link `nho/`. Đây là bản gói FREE thay cho Supabase Image Transformations (`ANH_NHO_BAT`, gói Pro).
+`nho: false` cho hoá đơn (`expenses/`) và ảnh nền trang chủ (`hero/`). Thư mục: `products/`, `gallery/`, `hero/`,
+`collections/`, `expenses/` (hoá đơn không lên web), `nho/`. Nút "Tạo ảnh nhỏ cho ảnh cũ" (`optimizeOldImages()`, Tổng
+quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; file cũ để nguyên (link cũ ở đơn hàng vẫn xem được).
 
 **Doanh thu** tính theo **ngày giao** (trống thì lấy ngày tạo). Trạng thái nào được tính nằm ở `REVENUE_STATUSES` / `DONE_STATUSES` (`admin/index.html`, gần dòng 3850). Vòng đời: `Mới → Đã xác nhận → Đang giao → Giao thành công → Hoàn thành` (khoá sửa) hoặc `Đã hủy`.
 
@@ -81,9 +92,18 @@ Từ 25/09 hàm này cắt độ dài từng ô, `html_esc()` mọi chữ khách
   lại bản Telegram/Resend cũ → chạy lại 16 là đè mất bản mới, mất email nhắc 8:30. File 16 giờ chỉ tạo extension + bảng
   `app_settings`; file 15 cũng tự tạo nền đó nên không phụ thuộc thứ tự. Mọi chữ ghép vào HTML email phải qua `html_esc()`,
   và chuỗi `'…' || cột` phải `coalesce` từng cột (1 cột null = cả dòng biến mất khỏi `string_agg`).
+- **Kho ảnh: người lạ từng LIỆT KÊ được mọi file** (kể cả `expenses/` hoá đơn) qua `/storage/v1/object/list/images`
+  dù bảng đã khoá (kiểm 01/10/2026). `supabase/27_khoa_liet_ke_anh.sql` thêm luật RESTRICTIVE `chi quan tri select` trên
+  `storage.objects`. Link ảnh công khai vẫn xem được bình thường (kho public không qua luật SELECT).
+- **Safari/iPhone KHÔNG xuất được WebP**: `canvas.toBlob(cb, 'image/webp')` không trả null mà lặng lẽ trả **PNG** →
+  phải xét `blob.type` (`veVaXuatAnh()`). Trước 01/10 chỉ xét null nên ảnh đăng từ iPhone không được nén (có ảnh 900KB).
+- **Admin có CSP bằng thẻ `<meta>`** (GH Pages không cho header): chỉ nạp/gửi tới chính web + Supabase + jsDelivr + Google
+  Fonts. Thêm dịch vụ ngoài mới cho admin (ảnh từ tên miền khác, API…) thì PHẢI thêm tên miền vào CSP, không là bị chặn
+  âm thầm (test-bao-mat mở mọi tab và bắt `securitypolicyviolation`). Có `'unsafe-eval'` vì trang test gọi `eval()` trong
+  khung. Kèm mã chặn bị nhúng vào khung web lạ (khung cùng nguồn — trang test — vẫn được). Admin + trang test có `noindex`.
 - **Admin kiểm quyền sau đăng nhập** (`kiemQuyenQuanTri()` → rpc `la_quan_tri`): tài khoản không có trong `quan_tri` thấy
   cảnh báo đỏ `#canhBaoQuyen` thay vì danh sách trống không lời giải thích.
-- **File SQL đánh số theo thứ tự chạy** (`01_` → `25_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
+- **File SQL đánh số theo thứ tự chạy** (`01_` → `27_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
 - **Sao lưu Excel (`admin/xlsx.js` + `taiSaoLuu()` trong admin)** tự viết file .xlsx, KHÔNG thêm thư viện.
   Thêm bảng mới vào database thì thêm vào `SAO_LUU_BANG`; cột lạ tự nối vào cuối nên không mất dữ liệu,
   nhưng khai báo thì có tên cột tiếng Việt. **Tuyệt đối không thêm `app_settings`** (chứa token). Ngày sao
@@ -271,7 +291,8 @@ Từ 25/09 hàm này cắt độ dài từng ô, `html_esc()` mọi chữ khách
   Link do shop nhập (Facebook…) đi qua `linkAnToan()` (chặn `javascript:`). Chạy `test-bao-mat` sau khi thêm chỗ hiển thị dữ liệu.
 - **Ảnh trong thẻ / lưới / ô nhỏ dùng `<img ${srcNho(url, rộng)}>`**, không `src="${esc(url)}"` — Supabase thu nhỏ ảnh 1600px
   xuống đúng cỡ (gói Pro, `ANH_NHO_BAT` trong dungchung.js), lỗi thì tự về ảnh gốc. Trình xem ảnh lớn thì giữ ảnh gốc.
-  **Shop đang ở gói FREE → `ANH_NHO_BAT = false`** (25/09/2026): `srcNho` trả ảnh gốc. Vẫn viết `srcNho` cho ảnh mới để khi lên Pro chỉ cần bật.
+  **Shop đang ở gói FREE → `ANH_NHO_BAT = false`** (25/09/2026): `srcNho` dùng bản nhỏ tự làm (xem mục **Ảnh**) nếu ảnh có,
+  không thì ảnh gốc. Cỡ xin > 640 (trang chi tiết 1000, bìa BST lớn) luôn là ảnh gốc.
 - **Ghi database trong admin phải kiểm kết quả**: `if (!(await ghiDb(sb.from(…).delete().eq(…).select('id'), 'xoá'))) return`.
   `.select('id')` để bắt trường hợp hết phiên đăng nhập (không lỗi mà 0 dòng đổi). Đừng `await sb.from(…)` suông rồi báo "Đã xoá".
 - **Thư viện Supabase nạp bản CỐ ĐỊNH `@2.117.1/dist/umd/supabase.js` + `integrity`** ở 8 trang. Nâng phiên bản: đổi cả 8 trang và

@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Test bảo mật + dữ liệu dị — Ler &amp; Ther Blooming</title>
 <style>
@@ -393,6 +394,90 @@ async function moKhung(duong, rong, cao) {
     bang(nhan, `a'b\\c"d</x>`)
   })
   W.f.remove()
+
+  // ════════════ PHẦN E. ẢNH TẢI LÊN + HÀNG RÀO TRANG ADMIN (01/10/2026) ════════════
+  {
+    nhom('E. Ảnh tải lên (bản nhỏ cho web khách, ảnh iPhone vẫn được nén) + hàng rào trang admin')
+    const A = await moKhung('admin/index.html', 1280, 800); await cho(800)
+    const { w, d } = A
+    const viPham = []
+    d.addEventListener('securitypolicyviolation', e => viPham.push(e.violatedDirective + ' ← ' + e.blockedURI))
+    const len = []   // [đường dẫn, blob] mỗi lần tải lên kho (giả)
+    const sb = w.eval('sb')
+    sb.storage = { from: () => ({
+      upload: (p, b) => { len.push([p, b]); return Promise.resolve({ error: null }) },
+      getPublicUrl: p => ({ data: { publicUrl: 'https://x.supabase.co/storage/v1/object/public/images/' + p } }),
+    }) }
+    // Ảnh nhiễu (khó nén) cho đủ nặng > 300KB như ảnh chụp thật
+    const taoAnh = async (rong, cao, ten = 'hoa.jpg') => {
+      const c = d.createElement('canvas'); c.width = rong; c.height = cao
+      const g = c.getContext('2d'), px = g.createImageData(rong, cao)
+      for (let i = 0; i < px.data.length; i++) px.data[i] = i % 4 === 3 ? 255 : (Math.random() * 256) | 0
+      g.putImageData(px, 0, 0)
+      const b = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.95))
+      return new w.File([b], ten, { type: 'image/jpeg' })
+    }
+    const rongCua = async b => (await createImageBitmap(b)).width
+
+    const to = await taoAnh(2000, 1500, 'Hoa hồng Đà Lạt (1).jpg')
+    const url1 = await w.taiAnhLen('products', to)
+    const [nho, goc] = [len[0] || [], len[1] || []]
+    const rNho = nho[1] ? await rongCua(nho[1]) : 0, rGoc = goc[1] ? await rongCua(goc[1]) : 0
+    test('Ảnh mẫu hoa → tải lên 2 file: bản nhỏ ở nho/<cùng đường dẫn> + ảnh gốc', () => {
+      bang(len.length, 2); bang(nho[0], 'nho/' + goc[0])
+      if (!/^products\/\d{13}n_[\w.-]+$/.test(goc[0])) throw new Error(goc[0])
+    })
+    test(`Bản nhỏ rộng đúng ${w.eval('ANH_NHO_RONG')}px, ảnh gốc thu về 1600px`, () => bang([rNho, rGoc], [w.eval('ANH_NHO_RONG'), 1600]))
+    test('Tên file có dấu / ngoặc / khoảng trắng → chỉ còn chữ không dấu, số, . _ -', () => {
+      if (!/n_Hoa_hong_Da_Lat_1_\.\w+$/.test(goc[0])) throw new Error(goc[0])
+    })
+    test('anhNho: ảnh có bản nhỏ → lưới/thẻ (≤ 640) dùng nho/, xem lớn (1000) dùng ảnh gốc', () => {
+      const f = w.eval('anhNho')
+      bang(f(url1, 600), url1.replace('/images/products/', '/images/nho/products/'))
+      bang(f(url1, 1000), url1)
+      bang(f(f(url1, 600), 600), f(url1, 600))   // không thành nho/nho/
+      bang(f('https://x.supabase.co/storage/v1/object/public/images/products/1784038764629_optw_p1_1.webp', 600),
+        'https://x.supabase.co/storage/v1/object/public/images/products/1784038764629_optw_p1_1.webp')   // ảnh cũ chưa có bản nhỏ
+    })
+    test('Xoá ảnh Khoảnh khắc có bản nhỏ → xoá cả 2 file; ảnh cũ → 1 file', () => {
+      const goc = w.eval('SUPABASE_URL') + '/storage/v1/object/public/images/gallery/'
+      bang(w.fileTrongKho(goc + '1790791559234n_a.webp'), ['gallery/1790791559234n_a.webp', 'nho/gallery/1790791559234n_a.webp'])
+      bang(w.fileTrongKho(goc + '1784038795943_optw_g16.webp'), ['gallery/1784038795943_optw_g16.webp'])
+    })
+    len.length = 0; await w.taiAnhLen('gallery', await taoAnh(500, 400))
+    test('Ảnh vốn đã nhỏ (rộng ≤ 640) → 1 file, không gắn dấu bản nhỏ', () => {
+      bang(len.length, 1); if (/\d{13}n_/.test(len[0][0])) throw new Error(len[0][0])
+    })
+    len.length = 0; await w.taiAnhLen('expenses', await taoAnh(1200, 900), { nho: false })
+    test('Hoá đơn chi phí (nho: false) → 1 file, không làm bản nhỏ', () => bang([len.length, /^expenses\/\d{13}_/.test(len[0]?.[0])], [1, true]))
+
+    // iPhone/Safari không xuất được WebP: toBlob('image/webp') lặng lẽ trả PNG
+    const toBlobThat = w.HTMLCanvasElement.prototype.toBlob
+    w.HTMLCanvasElement.prototype.toBlob = function (cb, kieu, q) { return toBlobThat.call(this, cb, kieu === 'image/webp' ? 'image/png' : kieu, q) }
+    const goc2 = await taoAnh(2400, 1800)
+    const nen = await w.compressImage(goc2)
+    len.length = 0; await w.taiAnhLen('products', goc2)
+    w.HTMLCanvasElement.prototype.toBlob = toBlobThat
+    test('Giả iPhone (WebP ra PNG): ảnh vẫn được nén sang JPEG, nhẹ hơn gốc', () => {
+      bang(nen.type, 'image/jpeg'); if (!(nen.size < goc2.size)) throw new Error(nen.size + ' ≥ ' + goc2.size)
+    })
+    test('Giả iPhone: bản nhỏ vẫn làm được (JPEG)', () => bang([len.length, len[0]?.[1]?.type], [2, 'image/jpeg']))
+
+    // Hàng rào trang admin
+    const html = await (await fetch('../admin/index.html')).text()
+    const csp = (html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/) || [])[1] || ''
+    test('Admin có CSP: chỉ gửi dữ liệu tới chính web + Supabase, không nhúng object', () => {
+      if (!/connect-src 'self' https:\/\/\w+\.supabase\.co wss:/.test(csp)) throw new Error('connect-src: ' + csp)
+      if (!/object-src 'none'/.test(csp) || !/base-uri 'self'/.test(csp)) throw new Error(csp)
+    })
+    test('Admin có noindex (Google không đưa trang quản trị lên tìm kiếm)', () => bang(/<meta name="robots" content="noindex/.test(html), true))
+    test('Admin có mã chặn bị nhúng vào khung web lạ', () => bang(/window\.top\.location\.origin !== location\.origin/.test(html), true))
+    const { dl } = duLieuMau(); giaLapSb(w, dl)
+    for (const tab of ['Dashboard', 'Orders', 'Delivery', 'Customers', 'Expenses', 'Products', 'Collections', 'Gallery', 'Contact']) { w.applyTab(tab); await cho(250) }
+    test('Mở mọi tab admin: CSP không chặn nhầm thứ gì (ảnh Supabase, font, thư viện)', () =>
+      bang(viPham.filter(x => !/example\.com/.test(x)), []))
+    A.f.remove()
+  }
 
   const tk = document.getElementById('tongket')
   tk.className = soFail ? 'fail-box' : 'ok-box'

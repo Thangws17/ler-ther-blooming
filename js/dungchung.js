@@ -35,7 +35,7 @@ function linkAnToan(url) {
   return ''
 }
 
-// ── Ảnh NHỎ cho thẻ / lưới / ô xem trước (25/09/2026) ──
+// ── Ảnh NHỎ cho thẻ / lưới / ô xem trước (25/09/2026, bản gói Free 01/10/2026) ──
 // Ảnh gốc lưu ~1600px (TB 230KB) nhưng thẻ mẫu hoa trên điện thoại chỉ rộng ~180px.
 // Supabase tự thu nhỏ khi đổi /object/public/ → /render/image/public/ (gói Pro; 100 ảnh
 // gốc/tháng miễn phí, sau đó 5$/1000). Ảnh 495KB → ~40KB. Lỗi (hết hạn mức, đổi gói…)
@@ -43,11 +43,21 @@ function linkAnToan(url) {
 // ĐANG TẮT (25/09/2026): shop dùng gói FREE — tính năng này chỉ dành cho gói Pro, dùng trên gói
 // Free có thể bị Supabase hạn chế cả dự án. Lên gói Pro thì đổi thành true là chạy (test đã sẵn).
 const ANH_NHO_BAT = false
+// Gói FREE (01/10/2026): admin TỰ làm bản nhỏ rộng ≤ ANH_NHO_RONG px lúc tải ảnh lên
+// (taiAnhLen trong admin), cất ở images/nho/<cùng đường dẫn>. Tên file ảnh gốc có dấu
+// "<13 chữ số>n_" = "có bản nhỏ" → biết chắc mà dùng, không phải thử rồi lỗi. Ảnh cũ chưa
+// có dấu thì dùng ảnh gốc như trước (nút "Tạo ảnh nhỏ cho ảnh cũ" ở Tổng quan admin).
+const ANH_NHO_RONG = 640
+function coAnhNhoTuLam(s) {
+  return /\/storage\/v1\/object\/public\/images\/(?!nho\/)[^?#]*\/\d{13}n_[^/?#]+$/.test(s)
+}
 function anhNho(url, rong, bat = ANH_NHO_BAT) {
   const s = String(url ?? '')
-  if (!bat || !rong || !s.includes('/storage/v1/object/public/')) return s
-  return s.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') +
+  if (!rong || !s.includes('/storage/v1/object/public/')) return s
+  if (bat) return s.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') +
     (s.includes('?') ? '&' : '?') + 'width=' + rong + '&resize=contain&quality=72'
+  if (rong <= ANH_NHO_RONG && coAnhNhoTuLam(s)) return s.replace('/object/public/images/', '/object/public/images/nho/')
+  return s
 }
 // Chèn vào <img …>: `<img ${srcNho(p.image, 600)} alt="…">` (đã esc sẵn)
 function srcNho(url, rong) {

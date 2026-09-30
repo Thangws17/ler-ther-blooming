@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Test bộ sưu tập — Ler &amp; Ther Blooming</title>
 <style>
@@ -113,9 +114,12 @@ function doiKhung(fr) {
     { id: 3, name: 'Hướng dương',       image: ''      },
     { id: 4, name: 'Mix Garden pastel', image: 'd.jpg' },
   ]
+  // Ngày hẹn của "BST 20/10" tính theo HÔM NAY (luôn ở tương lai) — từng ghi cứng 2026-10-01 nên
+  // tới đúng ngày 01/10/2026 test tự hỏng dù web không sai gì.
+  const sauNgay = n => new Date(Date.now() + n * 864e5).toLocaleDateString('sv-SE')
   const BST = [
     { id: 10, name: 'BST Trông Trăng', slug: 'bst-trong-trang', emoji: '🌕', active: true,  cover_url: 'bia.jpg', start_date: null, end_date: null,        order_index: 1 },
-    { id: 20, name: 'BST 20/10',       slug: 'bst-20-10',       emoji: '💝', active: true,  cover_url: null,      start_date: '2026-10-01', end_date: '2026-10-21', order_index: 2 },
+    { id: 20, name: 'BST 20/10',       slug: 'bst-20-10',       emoji: '💝', active: true,  cover_url: null,      start_date: sauNgay(10),  end_date: sauNgay(30),  order_index: 2 },
     { id: 30, name: 'BST Em Xinh',     slug: 'bst-em-xinh',     emoji: '✨', active: false, cover_url: null,      start_date: null, end_date: null,        order_index: 3 },
   ]
   // Mẫu 2 nằm trong HAI bộ. Mẫu 3 không nằm bộ nào.
@@ -203,7 +207,7 @@ function doiKhung(fr) {
 
   test('Bộ đang tắt không lọt ra web khách', () => bang(bstHien.map(c => c.id), [10]))
   test('Bộ chưa tới ngày hẹn cũng không lọt ra', () =>
-    bang(bstHien.some(c => c.id === 20), false, 'BST 20/10 hẹn 01/10, nay 23/09'))
+    bang(bstHien.some(c => c.id === 20), false, 'BST 20/10 hẹn ngày trong tương lai, nay 23/09'))
 
   test('Nút lọc LUÔN có "Tất cả" và chỉ thêm bộ đang hiện', () => {
     W.buildProductFilterTabs()

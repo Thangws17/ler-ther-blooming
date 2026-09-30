@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Test giao diện web khách — Ler &amp; Ther Blooming</title>
 <style>
@@ -260,6 +261,12 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
         for (let i = 0; i < 40 && imgs.some(im => !im.complete); i++) await cho(250)
         if (w.eval('ANH_NHO_BAT')) test('[sản phẩm] ảnh thẻ là bản thu nhỏ Supabase, tải xong, rộng ≤ 600px', () => bang(imgs.filter(im =>
           !/\/render\/image\//.test(im.currentSrc || im.src) || !im.naturalWidth || im.naturalWidth > 600)
+          .map(im => (im.currentSrc || im.src).slice(-60) + ' w=' + im.naturalWidth), []))
+        // Gói Free: ảnh có bản nhỏ tự làm (tên "<giờ>n_…", xem taiAnhLen trong admin) phải tải từ nho/, rộng ≤ 640.
+        // FAIL = bản nhỏ bị xoá / tải lên hỏng → âm thầm quay về ảnh gốc 1600px, web chậm lại.
+        const coNho = imgs.filter(im => w.coAnhNhoTuLam(im.src) || /\/images\/nho\//.test(im.src))
+        if (!w.eval('ANH_NHO_BAT')) test(`[sản phẩm] ảnh thẻ có bản nhỏ tự làm (${coNho.length}/${imgs.length} ảnh) tải từ nho/, rộng ≤ 640px`, () => bang(coNho.filter(im =>
+          !/\/images\/nho\//.test(im.currentSrc || im.src) || !im.naturalWidth || im.naturalWidth > 640)
           .map(im => (im.currentSrc || im.src).slice(-60) + ' w=' + im.naturalWidth), []))
         test('[sản phẩm] máy tính: lưới ≥ 3 cột', () => { if (soCot(T.id('productsGrid')) < 3) throw new Error(soCot(T.id('productsGrid')) + ' cột') })
       }

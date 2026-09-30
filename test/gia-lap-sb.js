@@ -45,6 +45,9 @@ function giaLapSb(w, bang) {
 // Dữ liệu mẫu dùng chung (ngày tính theo hôm nay để test không "hết hạn")
 function duLieuMau() {
   const ngay = n => new Date(Date.now() + n * 864e5).toLocaleDateString('sv-SE')
+  // Lùi n ngày nhưng KHÔNG lùi sang tháng trước: tab Chi phí mặc định xem tháng này → mấy ngày
+  // đầu tháng mà chi phí giả rơi sang tháng trước là test tổng tiền ra 0đ (lỗi thật 01/10/2026)
+  const ngayTrongThang = n => { const d = ngay(-n); return d.slice(0, 7) === ngay(0).slice(0, 7) ? d : ngay(0).slice(0, 8) + '01' }
   const IMG = 'https://oijcwborkebjpavzyisl.supabase.co/storage/v1/object/public/images/products/1784038764629_optw_p1_1.webp'
   const don = [
     [152, 'Chị Tuyền', '0908123456', 'Tulip', 1, 650000, 0, 'Q.1', 0, 'Mới', 'Người nhận: Lan · 0912345678\nGiờ giao: 16h\nKèm thiệp'],
@@ -67,9 +70,9 @@ function duLieuMau() {
     bang: {
       orders: don,
       expenses: [
-        { id: 1, expense_date: ngay(-1), category: 'Hoa', item: 'Hồng đỏ', quantity: 50, unit_price: 6000, amount: 300000, note: '', image: '' },
-        { id: 2, expense_date: ngay(-2), category: 'Phụ kiện', item: 'Giấy gói', quantity: 20, unit_price: 3000, amount: 60000, note: '', image: '' },
-        { id: 3, expense_date: ngay(-3), category: 'Vận chuyển', item: 'Grab', quantity: null, unit_price: null, amount: 40000, note: '', image: '' },
+        { id: 1, expense_date: ngayTrongThang(1), category: 'Hoa', item: 'Hồng đỏ', quantity: 50, unit_price: 6000, amount: 300000, note: '', image: '' },
+        { id: 2, expense_date: ngayTrongThang(2), category: 'Phụ kiện', item: 'Giấy gói', quantity: 20, unit_price: 3000, amount: 60000, note: '', image: '' },
+        { id: 3, expense_date: ngayTrongThang(3), category: 'Vận chuyển', item: 'Grab', quantity: null, unit_price: null, amount: 40000, note: '', image: '' },
       ],
       customers: [{ id: 152, name: 'Chị Tuyền', phone: '0908123456', address: 'Q.1', created_at: ngay(-30) },
         { id: 900, name: 'Phan Khánh Linh', phone: '0382705589', address: null, created_at: ngay(-2) }],   // chưa có đơn

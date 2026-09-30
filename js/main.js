@@ -808,10 +808,10 @@ async function loadContact() {
   setText('policyPayment',  contactInfo.policy_payment  || 'Liên hệ shop để biết thêm chi tiết.');
   setText('policyQuality',  contactInfo.policy_quality  || 'Liên hệ shop để biết thêm chi tiết.');
 
-  // Ảnh chính cụm hero — primeHero() đã hiện bản tạm; ở đây thay bản chính thức
-  // và nhớ URL vào máy để lần sau hiện ngay không chờ query
+  // Ảnh chính cụm hero — nhớ URL vào máy để lần sau primeHero() hiện ngay không chờ query.
+  // Shop chưa đặt ảnh nào thì mới dùng ảnh tĩnh trong repo.
+  _setHeroImg('heroBg', contactInfo.hero_image || 'images/og-cover.jpg');
   if (contactInfo.hero_image) {
-    _setHeroImg('heroBg', contactInfo.hero_image);
     try { localStorage.setItem('heroImageUrl', contactInfo.hero_image); } catch {}
   }
   // 2 ảnh phụ của cụm hero: ưu tiên ảnh admin chọn, bỏ trống thì lấy 2 ảnh đầu Gallery
@@ -1510,8 +1510,10 @@ function injectZaloIcons() {
   });
 }
 
-// Hero hiện NGAY không chờ query: lần đầu dùng ảnh tĩnh trong repo,
-// từ lần 2 dùng URL đã nhớ trong máy (localStorage) — dữ liệu thật tải về sẽ thay nếu đổi
+// Hero hiện NGAY không chờ query: từ lần 2 dùng URL đã nhớ trong máy (localStorage) — dữ liệu
+// thật tải về sẽ thay nếu đổi. Lần ĐẦU không đặt ảnh tạm nữa (01/10/2026): trước đây hiện
+// og-cover.jpg (238KB) rồi đổi sang ảnh thật → khách mới (đa số, bấm link từ Facebook/Zalo)
+// tải 2 ảnh nền và thấy ảnh nhảy. Giờ chờ ảnh thật trên nền xanh nhạt của .hero-card.
 function _setHeroImg(id, url) {
   const el = document.getElementById(id);
   if (!el || !url) return;
@@ -1521,7 +1523,7 @@ function _setHeroImg(id, url) {
 }
 function primeHero() {
   if (!document.getElementById('heroBg')) return;
-  _setHeroImg('heroBg', localStorage.getItem('heroImageUrl') || 'images/og-cover.jpg');
+  _setHeroImg('heroBg', localStorage.getItem('heroImageUrl'));
   _setHeroImg('heroSide1', localStorage.getItem('heroSide1Url'));
   _setHeroImg('heroSide2', localStorage.getItem('heroSide2Url'));
 }

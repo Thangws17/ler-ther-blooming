@@ -2,6 +2,20 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
+  <!-- Bảo mật (01/10/2026). GitHub Pages không cho đặt header nên dùng thẻ meta:
+       • noindex: Google không đưa trang quản trị lên kết quả tìm kiếm.
+       • CSP: trang này chỉ được nạp mã / gửi dữ liệu tới chính web + Supabase + thư viện đã khoá.
+         Lỡ có mã độc lọt vào, nó cũng không gửi được phiên đăng nhập / sổ khách ra máy chủ lạ.
+         'unsafe-inline' vì admin dùng onclick; 'unsafe-eval' vì trang test gọi eval() trong khung.
+         Thêm dịch vụ ngoài mới (ảnh, API…) thì phải thêm tên miền vào đây, không là bị chặn. -->
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://oijcwborkebjpavzyisl.supabase.co; connect-src 'self' https://oijcwborkebjpavzyisl.supabase.co wss://oijcwborkebjpavzyisl.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <script>
+    // Chặn web lạ nhúng trang quản trị vào khung ẩn để lừa bấm (clickjacking). Trang test cùng
+    // web vẫn nhúng được (cùng nguồn); khung khác nguồn đọc top.location sẽ lỗi → giấu trang.
+    try { if (window.top !== window.self && window.top.location.origin !== location.origin) throw 0 }
+    catch { document.documentElement.style.display = 'none' }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Lora:ital,wght@1,500&display=swap" rel="stylesheet">
@@ -1814,10 +1828,10 @@
           <div class="db-tool optimizer-box">
             <span class="db-tool-ic"><svg class="ic" aria-hidden="true"><use href="#i-zap"/></svg></span>
             <div class="db-tool-txt">
-              <strong>Tối ưu ảnh cũ</strong>
-              <p class="bk-mo-ta">Nén ảnh đã tải lên trước đây cho web nhanh hơn. Ảnh gốc vẫn giữ, chỉ cần bấm 1 lần.</p>
+              <strong>Tạo ảnh nhỏ cho ảnh cũ</strong>
+              <p class="bk-mo-ta">Ảnh đăng trước 01/10 chưa có bản nhỏ nên web khách tải chậm. Bấm 1 lần là xong, ảnh gốc vẫn giữ.</p>
             </div>
-            <button class="btn-outline" id="optimizeBtn" onclick="optimizeOldImages()">Bắt đầu tối ưu</button>
+            <button class="btn-outline" id="optimizeBtn" onclick="optimizeOldImages()">Bắt đầu</button>
             <div id="optimizeProgress" style="display:none;flex:1 1 100%;">
               <div class="progress-bar" style="height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden;">
                 <div id="optProgFill" style="height:100%;width:0;background:#2E7D32;transition:width .2s;"></div>
@@ -4180,12 +4194,10 @@ async function handleExpenseImageUpload(input) {
   const raw = input.files[0]
   if (!raw) return
   showToast('Đang tải ảnh lên…')
-  const file = await compressImage(raw)
-  const path = `expenses/${Date.now()}_${file.name.replace(/\s/g, '_')}`
-  const { error } = await sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })
   input.value = ''
-  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
-  const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
+  let publicUrl
+  try { publicUrl = await taiAnhLen('expenses', raw, { nho: false }) }
+  catch (error) { showToast('Lỗi: ' + error.message, 'error'); return }
   setExpenseImagePreview(publicUrl)
   showToast('Đã tải ảnh lên!')
 }
@@ -4668,12 +4680,8 @@ async function handleProductImagesUpload(input) {
   if (!files.length) return
   showToast('Đang upload…')
   for (const raw of files) {
-    const file = await compressImage(raw)
-    const path = `products/${Date.now()}_${file.name.replace(/\s/g, '_')}`
-    const { error } = await sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })
-    if (error) { showToast('Lỗi: ' + error.message, 'error'); continue }
-    const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
-    newImages.push(publicUrl)
+    try { newImages.push(await taiAnhLen('products', raw)) }
+    catch (error) { showToast('Lỗi: ' + error.message, 'error') }
   }
   input.value = ''
   renderProductImagesGrid()
@@ -5116,7 +5124,7 @@ async function bulkDeleteGallery() {
   // Xóa file trong kho trước, rồi mới xóa bản ghi — ngược lại sẽ mất đường dẫn file
   const paths = galleryItems
     .filter(ph => gallerySel.has(ph.id) && ph.url)
-    .map(ph => ph.url.replace(SUPABASE_URL + '/storage/v1/object/public/images/', ''))
+    .flatMap(ph => fileTrongKho(ph.url))
   if (paths.length) await sb.storage.from('images').remove(paths)
 
   const { error } = await sb.from('gallery').delete().in('id', ids)
@@ -5199,11 +5207,8 @@ async function handleGalleryUpload(files) {
   _justUploaded.clear()
   let done = 0
   for (const raw of Array.from(files)) {
-    const file = await compressImage(raw)
-    const path = `gallery/${Date.now()}_${file.name.replace(/\s/g, '_')}`
-    const { error } = await sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })
-    if (!error) {
-      const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
+    const publicUrl = await taiAnhLen('gallery', raw).catch(() => null)
+    if (publicUrl) {
       const { data: added } = await sb.from('gallery')
         .insert({ url: publicUrl, caption: '', category, order_index: nextOrder++ })
         .select('id').single()
@@ -5227,8 +5232,7 @@ async function deleteGalleryItem(id) {
   if (!(await askConfirm({ title: 'Xóa ảnh này?', message: 'Ảnh sẽ bị xóa khỏi Khoảnh khắc và kho lưu trữ.', okLabel: 'Xóa ảnh' }))) return
   const ph = galleryItems.find(x => x.id === id)
   if (ph?.url) {
-    const storagePath = ph.url.replace(SUPABASE_URL + '/storage/v1/object/public/images/', '')
-    await sb.storage.from('images').remove([storagePath])
+    await sb.storage.from('images').remove(fileTrongKho(ph.url))
   }
   if (!(await ghiDb(sb.from('gallery').delete().eq('id', id).select('id'), 'xoá ảnh'))) return
   showToast('Đã xóa ảnh')
@@ -5270,11 +5274,9 @@ async function handleHeroImageUpload(input, slot = 'main') {
   const raw = input.files[0]
   if (!raw) return
   showToast('Đang upload…')
-  const file = await compressImage(raw, 1920)  // hero nền to hơn chút
-  const path = `hero/${Date.now()}_${file.name.replace(/\s/g,'_')}`
-  const { error } = await sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })
-  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
-  const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
+  let publicUrl   // hero nền to hơn chút, luôn hiện cỡ lớn nên khỏi làm bản nhỏ
+  try { publicUrl = await taiAnhLen('hero', raw, { maxDim: 1920, nho: false }) }
+  catch (error) { showToast('Lỗi: ' + error.message, 'error'); return }
   setHeroImagePreview(publicUrl, slot)
   showToast('Upload ảnh hero thành công!')
 }
@@ -5551,27 +5553,69 @@ async function compressImage(file, maxDim = 1600, quality = 0.78) {
       const scale = maxDim / Math.max(w, h)
       w = Math.round(w * scale); h = Math.round(h * scale)
     }
-    const canvas = document.createElement('canvas')
-    canvas.width = w; canvas.height = h
-    canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h)
-    bitmap.close()
-    // WebP nhẹ hơn JPEG ~30-40%, mọi trình duyệt hiện nay đều đọc được;
-    // trình duyệt không xuất được WebP thì toBlob trả null → dùng JPEG
-    let blob = await new Promise(res => canvas.toBlob(res, 'image/webp', quality))
-    let ext = '.webp', type = 'image/webp'
-    if (!blob) {
-      blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality))
-      ext = '.jpg'; type = 'image/jpeg'
-    }
+    const blob = await veVaXuatAnh(bitmap, w, h, quality)
     if (!blob || blob.size >= file.size) return file   // nén không lợi → giữ gốc
-    const name = file.name.replace(/\.\w+$/, '') + ext
-    return new File([blob], name, { type })
+    const name = file.name.replace(/\.\w+$/, '') + (blob.type === 'image/webp' ? '.webp' : '.jpg')
+    return new File([blob], name, { type: blob.type })
   } catch { return file }  // trình duyệt cũ / ảnh lỗi → upload bản gốc
 }
 
-// Tối ưu 1 lần toàn bộ ảnh cũ: tải về → nén WebP → up lại (cache 1 năm) → cập nhật link.
-// Quét: ảnh đại diện SP + ẢNH PHỤ carousel (images[]) + gallery + hero trang chủ.
-// Ảnh gốc giữ nguyên (không xóa). Bỏ qua ảnh đã tối ưu WebP (link chứa "_optw_" / đuôi .webp).
+// Vẽ ảnh ra khung w×h rồi xuất WebP (nhẹ hơn JPEG ~30-40%), không được thì JPEG.
+// ⚠️ Safari/iPhone KHÔNG xuất được WebP: toBlob không trả null mà lặng lẽ trả PNG (nặng gấp
+// mấy lần ảnh gốc) → phải xét blob.type. Trước 01/10/2026 chỉ xét null nên mọi ảnh đăng từ
+// iPhone bị bỏ nén (PNG to hơn gốc → "giữ gốc"), có ảnh bìa lên tới 900KB.
+async function veVaXuatAnh(bitmap, w, h, quality) {
+  const canvas = document.createElement('canvas')
+  canvas.width = w; canvas.height = h
+  canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h)
+  bitmap.close()
+  let blob = await new Promise(res => canvas.toBlob(res, 'image/webp', quality))
+  if (!blob || blob.type !== 'image/webp') blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality))
+  return blob
+}
+
+// Bản NHỎ (rộng ANH_NHO_RONG, js/dungchung.js) cho thẻ / lưới ở web khách. null = ảnh vốn đã hẹp.
+async function taoAnhNho(file) {
+  const bitmap = await createImageBitmap(file)
+  const { width: w, height: h } = bitmap
+  if (w <= ANH_NHO_RONG) { bitmap.close(); return null }
+  return veVaXuatAnh(bitmap, ANH_NHO_RONG, Math.round(h * ANH_NHO_RONG / w), 0.8)
+}
+
+// Tên file an toàn cho kho ảnh: bỏ dấu, chỉ giữ chữ/số/._- (tên có dấu, ngoặc, emoji… có thể
+// bị Supabase từ chối "Invalid key")
+function tenFileAnh(name) {
+  return String(name || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D')
+    .replace(/[^\w.-]+/g, '_').replace(/_+/g, '_').slice(-80) || 'anh.jpg'
+}
+
+// Các file trong kho của 1 link ảnh (kèm bản nhỏ nếu có) — để xoá ảnh không bỏ sót bản nhỏ
+function fileTrongKho(url) {
+  const path = String(url).replace(SUPABASE_URL + '/storage/v1/object/public/images/', '')
+  return coAnhNhoTuLam(url) ? [path, 'nho/' + path] : [path]
+}
+
+// MỌI ảnh tải lên đi qua đây: nén → (ảnh lên web khách) làm thêm bản nhỏ ở nho/<đường dẫn> →
+// lên kho, cache 1 năm. Tên có bản nhỏ mang dấu "<giờ>n_" để anhNho() biết (js/dungchung.js).
+// Trả link công khai ảnh gốc; lỗi thì ném ra cho nơi gọi báo.
+//   nho: false  → ảnh không hiện thành lưới/thẻ (hoá đơn chi phí, ảnh nền trang chủ)
+//   nen: false  → ảnh đã nén sẵn (tạo bản nhỏ cho ảnh cũ) — khỏi nén lại cho đỡ mờ
+async function taiAnhLen(folder, raw, { maxDim = 1600, nho = true, nen = true } = {}) {
+  const file = nen ? await compressImage(raw, maxDim) : raw
+  let banNho = null
+  if (nho) { try { banNho = await taoAnhNho(file) } catch {} }
+  const kho = sb.storage.from('images')
+  const gio = Date.now(), ten = tenFileAnh(file.name)
+  let path = `${folder}/${gio}${banNho ? 'n' : ''}_${ten}`
+  if (banNho) {
+    const { error } = await kho.upload('nho/' + path, banNho, { cacheControl: '31536000', contentType: banNho.type })
+    if (error) path = `${folder}/${gio}_${ten}`   // bản nhỏ lỗi → vẫn lên ảnh gốc, web dùng ảnh gốc
+  }
+  const { error } = await kho.upload(path, file, { cacheControl: '31536000' })
+  if (error) throw error
+  return kho.getPublicUrl(path).data.publicUrl
+}
+
 // ── Bộ sưu tập (BST) ──────────────────────────────────────────────
 // BST thay danh mục ở phía khách xem web. Khác danh mục cũ ở 3 điểm:
 //   • 1 mẫu hoa nằm được NHIỀU BST (bảng nối collection_products)
@@ -5690,7 +5734,7 @@ function renderCollections() {
     return `
 <div class="bst-card${hien ? '' : ' off'}">
   ${c.cover_url
-    ? `<img class="bst-bia" src="${esc(c.cover_url)}" alt="" loading="lazy">`
+    ? `<img class="bst-bia" ${srcNho(c.cover_url, 400)} alt="" loading="lazy">`
     : `<div class="bst-bia bst-bia-trong" title="Chưa có ảnh bìa">${ic('img')}</div>`}
   <div class="bst-than">
     <div class="bst-ten">${esc(c.emoji || '🌸')} ${esc(c.name)}</div>
@@ -5848,15 +5892,11 @@ async function uploadBstCover(input) {
   if (!raw) return
   showToast('Đang tải ảnh lên…')
   try {
-    const file = await compressImage(raw)
-    const path = `collections/${Date.now()}_${file.name.replace(/\s/g, '_')}`
-    const { error } = await sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })
-    if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
-    _bstCover = sb.storage.from('images').getPublicUrl(path).data.publicUrl
+    _bstCover = await taiAnhLen('collections', raw)
     veBstCover()
     showToast('Đã đặt ảnh bìa!')
   } catch (err) {
-    showToast('Không đọc được ảnh: ' + (err?.message || err), 'error')
+    showToast('Lỗi tải ảnh: ' + (err?.message || err), 'error')
   }
 }
 
@@ -6161,91 +6201,81 @@ function veSaoLuuCuoi() {
   hop.classList.toggle('qua-han', quaHan)
 }
 
+// Tạo bản nhỏ cho ảnh CŨ — bấm 1 lần (01/10/2026). Ảnh Sản phẩm (chính + phụ), Khoảnh khắc, bìa
+// Bộ sưu tập chưa có dấu "<giờ>n_" → tải về → lên lại tên mới KÈM bản nhỏ (taiAnhLen) → đổi link.
+// Ảnh chưa từng nén (vd chụp từ iPhone, xem veVaXuatAnh) thì nén luôn; ảnh đã nén thì giữ nguyên
+// chất lượng. File cũ để nguyên trong kho → link cũ (ảnh gắn đơn hàng…) vẫn xem được.
+// Chạy lại chỉ làm ảnh còn thiếu; 1 link dùng ở nhiều chỗ chỉ tải lên 1 lần.
 async function optimizeOldImages() {
-  if (!(await askConfirm({ title: 'Tối ưu toàn bộ ảnh cũ?', message: 'Ảnh sẽ được nén sang WebP nhẹ hơn. Có thể mất vài phút — đừng đóng tab cho tới khi xong.', okLabel: 'Bắt đầu tối ưu', icon: '⚡' }))) return
+  if (!(await askConfirm({ title: 'Tạo ảnh nhỏ cho ảnh cũ?', message: 'Mỗi ảnh mẫu hoa, Khoảnh khắc, bìa bộ sưu tập sẽ có thêm 1 bản nhỏ để web khách tải nhanh hơn. Mất vài phút — đừng đóng tab cho tới khi xong.', okLabel: 'Bắt đầu', icon: '⚡' }))) return
   const btn  = document.getElementById('optimizeBtn')
   const box  = document.getElementById('optimizeProgress')
   const fill = document.getElementById('optProgFill')
   const text = document.getElementById('optProgText')
   btn.disabled = true; btn.textContent = 'Đang chạy…'
   box.style.display = 'block'
+  fill.style.width = '0'
   text.textContent = 'Đang lấy danh sách ảnh…'
 
-  const [{ data: prods }, { data: gals }, { data: contact }] = await Promise.all([
+  const [sp, kk, bst] = await Promise.all([
     sb.from('products').select('id,image,images'),
     sb.from('gallery').select('id,url'),
-    sb.from('contact').select('id,hero_image').eq('id', 1).single(),
+    sb.from('collections').select('id,cover_url'),
   ])
-  const needsOpt = u => !!u && u.includes('/images/') && !u.includes('_optw_') && !/\.webp(\?|$)/i.test(u)
-
-  let saved = 0
-  // Nén 1 URL → up bản mới → trả URL mới (ném lỗi nếu thất bại)
-  const optimizeUrl = async (url, folder, tag, maxDim = 1600) => {
-    const blob = await (await fetch(url)).blob()
-    const file = await compressImage(new File([blob], 'x.jpg', { type: blob.type || 'image/jpeg' }), maxDim)
-    const ext = file.type === 'image/webp' ? 'webp' : 'jpg'
-    const path = `${folder}/${Date.now()}_optw_${tag}.${ext}`
-    const { error } = await sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })
-    if (error) throw error
-    saved += Math.max(0, blob.size - file.size)
-    return sb.storage.from('images').getPublicUrl(path).data.publicUrl
+  if (sp.error || kk.error) {
+    text.textContent = 'Không đọc được danh sách ảnh: ' + (sp.error || kk.error).message
+    btn.disabled = false; btn.textContent = 'Thử lại'
+    return
   }
 
-  // Gom việc: mỗi việc = 1 URL cần nén + cách ghi link mới vào DB
-  const jobs = []
-  ;(prods || []).forEach(p => {
-    const urls = [...new Set([p.image, ...(p.images || [])])].filter(needsOpt)
-    urls.forEach((u, k) => jobs.push({
-      url: u, folder: 'products', tag: `p${p.id}_${k}`,
-      apply: async (newUrl) => {
-        const patch = {}
-        if (p.image === u) { patch.image = newUrl; p.image = newUrl }
-        if (Array.isArray(p.images) && p.images.includes(u)) {
-          p.images = p.images.map(x => x === u ? newUrl : x)
-          patch.images = p.images
-        }
-        const { error } = await sb.from('products').update(patch).eq('id', p.id)
-        if (error) throw error
-      },
-    }))
-  })
-  ;(gals || []).forEach(g => {
-    if (!needsOpt(g.url)) return
-    jobs.push({
-      url: g.url, folder: 'gallery', tag: `g${g.id}`,
-      apply: async (newUrl) => {
-        const { error } = await sb.from('gallery').update({ url: newUrl }).eq('id', g.id)
-        if (error) throw error
-      },
-    })
-  })
-  if (contact && needsOpt(contact.hero_image)) {
-    jobs.push({
-      url: contact.hero_image, folder: 'hero', tag: 'hero', maxDim: 1920,
-      apply: async (newUrl) => {
-        const { error } = await sb.from('contact').update({ hero_image: newUrl }).eq('id', 1)
-        if (error) throw error
-      },
-    })
+  // Ghi link mới; 0 dòng đổi (hết phiên đăng nhập) cũng tính là lỗi
+  const ghi = async q => {
+    const { data, error } = await q.select('id')
+    if (error || !data?.length) throw error || new Error('không đổi được dòng nào')
   }
+  const canLam = u => !!u && u.includes('/storage/v1/object/public/images/') && !u.includes('/images/expenses/') && !coAnhNhoTuLam(u)
+  const viec = new Map()   // link cũ → { folder, doi: [hàm ghi link mới] }
+  const them = (url, folder, doi) => {
+    if (!canLam(url)) return
+    if (!viec.has(url)) viec.set(url, { folder, doi: [] })
+    viec.get(url).doi.push(doi)
+  }
+  ;(sp.data || []).forEach(p => new Set([p.image, ...(p.images || [])]).forEach(u => them(u, 'products', moi => {
+    if (p.image === u) p.image = moi
+    if (Array.isArray(p.images)) p.images = p.images.map(x => x === u ? moi : x)
+    return ghi(sb.from('products').update({ image: p.image, images: p.images }).eq('id', p.id))
+  })))
+  ;(kk.data || []).forEach(g => them(g.url, 'gallery', moi => ghi(sb.from('gallery').update({ url: moi }).eq('id', g.id))))
+  ;(bst.data || []).forEach(c => them(c.cover_url, 'collections', moi => ghi(sb.from('collections').update({ cover_url: moi }).eq('id', c.id))))
 
-  if (!jobs.length) { text.textContent = 'Tất cả ảnh đã được tối ưu rồi'; btn.textContent = 'Đã tối ưu'; return }
+  if (!viec.size) {
+    fill.style.width = '100%'
+    text.textContent = 'Ảnh nào cũng đã có bản nhỏ rồi 🌸'
+    btn.textContent = 'Đã xong'
+    return
+  }
 
   let done = 0, ok = 0, fail = 0
-  for (const job of jobs) {
+  for (const [url, { folder, doi }] of viec) {
     try {
-      const newUrl = await optimizeUrl(job.url, job.folder, job.tag, job.maxDim)
-      await job.apply(newUrl)
+      const res = await fetch(url)
+      if (!res.ok) throw new Error('HTTP ' + res.status)
+      const blob = await res.blob()
+      const daNen = /_optw_|\.webp(\?|$)/i.test(url) && blob.size < 600 * 1024
+      const ten = decodeURIComponent(url.split('/').pop()).replace(/^\d{13}n?_/, '')
+      const moi = await taiAnhLen(folder, new File([blob], ten, { type: blob.type || 'image/jpeg' }), { nen: !daNen })
+      for (const d of doi) await d(moi)
       ok++
     } catch (e) { fail++ }
     done++
-    fill.style.width = `${Math.round(done / jobs.length * 100)}%`
-    text.textContent = `Đã xử lý ${done}/${jobs.length} · OK ${ok}${fail ? ' · lỗi ' + fail : ''} · tiết kiệm ~${(saved / 1048576).toFixed(1)}MB`
+    fill.style.width = `${Math.round(done / viec.size * 100)}%`
+    text.textContent = `Đã xử lý ${done}/${viec.size} ảnh · xong ${ok}${fail ? ' · lỗi ' + fail : ''}`
   }
   btn.disabled = false
-  btn.textContent = 'Tối ưu xong'
-  text.textContent = `Hoàn tất! ${ok}/${jobs.length} ảnh đã tối ưu, tiết kiệm ~${(saved / 1048576).toFixed(1)}MB.${fail ? ' ' + fail + ' ảnh lỗi (bỏ qua, ảnh gốc vẫn còn).' : ''} Tải lại web sẽ thấy nhanh hơn.`
-  showToast('Tối ưu ảnh xong!')
+  btn.textContent = fail ? 'Chạy lại ảnh lỗi' : 'Đã xong'
+  text.textContent = `Hoàn tất! ${ok}/${viec.size} ảnh đã có bản nhỏ.` +
+    (fail ? ` ${fail} ảnh lỗi (ảnh vẫn hiện bình thường) — bấm lại để thử tiếp.` : ' Web khách giờ tải ảnh nhẹ hơn nhiều.')
+  showToast(fail ? 'Xong, còn vài ảnh lỗi' : 'Đã tạo ảnh nhỏ xong!', fail ? 'error' : undefined)
 }
 
 // Mã đơn dễ đọc + định dạng tiền
@@ -6940,12 +6970,10 @@ async function handleOrderImageUpload(input, prefix) {
   const raw = input.files[0]
   if (!raw) return
   showToast('Đang tải ảnh lên…')
-  const file = await compressImage(raw)
-  const path = `gallery/${Date.now()}_${file.name.replace(/\s/g, '_')}`
-  const { error } = await sb.storage.from('images').upload(path, file, { cacheControl: '31536000' })
   input.value = ''
-  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
-  const { data: { publicUrl } } = sb.storage.from('images').getPublicUrl(path)
+  let publicUrl
+  try { publicUrl = await taiAnhLen('gallery', raw) }
+  catch (error) { showToast('Lỗi: ' + error.message, 'error'); return }
   setOrderImagePreview(prefix, publicUrl)
   // Ảnh mới → tự thêm vào Gallery (cuối danh sách)
   const { data: maxRow } = await sb.from('gallery').select('order_index').order('order_index', { ascending: false }).limit(1)
