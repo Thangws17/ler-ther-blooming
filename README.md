@@ -61,7 +61,8 @@ nào đọc tới, cũng không dòng dữ liệu nào trên Supabase trỏ về
 
 > ⚠️ GitHub Pages **không cho đặt HTTP header**, nên web hiện KHÔNG có `X-Frame-Options` /
 > `X-Content-Type-Options` / `Referrer-Policy`. Trước đây 2 file kia cũng đã không có tác dụng rồi.
-> Muốn có thật thì phải đổi hosting sang Cloudflare Pages hoặc Netlify.
+> Muốn có thật thì phải đổi hosting — nhưng shop đã chốt GIỮ GitHub Pages (29/09/2026): Netlify hết
+> credit miễn phí, Cloudflare ở nhà mạng VN lúc vào được lúc không. Đừng chuyển lại.
 
 ## 3. Chạy thử ở máy
 
