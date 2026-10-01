@@ -66,7 +66,7 @@ function tongKet() {
 }
 
 const dt = document.getElementById('dt')
-const WEB_THAT = 'thangws17.github.io'
+const WEB_THAT = 'lertherblooming.vn'
 
 ;(async function main() {
   await new Promise(res => {
@@ -85,7 +85,7 @@ const WEB_THAT = 'thangws17.github.io'
   nhom('1. Khi nào KHÔNG đếm')
   test('Chạy thử ở máy (localhost) → không đếm', () => bang(w.nenDoLuong('localhost'), false))
   test('Mở bằng địa chỉ IP (điện thoại cùng wifi) → không đếm', () => bang(w.nenDoLuong('192.127.89.102'), false))
-  test('Web thật trên GitHub Pages → có đếm', () => bang(w.nenDoLuong(WEB_THAT), true))
+  test('Web thật (tên miền riêng) → có đếm', () => bang(w.nenDoLuong(WEB_THAT), true))
   test('Máy đã đăng nhập admin (máy của shop) → không đếm', () => {
     w.localStorage.setItem('lt_mayCuaShop', '1')
     const kq = w.nenDoLuong(WEB_THAT)

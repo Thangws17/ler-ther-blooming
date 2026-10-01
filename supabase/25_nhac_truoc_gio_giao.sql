@@ -86,7 +86,7 @@ begin
       '⏰ ' || v_gio_txt || ' giao ' || v_ma || ' — ' || left(coalesce(r.product_name, 'đơn hoa'), 60) || ' (còn ' || v_con_txt || ')',
       -- tên khách / ghi chú do khách gõ trên web → phải lọc trước khi thành HTML email
       '<div style="font-family:inherit;font-size:15px;line-height:1.55;white-space:pre-wrap">' || html_esc(v_msg) || '</div>'
-      || '<p style="margin-top:18px"><a href="https://thangws17.github.io/ler-ther-blooming/admin/#Delivery" '
+      || '<p style="margin-top:18px"><a href="https://lertherblooming.vn/admin/#Delivery" '
       || 'style="background:#2E7D32;color:#fff;padding:10px 18px;border-radius:10px;text-decoration:none;font-weight:600">'
       || 'Mở Lịch giao</a></p>'
     );

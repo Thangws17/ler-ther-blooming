@@ -2,8 +2,8 @@
 
 Website giới thiệu hoa tươi **và** hệ thống quản lý đơn hàng (admin) của shop Ler & Ther Blooming.
 
-- 🌐 Web khách: <https://thangws17.github.io/ler-ther-blooming/>
-- 🔐 Trang quản lý: <https://thangws17.github.io/ler-ther-blooming/admin/> (đăng nhập email/mật khẩu Supabase)
+- 🌐 Web khách: <https://lertherblooming.vn/>
+- 🔐 Trang quản lý: <https://lertherblooming.vn/admin/> (đăng nhập email/mật khẩu Supabase)
 
 > Phần lớn đơn hàng do **shop tự nhập trong admin** (khách chốt qua Facebook/Zalo/Instagram rồi mới lên đơn).
 > Form đặt hàng trên web khách chỉ là một nguồn nhỏ — nên khi sửa gì về đơn hàng, **sửa cả 2 bên**.
@@ -141,7 +141,7 @@ Web chỉ đếm trên web thật; máy đã đăng nhập admin không bị đ�
 2. `git add` → `git commit` → `git push origin main`.
 3. Đợi ~1 phút, GitHub Pages tự cập nhật. Kiểm tra lại bản live:
    ```bash
-   curl --ssl-no-revoke -s https://thangws17.github.io/ler-ther-blooming/ | head
+   curl --ssl-no-revoke -s https://lertherblooming.vn/ | head
    ```
    (`--ssl-no-revoke` là do máy này hay lỗi kiểm tra chứng chỉ.)
 4. Ghi lại bản cập nhật: vào admin → tab **📝 Cập nhật**, hoặc chạy câu SQL `insert into changelog ...` trong Supabase — để Ler cùng đọc và góp ý.

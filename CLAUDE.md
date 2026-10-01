@@ -46,7 +46,7 @@ biết ngay. Không nối Supabase để ghi, chạy bao nhiêu lần cũng khô
 
 ```bash
 git push origin main                                     # deploy: GitHub Pages tự cập nhật sau ~1 phút
-curl --ssl-no-revoke -s https://thangws17.github.io/ler-ther-blooming/ | head   # verify bản live
+curl --ssl-no-revoke -s https://lertherblooming.vn/ | head   # verify bản live
 ```
 
 `--ssl-no-revoke` là bắt buộc — curl trên máy này lỗi kiểm tra thu hồi chứng chỉ.
@@ -149,12 +149,15 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
 - **3 trang đã đổi tên:** `dang-sau-nhung-bo-hoa` → `cau-chuyen`, `san-pham-chi-tiet` →
   `chi-tiet` (16/09/2026), `gallery` → `khoanh-khac` (23/09/2026). File tên cũ giờ là **trang chuyển hướng — đừng xoá**, link cũ trên Facebook/Zalo/Google
   còn trỏ vào. Chúng chuyển bằng JS trước để giữ `?id=` sản phẩm (meta refresh làm rơi mất).
-- **Khi có tên miền riêng**, địa chỉ `https://thangws17.github.io/ler-ther-blooming/` đang ghi cứng ở:
-  thẻ `og:image` (7 trang), thẻ `canonical` (6 trang), `sitemap.xml`, `robots.txt`, 3 trang chuyển
-  hướng, nút "Mở Lịch giao" trong mail nhắc (`supabase/25_nhac_truoc_gio_giao.sql`). Tìm hết bằng `grep -rn "thangws17.github.io" --include=*.html --include=*.xml --include=*.txt --include=*.sql .`
+- **Tên miền riêng `lertherblooming.vn` (01/10/2026)**: file `CNAME` ở gốc repo do GitHub tạo — **đừng xoá**
+  (xoá là mất tên miền). DNS ở PA Việt Nam: 4 bản ghi A `185.199.108–111.153` + `www` CNAME `thangws17.github.io`,
+  không proxy. Link cũ `thangws17.github.io/ler-ther-blooming/…` được GitHub tự chuyển 301 sang tên miền.
+  Địa chỉ tuyệt đối ghi cứng ở: thẻ `og:image` (7 trang), thẻ `canonical` (6 trang), `sitemap.xml`, `robots.txt`,
+  3 trang chuyển hướng, nút "Mở Lịch giao" trong mail nhắc (`supabase/25_nhac_truoc_gio_giao.sql`). Đổi tên miền lần
+  nữa: `grep -rn "lertherblooming.vn" --include=*.html --include=*.xml --include=*.txt --include=*.sql .`
   Trang `chi-tiet` cố ý **không** có canonical (canonical tĩnh sẽ gộp mọi sản phẩm thành một trang).
-  Lưu ý thêm: `robots.txt` chỉ có tác dụng ở GỐC tên miền — trên `github.io/ler-ther-blooming/` hiện
-  Google không đọc nó; có tên miền rồi thì nó mới có tác dụng.
+  `localStorage` theo từng tên miền → cờ `lt_mayCuaShop` / `lt_saoLuuCuoi` / phiên đăng nhập admin bên github.io
+  không mang sang; mỗi máy của shop phải đăng nhập admin lại 1 lần trên tên miền mới.
 - **`--vvh` và `--apph` là HAI thứ khác nhau, đừng gộp.** `--vvh` = chiều cao vùng nhìn thấy
   (co lại khi bàn phím mở, nhảy mỗi frame vì iOS bắn `visualViewport scroll` liên tục) → **chỉ**
   cho modal/toast. `--apph` = `window.innerHeight`, dùng cho chiều cao `#appWrap`. Từng cho

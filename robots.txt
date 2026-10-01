@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 
-Sitemap: https://thangws17.github.io/ler-ther-blooming/sitemap.xml
+Sitemap: https://lertherblooming.vn/sitemap.xml
