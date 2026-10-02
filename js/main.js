@@ -8,10 +8,8 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 // → js/dungchung.js (dùng chung với admin)
 
 // Giá hiển thị đẹp: "550000" / "550,000 đ" → "550.000đ"; giá dạng chữ ("Liên hệ") giữ nguyên
-function fmtPrice(raw) {
-  const n = parseInt(String(raw ?? '').replace(/[^\d]/g, ''), 10)
-  return n >= 1000 ? n.toLocaleString('vi-VN') + 'đ' : String(raw ?? '')
-}
+// Giá lưu dạng chữ tự do → hiển thị: dùng chung hienGia() (js/dungchung.js) với admin
+function fmtPrice(raw) { return hienGia(raw) }
 
 // ─── Nav ─────────────────────────────────────────────────
 function initNav() {
@@ -364,8 +362,9 @@ async function loadHeroPriceHint() {
   const { data } = await sb.from('products').select('price');
   if (!data?.length) return;
   // Giá lưu dạng text ("600,000 đ") → tách số, bỏ giá trị bất thường
+  // Lấy số ĐẦU TIÊN của mỗi giá ("Từ 300.000 - 500.000" → 300.000), không dồn mọi chữ số lại
   const nums = data
-    .map(p => parseInt(String(p.price ?? '').replace(/[^\d]/g, ''), 10))
+    .map(p => soGiaDau(p.price))
     .filter(n => n >= 1000);
   if (!nums.length) return;
   const min = Math.min(...nums);

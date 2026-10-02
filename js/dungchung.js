@@ -401,11 +401,14 @@ function tachCaption(desc) {
 //   thanhPhan / chuKhoa: chuỗi shop gõ, cách nhau bằng dấu phẩy (gõ · hay — cũng được).
 // Thành phần chỉ có 1 thứ thì thêm " ·" ở cuối — không có dấu · thì tachCaption không nhận ra là thành phần.
 function ghepCaption({ bietDanh = '', thanhPhan = '', chuKhoa = '', phuHop = '', them = '' } = {}) {
-  const tach = (s, dau) => String(s || '').split(dau).map(x => x.trim()).filter(Boolean)
-  const bd = String(bietDanh || '').trim().replace(/^[“"]+|[”"]+$/g, '').trim()
+  // Biệt danh / thành phần / cảm giác / phù hợp tặng mỗi thứ đúng 1 dòng: chữ dán vào có xuống dòng thì gộp lại
+  const dong1 = s => String(s || '').replace(/\s+/g, ' ').trim()
+  const tach = (s, dau) => dong1(s).split(dau).map(x => x.trim()).filter(Boolean)
+  const bd = dong1(bietDanh).replace(/^[“"]+|[”"]+$/g, '').trim()
   const tp = tach(thanhPhan, /[,·]/)
-  const ck = tach(String(chuKhoa || '').replace(/[.。]+\s*$/, ''), /[,—–]/)
-  const ph = String(phuHop || '').trim().replace(/^phù hợp tặng\s*/i, '').replace(/\.+$/, '').trim()
+  // cảm giác: dấu · cũng là dấu tách — để nguyên thì dòng này bị web đọc nhầm thành "thành phần"
+  const ck = tach(dong1(chuKhoa).replace(/[.。]+$/, ''), /[,—–·]/)
+  const ph = dong1(phuHop).replace(/^phù hợp tặng\s*/i, '').replace(/\.+$/, '').trim()
   const dong = []
   if (bd) dong.push(`“${bd}”`)
   if (tp.length) dong.push(tp.join(' · ') + (tp.length === 1 && bd ? ' ·' : ''))
@@ -414,6 +417,27 @@ function ghepCaption({ bietDanh = '', thanhPhan = '', chuKhoa = '', phuHop = '',
   const t = String(them || '').trim()
   if (t) dong.push(t)
   return dong.join('\n')
+}
+
+// ─── Hiển thị giá (giá lưu dạng CHỮ tự do) — dùng chung web + admin (03/10/2026) ─────
+//   "600000" / "600,000đ" / "600.000 đ"   → "600.000đ"
+//   "Từ 50000"                           → "Từ 50.000đ"  (trước: "50.000đ" — mất chữ "Từ")
+//   "Từ 300.000 - 500.000"               → giữ nguyên    (trước: dồn mọi chữ số thành "300.000.500.000đ")
+//   "Từ 2xx", "Liên hệ", "Liên hệ 0352…" → giữ nguyên   (số bắt đầu bằng 0 = SĐT, không phải tiền)
+function hienGia(raw) {
+  const s = String(raw ?? '').trim()
+  if (/^[\d.,\s]+(đ|d|vnđ|vnd)?$/i.test(s)) {            // chỉ là MỘT số tiền
+    const n = parseInt(s.replace(/\D/g, ''), 10)
+    return n >= 1000 ? n.toLocaleString('vi-VN') + 'đ' : s
+  }
+  // Có chữ: chỉ chấm hàng nghìn cho số TRẦN ≥ 4 chữ số (không bắt đầu bằng 0), chữ còn lại để nguyên
+  return s.replace(/(^|[^\d.,])([1-9]\d{3,})(?![\d.,a-zA-Z])(\s*(?:vnđ|đ))?/gi,
+    (_, truoc, so) => truoc + Number(so).toLocaleString('vi-VN') + 'đ')
+}
+// Số tiền ĐẦU TIÊN trong giá ("Từ 300.000 - 500.000" → 300000; "Từ 2xx" → 2) — để tìm giá thấp nhất
+function soGiaDau(raw) {
+  const m = String(raw ?? '').match(/(?:^|[^\d.,])([1-9][\d.,]*)/)   // số bắt đầu bằng 0 (SĐT) không tính
+  return m ? parseInt(m[1].replace(/\D/g, ''), 10) : NaN
 }
 
 // ─── Thông tin chung cho MỌI mẫu hoa (02/10/2026) ─────────────

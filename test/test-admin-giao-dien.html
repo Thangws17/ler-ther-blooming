@@ -340,6 +340,27 @@ function nutCoEmoji(goc) {
         bang(w.layProductBstChon(), [6, 7])
       })
       test('Nút trong form đều có tên', () => bang(nutThieuTen(id('modal')), []))
+      // ── Rà soát 03/10: tên dài, Enter, Esc, chọn ảnh từ Khoảnh khắc ──
+      const tenDai = 'Chiết xạ và phăng chùm hồng bó tone pastel cho người thương'
+      id('fName').value = tenDai; id('fName').dispatchEvent(new w.Event('input', { bubbles: true })); await cho(20)
+      test('Tên mẫu dài → ô tự xuống dòng, cao lên, KHÔNG bị cắt / tràn ngang', () => {
+        const o = id('fName')
+        if (o.scrollWidth > o.clientWidth + 1) throw new Error('tràn ngang ' + o.scrollWidth + '>' + o.clientWidth)
+        if (o.scrollHeight > o.clientHeight + 2) throw new Error('bị cắt dưới: ' + o.scrollHeight + '>' + o.clientHeight)
+        if (rong <= 400 && o.clientHeight < 50) throw new Error('điện thoại mà vẫn 1 dòng: cao ' + o.clientHeight)
+      })
+      const enterTen = new w.KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true, cancelable: true })
+      id('fName').dispatchEvent(enterTen)
+      test('Enter trong ô tên → không xuống dòng, không gửi form', () => bang([enterTen.defaultPrevented, id('modal').style.display], [true, 'flex']))
+      id('fName').value = '  Hoa   ly\n trắng  '
+      test('Tên dán vào có xuống dòng / thừa cách → lúc lưu gộp thành 1 dòng gọn', () => bang(w.motDong(id('fName').value), 'Hoa ly trắng'))
+      d.querySelector('#modal .spc-dong').click(); await cho(20)
+      d.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await cho(20)
+      test('Esc khi đang mở bảng bộ sưu tập → chỉ đóng bảng, form vẫn mở', () =>
+        bang([getComputedStyle(id('fBstSheet')).display, id('modal').style.display], ['none', 'flex']))
+      id('modal').dataset.dirty = ''
+      w.selectGalleryImage('https://example.com/tu-khoanh-khac.webp'); await cho(20)
+      test('Chọn ảnh từ Khoảnh khắc → tính là đang nhập dở (✕ sẽ hỏi lại, không mất ảnh)', () => bang(id('modal').dataset.dirty, '1'))
       id('modal').dataset.dirty = ''; w.closeModal()
 
       for (let i = 0; i < MO_TA.length; i++) {
@@ -361,11 +382,57 @@ function nutCoEmoji(goc) {
         bang(id('modal').style.display, 'flex')
       })
       oTp.value = 'lá bạc, ruy băng,'; oTp.dispatchEvent(new w.Event('input', { bubbles: true }))
-      test('Gõ/dán nhiều thứ cách nhau dấu phẩy → tách thành nhiều viên (bàn phím Android)', () =>
-        bang(vien(), ['Hồng chiết xạ', 'giấy trắng', 'nơ hồng', 'lá bạc', 'ruy băng']))
+      test('Đang gõ có dấu phẩy → CHƯA thành viên (không đụng vào ô đang gõ)', () => {
+        bang(vien(), ['Hồng chiết xạ', 'giấy trắng', 'nơ hồng']); bang(oTp.value, 'lá bạc, ruy băng,')
+      })
+      test('Ô có chữ → hiện nút "Thêm"', () => bang(getComputedStyle(d.querySelector('#spcTp .spc-tp-nut')).display !== 'none', true))
+      d.querySelector('#spcTp .spc-tp-nut').click(); await cho(20)
+      test('Bấm "Thêm" → tách theo dấu phẩy thành nhiều viên, ô trống lại, nút "Thêm" ẩn', () => {
+        bang(vien(), ['Hồng chiết xạ', 'giấy trắng', 'nơ hồng', 'lá bạc', 'ruy băng'])
+        bang(oTp.value, '')
+        bang(getComputedStyle(d.querySelector('#spcTp .spc-tp-nut')).display, 'none')
+      })
       d.querySelectorAll('#spcTp .spc-tp-v button')[1].click(); await cho(20)
       test('Bấm × trên viên → bỏ viên đó', () => bang(id('fThanhPhan').value, 'Hồng chiết xạ, nơ hồng, lá bạc, ruy băng'))
       test('Bấm × là tính đang nhập dở', () => bang(id('modal').dataset.dirty, '1'))
+      // Lỗi thật 03/10/2026: bộ gõ Unikey/EVKey sửa dấu bằng cách TỰ GỬI phím xoá. Gõ "ngot" + Enter → ô trống,
+      // bộ gõ vẫn nhớ chữ cũ, gõ tiếp dấu nặng → nó gửi 4 phím xoá vào ô TRỐNG → từng làm mất sạch các viên.
+      const truocUnikey = vien()
+      oTp.value = 'ngot'; oTp.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }))
+      const sauEnter = vien()
+      for (let k = 0; k < 6; k++) oTp.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }))
+      oTp.value = 'ngọt'
+      test('Bộ gõ tiếng Việt gửi phím xoá vào ô trống → KHÔNG mất viên nào (lỗi thật 03/10)', () => {
+        bang(sauEnter, truocUnikey.concat('ngot'))
+        bang(vien(), sauEnter)
+      })
+      d.querySelectorAll('#spcTp .spc-tp-v button')[sauEnter.length - 1].click(); await cho(20)
+      oTp.value = ''
+      // Lỗi thật thứ 2 (03/10/2026): gõ "Thắng" (Telex: T h a w n g s) ra 6 viên "Tha", "ăng", "ắng"…
+      // Giả lập đúng chuỗi phím Unikey/EVKey gửi: mỗi lần sửa dấu = phím xoá + (bản sửa lỗi Chrome) ký tự tạm,
+      // có cả dấu phẩy / dấu chấm giữa giả, rồi rời ô. Không viên nào được sinh ra, ô giữ đủ chữ "Thắng".
+      const truocThang = vien()
+      const phim = k => oTp.dispatchEvent(new w.KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true }))
+      const go = v => { oTp.value = v; oTp.dispatchEvent(new w.Event('input', { bubbles: true })) }
+      oTp.focus()
+      for (const [k, v] of [['T', 'T'], ['h', 'Th'], ['a', 'Tha'], [',', 'Tha,'], ['Backspace', 'Tha'], ['Backspace', 'Th'],
+                            ['ă', 'Thă'], ['n', 'Thăn'], ['g', 'Thăng'], ['·', 'Thăng·'], ['Backspace', 'Thăng'],
+                            ['Backspace', 'Thăn'], ['Backspace', 'Thă'], ['Backspace', 'Th'], ['ắ', 'Thắ'], ['n', 'Thắn'], ['g', 'Thắng']]) {
+        phim(k); go(v)
+      }
+      oTp.blur(); oTp.dispatchEvent(new w.Event('blur')); await cho(20)
+      test('Gõ "Thắng" bằng bộ gõ tiếng Việt (phím xoá, ký tự tạm, rời ô) → KHÔNG sinh viên nào, ô giữ "Thắng" (lỗi thật 03/10)', () => {
+        bang(vien(), truocThang); bang(oTp.value, 'Thắng')
+      })
+      oTp.focus(); phim('Enter'); await cho(20)
+      test('Gõ xong nhấn Enter → đúng 1 viên "Thắng"', () => bang(vien(), truocThang.concat('Thắng')))
+      d.querySelectorAll('#spcTp .spc-tp-v button')[truocThang.length].click(); await cho(20)
+      test('Enter lúc bộ gõ đang ghép chữ → không thành viên', () => {
+        oTp.value = 'Thắ'
+        oTp.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', isComposing: true, bubbles: true, cancelable: true }))
+        bang(vien(), truocThang)
+      })
+      oTp.value = ''
       oTp.value = 'thiệp'
       test('Chữ gõ dở chưa Enter vẫn được lưu', () =>
         bang(w.spMoTaGhep().split('\n')[1], 'Hồng chiết xạ · nơ hồng · lá bạc · ruy băng · thiệp'))

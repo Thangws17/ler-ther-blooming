@@ -137,7 +137,9 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
 - **Viết hàm tiện ích bằng `function`, đừng `const ten = () => …`.** `const`/`let` ở phạm vi gốc
   KHÔNG nằm trong `window`, nên trang test (chạy admin trong iframe) gọi không tới. Cần đặt
   giá trị cho biến `let` từ test thì phải dùng `khung.eval('ten = …')`, gán thẳng là vô tác dụng.
-- **Giá sản phẩm lưu dạng TEXT** (`"600,000đ"`, `"Liên hệ"`, `"Từ 2xx (Theo size order)"`) — luôn qua `fmtPrice()`, đừng coi là số.
+- **Giá sản phẩm lưu dạng TEXT** (`"600,000đ"`, `"Liên hệ"`, `"Từ 2xx (Theo size order)"`) — luôn qua `fmtPrice()` (web) /
+  `fmtPriceText()` (admin), cả hai gọi **`hienGia()`** trong dungchung.js; đừng coi là số. Trước 03/10 hai hàm đó dồn MỌI chữ số
+  lại: "Từ 50000" → "50.000đ" (mất "Từ"), "Từ 300.000 - 500.000" → "300.000.500.000đ". Giá thấp nhất trang chủ dùng `soGiaDau()`.
 - **`data/*.json`, `admin/config.yml`, `images/uploads/`, `demo-*.html` đã bị xoá** (16/09/2026) — di sản Decap CMS và bản nháp, không còn trong repo. Đừng tạo lại.
 - **Không đặt được HTTP header trên GitHub Pages.** `_headers`/`netlify.toml` đã xoá vì GH Pages không đọc (đã kiểm: bản live không trả về `X-Frame-Options`). Đừng tạo lại — muốn có header bảo mật thật thì phải đổi hosting.
 - **Chạy local bằng `python serve.py`, KHÔNG dùng `python -m http.server`.** Web bỏ đuôi `.html` trong
@@ -296,6 +298,11 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
   bẫy "2 đồng" với `place_order`. Form Thêm đơn (`no`) và Sửa đơn (`oe`) dùng CHUNG bộ chọn
   `showProdSuggest(k)` / `pickProduct(id, k)` / `renderPickedProduct(p, k)` — thêm ô ở form này thì thêm cả form kia.
   Sửa đơn: chọn mẫu giá chữ thì GIỮ giá đã chốt; `oeProductPick` giữ `product_id` cũ kể cả khi danh sách mẫu chưa tải.
+- **Bộ gõ tiếng Việt (Unikey/EVKey) TỰ GỬI chuỗi phím giả để sửa dấu** (phím xoá, bản "sửa lỗi Chrome" còn kèm ký tự tạm).
+  2 lỗi thật 03/10/2026 ở ô thành phần form Sản phẩm: (1) "Backspace ở ô trống = xoá viên cuối" → mất sạch các viên;
+  (2) "gõ dấu phẩy / ô có dấu phẩy / rời ô = tự thành viên" → gõ "Thắng" ra 6 viên "Tha", "ăng", "ắng"… Luật: **trong lúc
+  người dùng đang gõ, KHÔNG làm trống / ghi đè / tách ô đó, KHÔNG gắn hành động xoá vào phím xoá.** Chỉ hành động chủ ý
+  (Enter không đang ghép chữ — `!e.isComposing`, hoặc bấm nút) mới được chốt. Test 10b giả lập đúng chuỗi phím bộ gõ.
 - **Đừng đặt `position: sticky` cho phần tử nằm TRONG `.content`.** `.content` là khung cuộn;
   sticky bên trong khung cuộn là chỗ iOS vẽ sai toạ độ → thấy phần tử nhưng bấm không trúng.
   `.admin-topbar` vì vậy là anh em của `.content`, không phải con.

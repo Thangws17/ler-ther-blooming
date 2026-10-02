@@ -333,6 +333,19 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
         ['truck', 'camera', 'card', 'gift', 'leaf'])
       bang([w.dongThongTinChung(''), w.dongThongTinChung(' a \n\n b ')], [[], ['a', 'b']])
     })
+    test('Giá hiển thị: giữ chữ "Từ", không dồn chữ số, SĐT không thành tiền (lỗi thật 03/10)', () => {
+      const vao = ['600000', '600,000đ', '600.000 đ', 'Từ 50000', 'Từ 450000đ', 'Từ 300.000 - 500.000', 'Từ 2xx (Theo size order)',
+                   'Từ 3xx', 'Liên hệ', 'Liên hệ 0352512391', '500', '', null]
+      bang(vao.map(w.hienGia), ['600.000đ', '600.000đ', '600.000đ', 'Từ 50.000đ', 'Từ 450.000đ', 'Từ 300.000 - 500.000',
+                                'Từ 2xx (Theo size order)', 'Từ 3xx', 'Liên hệ', 'Liên hệ 0352512391', '500', '', ''])
+      bang(['Từ 300.000 - 500.000', '600,000đ', 'Từ 2xx', 'Liên hệ 0352512391', 'Từ 50000'].map(w.soGiaDau), [300000, 600000, 2, NaN, 50000])
+    })
+    test('Ghép mô tả: dòng dán vào được gộp, dấu · trong "cảm giác" không làm hỏng khuôn', () => {
+      const m = w.ghepCaption({ bietDanh: ' Nắng\nsớm ', thanhPhan: 'hồng, cúc', chuKhoa: 'Ngọt · dịu,\n trong trẻo.' })
+      bang(m, '“Nắng sớm”\nhồng · cúc\nNgọt — dịu — trong trẻo.')
+      const c = w.tachCaption(m)
+      bang([c.bietDanh, c.thanhPhan, c.chuKhoa], ['Nắng sớm', ['hồng', 'cúc'], 'Ngọt — dịu — trong trẻo.'])
+    })
     test('Mục gợi ý có tiêu đề đúng (không còn "cùng danh mục")', () => {
       const h = d.querySelector('#relatedSection h2').textContent
       if (!['Cùng bộ sưu tập', 'Có thể bạn cũng thích'].includes(h)) throw new Error(h)

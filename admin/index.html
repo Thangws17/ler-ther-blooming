@@ -692,7 +692,7 @@
     .ttc-them .ic { width: 16px; height: 16px; }
     .ttc-xem { margin-top: 14px; background: #f6f8f6; border-radius: 12px; padding: 10px 12px; }
     .ttc-xem > b { display: block; font-size: .72rem; letter-spacing: .04em; text-transform: uppercase; color: #9aa79a; margin-bottom: 6px; }
-    #ttcXem > div { display: flex; gap: 8px; align-items: center; font-size: .86rem; color: #4d5d4c; padding: 3px 0; }
+    #ttcXem > div { overflow-wrap: anywhere; display: flex; gap: 8px; align-items: center; font-size: .86rem; color: #4d5d4c; padding: 3px 0; }
     .ttc-xem .ic { width: 15px; height: 15px; color: #2E7D32; }
     .ttc-xem-trong { font-size: .84rem; color: #9aa79a; }
 
@@ -727,6 +727,7 @@
     .spc .spc-o:hover { border-bottom-color: #dfe5de; }
     .spc .spc-o:focus { border-bottom-color: #2E7D32; background: none; box-shadow: none; }
     .spc .spc-o::placeholder { color: #aab5a9; font-weight: 400; }
+    .spc .spc-dong1 { resize: none; overflow: hidden; line-height: 1.35; min-height: 0; }
     .spc-dau { display: flex; align-items: flex-start; gap: 6px; }
     .spc .spc-ten { flex: 1; min-width: 0; font-family: 'Nunito', 'Be Vietnam Pro', sans-serif; font-size: 1.4rem; font-weight: 700; line-height: 1.3; }
     .spc-sao { flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; border: 0; background: none; color: #c3ccc2;
@@ -746,15 +747,20 @@
     #fPriceChipsWrap .price-chip { padding: 5px 12px; font-size: .78rem; }
     .spc-ke { border-top: 1px solid #e3e8e2; margin: 14px 0 12px; }
     .spc-tp { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; cursor: text; }
-    .spc-tp-v { display: inline-flex; align-items: center; gap: 2px; background: #E8F5E9; color: #2E7D32; border-radius: 999px;
+    .spc-tp-v { max-width: 100%; overflow-wrap: anywhere; display: inline-flex; align-items: center; gap: 2px; background: #E8F5E9; color: #2E7D32; border-radius: 999px;
                 padding: 5px 4px 5px 12px; font-size: .86rem; font-weight: 600; }
     .spc-tp-v button { width: 22px; height: 22px; border-radius: 50%; border: 0; background: none; color: #7a9879; display: grid;
                        place-items: center; cursor: pointer; padding: 0; }
     .spc-tp-v button:hover { background: #d5ead6; color: #2E7D32; }
     .spc-tp-v .ic { width: 12px; height: 12px; stroke-width: 2.5; }
-    .spc .spc-tp-o { flex: 1 1 190px; min-width: 150px; width: auto; height: 34px; border: 1px dashed #b9c6b8; border-radius: 999px;
-                     padding: 0 14px; font: inherit; font-size: .86rem; background: none; outline: 0; box-shadow: none; }
+    .spc-tp-go { position: relative; flex: 1 1 190px; min-width: 150px; display: flex; }
+    .spc .spc-tp-o { flex: 1; min-width: 0; width: 100%; height: 34px; border: 1px dashed #b9c6b8; border-radius: 999px;
+                     padding: 0 70px 0 14px; font: inherit; font-size: .86rem; background: none; outline: 0; box-shadow: none; }
     .spc .spc-tp-o:focus { border-color: #2E7D32; border-style: solid; }
+    /* Nút "Thêm" chỉ hiện khi ô có chữ (placeholder đang hiện = ô trống) */
+    .spc-tp-nut { position: absolute; right: 3px; top: 3px; height: 28px; padding: 0 12px; border: 0; border-radius: 999px;
+                  background: #2E7D32; color: #fff; font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; }
+    .spc-tp-o:placeholder-shown + .spc-tp-nut { display: none; }
     .spc .spc-kw { font-style: italic; color: #5d6b5c; margin-top: 10px; font-size: .95rem; }
     #fMoTaNhac, #fMoTaCu { margin: 8px 0 0; color: #B26A00; }
     .spc-dong { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 18px; padding: 11px 12px; border: 1px solid #dfe5de;
@@ -2352,7 +2358,7 @@
     </div>
     <form id="productForm" onsubmit="saveProduct(event)">
       <input type="hidden" id="productId">
-      <div class="modal-body spc" oninput="spMoTaNhac()">
+      <div class="modal-body spc" oninput="spMoTaNhac(); spTuCao(event.target)" onkeydown="spMotDong(event)">
         <!-- Ảnh: ảnh to = ảnh chính (newImages[0]); bấm ảnh nhỏ = đưa lên làm ảnh chính -->
         <div class="spc-anh" id="spcAnhTo"></div>
         <div class="spc-tn">
@@ -2362,13 +2368,15 @@
           <input type="file" id="productImgInput" accept="image/*" multiple style="display:none" onchange="handleProductImagesUpload(this)">
         </div>
 
+        <!-- Tên / biệt danh / cảm giác là textarea 1 dòng TỰ CAO (spTuCao): tên dài trên điện thoại không bị cắt.
+             Enter không xuống dòng (spMotDong); chữ xuống dòng do dán vào được gộp thành 1 dòng lúc Lưu. -->
         <div class="spc-dau">
-          <input type="text" id="fName" class="spc-o spc-ten" required placeholder="Tên mẫu hoa *" aria-label="Tên mẫu hoa" autocomplete="off">
+          <textarea id="fName" class="spc-o spc-ten spc-dong1" rows="1" required placeholder="Tên mẫu hoa *" aria-label="Tên mẫu hoa" autocomplete="off"></textarea>
           <!-- Ngôi sao = hiện ở trang chủ. Giá trị thật vẫn là ô tick fFeatured (ẩn) như cũ -->
           <button type="button" id="fSao" class="spc-sao" onclick="spDoiSao()" aria-pressed="false" aria-label="Hiện ở trang chủ" title="Hiện ở trang chủ (trang chủ có 4 ô)"><svg class="ic" aria-hidden="true"><use href="#i-star"/></svg></button>
           <input type="checkbox" id="fFeatured" hidden>
         </div>
-        <input type="text" id="fNick" class="spc-o spc-nick" maxlength="60" autocomplete="off" placeholder="Biệt danh, hiện nghiêng dưới tên" aria-label="Biệt danh">
+        <textarea id="fNick" class="spc-o spc-nick spc-dong1" rows="1" maxlength="60" autocomplete="off" placeholder="Biệt danh, hiện nghiêng dưới tên" aria-label="Biệt danh"></textarea>
 
         <!-- Gõ số trần, dấu chấm hàng nghìn tự chèn. Vẫn gõ chữ được (vd "Từ 3xx", "Liên hệ") —
              trên điện thoại bấm "Gõ chữ" để đổi sang bàn phím có chữ. -->
@@ -2384,13 +2392,17 @@
         <div id="fPriceChipsWrap" style="display:none"><div id="fPriceChips" class="price-chips" onmousedown="event.preventDefault()"></div></div>
 
         <div class="spc-ke"></div>
-        <!-- Thành phần: viên nhỏ như web. Giá trị thật nằm ở ô ẩn fThanhPhan ("a, b, c") -->
+        <!-- Thành phần: viên nhỏ như web. Giá trị thật nằm ở ô ẩn fThanhPhan ("a, b, c").
+             Ô gõ là ô chữ BÌNH THƯỜNG: chỉ thành viên khi nhấn Enter / bấm "Thêm" (xem spTpPhim — bẫy bộ gõ tiếng Việt). -->
         <div class="spc-tp" id="spcTp" onclick="if(event.target===this)document.getElementById('spcTpO').focus()">
-          <input type="text" id="spcTpO" class="spc-tp-o" autocomplete="off" placeholder="＋ Thành phần, gõ xong Enter" aria-label="Thêm thành phần"
-                 onkeydown="spTpPhim(event)" oninput="if(/[,·]/.test(this.value))spTpThem()" onblur="spTpThem()">
+          <span class="spc-tp-go">
+            <input type="text" id="spcTpO" class="spc-tp-o" autocomplete="off" placeholder="＋ Thành phần, gõ xong Enter" aria-label="Thêm thành phần"
+                   onkeydown="spTpPhim(event)">
+            <button type="button" class="spc-tp-nut" onmousedown="event.preventDefault()" onclick="spTpThem()">Thêm</button>
+          </span>
         </div>
         <input type="hidden" id="fThanhPhan">
-        <input type="text" id="fChuKhoa" class="spc-o spc-kw" autocomplete="off" placeholder="Cảm giác: ngọt ngào, tinh tế, rất ăn ảnh" aria-label="Cảm giác">
+        <textarea id="fChuKhoa" class="spc-o spc-kw spc-dong1" rows="1" autocomplete="off" placeholder="Cảm giác: ngọt ngào, tinh tế, rất ăn ảnh" aria-label="Cảm giác"></textarea>
         <div class="upload-hint" id="fMoTaCu" style="display:none"></div>
         <div class="upload-hint" id="fMoTaNhac" style="display:none">Chưa có biệt danh nên web hiện mô tả thành chữ thường, không chia viên nhỏ.</div>
 
@@ -3340,6 +3352,9 @@ function initModalGuards() {
     // Xem phóng to ảnh (tạo động) → đóng trước
     const viewer = document.querySelector('.img-viewer')
     if (viewer) { viewer.remove(); return }
+    // Bảng chọn bộ sưu tập trong form Sản phẩm → chỉ đóng bảng, không đóng cả form
+    const bstSheet = document.getElementById('fBstSheet')
+    if (bstSheet && bstSheet.classList.contains('mo')) { spDongBst(); return }
     // Gom mọi lớp phủ đang mở, chọn cái z-index cao nhất (trên cùng)
     const opens = [...document.querySelectorAll('.modal-overlay'), document.getElementById('galleryPicker')]
       .filter(m => m && m.style.display !== 'none')
@@ -4843,7 +4858,22 @@ function openModal(id = null) {
   spVeBstTom()
   spDongBst()
   document.getElementById('modal').style.display = 'flex'
+  document.querySelectorAll('#modal .spc-dong1').forEach(spTuCao)   // đo SAU khi hiện (ẩn thì chiều cao = 0)
 }
+
+// Tên / biệt danh / cảm giác: textarea 1 dòng TỰ CAO theo chữ (tên dài trên điện thoại không bị cắt).
+// Chỉ đổi chiều cao, KHÔNG đụng vào chữ đang gõ (bẫy bộ gõ tiếng Việt).
+function spTuCao(el) {
+  if (!el || !el.classList || !el.classList.contains('spc-dong1')) return
+  el.style.height = 'auto'
+  el.style.height = el.scrollHeight + 'px'
+}
+// Enter trong 3 ô đó không xuống dòng (web hiện 1 dòng). Đang ghép chữ (bộ gõ có khung ghép) thì để yên.
+function spMotDong(e) {
+  if (e.key === 'Enter' && e.target.classList?.contains('spc-dong1') && !e.isComposing && e.keyCode !== 229) e.preventDefault()
+}
+// Chữ dán vào có xuống dòng → gộp thành 1 dòng (chỉ làm lúc LƯU, không làm lúc đang gõ)
+function motDong(s) { return String(s ?? '').replace(/\s+/g, ' ').trim() }
 
 // Ngôi sao cạnh tên = "Hiện ở trang chủ" (ô tick fFeatured ẩn giữ giá trị thật)
 function spDoiSao() {
@@ -4884,8 +4914,9 @@ function spTpDs() {
 function spTpVe() {
   const hop = document.getElementById('spcTp'), o = document.getElementById('spcTpO')
   hop.querySelectorAll('.spc-tp-v').forEach(v => v.remove())
-  o.insertAdjacentHTML('beforebegin', spTpDs().map((t, i) =>
-    `<span class="spc-tp-v">${esc(t)}<button type="button" onclick="spTpBo(${i})" aria-label="Bỏ ${esc(t)}" title="Bỏ">${ic('x')}</button></span>`).join(''))
+  o.parentElement.insertAdjacentHTML('beforebegin', spTpDs().map((t, i) =>
+    // mousedown chặn mặc định: bấm × không làm ô gõ mất focus (đang gõ dở vẫn giữ nguyên chữ)
+    `<span class="spc-tp-v">${esc(t)}<button type="button" onmousedown="event.preventDefault()" onclick="spTpBo(${i})" aria-label="Bỏ ${esc(t)}" title="Bỏ">${ic('x')}</button></span>`).join(''))
   o.placeholder = spTpDs().length ? '＋ thêm' : '＋ Thành phần, gõ xong Enter'
 }
 function spTpDat(ds) {
@@ -4894,7 +4925,7 @@ function spTpDat(ds) {
   spTpVe(); spMoTaNhac(); danhDauDangNhap(o)
 }
 function spTpBo(i) { const ds = spTpDs(); ds.splice(i, 1); spTpDat(ds) }
-// Gõ xong Enter / dấu phẩy = thành 1 viên. Gõ nhiều thứ cách nhau dấu phẩy rồi dán vào cũng tách đúng.
+// Nhấn Enter / bấm "Thêm" = thành viên. Gõ nhiều thứ cách nhau dấu phẩy rồi Enter cũng tách đúng.
 function spTpThem() {
   const o = document.getElementById('spcTpO')
   const moi = o.value.split(/[,·]/).map(s => s.trim()).filter(Boolean)
@@ -4903,13 +4934,18 @@ function spTpThem() {
   spTpDat(spTpDs().concat(moi))
   return true
 }
+// ⚠️ Bẫy bộ gõ tiếng Việt (2 lỗi thật 03/10/2026). Unikey/EVKey sửa dấu bằng cách TỰ GỬI chuỗi phím giả
+// (phím xoá, có bản kèm ký tự tạm để né gợi ý của Chrome) vào ô đang gõ:
+//  1. "Backspace ở ô trống = xoá viên cuối" → phím xoá giả xoá mất sạch các viên.
+//  2. "Gõ dấu phẩy / ô có dấu phẩy = tự thành viên" + "rời ô = tự thành viên" → chốt NỬA CHỮ thành viên rồi làm
+//     trống ô giữa lúc bộ gõ đang sửa → gõ "Thắng" ra 6 viên "Tha", "ăng", "ắng"…
+// Nên: trong lúc gõ KHÔNG đụng vào ô. Chỉ Enter (người bấm thật, bộ gõ không gửi) hoặc nút "Thêm" mới thành viên.
+// Chữ gõ dở chưa Enter vẫn được lưu (spMoTaGhep gọi spTpThem lúc bấm Lưu).
 function spTpPhim(e) {
-  const o = e.target
-  if (e.key === 'Enter' || e.key === ',') {   // Enter trong form mặc định là GỬI form → chặn
-    e.preventDefault(); spTpThem()
-  } else if (e.key === 'Backspace' && !o.value) {
-    const ds = spTpDs(); if (ds.length) { ds.pop(); spTpDat(ds) }
-  }
+  if (e.key !== 'Enter' && e.keyCode !== 13) return
+  if (e.isComposing || e.keyCode === 229) return   // đang ghép chữ (bộ gõ có khung ghép) → Enter chỉ để chốt chữ
+  e.preventDefault()                               // Enter trong form mặc định là GỬI form → chặn
+  spTpThem()
 }
 
 // ── Bảng trượt chọn bộ sưu tập ──
@@ -4944,7 +4980,7 @@ function spMoTaDien(desc) {
 
 function spMoTaGhep() {
   spTpThem()                                       // chữ đang gõ dở ở ô thành phần (chưa Enter) cũng tính
-  const v = id => document.getElementById(id).value.trim()
+  const v = id => motDong(document.getElementById(id).value)
   const g = _spMoTaGiu
   if (g.cu && !v('fNick') && !v('fThanhPhan') && !v('fChuKhoa')) return g.cu   // không đụng tới → giữ nguyên chữ cũ
   return ghepCaption({ bietDanh: v('fNick'), thanhPhan: v('fThanhPhan'), chuKhoa: v('fChuKhoa'),
@@ -4964,7 +5000,12 @@ async function openTtcModal() {
   document.getElementById('ttcDs').innerHTML = '<div class="loading-state">Đang tải…</div>'
   document.getElementById('ttcXem').innerHTML = ''
   ov.style.display = 'flex'
-  const { data } = await sb.from('contact').select('*').eq('id', 1).maybeSingle()
+  const { data, error } = await sb.from('contact').select('*').eq('id', 1).maybeSingle()
+  if (error) {                                   // mạng / phiên đăng nhập lỗi — đừng báo nhầm là "chưa chạy SQL 28"
+    closeTtcModal()
+    showToast('Chưa tải được thông tin chung: ' + error.message, 'error')
+    return
+  }
   const coCot = !!data && Object.prototype.hasOwnProperty.call(data, 'thong_tin_chung')
   document.getElementById('ttcCanhBao').style.display = coCot ? 'none' : ''
   document.getElementById('ttcLuu').disabled = !coCot
@@ -5041,7 +5082,7 @@ async function saveProduct(e) {
   // vào đó để file sao lưu Excel và dữ liệu thô còn đọc được bằng mắt.
   const bstIds = layProductBstChon()
   const data = {
-    name:        document.getElementById('fName').value.trim(),
+    name:        motDong(document.getElementById('fName').value),
     price:       priceToSave(document.getElementById('fPrice').value),
     category:    bstList.find(c => c.id === bstIds[0])?.name || '',
     description: spMoTaGhep(),
@@ -6625,10 +6666,8 @@ async function optimizeOldImages() {
 const orderCode = id => '#LT-' + String(id).padStart(4, '0')
 const fmtVnd = n => (Number(n) || 0).toLocaleString('vi-VN') + 'đ'
 // Giá sản phẩm lưu dạng text tự do → hiển thị chuẩn "550.000đ" (giá chữ giữ nguyên)
-const fmtPriceText = raw => {
-  const n = parseInt(String(raw ?? '').replace(/[^\d]/g, ''), 10)
-  return n >= 1000 ? fmtVnd(n) : esc(String(raw ?? ''))
-}
+// Dùng chung hienGia() với web (js/dungchung.js) — "Từ 50000" giữ chữ "Từ", không dồn chữ số
+const fmtPriceText = raw => esc(hienGia(raw))
 const orderTotalLabel = o => (o.unit_price == null ? '<span style="color:#E65100">Chưa định giá</span>' : '<strong>' + fmtVnd(o.total) + '</strong>')
 // Ảnh đại diện đơn: ưu tiên ảnh gắn riêng cho đơn, fallback ảnh sản phẩm
 const orderImage = o => o.image || o.products?.image || null
@@ -7945,6 +7984,7 @@ function selectGalleryImage(url) {
   if (!newImages.includes(url)) {
     newImages.push(url)
     renderProductImagesGrid()
+    danhDauDangNhap(document.getElementById('productImagesGrid'))   // ✕ / Hủy sẽ hỏi lại, không mất ảnh vừa chọn
   }
   closeGalleryPicker()
   showToast('Đã thêm ảnh từ Khoảnh khắc!')
