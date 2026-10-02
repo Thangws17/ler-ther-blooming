@@ -44,7 +44,7 @@ js/main.js                  Toàn bộ JS web khách: đọc Supabase, render, m
 admin/index.html            TOÀN BỘ trang quản lý — 1 file, ~5000 dòng (HTML+CSS+JS)
 admin/xlsx.js               Tạo file Excel cho nút Sao lưu (tự viết, không thư viện)
 
-supabase/01_… → 28_….sql    SQL cài database, ĐÁNH SỐ THEO ĐÚNG THỨ TỰ CHẠY
+supabase/01_… → 29_….sql    SQL cài database, ĐÁNH SỐ THEO ĐÚNG THỨ TỰ CHẠY
 supabase/da-thay-the/       File SQL cũ đã bị thay thế — đừng chạy (xem README trong đó)
 supabase/REMINDERS_SETUP.md Hướng dẫn cài nhắc đơn qua Telegram / email
 
