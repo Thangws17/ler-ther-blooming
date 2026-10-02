@@ -44,7 +44,7 @@ js/main.js                  Toàn bộ JS web khách: đọc Supabase, render, m
 admin/index.html            TOÀN BỘ trang quản lý — 1 file, ~5000 dòng (HTML+CSS+JS)
 admin/xlsx.js               Tạo file Excel cho nút Sao lưu (tự viết, không thư viện)
 
-supabase/01_… → 27_….sql    SQL cài database, ĐÁNH SỐ THEO ĐÚNG THỨ TỰ CHẠY
+supabase/01_… → 28_….sql    SQL cài database, ĐÁNH SỐ THEO ĐÚNG THỨ TỰ CHẠY
 supabase/da-thay-the/       File SQL cũ đã bị thay thế — đừng chạy (xem README trong đó)
 supabase/REMINDERS_SETUP.md Hướng dẫn cài nhắc đơn qua Telegram / email
 
@@ -200,6 +200,7 @@ Dựng lại database từ đầu thì cứ chạy **lần lượt `01_` → `17
 20_analytics_settings       →  2 ô nhập mã Google Analytics + Clarity trong admin
 21_collections              →  Bộ sưu tập thay danh mục (tự chuyển danh mục cũ sang, không mất mẫu nào)
 22_bst_cua_ler              →  4 BST của Ler (Trông Trăng, 20/10, Em Xinh, Anh Trai) + tắt 5 BST cũ; chỉ tác dụng lần đầu
+28_thong_tin_chung          →  "Thông tin chung" dưới mọi mẫu hoa (giao, COD, size…) sửa ở admin → Sản phẩm
 ```
 
 > `supabase/da-thay-the/` chứa 3 file `place_order` cũ. **Đừng chạy** — chạy vào là lùi hàm đặt

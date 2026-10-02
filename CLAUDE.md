@@ -103,7 +103,7 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
   khung. Kèm mã chặn bị nhúng vào khung web lạ (khung cùng nguồn — trang test — vẫn được). Admin + trang test có `noindex`.
 - **Admin kiểm quyền sau đăng nhập** (`kiemQuyenQuanTri()` → rpc `la_quan_tri`): tài khoản không có trong `quan_tri` thấy
   cảnh báo đỏ `#canhBaoQuyen` thay vì danh sách trống không lời giải thích.
-- **File SQL đánh số theo thứ tự chạy** (`01_` → `27_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
+- **File SQL đánh số theo thứ tự chạy** (`01_` → `28_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
 - **Sao lưu Excel (`admin/xlsx.js` + `taiSaoLuu()` trong admin)** tự viết file .xlsx, KHÔNG thêm thư viện.
   Thêm bảng mới vào database thì thêm vào `SAO_LUU_BANG`; cột lạ tự nối vào cuối nên không mất dữ liệu,
   nhưng khai báo thì có tên cột tiếng Việt. **Tuyệt đối không thêm `app_settings`** (chứa token). Ngày sao
@@ -277,6 +277,21 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
   dòng có ` — ` = chữ khoá, `Phù hợp tặng …`, còn lại (size, kích thước) là dòng phụ. `tachCaption()` (js/dungchung.js)
   tách ra: web hiện biệt danh dưới tên (cả thẻ lẫn trang chi tiết), "Phù hợp tặng" + dòng phụ vào khung `.detail-cam`;
   admin hiện biệt danh ở danh sách Sản phẩm (`spBietDanh`). Dòng đầu không phải “…” → hiện nguyên chữ (`white-space: pre-line`).
+  **Form Sản phẩm admin = phương án C (02/10/2026, shop chọn)**: xếp Y NHƯ trang chi tiết web — ảnh to (`#spcAnhTo` = ảnh
+  chính, bấm ảnh nhỏ = `spLamAnhChinh`), tên + **ngôi sao** `#fSao` (giá trị thật vẫn ô tick ẩn `fFeatured`), biệt danh `fNick`,
+  giá (chip "giá hay dùng" chỉ hiện khi đang ở ô giá — `spGiaNhanh`), **viên thành phần** (giá trị thật = ô ẩn `fThanhPhan`
+  "a, b, c"; `spTpVe/spTpThem`, Enter/dấu phẩy = thêm viên, chữ gõ dở vẫn được lưu), cảm giác `fChuKhoa`, dòng Bộ sưu tập mở
+  bảng trượt `#fBstSheet` (vẫn là `#fBstChon` + `layProductBstChon`). Không còn ô `fDesc`: mở form `spMoTaDien()` → `tachCaption`,
+  Lưu `spMoTaGhep()` → `ghepCaption()` (dungchung.js) — database vẫn 1 cột `description`. "Phù hợp tặng…" + dòng phụ RIÊNG
+  từng mẫu (Kích thước, Tặng kèm của đèn Trung thu) **không có ô** (shop chốt cách "a"): cất trong `_spMoTaGiu`, ghép lại y nguyên.
+  Thành phần chỉ 1 thứ được ghi `X ·` (thiếu dấu · thì tachCaption không nhận). Mô tả cũ không theo khuôn → dòng "Mô tả cũ: …";
+  không điền ô nào thì lưu giữ nguyên chữ cũ. Trên điện thoại admin ép mọi ô 16px (chống iOS zoom) → tên/giá form C phải `!important`.
+- **"Thông tin chung" cho mọi mẫu (SQL 28, 02/10/2026)**: các dòng dưới mọi mẫu ở trang chi tiết (giao miễn phí, ảnh duyệt, COD,
+  đặt theo size, tặng kèm túi giấy + thiệp) — trước ghi cứng trong main.js, giờ ở cột `contact.thong_tin_chung` (mỗi dòng 1 ý),
+  shop sửa ở tab Sản phẩm → nút "Thông tin chung" (`openTtcModal`/`luuTtc`). `dongThongTinChung(giaTri)` (dungchung.js): `null`
+  = chưa chạy SQL 28 → bộ `THONG_TIN_CHUNG_MAC_DINH`; chuỗi rỗng = không hiện gì. Biểu tượng tự chọn theo chữ (`bieuTuongTtc`).
+  Web bỏ dòng riêng của mẫu nếu trùng dòng chung (`cungDongTtc`); SQL 28 cũng xoá dòng "Hoa có đặt theo size" cuối mô tả
+  từng mẫu. "Phù hợp tặng" trên web giờ biểu tượng trái tim (quà dành cho dòng tặng kèm).
 - **Chọn mẫu hoa khi lên đơn chỉ lấy giá khi là số tiền thuần** (`!_priceIsText`). Giá "Từ 2xx" để trống — cùng
   bẫy "2 đồng" với `place_order`. Form Thêm đơn (`no`) và Sửa đơn (`oe`) dùng CHUNG bộ chọn
   `showProdSuggest(k)` / `pickProduct(id, k)` / `renderPickedProduct(p, k)` — thêm ô ở form này thì thêm cả form kia.

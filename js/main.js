@@ -1384,9 +1384,11 @@ async function loadProductDetail() {
   const id = new URLSearchParams(location.search).get('id');
   if (!id) { content.innerHTML = '<div class="loading"><p>Không tìm thấy sản phẩm.</p></div>'; return; }
 
-  const [{ data: p }] = await Promise.all([
+  // contact: lấy "Thông tin chung" (contact.thong_tin_chung). select('*') để chưa chạy SQL 28 cũng không lỗi.
+  const [{ data: p }, , { data: lienHe }] = await Promise.all([
     sb.from('products').select('*').eq('id', id).single(),
     loadBst(),
+    sb.from('contact').select('*').eq('id', 1).maybeSingle().then(r => r, () => ({ data: null })),
   ]);
   if (!p) { content.innerHTML = '<div class="loading"><p>Sản phẩm không tồn tại.</p></div>'; return; }
   _prodCache[p.id] = { image: p.images?.[0] || p.image, price: p.price };   // cho header form đặt
@@ -1409,6 +1411,8 @@ async function loadProductDetail() {
   const imgs = (p.images?.length ? p.images : null) || (p.image ? [p.image] : []);
   const imgSection = buildDetailImage(imgs, p.name, s);
   const cap = tachCaption(p.description);   // null = mô tả không theo khuôn → hiện chữ thường
+  // Dòng chung cho mọi mẫu (shop sửa ở admin → Sản phẩm → "Thông tin chung"); dòng riêng của mẫu trùng thì bỏ bớt
+  const chung = dongThongTinChung(lienHe?.thong_tin_chung);
 
   content.innerHTML = `
 <div class="detail-wrap">
@@ -1427,11 +1431,9 @@ async function loadProductDetail() {
       ${cap.chuKhoa ? `<div class="detail-kw">${esc(cap.chuKhoa)}</div>` : ''}
     </div>` : `<p class="detail-desc">${esc(p.description)}</p>`}
     <div class="detail-cam">
-      ${cap?.phuHop ? `<div>${ic('gift')}${esc(cap.phuHop)}</div>` : ''}
-      ${(cap?.them || []).map(d => `<div>${ic('leaf')}${esc(d)}</div>`).join('')}
-      <div>${ic('truck')}Giao nội thành miễn phí</div>
-      <div>${ic('camera')}Gửi ảnh duyệt trước khi giao</div>
-      <div>${ic('card')}COD hoặc chuyển khoản</div>
+      ${cap?.phuHop ? `<div>${ic('heart')}${esc(cap.phuHop)}</div>` : ''}
+      ${(cap?.them || []).filter(d => !chung.some(c => cungDongTtc(c, d))).map(d => `<div>${ic('leaf')}${esc(d)}</div>`).join('')}
+      ${chung.map(d => `<div>${ic(bieuTuongTtc(d))}${esc(d)}</div>`).join('')}
     </div>
     <!-- Máy tính: khối nút ngay dưới. Điện thoại: CSS ghim khối này xuống đáy màn hình -->
     <div class="detail-actions">

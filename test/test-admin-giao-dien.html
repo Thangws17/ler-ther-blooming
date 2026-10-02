@@ -293,6 +293,155 @@ function nutCoEmoji(goc) {
       id('discardLeave').click(); await cho(50)
       test('Chọn "Thoát, không lưu" → form đóng', () => bang(id('orderNewModal').style.display, 'none'))
       test('Không có lệnh ghi nào lọt ra ngoài (database giả)', () => bang(A.nhatKy.filter(x => x.lenh !== 'rpc').length >= 0, true))
+
+      // ── Form Sản phẩm kiểu C (02/10/2026): xếp như trang web; database vẫn 1 cột description.
+      //    "Phù hợp tặng" + dòng phụ riêng từng mẫu không có ô, lưu giữ nguyên ──
+      nhom('10b. Form Sản phẩm — kiểu C (giống trang web)')
+      w.applyTab('Products'); await cho(300)
+      const MO_TA = [
+        '“Buổi hẹn đầu”\nTulip trắng · cỏ suối · giấy đen\nTrưởng thành — tinh tế — bay bổng.\nPhù hợp tặng first date, lễ kỷ niệm.\nHoa có đặt theo size',
+        '“Trăng rằm hoa nở”\nĐèn ông sao khung tre · ly hồng · hồng kem · sao xanh\nẤm áp — truyền thống — tươi mới.\nPhù hợp tặng dịp Trung thu.\nKích thước: 13cm và 23cm\nTặng kèm: túi và đèn nháy',
+        '“Mây hồng”\nHồng chiết xạ · giấy trắng\nMềm mại — ngọt ngào — rất "em xinh".\nPhù hợp tặng bạn gái, sinh nhật, kỷ niệm.',
+        'Yêu thương',                                     // mô tả cũ không theo khuôn
+      ]
+      const dsSp = w.eval('products')
+      MO_TA.forEach((m, i) => { dsSp[i].description = m })
+      dsSp[0].images = [dsSp[0].image, 'https://example.com/anh2.webp']
+      const o3 = () => ['fNick', 'fThanhPhan', 'fChuKhoa'].map(x => id(x).value)
+      const vien = () => [...d.querySelectorAll('#spcTp .spc-tp-v')].map(v => v.firstChild.textContent)
+      w.openModal(1); await cho(50)
+      test('Mở mẫu → biệt danh (không ngoặc kép), thành phần, cảm giác điền đúng', () =>
+        bang(o3(), ['Buổi hẹn đầu', 'Tulip trắng, cỏ suối, giấy đen', 'Trưởng thành — tinh tế — bay bổng']))
+      test('Thành phần hiện thành viên nhỏ như trên web', () => bang(vien(), ['Tulip trắng', 'cỏ suối', 'giấy đen']))
+      test('Không còn ô "Mô tả" gộp / Phù hợp tặng / Thông tin thêm', () =>
+        bang(['fDesc', 'fPhuHop', 'fThem'].map(x => id(x)), [null, null, null]))
+      test('Ảnh to = ảnh chính, có 2 ảnh nhỏ', () => {
+        bang(!!d.querySelector('#spcAnhTo img'), true)
+        bang(d.querySelectorAll('#productImagesGrid .spc-tn-o').length, 2)
+      })
+      d.querySelectorAll('#productImagesGrid .spc-tn-bam')[1].click(); await cho(20)
+      test('Bấm ảnh nhỏ thứ 2 → thành ảnh chính (lên đầu)', () => bang(w.eval('newImages')[0], 'https://example.com/anh2.webp'))
+      test('Ngôi sao: mẫu 1 đang ở trang chủ → sao vàng', () => bang(id('fSao').classList.contains('on'), true))
+      id('fSao').click(); await cho(20)
+      test('Bấm sao → bỏ khỏi trang chủ (ô tick ẩn đổi theo)', () => bang([id('fSao').classList.contains('on'), id('fFeatured').checked], [false, false]))
+      test('Giá hay dùng ẨN khi chưa bấm vào ô giá', () => bang(getComputedStyle(id('fPriceChipsWrap')).display, 'none'))
+      id('fPrice').focus(); await cho(20)
+      test('Bấm vào ô giá → hiện giá hay dùng', () => bang(getComputedStyle(id('fPriceChipsWrap')).display !== 'none', true))
+      id('fPrice').blur(); await cho(300)
+      test('Rời ô giá → giá hay dùng ẩn lại', () => bang(getComputedStyle(id('fPriceChipsWrap')).display, 'none'))
+      test('Dòng Bộ sưu tập tóm tắt đúng bộ đang chọn', () => bang(id('fBstTom').textContent, 'BST Trông Trăng'))
+      d.querySelector('#modal .spc-dong').click(); await cho(20)
+      test('Bấm dòng Bộ sưu tập → bảng chọn trượt lên', () => bang(getComputedStyle(id('fBstSheet')).display, 'flex'))
+      d.querySelectorAll('#fBstChon input')[1].click(); await cho(20)
+      d.querySelector('#fBstSheet .spc-sheet-xong').click(); await cho(20)
+      test('Tick thêm 1 bộ rồi Xong → bảng đóng, dòng tóm tắt có 2 bộ', () => {
+        bang(getComputedStyle(id('fBstSheet')).display, 'none')
+        bang(id('fBstTom').textContent, 'BST Trông Trăng, BST Tắt')
+        bang(w.layProductBstChon(), [6, 7])
+      })
+      test('Nút trong form đều có tên', () => bang(nutThieuTen(id('modal')), []))
+      id('modal').dataset.dirty = ''; w.closeModal()
+
+      for (let i = 0; i < MO_TA.length; i++) {
+        w.openModal(i + 1); await cho(30)
+        test(`Mở rồi lưu không sửa gì → mô tả giữ NGUYÊN từng chữ, kể cả "Phù hợp tặng" + dòng phụ (mẫu ${i + 1})`, () => bang(w.spMoTaGhep(), MO_TA[i]))
+        w.closeModal()
+      }
+      w.openModal(2); await cho(30)
+      id('fChuKhoa').value = 'Ấm áp, truyền thống'
+      test('Sửa Cảm giác (gõ dấu phẩy) → thành dấu —; Phù hợp tặng, Kích thước, Tặng kèm vẫn nguyên', () =>
+        bang(w.spMoTaGhep(), MO_TA[1].replace('Ấm áp — truyền thống — tươi mới.', 'Ấm áp — truyền thống.')))
+      id('modal').dataset.dirty = ''; w.closeModal()
+
+      w.openModal(3); await cho(30)
+      const oTp = id('spcTpO')
+      oTp.value = 'nơ hồng'; oTp.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }))
+      test('Gõ thành phần + Enter → thêm 1 viên (không gửi form)', () => {
+        bang(vien(), ['Hồng chiết xạ', 'giấy trắng', 'nơ hồng'])
+        bang(id('modal').style.display, 'flex')
+      })
+      oTp.value = 'lá bạc, ruy băng,'; oTp.dispatchEvent(new w.Event('input', { bubbles: true }))
+      test('Gõ/dán nhiều thứ cách nhau dấu phẩy → tách thành nhiều viên (bàn phím Android)', () =>
+        bang(vien(), ['Hồng chiết xạ', 'giấy trắng', 'nơ hồng', 'lá bạc', 'ruy băng']))
+      d.querySelectorAll('#spcTp .spc-tp-v button')[1].click(); await cho(20)
+      test('Bấm × trên viên → bỏ viên đó', () => bang(id('fThanhPhan').value, 'Hồng chiết xạ, nơ hồng, lá bạc, ruy băng'))
+      test('Bấm × là tính đang nhập dở', () => bang(id('modal').dataset.dirty, '1'))
+      oTp.value = 'thiệp'
+      test('Chữ gõ dở chưa Enter vẫn được lưu', () =>
+        bang(w.spMoTaGhep().split('\n')[1], 'Hồng chiết xạ · nơ hồng · lá bạc · ruy băng · thiệp'))
+      id('modal').dataset.dirty = ''; w.closeModal()
+
+      w.openModal(4); await cho(30)
+      test('Mô tả cũ không theo khuôn → ô trống + hiện dòng "Mô tả cũ: …"', () => {
+        bang(o3(), ['', '', ''])
+        bang(id('fMoTaCu').style.display, '')
+        if (!id('fMoTaCu').textContent.includes('Yêu thương')) throw new Error(id('fMoTaCu').textContent)
+      })
+      test('Mô tả cũ, không điền ô nào → lưu giữ nguyên chữ cũ', () => bang(w.spMoTaGhep(), 'Yêu thương'))
+      oTp.value = 'Hồng Plume'; oTp.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }))
+      test('Có thành phần mà chưa có biệt danh → hiện dòng nhắc', () => bang(id('fMoTaNhac').style.display, ''))
+      id('fNick').value = '“Kẹo bông”'; id('fChuKhoa').value = 'Tròn trịa,ngọt ngào — tan chảy'
+      id('fNick').dispatchEvent(new w.Event('input', { bubbles: true }))
+      test('Có biệt danh → dòng nhắc ẩn', () => bang(id('fMoTaNhac').style.display, 'none'))
+      test('Ghép đúng khuôn: tự thêm ngoặc kép, · và —; không tự thêm dòng size (giờ là thông tin chung)', () =>
+        bang(w.spMoTaGhep(), '“Kẹo bông”\nHồng Plume ·\nTròn trịa — ngọt ngào — tan chảy.'))
+      test('Thành phần chỉ 1 thứ vẫn được web nhận là thành phần (tachCaption)', () => {
+        const c = w.tachCaption(w.spMoTaGhep())
+        bang([c.bietDanh, c.thanhPhan, c.chuKhoa, c.them], ['Kẹo bông', ['Hồng Plume'], 'Tròn trịa — ngọt ngào — tan chảy.', []])
+      })
+      id('modal').dataset.dirty = ''; w.closeModal()
+
+      w.openModal(); await cho(30)
+      test('Thêm mẫu mới → ô trống, không viên, không ảnh, không sao, không hiện "Mô tả cũ"', () => {
+        bang(o3(), ['', '', '']); bang(vien(), []); bang(id('fMoTaCu').style.display, 'none')
+        bang(!!d.querySelector('#spcAnhTo .spc-anh-trong'), true); bang(id('fSao').classList.contains('on'), false)
+      })
+      test('Mở form thêm mẫu chưa bị coi là nhập dở', () => bang(!!id('modal').dataset.dirty, false))
+      test('Dòng Bộ sưu tập: chưa chọn → nhắc vẫn ở mục "Tất cả"', () => {
+        if (!/Tất cả/.test(id('fBstTom').textContent)) throw new Error(id('fBstTom').textContent)
+      })
+      id('fNick').value = 'Nắng'
+      test('Mẫu mới chỉ điền biệt danh → mô tả chỉ có biệt danh', () => bang(w.spMoTaGhep(), '“Nắng”'))
+      id('modal').dataset.dirty = ''; w.closeModal()
+
+      // ── Thông tin chung cho mọi mẫu ──
+      nhom('10c. Thông tin chung cho mọi mẫu')
+      const dongTtc = () => [...d.querySelectorAll('#ttcDs .ttc-h input')].map(i => i.value)
+      id('spTtcBtn').click(); await cho(80)
+      test('Chưa chạy SQL 28 → 5 dòng mặc định + cảnh báo + khoá nút Lưu', () => {
+        bang(dongTtc().length, 5)
+        bang(id('ttcCanhBao').style.display, '')
+        bang(id('ttcLuu').disabled, true)
+      })
+      w.closeTtcModal()
+      A.dl.contact[0].thong_tin_chung = 'Giao nội thành miễn phí\nCOD hoặc chuyển khoản'
+      id('spTtcBtn').click(); await cho(80)
+      test('Đã có dữ liệu → hiện đúng các dòng đã lưu, không cảnh báo', () => {
+        bang(dongTtc(), ['Giao nội thành miễn phí', 'COD hoặc chuyển khoản'])
+        bang([id('ttcCanhBao').style.display, id('ttcLuu').disabled], ['none', false])
+      })
+      test('Biểu tượng tự chọn theo chữ (xe giao hàng, thẻ)', () =>
+        bang([...d.querySelectorAll('#ttcDs .ttc-h > svg use')].map(u => u.getAttribute('href')), ['#i-truck', '#i-card']))
+      d.querySelector('#ttcModal .ttc-them').click(); await cho(20)
+      const oMoi = [...d.querySelectorAll('#ttcDs .ttc-h input')].pop()
+      oMoi.value = 'Tặng thiệp viết tay'; oMoi.dispatchEvent(new w.Event('input', { bubbles: true }))
+      test('Thêm dòng + gõ → biểu tượng quà, khung xem trước có dòng mới', () => {
+        bang(d.querySelector('#ttcDs .ttc-h:last-child > svg use').getAttribute('href'), '#i-gift')
+        if (!/Tặng thiệp viết tay/.test(id('ttcXem').textContent)) throw new Error(id('ttcXem').textContent)
+      })
+      d.querySelector('#ttcDs .ttc-h button').click(); await cho(20)
+      test('Bấm thùng rác → bỏ dòng đó', () => bang(dongTtc(), ['COD hoặc chuyển khoản', 'Tặng thiệp viết tay']))
+      test('Nút trong bảng đều có tên', () => bang(nutThieuTen(id('ttcModal')), []))
+      const truocLuu = A.nhatKy.length
+      id('ttcLuu').click(); await cho(80)
+      test('Lưu → ghi đúng 1 lệnh vào bảng contact, mỗi dòng 1 ý', () => {
+        const ghi = A.nhatKy.slice(truocLuu)
+        bang(ghi.map(x => [x.ten, x.lenh, x.v]), [['contact', 'update', { thong_tin_chung: 'COD hoặc chuyển khoản\nTặng thiệp viết tay' }]])
+      })
+      test('Lưu xong bảng tự đóng', () => bang(id('ttcModal').style.display, 'none'))
+      test('Tab Sản phẩm không tràn ngang sau khi thêm nút "Thông tin chung"', () => {
+        const c = d.querySelector('.content'); if (c.scrollWidth - c.clientWidth > 1) throw new Error('tràn ' + (c.scrollWidth - c.clientWidth) + 'px')
+      })
     }
 
     if (rong === 1280) {

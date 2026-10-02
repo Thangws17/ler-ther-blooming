@@ -1168,6 +1168,7 @@ section    { padding:64px 0; }
 .detail-cam { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: #fff; }
 .detail-cam div { display: flex; align-items: center; gap: 10px; padding: 11px 14px; font-size: .92rem; font-weight: 600; color: var(--text-mid); }
 .detail-cam div + div { border-top: 1px solid #f0f3ef; }
+.detail-cam:not(:has(div)) { display: none; }   /* shop xoá hết thông tin chung + mẫu không có dòng riêng */
 .detail-cam .ic { color: var(--green); width: 19px; height: 19px; }
 .detail-actions { display: flex; gap: 10px; }
 .detail-actions .btn-primary { flex: 1; }

@@ -397,6 +397,51 @@ function tachCaption(desc) {
   return kq
 }
 
+// Chiều ngược của tachCaption: form Sản phẩm (admin) có ô riêng cho từng phần → ghép lại đúng khuôn trên.
+//   thanhPhan / chuKhoa: chuỗi shop gõ, cách nhau bằng dấu phẩy (gõ · hay — cũng được).
+// Thành phần chỉ có 1 thứ thì thêm " ·" ở cuối — không có dấu · thì tachCaption không nhận ra là thành phần.
+function ghepCaption({ bietDanh = '', thanhPhan = '', chuKhoa = '', phuHop = '', them = '' } = {}) {
+  const tach = (s, dau) => String(s || '').split(dau).map(x => x.trim()).filter(Boolean)
+  const bd = String(bietDanh || '').trim().replace(/^[“"]+|[”"]+$/g, '').trim()
+  const tp = tach(thanhPhan, /[,·]/)
+  const ck = tach(String(chuKhoa || '').replace(/[.。]+\s*$/, ''), /[,—–]/)
+  const ph = String(phuHop || '').trim().replace(/^phù hợp tặng\s*/i, '').replace(/\.+$/, '').trim()
+  const dong = []
+  if (bd) dong.push(`“${bd}”`)
+  if (tp.length) dong.push(tp.join(' · ') + (tp.length === 1 && bd ? ' ·' : ''))
+  if (ck.length) dong.push(ck.join(' — ') + '.')
+  if (ph) dong.push(`Phù hợp tặng ${ph}.`)
+  const t = String(them || '').trim()
+  if (t) dong.push(t)
+  return dong.join('\n')
+}
+
+// ─── Thông tin chung cho MỌI mẫu hoa (02/10/2026) ─────────────
+// Các dòng hiện dưới mọi mẫu ở trang chi tiết (giao miễn phí, COD…). Shop sửa ở admin → tab Sản phẩm →
+// nút "Thông tin chung"; lưu ở cột contact.thong_tin_chung (mỗi dòng 1 ý, SQL 28).
+// null/undefined = chưa cài (chưa chạy SQL 28 hoặc chưa lưu lần nào) → dùng bộ mặc định dưới đây.
+// Chuỗi rỗng = shop đã xoá hết → không hiện dòng nào.
+const THONG_TIN_CHUNG_MAC_DINH = ['Hoa có đặt theo size', 'Giao nội thành miễn phí', 'Gửi ảnh duyệt trước khi giao',
+  'COD hoặc chuyển khoản', 'Tặng kèm túi giấy, thiệp khi bạn yêu cầu']
+function dongThongTinChung(giaTri) {
+  if (giaTri == null) return THONG_TIN_CHUNG_MAC_DINH.slice()
+  return String(giaTri).split('\n').map(s => s.trim()).filter(Boolean)
+}
+// Biểu tượng tự chọn theo chữ — shop khỏi phải chọn. Xét "ảnh" trước "giao" ("Gửi ảnh duyệt trước khi giao").
+function bieuTuongTtc(dong) {
+  const s = String(dong || '').toLowerCase()
+  if (/ảnh|hình|duyệt/.test(s)) return 'camera'
+  if (/cod|chuyển khoản|thanh toán|trả tiền/.test(s)) return 'card'
+  if (/tặng|quà|thiệp|túi/.test(s)) return 'gift'
+  if (/giao|ship|vận chuyển/.test(s)) return 'truck'
+  return 'leaf'
+}
+// So 2 dòng bỏ qua hoa/thường + dấu chấm cuối: mô tả riêng của mẫu trùng dòng chung thì chỉ hiện 1 lần
+function cungDongTtc(a, b) {
+  const c = s => String(s || '').trim().replace(/\.+$/, '').toLowerCase()
+  return c(a) === c(b)
+}
+
 // Mã đơn hiển thị: #LT-0152 (giống orderCode trong admin)
 function maDon(id) { return '#LT-' + String(id).padStart(4, '0') }
 

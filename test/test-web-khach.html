@@ -317,6 +317,22 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
     } else {
       test('Máy tính: khối nút nằm trong trang (không ghim)', () => bang(getComputedStyle(bar).position, 'static'))
     }
+    // Dòng chung lấy từ chính database đang chạy (chưa chạy SQL 28 → bộ mặc định; chạy rồi → chữ shop đã sửa)
+    const lienHe = (await w.eval('sb').from('contact').select('*').eq('id', 1).maybeSingle()).data
+    const chung = w.dongThongTinChung(lienHe?.thong_tin_chung)
+    test(`Khung dưới giá có đủ ${chung.length} dòng "thông tin chung", mỗi dòng chỉ 1 lần`, () => {
+      const dong = [...d.querySelectorAll('.detail-cam > div')].map(x => x.textContent.trim())
+      const lap = dong.filter((x, i) => dong.findIndex(y => w.cungDongTtc(x, y)) !== i)
+      if (lap.length) throw new Error('lặp: ' + lap.join(' | '))
+      const thieu = chung.filter(c => !dong.includes(c))
+      if (thieu.length) throw new Error('thiếu: ' + thieu.join(' | '))
+    })
+    test('Thông tin chung: biểu tượng tự chọn theo chữ', () => {
+      const bt = w.bieuTuongTtc
+      bang(['Giao nội thành miễn phí', 'Gửi ảnh duyệt trước khi giao', 'COD hoặc chuyển khoản', 'Tặng kèm túi giấy, thiệp khi bạn yêu cầu', 'Hoa có đặt theo size'].map(bt),
+        ['truck', 'camera', 'card', 'gift', 'leaf'])
+      bang([w.dongThongTinChung(''), w.dongThongTinChung(' a \n\n b ')], [[], ['a', 'b']])
+    })
     test('Mục gợi ý có tiêu đề đúng (không còn "cùng danh mục")', () => {
       const h = d.querySelector('#relatedSection h2').textContent
       if (!['Cùng bộ sưu tập', 'Có thể bạn cũng thích'].includes(h)) throw new Error(h)

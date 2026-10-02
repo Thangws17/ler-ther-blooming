@@ -18,7 +18,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Lora:ital,wght@1,500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Lora:ital,wght@1,500&family=Nunito:wght@700&display=swap" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản trị — Ler & Ther Blooming</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
@@ -673,6 +673,121 @@
       font: inherit; font-size: .78rem; font-weight: 600; color: #2E7D32;
       text-transform: none; letter-spacing: 0; text-decoration: underline; text-underline-offset: 2px;
     }
+    /* ── Thông tin chung cho mọi mẫu (bảng sửa ở tab Sản phẩm) ── */
+    .ttc-mo { font-size: .86rem; color: #5d6b5c; line-height: 1.55; margin-bottom: 12px; }
+    .ttc-canh { background: #FFF3E0; color: #B26A00; border-radius: 10px; padding: 10px 12px; font-size: .84rem; line-height: 1.5; margin-bottom: 12px; }
+    .ttc-ds { border: 1px solid #dfe5de; border-radius: 12px; overflow: hidden; }
+    .ttc-ds:empty { display: none; }
+    .ttc-h { display: flex; align-items: center; gap: 10px; padding: 0 6px 0 12px; min-height: 48px; border-top: 1px solid #f0f3ef; }
+    .ttc-h:first-child { border-top: 0; }
+    .ttc-h:focus-within { background: #f7faf7; }
+    .ttc-h > .ic { color: #2E7D32; }
+    .ttc-h input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; font-size: .93rem; padding: 12px 0; color: #1f2a1f; }
+    .ttc-h button { flex-shrink: 0; width: 36px; height: 36px; border: 0; border-radius: 9px; background: none; color: #9aa79a; display: grid; place-items: center; cursor: pointer; }
+    .ttc-h button:hover { background: #FFEBEE; color: #C62828; }
+    .ttc-h button .ic { width: 17px; height: 17px; }
+    .ttc-them { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; height: 44px; margin-top: 8px;
+                border: 1.5px dashed #b9c6b8; border-radius: 12px; background: #fff; color: #5d6b5c; font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; }
+    .ttc-them:hover { border-color: #2E7D32; color: #2E7D32; }
+    .ttc-them .ic { width: 16px; height: 16px; }
+    .ttc-xem { margin-top: 14px; background: #f6f8f6; border-radius: 12px; padding: 10px 12px; }
+    .ttc-xem > b { display: block; font-size: .72rem; letter-spacing: .04em; text-transform: uppercase; color: #9aa79a; margin-bottom: 6px; }
+    #ttcXem > div { display: flex; gap: 8px; align-items: center; font-size: .86rem; color: #4d5d4c; padding: 3px 0; }
+    .ttc-xem .ic { width: 15px; height: 15px; color: #2E7D32; }
+    .ttc-xem-trong { font-size: .84rem; color: #9aa79a; }
+
+    /* ── Form Sản phẩm kiểu C: xếp y như trang chi tiết web (02/10/2026) ── */
+    .spc-box { position: relative; }
+    .spc { padding-top: 12px; }
+    .spc-anh { position: relative; height: 230px; border-radius: 14px; background: #f1f4f0; overflow: hidden;
+               display: grid; place-items: center; color: #9aa79a; font-size: .88rem; cursor: pointer; }
+    .spc-anh img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .spc-anh-trong { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .spc-anh-trong .ic { width: 28px; height: 28px; }
+    .spc-tn { display: flex; gap: 6px; margin: 8px 0 14px; overflow-x: auto; scrollbar-width: none; padding: 2px; }
+    .spc-tn::-webkit-scrollbar { display: none; }
+    .spc-tn-ds { display: flex; gap: 6px; }
+    .spc-tn-o { position: relative; flex-shrink: 0; width: 52px; height: 52px; margin: 5px 5px 0 0; border-radius: 9px;
+                outline: 2px solid transparent; outline-offset: 1px; }
+    .spc-tn-bam { width: 100%; height: 100%; padding: 0; border: 0; border-radius: 9px; background: #eee; cursor: pointer; display: block; }
+    .spc-tn-bam img { width: 100%; height: 100%; object-fit: cover; border-radius: 9px; display: block; }
+    .spc-tn-o.chinh { outline-color: #2E7D32; }
+    .spc-tn-o.chinh .spc-tn-bam { cursor: default; }
+    .spc-tn-xoa { position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #fff;
+                  background: #E64A19; color: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; }
+    .spc-tn-xoa .ic { width: 11px; height: 11px; stroke-width: 3; }
+    .spc-tn-them { flex-shrink: 0; width: 74px; height: 52px; margin-top: 5px; border-radius: 9px; border: 1.5px dashed #b9c6b8; background: #fff;
+                   color: #6a786a; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+                   font: inherit; font-size: .64rem; font-weight: 600; cursor: pointer; }
+    .spc-tn-them:hover { border-color: #2E7D32; color: #2E7D32; }
+    .spc-tn-them .ic { width: 17px; height: 17px; }
+    /* Ô sửa tại chỗ: không viền, gạch chân mờ khi rê / xanh khi đang gõ */
+    .spc .spc-o { display: block; width: 100%; border: 0; border-bottom: 1.5px dashed transparent; border-radius: 0; outline: 0;
+                  background: none; box-shadow: none; color: #1f2a1f; font: inherit; padding: 4px 0; }
+    .spc .spc-o:hover { border-bottom-color: #dfe5de; }
+    .spc .spc-o:focus { border-bottom-color: #2E7D32; background: none; box-shadow: none; }
+    .spc .spc-o::placeholder { color: #aab5a9; font-weight: 400; }
+    .spc-dau { display: flex; align-items: flex-start; gap: 6px; }
+    .spc .spc-ten { flex: 1; min-width: 0; font-family: 'Nunito', 'Be Vietnam Pro', sans-serif; font-size: 1.4rem; font-weight: 700; line-height: 1.3; }
+    .spc-sao { flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; border: 0; background: none; color: #c3ccc2;
+               display: grid; place-items: center; cursor: pointer; transition: transform .15s; }
+    .spc-sao:hover { background: #f4f7f4; }
+    .spc-sao:active { transform: scale(.88); }
+    .spc-sao .ic { width: 25px; height: 25px; }
+    .spc-sao.on { color: #F9A825; }
+    .spc-sao.on .ic { fill: #F9A825; }
+    .spc .spc-nick { font-family: 'Lora', Georgia, serif; font-style: italic; font-size: 1.02rem; color: #5d6b5c; }
+    .spc-gia-hang { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+    .spc-gia-hang .price-wrap { flex: 0 1 230px; min-width: 0; }
+    .spc .spc-gia { font-size: 1.3rem; font-weight: 700; color: #2E7D32; }
+    .spc-gia-hang .nut-ban-phim { float: none; }
+    #fPriceChipsWrap { margin-top: 8px; }
+    #fPriceChipsWrap:not(.mo) { display: none !important; }
+    #fPriceChipsWrap .price-chip { padding: 5px 12px; font-size: .78rem; }
+    .spc-ke { border-top: 1px solid #e3e8e2; margin: 14px 0 12px; }
+    .spc-tp { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; cursor: text; }
+    .spc-tp-v { display: inline-flex; align-items: center; gap: 2px; background: #E8F5E9; color: #2E7D32; border-radius: 999px;
+                padding: 5px 4px 5px 12px; font-size: .86rem; font-weight: 600; }
+    .spc-tp-v button { width: 22px; height: 22px; border-radius: 50%; border: 0; background: none; color: #7a9879; display: grid;
+                       place-items: center; cursor: pointer; padding: 0; }
+    .spc-tp-v button:hover { background: #d5ead6; color: #2E7D32; }
+    .spc-tp-v .ic { width: 12px; height: 12px; stroke-width: 2.5; }
+    .spc .spc-tp-o { flex: 1 1 190px; min-width: 150px; width: auto; height: 34px; border: 1px dashed #b9c6b8; border-radius: 999px;
+                     padding: 0 14px; font: inherit; font-size: .86rem; background: none; outline: 0; box-shadow: none; }
+    .spc .spc-tp-o:focus { border-color: #2E7D32; border-style: solid; }
+    .spc .spc-kw { font-style: italic; color: #5d6b5c; margin-top: 10px; font-size: .95rem; }
+    #fMoTaNhac, #fMoTaCu { margin: 8px 0 0; color: #B26A00; }
+    .spc-dong { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 18px; padding: 11px 12px; border: 1px solid #dfe5de;
+                border-radius: 12px; background: #fff; font: inherit; text-align: left; cursor: pointer; color: #1f2a1f; }
+    .spc-dong:hover { border-color: #b9c6b8; }
+    .spc-dong > .ic { color: #9aa79a; }
+    .spc-dong-tt { flex: 1; min-width: 0; }
+    .spc-dong-tt b { display: block; font-size: .9rem; font-weight: 600; }
+    .spc-dong-tt span { display: block; font-size: .8rem; color: #2E7D32; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .spc-dong-tt span.trong { color: #9aa79a; font-weight: 500; }
+    .spc-mui { color: #9aa79a; }
+    .modal-footer .sp-xoa-mau { width: auto; margin: 0 auto 0 0; padding: 10px 8px; }
+    /* Bảng trượt chọn bộ sưu tập — phủ trong khung form */
+    .spc-sheet-nen { position: absolute; inset: 0; z-index: 5; background: rgba(0,0,0,.35); display: none; align-items: flex-end; }
+    .spc-sheet-nen.mo { display: flex; }
+    .spc-sheet { background: #fff; width: 100%; max-height: 86%; overflow-y: auto; border-radius: 18px 18px 0 0; padding: 8px 20px 18px;
+                 animation: spcLen .25s cubic-bezier(.2,.8,.3,1); }
+    @keyframes spcLen { from { transform: translateY(40%); opacity: .5; } to { transform: none; opacity: 1; } }
+    .spc-sheet-keo { width: 40px; height: 4px; border-radius: 2px; background: #dfe5de; margin: 0 auto 10px; }
+    .spc-sheet h3 { font-size: 1.05rem; margin-bottom: 4px; }
+    .spc-sheet p { font-size: .82rem; color: #7a877a; margin-bottom: 8px; }
+    .spc-bst-ds { flex-direction: column; flex-wrap: nowrap; gap: 0; }
+    .spc-bst-ds .bst-tick { border: 0; border-top: 1px solid #f0f3ef; border-radius: 0; padding: 12px 2px 12px 34px; background: none;
+                            color: #1f2a1f; font-weight: 500; font-size: .93rem; }
+    .spc-bst-ds .bst-tick:first-child { border-top: 0; }
+    .spc-bst-ds .bst-tick::before { content: ''; position: absolute; left: 4px; top: 50%; width: 19px; height: 19px; margin-top: -10px;
+                                    border: 1.5px solid #b9c6b8; border-radius: 5px; background: #fff; }
+    .spc-bst-ds .bst-tick.on { background: none; color: #1f2a1f; }
+    .spc-bst-ds .bst-tick.on::before { background: #2E7D32 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E") center/14px no-repeat; border-color: #2E7D32; }
+    .spc-bst-ds .bst-tick:focus-within { outline: none; }
+    .spc-bst-ds .bst-tick:focus-within::before { box-shadow: 0 0 0 3px rgba(46,125,50,.2); }
+    .spc-sheet-xong { width: 100%; margin-top: 12px; justify-content: center; }
+    @media (max-width: 640px) { .spc-anh { height: 200px; } }
     /* Máy tính: MỘT hàng thẳng, đúng 5 nút — nút thứ 6 ẩn đi vì không đủ chỗ
        (5 nút ≈ 490px trên 544px khung form; 6 nút sẽ tràn). */
     .price-chips {
@@ -934,6 +1049,9 @@
       .filter-search, .filter-select, .cl-note textarea, .status-select {
         font-size: 16px !important;
       }
+      /* Form Sản phẩm kiểu C: tên + giá chữ TO như trang web (vẫn ≥ 16px nên iOS không zoom) */
+      .spc .spc-ten { font-size: 1.3rem !important; }
+      .spc .spc-gia { font-size: 1.2rem !important; }
       /* Vùng chạm đủ lớn + bỏ trễ 300ms khi chạm */
       button, .nav-item, select, a { touch-action: manipulation; }
       .modal-close { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; padding: 0; }
@@ -1868,6 +1986,8 @@
       <div class="panel-topbar">
         <h1>Sản phẩm</h1>
         <div class="sp-top-nut">
+          <!-- Dòng chung hiện dưới MỌI mẫu trên web (giao, COD, size…) — sửa 1 lần, cả web đổi theo -->
+          <button type="button" id="spTtcBtn" class="fx-chip" onclick="openTtcModal()"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg>Thông tin chung</button>
           <button type="button" id="spXepBtn" class="fx-chip" onclick="spBatXep()"><svg class="ic" aria-hidden="true"><use href="#i-grip"/></svg>Sắp xếp</button>
           <button class="btn-green an-tren-dt" onclick="openModal()"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Thêm sản phẩm</button>
         </div>
@@ -2219,73 +2339,109 @@
 </div>
 
 <!-- ── Product Modal ──────────────────────────────── -->
+<!-- Phương án C (02/10/2026, shop chọn): form xếp Y NHƯ trang chi tiết web — ảnh to, tên + ngôi sao trang chủ,
+     biệt danh nghiêng, giá xanh, viên thành phần, cảm giác. Bộ sưu tập thu thành 1 dòng mở bảng trượt (#fBstSheet).
+     Mô tả: database vẫn 1 cột description — mở form thì tachCaption() tách ra fNick / fThanhPhan (ô ẩn, viên vẽ từ nó) /
+     fChuKhoa, Lưu thì ghepCaption() ghép lại đúng khuôn cũ. "Phù hợp tặng" + dòng phụ riêng từng mẫu (Kích thước…)
+     không có ô, giữ nguyên khi lưu (_spMoTaGiu). Dòng chung cho mọi mẫu (giao, COD…) sửa ở nút "Thông tin chung". -->
 <div id="modal" class="modal-overlay" style="display:none" onclick="closeModalOutside(event)">
-  <div class="modal-box">
+  <div class="modal-box spc-box">
     <div class="modal-header">
       <h2 id="modalTitle">Thêm sản phẩm</h2>
       <button class="modal-close" aria-label="Đóng" onclick="closeModal()"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <form id="productForm" onsubmit="saveProduct(event)">
       <input type="hidden" id="productId">
-      <div class="modal-body">
-        <div class="form-grid">
-          <div class="field-group full">
-            <label>Tên sản phẩm *</label>
-            <input type="text" id="fName" required placeholder="VD: Bó Hoa Hồng Tình Yêu">
-          </div>
-          <div class="field-group">
-            <label>Giá * <button type="button" class="nut-ban-phim" id="fPriceKb" onclick="doiBanPhimGia()">Gõ chữ</button></label>
-            <!-- Gõ số trần, dấu chấm hàng nghìn tự chèn. Vẫn gõ chữ được
-                 (vd "Từ 3xx", "Liên hệ") — trên điện thoại bấm "Gõ chữ" để đổi sang bàn phím có chữ. -->
-            <div class="price-wrap">
-              <input type="text" id="fPrice" required placeholder="250.000 hoặc Từ 3xx"
-                     inputmode="numeric" autocomplete="off" oninput="onPriceInput(this)">
-              <span class="price-suffix">đ</span>
-            </div>
-          </div>
-          <div class="field-group full">
-            <label>Bộ sưu tập <span style="font-weight:400;color:#7A9879;text-transform:none;">(chọn được nhiều, để trống cũng được — mẫu vẫn nằm ở mục "Tất cả")</span></label>
-            <div class="bst-tick-hang" id="fBstChon"></div>
-          </div>
-          <!-- Dãy giá hay dùng để RIÊNG một hàng đầy đủ: nhét trong cột Giá
-               (chỉ rộng nửa hàng) thì các nút bị bẻ xuống dòng, nhìn rất lệch -->
-          <div class="field-group full" id="fPriceChipsWrap" style="display:none">
-            <label>Giá hay dùng</label>
-            <div id="fPriceChips" class="price-chips"></div>
-          </div>
-          <div class="field-group full">
-            <label>Mô tả</label>
-            <textarea id="fDesc" rows="6" placeholder="“Biệt danh”&#10;Hoa chính · hoa phụ · giấy gói&#10;Chữ khoá — chữ khoá — chữ khoá.&#10;Phù hợp tặng sinh nhật, kỷ niệm.&#10;Hoa có đặt theo size"></textarea>
-            <div class="upload-hint">Viết theo khuôn trên thì web tự trình bày đẹp: dòng đầu trong ngoặc kép là biệt danh (hiện dưới tên mẫu), dòng có dấu · thành các viên nhỏ. Không theo khuôn thì web hiện nguyên chữ bạn gõ.</div>
-          </div>
-          <div class="field-group full">
-            <label>Ảnh sản phẩm <span style="font-weight:400;color:#7A9879;">(ảnh đầu tiên là ảnh chính)</span></label>
-            <div id="productImagesGrid" style="display:flex;flex-wrap:wrap;gap:8px;min-height:16px;margin-bottom:10px;align-items:flex-start;"></div>
-            <div style="display:flex;gap:8px;">
-              <div class="img-upload-area" style="flex:1;" onclick="document.getElementById('productImgInput').click()">
-                <input type="file" id="productImgInput" accept="image/*" multiple style="display:none" onchange="handleProductImagesUpload(this)">
-                <svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg>Tải ảnh lên
-              </div>
-              <div class="img-upload-area" style="flex:1;color:#2E7D32;border-color:#2E7D32;" onclick="openGalleryPicker()">
-                <svg class="ic" aria-hidden="true"><use href="#i-img"/></svg>Chọn từ Khoảnh khắc
-              </div>
-            </div>
-          </div>
-          <!-- Thứ tự không gõ số nữa: đổi bằng nút "Sắp xếp" ở danh sách (spDoiCho) -->
-          <input type="hidden" id="fOrder" value="0">
-          <div class="check-row" style="grid-column:1/-1">
-            <input type="checkbox" id="fFeatured">
-            <label for="fFeatured">Hiện ở trang chủ <span style="font-weight:400;color:#7A9879;">(ngôi sao — trang chủ có 4 ô)</span></label>
-          </div>
+      <div class="modal-body spc" oninput="spMoTaNhac()">
+        <!-- Ảnh: ảnh to = ảnh chính (newImages[0]); bấm ảnh nhỏ = đưa lên làm ảnh chính -->
+        <div class="spc-anh" id="spcAnhTo"></div>
+        <div class="spc-tn">
+          <div id="productImagesGrid" class="spc-tn-ds"></div>
+          <button type="button" class="spc-tn-them" onclick="document.getElementById('productImgInput').click()" title="Tải ảnh từ máy lên"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg><span>Tải lên</span></button>
+          <button type="button" class="spc-tn-them" onclick="openGalleryPicker()" title="Chọn ảnh có sẵn trong Khoảnh khắc"><svg class="ic" aria-hidden="true"><use href="#i-img"/></svg><span>Khoảnh khắc</span></button>
+          <input type="file" id="productImgInput" accept="image/*" multiple style="display:none" onchange="handleProductImagesUpload(this)">
         </div>
-        <!-- Xoá nằm cuối form, không đứng cạnh nút Sửa ngoài danh sách nữa (dễ bấm nhầm) -->
-        <button type="button" id="fXoaMau" class="sp-xoa-mau" onclick="spXoaTuForm()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Xoá</button>
+
+        <div class="spc-dau">
+          <input type="text" id="fName" class="spc-o spc-ten" required placeholder="Tên mẫu hoa *" aria-label="Tên mẫu hoa" autocomplete="off">
+          <!-- Ngôi sao = hiện ở trang chủ. Giá trị thật vẫn là ô tick fFeatured (ẩn) như cũ -->
+          <button type="button" id="fSao" class="spc-sao" onclick="spDoiSao()" aria-pressed="false" aria-label="Hiện ở trang chủ" title="Hiện ở trang chủ (trang chủ có 4 ô)"><svg class="ic" aria-hidden="true"><use href="#i-star"/></svg></button>
+          <input type="checkbox" id="fFeatured" hidden>
+        </div>
+        <input type="text" id="fNick" class="spc-o spc-nick" maxlength="60" autocomplete="off" placeholder="Biệt danh, hiện nghiêng dưới tên" aria-label="Biệt danh">
+
+        <!-- Gõ số trần, dấu chấm hàng nghìn tự chèn. Vẫn gõ chữ được (vd "Từ 3xx", "Liên hệ") —
+             trên điện thoại bấm "Gõ chữ" để đổi sang bàn phím có chữ. -->
+        <div class="spc-gia-hang">
+          <div class="price-wrap">
+            <input type="text" id="fPrice" class="spc-o spc-gia" required placeholder="Giá *" aria-label="Giá"
+                   inputmode="numeric" autocomplete="off" oninput="onPriceInput(this)" onfocus="spGiaNhanh(true)" onblur="spGiaNhanh(false)">
+            <span class="price-suffix">đ</span>
+          </div>
+          <button type="button" class="nut-ban-phim" id="fPriceKb" onmousedown="event.preventDefault()" onclick="doiBanPhimGia()">Gõ chữ</button>
+        </div>
+        <!-- Giá hay dùng: chỉ hiện khi đang ở ô giá (spGiaNhanh) -->
+        <div id="fPriceChipsWrap" style="display:none"><div id="fPriceChips" class="price-chips" onmousedown="event.preventDefault()"></div></div>
+
+        <div class="spc-ke"></div>
+        <!-- Thành phần: viên nhỏ như web. Giá trị thật nằm ở ô ẩn fThanhPhan ("a, b, c") -->
+        <div class="spc-tp" id="spcTp" onclick="if(event.target===this)document.getElementById('spcTpO').focus()">
+          <input type="text" id="spcTpO" class="spc-tp-o" autocomplete="off" placeholder="＋ Thành phần, gõ xong Enter" aria-label="Thêm thành phần"
+                 onkeydown="spTpPhim(event)" oninput="if(/[,·]/.test(this.value))spTpThem()" onblur="spTpThem()">
+        </div>
+        <input type="hidden" id="fThanhPhan">
+        <input type="text" id="fChuKhoa" class="spc-o spc-kw" autocomplete="off" placeholder="Cảm giác: ngọt ngào, tinh tế, rất ăn ảnh" aria-label="Cảm giác">
+        <div class="upload-hint" id="fMoTaCu" style="display:none"></div>
+        <div class="upload-hint" id="fMoTaNhac" style="display:none">Chưa có biệt danh nên web hiện mô tả thành chữ thường, không chia viên nhỏ.</div>
+
+        <button type="button" class="spc-dong" onclick="spMoBst()">
+          <svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg>
+          <span class="spc-dong-tt"><b>Bộ sưu tập</b><span id="fBstTom"></span></span>
+          <svg class="ic spc-mui" aria-hidden="true"><use href="#i-right"/></svg>
+        </button>
+        <!-- Thứ tự không gõ số nữa: đổi bằng nút "Sắp xếp" ở danh sách (spDoiCho) -->
+        <input type="hidden" id="fOrder" value="0">
       </div>
       <div class="modal-footer">
+        <!-- Xoá ở chân form, tách xa nút Sửa ngoài danh sách (dễ bấm nhầm) -->
+        <button type="button" id="fXoaMau" class="sp-xoa-mau" onclick="spXoaTuForm()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Xoá</button>
         <button type="button" class="btn-outline" onclick="closeModal()">Hủy</button>
         <button type="submit" class="btn-green" id="saveBtn">Lưu</button>
       </div>
     </form>
+    <!-- Bảng trượt chọn bộ sưu tập (nằm trong khung form, không phải modal riêng) -->
+    <div class="spc-sheet-nen" id="fBstSheet" onclick="if(event.target===this)spDongBst()">
+      <div class="spc-sheet" role="dialog" aria-label="Chọn bộ sưu tập">
+        <div class="spc-sheet-keo"></div>
+        <h3>Bộ sưu tập</h3>
+        <p>Chọn được nhiều. Để trống cũng được, mẫu vẫn nằm ở mục "Tất cả".</p>
+        <div class="bst-tick-hang spc-bst-ds" id="fBstChon" onchange="spVeBstTom()"></div>
+        <button type="button" class="btn-green spc-sheet-xong" onclick="spDongBst()">Xong</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Thông tin chung cho mọi mẫu (02/10/2026) ── lưu ở contact.thong_tin_chung, SQL 28 -->
+<div id="ttcModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeTtcModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Thông tin chung cho mọi mẫu</h2>
+      <button class="modal-close" aria-label="Đóng" onclick="closeTtcModal()"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <p class="ttc-mo">Hiện dưới <b>mọi</b> mẫu hoa ở trang chi tiết trên web. Sửa ở đây một lần là cả web đổi theo.
+        Biểu tượng tự chọn theo chữ bạn gõ.</p>
+      <div id="ttcCanhBao" class="ttc-canh" style="display:none">Chưa lưu được: cần chạy file <b>supabase/28_thong_tin_chung.sql</b> trong Supabase trước.
+        Trong lúc chờ, web đang hiện các dòng mặc định bên dưới.</div>
+      <div id="ttcDs" class="ttc-ds"></div>
+      <button type="button" class="ttc-them" onclick="ttcThemDong()"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Thêm dòng</button>
+      <div class="ttc-xem"><b>Trên web sẽ hiện</b><div id="ttcXem"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-outline" onclick="closeTtcModal()">Hủy</button>
+      <button type="button" class="btn-green" id="ttcLuu" onclick="luuTtc()">Lưu</button>
+    </div>
   </div>
 </div>
 
@@ -3112,7 +3268,7 @@ window.addEventListener('popstate', e => {
 
 // ── Chống mất dữ liệu: hỏi trước khi đóng modal đang nhập dở ──
 // Các modal có form cần bảo vệ (bấm nhầm ra ngoài / ✕ / Hủy sẽ hỏi lại)
-const GUARDED_MODALS = ['modal', 'testimonialModal', 'orderEditModal', 'orderNewModal', 'customerModal', 'changelogModal', 'expenseModal', 'materialEditModal', 'galItemModal', 'bstModal']
+const GUARDED_MODALS = ['modal', 'ttcModal', 'testimonialModal', 'orderEditModal', 'orderNewModal', 'customerModal', 'changelogModal', 'expenseModal', 'materialEditModal', 'galItemModal', 'bstModal']
 
 function initModalGuards() {
   // Nút trong hộp thoại xác nhận thoát
@@ -4520,23 +4676,35 @@ async function spXoaTuForm() {
 // ── Product Modal ─────────────────────────────────
 let newImages = []
 
+// Ảnh to = ảnh chính (newImages[0]). Ảnh nhỏ: bấm = đưa lên làm ảnh chính, ✕ = bỏ ảnh
 function renderProductImagesGrid() {
   const grid = document.getElementById('productImagesGrid')
-  if (!newImages.length) {
-    grid.innerHTML = '<p style="color:#999;font-size:.8rem;padding:4px 0;">Chưa có ảnh. Upload hoặc chọn từ Khoảnh khắc.</p>'
-    return
+  const to = document.getElementById('spcAnhTo')
+  if (to) {
+    to.innerHTML = newImages.length
+      ? `<img ${srcNho(newImages[0], 640)} alt="Ảnh chính">`
+      : `<div class="spc-anh-trong">${ic('camera')}<span>Chưa có ảnh — bấm để tải lên</span></div>`
+    to.onclick = newImages.length ? null : () => document.getElementById('productImgInput').click()
+    to.style.cursor = newImages.length ? 'default' : ''
   }
   grid.innerHTML = newImages.map((url, i) => `
-<div style="position:relative;flex-shrink:0;">
-  <img ${srcNho(url, 200)} style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:${i===0?'2.5px solid #2E7D32':'1.5px solid #ddd'};">
-  ${i===0?'<span style="position:absolute;bottom:2px;left:2px;background:#2E7D32;color:#fff;font-size:.55rem;padding:1px 5px;border-radius:3px;font-weight:600;">Chính</span>':''}
-  <button type="button" onclick="removeProductImage(${i})" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#E64A19;color:#fff;border:none;cursor:pointer;font-size:.6rem;display:flex;align-items:center;justify-content:center;">✕</button>
+<div class="spc-tn-o${i ? '' : ' chinh'}">
+  <button type="button" class="spc-tn-bam" onclick="spLamAnhChinh(${i})" ${i ? 'title="Bấm để làm ảnh chính" aria-label="Làm ảnh chính"' : 'title="Ảnh chính" aria-label="Ảnh chính"'}><img ${srcNho(url, 200)} alt=""></button>
+  <button type="button" class="spc-tn-xoa" onclick="removeProductImage(${i})" title="Bỏ ảnh này" aria-label="Bỏ ảnh này">${ic('x')}</button>
 </div>`).join('')
 }
 
 function removeProductImage(i) {
   newImages.splice(i, 1)
   renderProductImagesGrid()
+  danhDauDangNhap(document.getElementById('productImagesGrid'))
+}
+
+function spLamAnhChinh(i) {
+  if (i <= 0) return
+  newImages.unshift(newImages.splice(i, 1)[0])
+  renderProductImagesGrid()
+  danhDauDangNhap(document.getElementById('productImagesGrid'))
 }
 
 // ── Ô giá sản phẩm: gõ số, tự chèn dấu chấm ───────────────────
@@ -4654,22 +4822,197 @@ function openModal(id = null) {
     document.getElementById('fName').value        = p.name
     document.getElementById('fPrice').value       = priceToInput(p.price)
     renderProductBstChips(bstCuaMau(p.id).map(c => c.id))
-    document.getElementById('fDesc').value        = p.description || ''
+    spMoTaDien(p.description)
     document.getElementById('fOrder').value       = p.order_index || 0
     document.getElementById('fFeatured').checked  = p.featured
     newImages = p.images?.length ? [...p.images] : (p.image ? [p.image] : [])
   } else {
     document.getElementById('modalTitle').textContent = 'Thêm sản phẩm'
     renderProductBstChips([])
+    spMoTaDien('')
     // Mẫu mới lên ĐẦU danh sách (cả web lẫn admin) — muốn dời thì dùng nút "Sắp xếp"
     document.getElementById('fOrder').value = Math.min(0, ...products.map(p => p.order_index || 0)) - 1
   }
   document.getElementById('fXoaMau').style.display = id ? '' : 'none'
   renderProductImagesGrid()
   renderPriceChips()
+  spGiaNhanh(false, true)
   onPriceInput(document.getElementById('fPrice'))   // bật/tắt chữ "đ" theo giá đang có
   datBanPhimGia(_priceIsText(document.getElementById('fPrice').value))   // giá "Từ 3xx" → mở sẵn bàn phím chữ
+  spVeSao()
+  spVeBstTom()
+  spDongBst()
   document.getElementById('modal').style.display = 'flex'
+}
+
+// Ngôi sao cạnh tên = "Hiện ở trang chủ" (ô tick fFeatured ẩn giữ giá trị thật)
+function spDoiSao() {
+  const o = document.getElementById('fFeatured')
+  o.checked = !o.checked
+  spVeSao()
+  danhDauDangNhap(o)
+  if (o.checked) {
+    const khac = products.filter(p => p.featured && String(p.id) !== document.getElementById('productId').value).length
+    showToast(khac >= SP_TRANG_CHU
+      ? `Trang chủ đã đủ ${SP_TRANG_CHU} ô — lưu xong mẫu này chưa hiện, bỏ sao một mẫu khác để đổi.`
+      : 'Lưu xong mẫu này sẽ hiện ở trang chủ', khac >= SP_TRANG_CHU ? 'error' : undefined)
+  }
+}
+function spVeSao() {
+  const on = document.getElementById('fFeatured').checked, nut = document.getElementById('fSao')
+  nut.classList.toggle('on', on)
+  nut.setAttribute('aria-pressed', on ? 'true' : 'false')
+  nut.title = on ? 'Đang hiện ở trang chủ — bấm để bỏ' : 'Hiện ở trang chủ (trang chủ có 4 ô)'
+}
+
+// Giá hay dùng chỉ hiện khi đang ở ô giá. Rời ô thì chờ một nhịp: bấm chip trên điện thoại
+// làm ô giá mất focus TRƯỚC khi cú bấm tới chip — ẩn ngay là chip biến mất, bấm hụt.
+function spGiaNhanh(mo, ngay) {
+  const w = document.getElementById('fPriceChipsWrap')
+  clearTimeout(spGiaNhanh._t)
+  if (mo) { w.classList.add('mo'); return }
+  if (ngay) { w.classList.remove('mo'); return }
+  spGiaNhanh._t = setTimeout(() => {
+    if (document.activeElement !== document.getElementById('fPrice')) w.classList.remove('mo')
+  }, 250)
+}
+
+// ── Thành phần dạng viên. Giá trị thật: ô ẩn fThanhPhan = "a, b, c" (ghepCaption đọc) ──
+function spTpDs() {
+  return document.getElementById('fThanhPhan').value.split(/[,·]/).map(s => s.trim()).filter(Boolean)
+}
+function spTpVe() {
+  const hop = document.getElementById('spcTp'), o = document.getElementById('spcTpO')
+  hop.querySelectorAll('.spc-tp-v').forEach(v => v.remove())
+  o.insertAdjacentHTML('beforebegin', spTpDs().map((t, i) =>
+    `<span class="spc-tp-v">${esc(t)}<button type="button" onclick="spTpBo(${i})" aria-label="Bỏ ${esc(t)}" title="Bỏ">${ic('x')}</button></span>`).join(''))
+  o.placeholder = spTpDs().length ? '＋ thêm' : '＋ Thành phần, gõ xong Enter'
+}
+function spTpDat(ds) {
+  const o = document.getElementById('fThanhPhan')
+  o.value = ds.join(', ')
+  spTpVe(); spMoTaNhac(); danhDauDangNhap(o)
+}
+function spTpBo(i) { const ds = spTpDs(); ds.splice(i, 1); spTpDat(ds) }
+// Gõ xong Enter / dấu phẩy = thành 1 viên. Gõ nhiều thứ cách nhau dấu phẩy rồi dán vào cũng tách đúng.
+function spTpThem() {
+  const o = document.getElementById('spcTpO')
+  const moi = o.value.split(/[,·]/).map(s => s.trim()).filter(Boolean)
+  if (!moi.length) return false
+  o.value = ''
+  spTpDat(spTpDs().concat(moi))
+  return true
+}
+function spTpPhim(e) {
+  const o = e.target
+  if (e.key === 'Enter' || e.key === ',') {   // Enter trong form mặc định là GỬI form → chặn
+    e.preventDefault(); spTpThem()
+  } else if (e.key === 'Backspace' && !o.value) {
+    const ds = spTpDs(); if (ds.length) { ds.pop(); spTpDat(ds) }
+  }
+}
+
+// ── Bảng trượt chọn bộ sưu tập ──
+function spMoBst() { document.getElementById('fBstSheet').classList.add('mo') }
+function spDongBst() { document.getElementById('fBstSheet').classList.remove('mo'); spVeBstTom() }
+function spVeBstTom() {
+  const el = document.getElementById('fBstTom')
+  const ten = layProductBstChon().map(id => bstList.find(c => c.id === id)?.name).filter(Boolean)
+  el.textContent = bstChuaCaiDat ? 'Chưa bật (cần chạy SQL 21)' : ten.length ? ten.join(', ') : 'Chưa chọn — mẫu vẫn ở mục "Tất cả"'
+  el.classList.toggle('trong', !ten.length)
+}
+
+// Mô tả: 1 cột description ⇄ 3 ô của form (biệt danh · thành phần · cảm giác).
+// "Phù hợp tặng" + các dòng phụ riêng từng mẫu (Kích thước, Tặng kèm…) không có ô: cất vào _spMoTaGiu
+// lúc mở form rồi ghép lại y nguyên khi lưu. Dòng CHUNG cho mọi mẫu (giao, COD, size…) nằm ở "Thông tin chung".
+let _spMoTaGiu = { phuHop: '', them: '', cu: '' }
+function spMoTaDien(desc) {
+  const c = tachCaption(desc)
+  const cu = c ? '' : String(desc || '').trim()   // mô tả cũ không theo khuôn (vd "Yêu thương")
+  _spMoTaGiu = c ? { phuHop: c.phuHop, them: c.them.join('\n'), cu: '' } : { phuHop: '', them: '', cu }
+  const dat = (id, v) => { document.getElementById(id).value = v }
+  dat('fNick',      c ? c.bietDanh : '')
+  dat('fThanhPhan', c ? c.thanhPhan.join(', ') : '')
+  dat('fChuKhoa',   c ? c.chuKhoa.replace(/[.。]+\s*$/, '') : '')
+  dat('spcTpO', '')
+  spTpVe()
+  const hop = document.getElementById('fMoTaCu')
+  hop.textContent = cu ? `Mô tả cũ: “${cu}”. Điền biệt danh, thành phần, cảm giác thì web dùng mô tả mới thay cho chữ này.` : ''
+  hop.style.display = cu ? '' : 'none'
+  spMoTaNhac()
+}
+
+function spMoTaGhep() {
+  spTpThem()                                       // chữ đang gõ dở ở ô thành phần (chưa Enter) cũng tính
+  const v = id => document.getElementById(id).value.trim()
+  const g = _spMoTaGiu
+  if (g.cu && !v('fNick') && !v('fThanhPhan') && !v('fChuKhoa')) return g.cu   // không đụng tới → giữ nguyên chữ cũ
+  return ghepCaption({ bietDanh: v('fNick'), thanhPhan: v('fThanhPhan'), chuKhoa: v('fChuKhoa'),
+                       phuHop: g.phuHop, them: g.them })
+}
+
+// Có gõ phần khác mà bỏ trống biệt danh → nhắc: web sẽ hiện chữ thường (tachCaption cần biệt danh)
+function spMoTaNhac() {
+  const v = id => document.getElementById(id).value.trim()
+  const thieu = !v('fNick') && ['fThanhPhan', 'fChuKhoa'].some(v)
+  document.getElementById('fMoTaNhac').style.display = thieu ? '' : 'none'
+}
+
+// ── Thông tin chung cho mọi mẫu: contact.thong_tin_chung, mỗi dòng 1 ý (dongThongTinChung trong dungchung.js) ──
+async function openTtcModal() {
+  const ov = document.getElementById('ttcModal')
+  document.getElementById('ttcDs').innerHTML = '<div class="loading-state">Đang tải…</div>'
+  document.getElementById('ttcXem').innerHTML = ''
+  ov.style.display = 'flex'
+  const { data } = await sb.from('contact').select('*').eq('id', 1).maybeSingle()
+  const coCot = !!data && Object.prototype.hasOwnProperty.call(data, 'thong_tin_chung')
+  document.getElementById('ttcCanhBao').style.display = coCot ? 'none' : ''
+  document.getElementById('ttcLuu').disabled = !coCot
+  ttcVe(dongThongTinChung(data?.thong_tin_chung))
+  ov.dataset.dirty = ''
+}
+function closeTtcModal() { document.getElementById('ttcModal').style.display = 'none' }
+function ttcHang(d) {
+  return `<div class="ttc-h">${ic(bieuTuongTtc(d))}<input type="text" value="${esc(d)}" maxlength="120" placeholder="Gõ nội dung…"
+    aria-label="Dòng thông tin chung" oninput="ttcXemLai()"><button type="button" onclick="ttcBo(this)" aria-label="Bỏ dòng này" title="Bỏ dòng này">${ic('trash')}</button></div>`
+}
+function ttcVe(ds) {
+  document.getElementById('ttcDs').innerHTML = ds.map(ttcHang).join('')
+  ttcXemLai()
+}
+function ttcLay() {
+  return [...document.querySelectorAll('#ttcDs .ttc-h input')].map(i => i.value.trim()).filter(Boolean)
+}
+// Đổi biểu tượng từng dòng theo chữ đang gõ + vẽ lại khung "Trên web sẽ hiện"
+function ttcXemLai() {
+  document.querySelectorAll('#ttcDs .ttc-h').forEach(h => {
+    const cu = h.firstElementChild, moi = ic(bieuTuongTtc(h.querySelector('input').value))
+    if (cu && cu.outerHTML !== moi) cu.outerHTML = moi
+  })
+  const ds = ttcLay()
+  document.getElementById('ttcXem').innerHTML = ds.length
+    ? ds.map(d => `<div>${ic(bieuTuongTtc(d))}${esc(d)}</div>`).join('')
+    : '<span class="ttc-xem-trong">Không hiện dòng nào.</span>'
+}
+function ttcBo(nut) {
+  const ds = document.getElementById('ttcDs')
+  nut.closest('.ttc-h').remove()
+  ttcXemLai(); danhDauDangNhap(ds)
+}
+function ttcThemDong() {
+  const ds = document.getElementById('ttcDs')
+  ds.insertAdjacentHTML('beforeend', ttcHang(''))
+  ds.lastElementChild.querySelector('input').focus()
+}
+async function luuTtc() {
+  const nut = document.getElementById('ttcLuu')
+  nut.disabled = true
+  const ok = await ghiDb(sb.from('contact').update({ thong_tin_chung: ttcLay().join('\n') }).eq('id', 1).select('id'), 'lưu thông tin chung')
+  nut.disabled = false
+  if (!ok) return
+  document.getElementById('ttcModal').dataset.dirty = ''
+  closeTtcModal()
+  showToast('Đã lưu — mọi mẫu trên web đổi theo')
 }
 
 function closeModal() { document.getElementById('modal').style.display = 'none' }
@@ -4701,7 +5044,7 @@ async function saveProduct(e) {
     name:        document.getElementById('fName').value.trim(),
     price:       priceToSave(document.getElementById('fPrice').value),
     category:    bstList.find(c => c.id === bstIds[0])?.name || '',
-    description: document.getElementById('fDesc').value.trim(),
+    description: spMoTaGhep(),
     image:       newImages[0] || '',
     images:      newImages,
     order_index: parseInt(document.getElementById('fOrder').value) || 0,

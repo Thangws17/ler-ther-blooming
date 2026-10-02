@@ -109,6 +109,7 @@ function duLieuDoc() {
     facebook: XJ('lh.fb'), instagram: XJ('lh.ig'), tiktok: XJ('lh.tt'), hero_image: XU('lh.hero'),
     banner_active: true, banner_text: X('lh.banner'), policy_delivery: X('lh.cs1'), policy_payment: X('lh.cs2'), policy_quality: X('lh.cs3'),
     ga4_id: X('lh.ga'), clarity_id: X('lh.cl'),
+    thong_tin_chung: [X('lh.ttc1'), X('lh.ttc2')].join(String.fromCharCode(10)),   // thông tin chung cho mọi mẫu (SQL 28)
   })
   return { dl, ngay }
 }
@@ -163,6 +164,7 @@ async function moKhung(duong, rong, cao) {
         const p = id('noProductName'); if (p) { p.value = 's'; p.dispatchEvent(new w.Event('input')); p.dispatchEvent(new w.Event('focus')) } },
         () => { id('orderNewModal').dataset.dirty = ''; w.closeAllModals() }],
       ...dl.products.map(p => [`sửa mẫu ${p.id}`, () => w.openModal(p.id), () => w.closeAllModals()]),
+      ['thông tin chung', () => w.openTtcModal(), () => { id('ttcModal').dataset.dirty = ''; w.closeAllModals() }],
       ['sửa BST 6', () => w.openBstModal(6), () => { id('bstModal').dataset.dirty = ''; w.closeAllModals() }],
       ...dl.expenses.map(e => [`sửa chi phí ${e.id}`, () => w.openExpenseModal(e.id), () => w.closeAllModals()]),
       ['nguyên liệu', () => w.openMaterialsModal(), () => w.closeAllModals()],
