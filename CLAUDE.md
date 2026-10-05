@@ -128,6 +128,15 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
 - **`bstDangHien()` viết HAI lần** — `admin/index.html` và `js/main.js`. Luật bật/tắt + hẹn ngày
   phải giống hệt nhau, lệch là admin báo một đằng web hiện một nẻo (test đối chiếu 2 bản).
   Tương tự: `slugVi()` trong JS phải cho ra kết quả giống hàm `slug_vi()` trong SQL 21.
+- **Hàng Bộ sưu tập trang chủ tự trôi (05/10/2026, `bstTuTruot()` main.js)**: 1 hàng ngang ở MỌI khổ (trước là lưới,
+  bộ thứ 5 rớt xuống hàng 2). Không vừa khung thì JS bọc thẻ vào băng chuyền `.bst-ray`, nối đuôi 1 bản sao (`.bst-sao`,
+  aria-hidden, tabindex −1) và trôi `BST_TRUOT_TOC_DO` (20px/giây) vòng liền; vừa khung thì đứng yên, bản sao ẩn.
+  **Trôi bằng `ray.animate()` (transform, card đồ hoạ lo), KHÔNG bằng `scrollLeft`** — scrollLeft làm tròn điểm ảnh nên
+  chậm thì nhích từng nấc + khựng khi trang bận (shop chê "chưa mượt" 05/10). Khách chạm / nhấn chuột / lăn / Tab → `veTay()`
+  bỏ hiệu ứng, chuyển sang cuộn thường đúng chỗ đang thấy; buông 1,5 giây → `veTroi()`. Rê chuột chỉ chậm còn ½, KHÔNG dừng
+  (shop muốn luôn tự trôi). Vị trí thật = `scrollLeft − m41 của transform .bst-ray`. Chỉ chạy khi hàng trên màn hình, tắt
+  khi máy bật "giảm chuyển động". Đếm thẻ thật phải lọc `:not(.bst-sao)`.
+  Hiệu ứng "hiện dần" đặt cho CẢ HÀNG (`#bstGrid.reveal`), đừng gắn lại cho từng thẻ (thẻ khuất bên phải sẽ trồi lên).
 - **Trang ảnh tên là "Khoảnh khắc" (`khoanh-khac`), không còn chữ "Gallery" nào khách/admin thấy** (web thuần Việt,
   23/09/2026). Trong code và database vẫn tên `gallery` (bảng, hàm `loadGallery`, `data-tab="Gallery"`) — cố ý
   giữ, đừng đổi tên bảng. Chữ mới hiện ra thì viết "Khoảnh khắc" / "nhóm ảnh", đừng viết "Gallery" / "danh mục".

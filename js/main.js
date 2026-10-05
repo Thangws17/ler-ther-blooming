@@ -191,7 +191,7 @@ async function loadBoSuuTap() {
     const em = esc(c.emoji || '🌸');
     const n = bstMauIds(c.id).length;
     return `
-<a class="bst-card reveal" href="san-pham?bst=${encodeURIComponent(c.slug || '')}">
+<a class="bst-card" href="san-pham?bst=${encodeURIComponent(c.slug || '')}">
   ${bia ? `<img ${srcNho(bia, 600)} alt="${esc(c.name)}" loading="lazy">`
         : `<div class="bst-ph">${em}</div>`}
   <span class="bst-veil"></span>
@@ -204,9 +204,134 @@ async function loadBoSuuTap() {
 </a>`;
   }).join('');
 
-  if (sec) sec.style.display = '';
-  staggerReveal(wrap.querySelectorAll('.reveal'));
-  initScrollReveal(wrap);
+  if (sec) sec.style.display = '';   // phải hiện TRƯỚC khi đo (đang ẩn thì mọi thẻ rộng 0)
+  bstTuTruot(wrap);
+}
+
+// ─── Hàng Bộ sưu tập tự trôi nhẹ (05/10/2026) ────────────
+// Nhiều bộ hơn bề ngang khung → cả hàng trôi chậm sang trái, chạy vòng liền: nối thêm 1 bản sao các
+// thẻ ở đuôi (aria-hidden, không Tab tới), trôi hết 1 vòng thì về đầu — 2 chỗ trông y hệt nên mắt không
+// thấy. Vừa khung (ít bộ) hoặc máy bật "giảm chuyển động" → đứng yên như hàng thường.
+// MƯỢT: thẻ nằm trong 1 "băng chuyền" .bst-ray do card đồ hoạ đẩy (Web Animations, transform) — không
+// cuộn bằng scrollLeft nữa: scrollLeft làm tròn theo điểm ảnh nên chậm thì nhích từng nấc, và chạy trên
+// luồng chính nên trang bận tải ảnh là khựng. 2 chế độ:
+//   'troi' = băng chuyền tự chạy, khung cuộn đứng ở 0
+//   'tay'  = khách đang chạm / kéo / lăn chuột / Tab → bỏ hiệu ứng, chuyển sang cuộn thường ĐÚNG chỗ đang
+//            thấy (không nhảy); buông tay một lúc thì tự trôi tiếp từ đó.
+// Rê chuột vào chỉ CHẬM LẠI, không dừng (shop muốn hàng luôn tự trôi).
+const BST_TRUOT_TOC_DO = 20;   // px mỗi giây — đủ chậm để đọc kịp chữ trên thẻ
+function bstTuTruot(hang) {
+  if (!hang || hang._tuTruot || !('IntersectionObserver' in window)) return;
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const that = [...hang.children];
+  if (that.length < 2 || !that[0].animate) return;
+  hang._tuTruot = true;
+  const ray = document.createElement('div');
+  ray.className = 'bst-ray';
+  ray.append(...that);
+  that.forEach(the => {
+    const sao = the.cloneNode(true);
+    sao.classList.add('bst-sao');
+    sao.setAttribute('aria-hidden', 'true');
+    sao.tabIndex = -1;
+    ray.appendChild(sao);
+  });
+  hang.appendChild(ray);
+
+  let chuKy = 0;   // dài 1 vòng (px) = từ thẻ đầu tới bản sao đầu; 0 = vừa khung → đứng yên
+  function doKhung() {
+    hang.classList.remove('tu-truot');   // đo lúc CHƯA hiện bản sao
+    const cs = getComputedStyle(hang);
+    const rong = hang.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const dai = that[that.length - 1].getBoundingClientRect().right - that[0].getBoundingClientRect().left;
+    chuKy = 0;
+    if (dai <= rong + 1) return;
+    hang.classList.add('tu-truot');
+    chuKy = ray.children[that.length].getBoundingClientRect().left - that[0].getBoundingClientRect().left;
+  }
+  doKhung();
+
+  let cheDo = 'tay', anim = null, toc = 0, rampRaf = 0, henTroi = 0;
+  let thay = false, cham = false, bam = false, tieuDiem = false, reChuot = false;
+
+  // Tự nhớ tốc độ: anim.playbackRate chưa đổi ngay sau updatePlaybackRate (đợi khung hình sau)
+  function datToc(r) {
+    toc = r;
+    if (anim) anim.updatePlaybackRate ? anim.updatePlaybackRate(r) : (anim.playbackRate = r);
+  }
+  // Đổi tốc độ êm (đường cong mềm ở 2 đầu) — bắt đầu trôi / rê chuột vào / rời chuột
+  function doiToc(muc, ms) {
+    cancelAnimationFrame(rampRaf);
+    if (!anim) return;
+    const tu = toc, t0 = performance.now();
+    const buoc = t => {
+      const k = Math.min(1, (t - t0) / ms);
+      datToc(tu + (muc - tu) * k * k * (3 - 2 * k));
+      if (k < 1) rampRaf = requestAnimationFrame(buoc);
+    };
+    rampRaf = requestAnimationFrame(buoc);
+  }
+  const tocMuon = () => (reChuot ? 0.5 : 1);
+
+  function veTroi() {
+    if (cheDo === 'troi' || !chuKy || !thay || cham || bam || tieuDiem) return;
+    const x = ((hang.scrollLeft % chuKy) + chuKy) % chuKy;   // trôi tiếp từ chỗ khách đang xem
+    const dai = chuKy / BST_TRUOT_TOC_DO * 1000;
+    cheDo = 'troi';
+    hang.scrollLeft = 0;
+    anim = ray.animate([{ transform: 'translateX(0)' }, { transform: `translateX(${-chuKy}px)` }],
+                       { duration: dai, iterations: Infinity });
+    anim.currentTime = x / chuKy * dai;
+    anim.playbackRate = toc = 0;   // đứng yên rồi tăng tốc dần
+    doiToc(tocMuon(), 1400);
+  }
+  function veTay() {
+    clearTimeout(henTroi);
+    if (cheDo !== 'troi') return;
+    const m = new DOMMatrixReadOnly(getComputedStyle(ray).transform);   // chỗ băng chuyền đang tới
+    cancelAnimationFrame(rampRaf);
+    anim.cancel(); anim = null;
+    cheDo = 'tay';
+    hang.scrollLeft = -m.m41;   // cuộn thường tới ĐÚNG chỗ đó → mắt không thấy gì đổi
+  }
+  function henLai(ms) {
+    clearTimeout(henTroi);
+    henTroi = setTimeout(veTroi, ms);
+  }
+
+  // Khách tự cuộn: lúc lướt (cả đà trôi sau khi buông tay) thì cứ hoãn, đứng yên hẳn mới trôi tiếp
+  hang.addEventListener('scroll', () => { if (cheDo === 'tay' && !cham && !bam) henLai(1500); }, { passive: true });
+  hang.addEventListener('touchstart', () => { cham = true; veTay(); }, { passive: true });
+  const buongTay = () => { cham = false; henLai(1500); };
+  hang.addEventListener('touchend', buongTay, { passive: true });
+  hang.addEventListener('touchcancel', buongTay, { passive: true });
+  hang.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse') { bam = true; veTay(); } });
+  document.addEventListener('pointerup', () => { if (bam) { bam = false; henLai(1500); } });
+  hang.addEventListener('wheel', () => { veTay(); henLai(1500); }, { passive: true });
+  hang.addEventListener('pointerenter', e => {
+    if (e.pointerType === 'mouse') { reChuot = true; if (cheDo === 'troi') doiToc(tocMuon(), 600); }
+  });
+  hang.addEventListener('pointerleave', e => {
+    if (e.pointerType === 'mouse') { reChuot = false; if (cheDo === 'troi') doiToc(tocMuon(), 900); }
+  });
+  // Chỉ dừng khi Tab bằng bàn phím — bấm chuột cũng làm thẻ nhận focus nhưng chuột rời đi là xong
+  hang.addEventListener('focusin', e => {
+    try { tieuDiem = e.target.matches(':focus-visible'); } catch { tieuDiem = true; }
+    if (tieuDiem) veTay();
+  });
+  hang.addEventListener('focusout', () => { if (tieuDiem) { tieuDiem = false; henLai(800); } });
+
+  // Chỉ chạy khi hàng đang nằm trên màn hình — cuộn đi chỗ khác là nghỉ, đỡ tốn pin
+  new IntersectionObserver(([e]) => {
+    thay = e.isIntersecting;
+    if (thay) henLai(300); else veTay();
+  }, { threshold: 0.25 }).observe(hang);
+
+  let henDo = 0;
+  addEventListener('resize', () => {
+    clearTimeout(henDo);
+    henDo = setTimeout(() => { veTay(); doKhung(); henLai(300); }, 150);
+  });
 }
 
 // ─── Products page ────────────────────────────────────────

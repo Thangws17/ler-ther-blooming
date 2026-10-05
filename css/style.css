@@ -588,9 +588,27 @@ section    { padding:64px 0; }
 
 /* ─── Bộ sưu tập (BST) ────────────────────────────────────
    Thay dãy danh mục cũ. Thẻ bìa cao 3:4, ảnh to, chữ đè lên ảnh.
-   Cấu hình trong admin → tab 🌿 Bộ sưu tập. */
+   Cấu hình trong admin → tab 🌿 Bộ sưu tập.
+   MỘT hàng trượt ngang (05/10/2026 — trước là lưới, bộ thứ 5 rớt xuống hàng 2 nằm lẻ loi).
+   Ít bộ: thẻ giãn ra lấp đủ hàng như cũ. Nhiều bộ: thấy ~4 thẻ rưỡi + cả hàng tự trôi chậm
+   (bstTuTruot trong main.js; .bst-sao = bản sao nối đuôi cho vòng chạy liền). */
 .bst-grid {
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(232px,1fr)); gap:18px;
+  display:flex; gap:18px; overflow-x:auto; overscroll-behavior-x:contain; scrollbar-width:none;
+  padding:8px 10px 20px; margin:-8px -10px -20px;   /* khung cuộn cắt mất bóng + thẻ nhấc lên khi rê chuột → chừa chỗ */
+}
+.bst-grid::-webkit-scrollbar { display:none; }
+.bst-grid .bst-card { flex:1 0 calc((100% - 4 * 18px) / 4.4); }
+/* Băng chuyền chứa thẻ (JS bọc vào khi tự trôi) — rộng đúng bằng khung để % rộng thẻ tính như cũ */
+.bst-ray { display:flex; gap:inherit; flex:0 0 100%; min-width:0; }
+.bst-grid.tu-truot .bst-ray { will-change:transform; }
+.bst-grid:not(.tu-truot) .bst-sao { display:none; }
+.bst-grid.tu-truot { scroll-snap-type:none; }   /* bắt dính sẽ giật hàng đang trôi về từng thẻ */
+@media (min-width:641px) {
+  /* mép trái/phải mờ dần — thẻ trôi vào/ra êm, không bị cắt ngang cứng */
+  .bst-grid.tu-truot {
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 30px,#000 calc(100% - 30px),transparent);
+            mask-image:linear-gradient(90deg,transparent,#000 30px,#000 calc(100% - 30px),transparent);
+  }
 }
 .bst-card {
   position:relative; display:block; border-radius:var(--radius); overflow:hidden;

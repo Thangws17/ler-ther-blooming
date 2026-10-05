@@ -254,6 +254,87 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
         test('[đặt hoa] ngày giao mặc định = ngày mai', () =>
           bang(nhatKy[0].thamSo.p_delivery_date, new Date(Date.now() + 864e5).toLocaleDateString('sv-SE')))
       }
+      if (ten === 'index' && rong === 1280) {
+        // Bộ sưu tập: MỘT hàng ngang, nhiều bộ thì tự trôi chậm (bstTuTruot, 05/10/2026 — trước là lưới,
+        // bộ thứ 5 rớt xuống hàng 2 nằm lẻ loi)
+        const hang = T.id('bstGrid')
+        const that = [...hang.querySelectorAll('.bst-card:not(.bst-sao)')]
+        test('[trang chủ] máy tính: bộ sưu tập nằm MỘT hàng, không bộ nào rớt xuống hàng 2', () =>
+          bang(new Set(that.map(x => Math.round(x.getBoundingClientRect().top))).size, 1))
+        // Hàng giả 3 bộ / 6 bộ — không phụ thuộc số bộ đang bật trên web thật
+        const vo = d.createElement('div'); vo.className = 'container'; d.body.appendChild(vo)
+        const hangGia = n => {
+          const h = d.createElement('div'); h.className = 'bst-grid'
+          h.innerHTML = Array.from({ length: n }, (_, i) =>
+            `<a class="bst-card" href="#bo${i}"><span class="bst-txt"><span class="bst-h">Bộ ${i}</span></span></a>`).join('')
+          vo.appendChild(h); w.bstTuTruot(h); return h
+        }
+        const it = hangGia(3), nhieu = hangGia(6)
+        const the = h => [...h.querySelectorAll('.bst-card')]
+        // Chỗ khách đang thấy = phần đã cuộn + phần băng chuyền đã trôi
+        const viTri = h => {
+          const ray = h.querySelector('.bst-ray')
+          return h.scrollLeft - (ray ? new w.DOMMatrixReadOnly(w.getComputedStyle(ray).transform).m41 : 0)
+        }
+        const soHieuUng = h => { const ray = h.querySelector('.bst-ray'); return ray ? ray.getAnimations().length : 0 }
+        const chuot = (loai, el) => el.dispatchEvent(new w.PointerEvent(loai, { bubbles: true, cancelable: true, pointerType: 'mouse', button: 0 }))
+        test('[trang chủ] 3 bộ (vừa khung) → đứng yên, thẻ giãn lấp đủ hàng, không hiện bản sao', () => {
+          bang([it.classList.contains('tu-truot'), the(it).filter(x => x.offsetParent).length], [false, 3])
+          const phai = it.getBoundingClientRect().right - parseFloat(getComputedStyle(it).paddingRight)
+          const cuoi = the(it)[2].getBoundingClientRect().right
+          if (Math.abs(phai - cuoi) > 2) throw new Error(`thẻ cuối cách mép phải ${Math.round(phai - cuoi)}px`)
+        })
+        test('[trang chủ] 6 bộ → tự trôi: nối 6 bản sao ở đuôi, ẩn với trình đọc màn hình, không Tab tới, không bắt dính', () => {
+          const sao = [...nhieu.querySelectorAll('.bst-sao')]
+          bang([nhieu.classList.contains('tu-truot'), sao.length,
+                sao.every(x => x.getAttribute('aria-hidden') === 'true' && x.tabIndex === -1),
+                getComputedStyle(nhieu).scrollSnapType], [true, 6, true, 'none'])
+        })
+        test('[trang chủ] 6 bộ → thấy 4 thẻ rưỡi (thẻ thứ 5 ló ra một phần = còn nữa)', () => {
+          const r = nhieu.getBoundingClientRect(), t5 = the(nhieu)[4].getBoundingClientRect()
+          if (!(t5.left < r.right - 40 && t5.right > r.right)) throw new Error(`thẻ 5: ${Math.round(t5.left)}–${Math.round(t5.right)}, hàng tới ${Math.round(r.right)}`)
+        })
+        // Trôi THẬT: đưa khung test ra màn hình một lúc (hàng nằm ngoài màn hình thì tự nghỉ cho đỡ tốn pin)
+        T.f.style.position = 'fixed'; T.f.style.left = '0px'
+        w.scrollTo({ top: nhieu.getBoundingClientRect().top + w.scrollY - 150, behavior: 'instant' })
+        await cho(2600)
+        const p1 = viTri(nhieu); await cho(1000); const p2 = viTri(nhieu)
+        test('[trang chủ] hàng 6 bộ nằm trên màn hình → tự trôi sang trái ~20px/giây', () => {
+          if (!(p2 - p1 > 12 && p2 - p1 < 28)) throw new Error(`1 giây trôi ${Math.round(p2 - p1)}px`)
+        })
+        test('[trang chủ] trôi bằng băng chuyền (card đồ hoạ) — khung cuộn đứng ở 0, không nhích từng điểm ảnh', () =>
+          bang([nhieu.scrollLeft, soHieuUng(nhieu)], [0, 1]))
+        chuot('pointerenter', nhieu)
+        await cho(900); const q1 = viTri(nhieu); await cho(1000); const q2 = viTri(nhieu)
+        chuot('pointerleave', nhieu)
+        test('[trang chủ] rê chuột vào → chậm lại còn một nửa nhưng VẪN tự trôi (shop muốn luôn trôi)', () => {
+          if (!(q2 - q1 > 4 && q2 - q1 < 15)) throw new Error(`1 giây trôi ${Math.round(q2 - q1)}px`)
+        })
+        // Nhấn chuột (bắt đầu kéo) → giao cho cuộn thường ĐÚNG chỗ đang thấy
+        const a0 = viTri(nhieu)
+        chuot('pointerdown', the(nhieu)[1])
+        const a1 = viTri(nhieu)
+        await cho(700); const a2 = viTri(nhieu)
+        test('[trang chủ] nhấn chuột vào hàng → dừng ngay tại chỗ, không giật / nhảy', () => {
+          if (Math.abs(a1 - a0) > 2 || Math.abs(a2 - a1) > 1) throw new Error(`trước ${a0.toFixed(1)}, lúc nhấn ${a1.toFixed(1)}, sau 0,7 giây ${a2.toFixed(1)}`)
+          bang([nhieu.scrollLeft > 0, soHieuUng(nhieu)], [true, 0], 'phải chuyển sang cuộn thường')
+        })
+        chuot('pointerup', d)
+        await cho(2600); const b1 = viTri(nhieu); await cho(600); const b2 = viTri(nhieu)
+        test('[trang chủ] thả chuột → một lúc sau tự trôi tiếp từ chỗ đó', () => {
+          if (!(b2 - b1 > 3) || Math.abs(b1 - a2) > 40) throw new Error(`thả ở ${a2.toFixed(0)}, sau đó ${b1.toFixed(0)} → ${b2.toFixed(0)}`)
+        })
+        test('[trang chủ] hàng 3 bộ (vừa khung) không trôi', () => bang([it.scrollLeft, soHieuUng(it)], [0, 0]))
+        // Hết 1 vòng → về lại đầu (bản sao trông y hệt nên không thấy nhảy), không đứng kẹt ở cuối hàng
+        const chuKy = the(nhieu)[6].getBoundingClientRect().left - the(nhieu)[0].getBoundingClientRect().left
+        chuot('pointerdown', the(nhieu)[1]); nhieu.scrollLeft = chuKy - 4; chuot('pointerup', d)
+        await cho(4500)
+        test('[trang chủ] trôi hết 1 vòng → quay lại đầu hàng, không kẹt ở cuối', () => {
+          if (!(viTri(nhieu) < 120)) throw new Error(`đang ở ${Math.round(viTri(nhieu))}px, 1 vòng = ${Math.round(chuKy)}`)
+        })
+        T.f.style.position = ''; T.f.style.left = ''
+        vo.remove()
+      }
       if (ten === 'san-pham' && rong === 1280) {
         // Ảnh THU NHỎ (anhNho, dữ liệu thật): tải được thật, không âm thầm quay về ảnh gốc 1600px.
         // FAIL ở đây = Supabase không còn thu nhỏ ảnh (đổi gói / hết hạn mức) → web chậm lại dù vẫn đủ ảnh.
