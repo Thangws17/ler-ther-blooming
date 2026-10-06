@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Đằng sau những bó hoa — Ler & Ther Blooming</title>
-  <meta name="description" content="Câu chuyện thật đằng sau Ler & Ther Blooming — về tình yêu với hoa và hành trình của hai người.">
+  <meta name="description" content="Một chuyện nhỏ giấu bên dưới lớp giấy gói: những bó hoa cắm chéo gốc của Ler & Ther Blooming, và vài lời nhắn để hoa ở bên bạn lâu hơn.">
   <meta property="og:type"        content="article">
   <meta property="og:site_name"   content="Ler & Ther Blooming">
   <meta property="og:locale"      content="vi_VN">
   <meta property="og:title"       content="Đằng sau những bó hoa — Ler & Ther Blooming">
-  <meta property="og:description" content="Ler là người cắm hoa. Ther là người đi cùng. Câu chuyện thật đằng sau Ler & Ther Blooming.">
+  <meta property="og:description" content="Ler là người cắm hoa. Ther là người đi cùng. Một chuyện nhỏ, giấu bên dưới lớp giấy gói.">
   <meta property="og:image"       content="https://lertherblooming.vn/images/og-cover.jpg">
   <link rel="canonical" href="https://lertherblooming.vn/cau-chuyen">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
@@ -21,58 +21,81 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js" integrity="sha384-K1nraABOP/zFehpLIUksXebbs7jMpB8gYMlb+uhVKZcWT/9Vkq1+qhv6ndC+1Yuz" crossorigin="anonymous"></script>
   <style>
     .story-section {
-      max-width: 680px;
+      max-width: 640px;
       margin: 0 auto;
-      padding: 80px 20px;
+      padding: 0 20px 8px;   /* section bọc ngoài đã đệm 64px trên/dưới */
     }
     .story-section p {
-      font-size: 1.13rem;
-      line-height: 1.95;
+      font-size: 1.06rem;
+      line-height: 1.9;
       color: var(--text-mid);
-      margin-bottom: 28px;
+      margin-bottom: 20px;
     }
     .story-section em {
       font-style: normal;
       color: var(--text);
-      font-weight: 700;
+      font-weight: 600;
     }
+    .story-section .story-lead { font-size: 1.16rem; color: var(--text); }
+    /* câu ngắn chuyển đoạn: đậm màu hơn một chút */
+    .story-section .story-nhan { color: var(--text); font-weight: 600; }
+
+    /* hoa nhỏ ngăn giữa các phần */
+    .story-ngat {
+      display: flex; align-items: center; gap: 14px; margin: 40px 0 34px; color: var(--green-light);
+    }
+    .story-ngat::before, .story-ngat::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+    .story-ngat .ic { width: 18px; height: 18px; }
+
     .story-quote {
       border-left: 3px solid var(--green-light);
-      padding: 6px 0 6px 24px;
-      margin: 36px 0;
-      font-size: 1.08rem;
-      color: var(--text-mid);
+      padding: 4px 0 4px 22px;
+      margin: 32px 0 44px;
+      font-family: 'Lora', serif;
       font-style: italic;
-      line-height: 1.9;
+      font-weight: 500;
+      font-size: 1.14rem;
+      color: var(--text);
+      line-height: 1.8;
     }
-    .story-values {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      margin-top: 64px;
-      padding-top: 56px;
-      border-top: 1px solid var(--border);
+    .story-quote span { display: block; margin-top: 6px; color: var(--green); }
+
+    /* Hình vẽ bó chéo gốc */
+    .cg-hinh { margin: 26px auto 26px; max-width: 210px; text-align: center; }
+    .cg-hinh svg { display: block; width: 100%; height: auto; }
+    .cg-hinh figcaption { margin-top: 6px; font-size: .86rem; font-style: italic; color: var(--text-light); line-height: 1.5; }
+    .cg-than { stroke: var(--green-mid); stroke-width: 2.2; stroke-linecap: round; fill: none; }
+    .cg-svg text { font: 600 11px 'Be Vietnam Pro', sans-serif; fill: var(--text-mid); }
+
+    /* Khung lời nhắn chăm hoa */
+    .cham-khung {
+      background: var(--green-pale); border-radius: 18px; padding: 26px 26px 10px; margin: 0 0 44px;
     }
-    .story-value {
-      text-align: center;
-      padding: 28px 16px;
-      background: var(--white);
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
+    .story-section .cham-khung h2 {
+      font-family: 'Lora', serif; font-style: italic; font-weight: 500;
+      font-size: 1.3rem; color: var(--green); margin: 0 0 10px;
     }
-    .story-value-icon { font-size: 2.2rem; margin-bottom: 14px; }
-    .story-value h3 { font-size: 1rem; margin-bottom: 8px; color: var(--text); }
-    .story-value p { font-size: .88rem; color: var(--text-mid); line-height: 1.7; margin: 0; }
+    .story-section .cham-khung p { font-size: 1rem; margin-bottom: 16px; }
+    .cham-hoa li {
+      position: relative; padding: 0 0 16px 22px;
+      color: var(--text-mid); font-size: .98rem; line-height: 1.75;
+    }
+    .cham-hoa li::before {
+      content: ''; position: absolute; left: 3px; top: .62em;
+      width: 7px; height: 7px; border-radius: 50%; background: var(--green-mid);
+    }
+    .cham-hoa b { display: block; color: var(--text); font-weight: 600; }
+
     .story-cta {
       text-align: center;
-      margin-top: 56px;
-      padding-top: 48px;
+      margin-top: 40px;
+      padding-top: 36px;
       border-top: 1px solid var(--border);
     }
-    .story-cta p { margin-bottom: 20px; font-size: 1rem; }
+    .story-section .story-cta p { margin-bottom: 18px; font-size: 1.02rem; color: var(--text); }
 
     @media (max-width: 640px) {
-      .story-values { grid-template-columns: 1fr; }
+      .cham-khung { padding: 22px 18px 8px; margin-left: -4px; margin-right: -4px; }
     }
   </style>
 </head>
@@ -106,64 +129,142 @@
   <div class="container">
     <div class="page-kicker">Câu chuyện</div>
     <h1>Đằng sau những bó hoa</h1>
-    <p>Câu chuyện thật của Ler &amp; Ther Blooming</p>
+    <p>Một chuyện nhỏ, giấu bên dưới lớp giấy gói</p>
   </div>
 </div>
 
 <!-- ── Story ──────────────────────────────────────────── -->
 <section style="background:#fff;">
-  <div class="story-section">
+  <article class="story-section">
+
+    <!-- 1. Những chuyến nhập hoa -->
+    <p class="story-lead">
+      Những buổi sáng đi nhập hoa, khi cành hoa còn đẫm sương. Những hôm trời bất chợt đổ mưa
+      giữa đường. Hay những lần lỡ chọn nhầm tông màu, rồi hai đứa lại lủi thủi quay lại đổi cho đúng.
+    </p>
+
+    <p class="story-nhan">Ler và Ther đã cùng nhau đi qua những chuyện nhỏ như thế.</p>
 
     <p>
-      <em>Ler</em> là người cắm hoa. <em>Ther</em> là người đi cùng.
+      Mỗi chuyến nhập hoa trở về, những cành hoa lại được mang về nhà, đặt đầy trên bàn. Có hôm
+      nhiều đến mức chẳng còn chỗ để đặt thêm gì nữa. Rồi Ler bắt đầu ngồi xuống, lựa từng cành,
+      thử từng màu và cắm thành những bó hoa mà bạn sẽ nhìn thấy ở Ler &amp; Ther Blooming.
+    </p>
+
+    <div class="story-ngat" aria-hidden="true"><svg class="ic"><use href="#i-flower"/></svg></div>
+
+    <!-- 2. Cắm chéo gốc -->
+    <p class="story-nhan">Có một điều nhỏ mà có lẽ bạn sẽ không để ý ngay.</p>
+
+    <p>
+      Nếu gỡ nhẹ lớp giấy gói bên ngoài, bạn sẽ thấy những cành hoa không đứng thẳng cùng một hướng.
+      Chúng nghiêng nhẹ, xoay đều quanh nhau và cùng gặp về một điểm ở phía dưới.
     </p>
 
     <p>
-      Ler sống thiên về cảm xúc — nên mỗi bó hoa không chỉ là hoa,
-      mà là thứ gì đó Ler muốn gửi đi.
+      Đó là cách Ler thường cắm hoa — trong nghề gọi là kỹ thuật <em>cắm chéo gốc</em>.
     </p>
 
     <p>
-      Khó khăn ban đầu có, chi phí có, có cả những buổi sáng đi nhập
-      hoa giữa trời mưa, mua nhầm màu rồi quay lại mua đúng — nhưng
-      chưa bao giờ đủ để dừng lại.
+      Ler sẽ cầm bó hoa trên tay, đặt từng cành theo một hướng nghiêng cố định rồi xoay nhẹ bó hoa.
+      Thêm một cành, lại xoay một chút. Cứ thế, từng cành hoa dần tìm được vị trí của mình.
     </p>
+
+    <figure class="cg-hinh reveal">
+      <svg class="cg-svg" viewBox="0 24 170 170" role="img" aria-label="Hình vẽ bó hoa cắm chéo gốc: các cành nghiêng cùng một chiều, gặp nhau ở điểm buộc, hoa xoè thành vòm tròn">
+        <g class="cg-than">
+          <path d="M115.4 167.1L41.4 79M44.6 167.1L118.6 79"/>
+          <path d="M111 178.7L40 55.7M101.2 183.3L52.6 49.8M90.8 186.1L66.1 46.2M80 187V45M69.2 186.1L93.9 46.2M58.8 183.3L107.4 49.8M49 178.7L120 55.7"/>
+        </g>
+        <ellipse cx="35" cy="71.4" rx="11" ry="4.5" transform="rotate(50 35 71.4)" fill="#81C784"/>
+        <ellipse cx="125" cy="71.4" rx="11" ry="4.5" transform="rotate(-50 125 71.4)" fill="#81C784"/>
+        <g stroke-width="1.4">
+          <circle cx="40" cy="55.7" r="12" fill="#F9D5A7"/><circle cx="40" cy="55.7" r="5" fill="none" stroke="#E0A766"/>
+          <circle cx="120" cy="55.7" r="12" fill="#F9D5A7"/><circle cx="120" cy="55.7" r="5" fill="none" stroke="#E0A766"/>
+          <circle cx="52.6" cy="49.8" r="12" fill="#F4B6C2"/><circle cx="52.6" cy="49.8" r="5" fill="none" stroke="#D9808F"/>
+          <circle cx="107.4" cy="49.8" r="12" fill="#F4B6C2"/><circle cx="107.4" cy="49.8" r="5" fill="none" stroke="#D9808F"/>
+          <circle cx="66.1" cy="46.2" r="12" fill="#FFF3E6"/><circle cx="66.1" cy="46.2" r="5" fill="none" stroke="#E5C3A0"/>
+          <circle cx="93.9" cy="46.2" r="12" fill="#FFF3E6"/><circle cx="93.9" cy="46.2" r="5" fill="none" stroke="#E5C3A0"/>
+          <circle cx="80" cy="45" r="12.5" fill="#EF9AA6"/><circle cx="80" cy="45" r="5" fill="none" stroke="#C9606F"/>
+        </g>
+        <rect x="71" y="121.5" width="18" height="7" rx="3.5" fill="#FF7043"/>
+        <path d="M92 125h9" stroke="#7A9879" stroke-width="1"/>
+        <text x="104" y="129">điểm buộc</text>
+      </svg>
+      <figcaption>Từng cành nghiêng một hướng, cùng gặp nhau ở điểm buộc</figcaption>
+    </figure>
+
+    <p>
+      Cách cắm này không quá phức tạp, nhưng cần khá nhiều sự kiên nhẫn. Chỉ cần một cành bị lệch
+      dáng hoặc nằm không đúng vị trí, Ler lại tháo ra và cắm lại.
+    </p>
+
+    <p>
+      Đổi lại, những bông hoa phía trên có thể tựa vào nhau thành một dáng tròn đầy đặn. Nhìn từ phía
+      nào cũng thấy hoa, không có mặt trước hay mặt sau. Phần gốc phía dưới xòe ra như một chiếc nan
+      quạt, nên khi cắm vào bình, các cành hoa cũng có thêm không gian để hút nước.
+    </p>
+
+    <p>
+      Quan trọng hơn, mỗi bông hoa vẫn có một khoảng riêng để giữ dáng của mình. Không bị chen chúc
+      hay ép sát vào nhau, hoa vẫn giữ được vẻ tự nhiên vốn có.
+    </p>
+
+    <p>Có lẽ đó cũng là điều Ler thích nhất ở cách cắm này.</p>
 
     <div class="story-quote">
-      Ther không cắm hoa, nhưng Ther ở đó — trên mọi chuyến đi,
-      trên chặng đường dài.
+      Mỗi cành hoa đi một hướng, nhưng cuối cùng vẫn cùng tìm về một điểm chung.
+      <span>Giống như Ler và Ther vậy.</span>
     </div>
+
+    <!-- 3. Chăm hoa -->
+    <div class="cham-khung reveal">
+      <h2>Để hoa ở bên bạn lâu hơn một chút</h2>
+      <p>
+        Khi bó hoa từ Ler &amp; Ther Blooming về tới tay bạn, Ler có vài lời nhắn nhỏ để hoa giữ được
+        vẻ tươi lâu hơn nhé:
+      </p>
+      <ul class="cham-hoa">
+        <li><b>Giữ nguyên dây buộc</b>Đừng vội tháo dây buộc của bó hoa. Dây giúp các cành giữ được form
+          và dáng bó đẹp hơn khi chuyển sang bình.</li>
+        <li><b>Cắt xiên gốc</b>Dùng kéo hoặc dao sắc cắt chéo phần gốc khoảng 2–3 cm trước khi cắm vào bình.
+          Phần gốc mới sẽ giúp hoa hút nước tốt hơn.</li>
+        <li><b>Bỏ những lá ngập trong nước</b>Những chiếc lá nằm dưới mặt nước nên được tỉa bớt để nước
+          trong bình sạch lâu hơn.</li>
+        <li><b>Thay nước thường xuyên</b>Thay nước khoảng 1–2 ngày/lần và rửa nhẹ phần bình nếu cần. Đặt hoa
+          ở nơi thoáng mát, tránh nắng gắt và luồng gió điều hòa thổi trực tiếp.</li>
+      </ul>
+    </div>
+
+    <!-- 4. Ther + lời kết -->
+    <p class="story-nhan">Ther không trực tiếp cắm hoa.</p>
 
     <p>
-      <em>Ler &amp; Ther Blooming</em> là vậy. Không hoành tráng, nhưng thật.
+      Nhưng Ther luôn ở đó — trên chiếc xe máy chở đầy hoa vào mỗi sáng, trong những chuyến đi nhập
+      hoa, những lần chở hoa về nhà và cả những ngày hai đứa cùng nhau xoay xở với một căn bàn đầy hoa.
     </p>
 
-    <!-- Values -->
-    <div class="story-values">
-      <div class="story-value reveal">
-        <div class="story-value-icon"><svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg></div>
-        <h3>Tâm huyết</h3>
-        <p>Mỗi bó hoa được cắm với toàn bộ cảm xúc, không phải chỉ bằng tay.</p>
-      </div>
-      <div class="story-value reveal" style="--reveal-delay:.08s">
-        <div class="story-value-icon"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></div>
-        <h3>Đồng hành</h3>
-        <p>Ther luôn ở đó — từ những chuyến đi nhập hoa sớm đến từng đơn hàng.</p>
-      </div>
-      <div class="story-value reveal" style="--reveal-delay:.16s">
-        <div class="story-value-icon"><svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg></div>
-        <h3>Gửi gắm</h3>
-        <p>Hoa là cách Ler nói những điều khó nói — và gửi chúng đến tay bạn.</p>
-      </div>
-    </div>
+    <p class="story-nhan">Ler &amp; Ther Blooming bắt đầu đơn giản như thế.</p>
+
+    <p>
+      Không quá hoành tráng. Không cố gắng trở thành một điều gì thật lớn lao.
+    </p>
+
+    <p>
+      Chỉ là hai đứa cùng nhau chọn hoa, cùng làm hoa, và muốn gửi đến bạn những bó hoa thật đẹp,
+      thật chỉn chu và có một chút tình cảm trong đó.
+    </p>
 
     <!-- CTA -->
     <div class="story-cta reveal">
-      <p style="color:var(--text-mid)">Muốn để Ler gửi gắm điều gì đó qua một bó hoa?</p>
-      <a href="san-pham" class="btn btn-primary">Xem sản phẩm</a>
+      <p>
+        Khi nào bạn có điều gì muốn gửi gắm, cứ ghé Ler &amp; Ther Blooming nhé.<br>
+        Để Ler cắm giúp bạn một bó hoa, thay lời bạn muốn nói.
+      </p>
+      <a href="san-pham" class="btn btn-primary">Xem các mẫu hoa</a>
     </div>
 
-  </div>
+  </article>
 </section>
 
 <!-- ── Footer ─────────────────────────────────────────── -->
