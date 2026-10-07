@@ -144,10 +144,29 @@ const dt = document.getElementById('dt')
   })
   test('Lọc ngày giao → delivery_date=eq.<ngày>', () =>
     chua(urlCua({ q: '', date: '2026-09-15', statuses: [] }), 'delivery_date=eq.2026-09-15'))
+  test('Đang lọc ngày → xếp theo NGÀY GIAO sớm → muộn (rồi mới tới đơn mới tạo)', () =>
+    chua(urlCua({ q: '', date: '2026-10-01', den: '2026-10-31', statuses: [] }), 'order=delivery_date.asc,created_at.desc'))
   test('Lọc ngày + trạng thái cùng lúc thì có cả hai', () => {
     const u = urlCua({ q: '', date: '2026-09-15', statuses: ['Hoàn thành'] })
     chua(u, 'delivery_date=eq.2026-09-15')
     chua(u, 'status=in.(Hoàn thành)')
+  })
+  test('Lọc KHOẢNG ngày (từ → đến) → delivery_date gte + lte, không còn eq', () => {
+    const u = urlCua({ q: '', date: '2026-10-10', den: '2026-10-20', statuses: [] })
+    chua(u, 'delivery_date=gte.2026-10-10')
+    chua(u, 'delivery_date=lte.2026-10-20')
+    khongChua(u, 'delivery_date=eq.')
+  })
+  test('Lọc "Tháng này" = khoảng từ ngày 1 tới ngày cuối tháng', () => {
+    const [dau, cuoi] = w.thangDauCuoi('2026-02')
+    bang(dau, '2026-02-01'); bang(cuoi, '2026-02-28')
+    bang(w.thangDauCuoi('2028-02')[1], '2028-02-29', 'Năm nhuận')
+    bang(w.thangDauCuoi('2026-10')[1], '2026-10-31')
+  })
+  test('Nhãn nút lịch: 1 ngày / cả tháng / khoảng ngày', () => {
+    bang(w.nhanKhoangNgay('2026-10-15', ''), '15/10/2026')
+    bang(w.nhanKhoangNgay('2026-10-01', '2026-10-31'), 'Tháng 10/2026')
+    bang(w.nhanKhoangNgay('2025-12-28', '2026-01-03'), '28/12/2025 – 03/01/2026')
   })
 
   // ── 3. Tìm kiếm chạy ở server ───────────────────────────────────
@@ -188,6 +207,14 @@ const dt = document.getElementById('dt')
     bang(f.date, '2026-09-14')
     id('orderSearch').value = ''
     id('orderDateFilter').value = ''
+  })
+  test('ordersFilterState đọc cả ô "đến ngày" (lọc khoảng)', () => {
+    w.ordSetRange('2026-10-10', '2026-10-20')
+    const f = w.ordersFilterState()
+    bang(f.date, '2026-10-10'); bang(f.den, '2026-10-20')
+    w.ordSetRange('2026-10-10', '2026-10-10')
+    bang(w.ordersFilterState().den, '', 'Từ = đến thì là lọc 1 ngày, ô "đến" phải trống')
+    w.ordSetRange('', '')
   })
   test('Chưa chọn trạng thái nào = xem tất cả (danh sách rỗng)', () =>
     bang(w.ordersFilterState().statuses, []))
@@ -237,6 +264,8 @@ const dt = document.getElementById('dt')
     chua(src, 'gte')
     chua(src, 'lte', 'Không giới hạn tháng thì lại tải cả bảng đơn')
   })
+  test('Không ghi cứng ngày "-31" (tháng 30 ngày → database báo lỗi, lịch mất chấm)', () =>
+    khongChua(w.ordLoadDots.toString(), "'-31'"))
   test('Chỉ lấy 2 cột cho nhẹ, không lấy cả đơn', () => {
     const src = w.ordLoadDots.toString()
     khongChua(src, "select('*'", 'Chấm lịch chỉ cần ngày giao + trạng thái')

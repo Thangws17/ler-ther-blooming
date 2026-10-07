@@ -237,7 +237,7 @@ const dt = document.getElementById('dt')
   const M = await (async () => {
     const src = await (await fetch('../admin/index.html?t=' + Date.now(), { cache: 'no-store' })).text()
     const i = src.indexOf('// ── Ô tiền trong form: gõ số trần')
-    const j = src.indexOf('// ── Bộ chọn ngày giao (popover lịch, thay input date thô) ──', i)
+    const j = src.indexOf('// ── Lịch lọc ngày (popover, thay input date thô)', i)
     if (i < 0 || j < 0) throw new Error('không tìm thấy khối helper ô tiền trong admin/index.html')
     const o = {}
     const tao = new Function('document', src.slice(i, j) +
@@ -364,6 +364,85 @@ const dt = document.getElementById('dt')
     })
     d.body.click()
     test('[Lịch lọc đơn] bấm ra ngoài → đóng', () => bang(popLoc.style.display, 'none'))
+
+    // Chọn ngày / KHOẢNG ngày (07/10: không còn nút chọn kiểu): bấm 1 ngày = xem ngày đó, bấm thêm ngày nữa = cả khoảng
+    // Không hỏi database thật khi đổi bộ lọc — chỉ kiểm giá trị ô lọc
+    const _apGoc = w.applyOrderFilters
+    w.applyOrderFilters = () => {}
+    const homNay = w.eval('todayStr()')            // const ở gốc → không nằm trong window
+    w.ordSetRange('', '')
+    w.toggleOrderDatePicker()
+    const oNgay = so => [...popLoc.querySelectorAll('.cal-day:not(.cal-empty)')].find(c => c.firstChild.textContent.trim() === String(so))
+    test('[Lọc ngày] lịch KHÔNG còn nút "Một ngày / Khoảng ngày" (rườm rà)', () =>
+      bang(popLoc.querySelectorAll('.ord-che-do').length, 0))
+    const thangXem = popLoc.querySelector('.date-pop-title').textContent.match(/(\d+)\/(\d+)/)
+    const ym = thangXem[2] + '-' + String(thangXem[1]).padStart(2, '0')
+    oNgay(20).click()
+    test('[Lọc ngày] bấm 1 ngày → lọc NGAY ngày đó, lịch vẫn mở chờ ngày thứ 2', () => {
+      bang(id('orderDateFilter').value, ym + '-20')
+      bang(id('orderDateTo').value, '')
+      bang(popLoc.style.display, 'block')
+      if (!popLoc.querySelector('.ord-goi-y').textContent.includes('20/')) throw new Error('dòng hướng dẫn chưa ghi ngày vừa bấm 20/…')
+    })
+    oNgay(10).click()
+    test('[Lọc ngày] bấm thêm ngày nữa (bấm ngược 20 → 10) → lọc cả khoảng 10 → 20', () => {
+      bang(id('orderDateFilter').value, ym + '-10')
+      bang(id('orderDateTo').value, ym + '-20')
+    })
+    test('[Lọc ngày] vừa chọn khoảng: dải 10 → 20 nối liền (2 đầu + 9 ô giữa), lịch còn mở 1 nhịp', () => {
+      bang(popLoc.style.display, 'block')
+      bang(popLoc.querySelectorAll('.cal-day.cal-selected').length, 2)
+      bang(popLoc.querySelectorAll('.cal-day.cal-in-range').length, 9)
+      bang(!!popLoc.querySelector('.cal-day.ln-dau') && !!popLoc.querySelector('.cal-day.ln-cuoi'), true)
+      const luoi = popLoc.querySelector('.cal-grid')
+      bang(w.getComputedStyle(luoi).columnGap, '0px', 'Lưới có khe ngang thì dải không nối liền')
+    })
+    test('[Lọc ngày] trong dải, các ô VẪN giữ viền bo tròn (lỗi 07/10: ô đầu / hôm nay thành góc vuông)', () => {
+      // khổ hẹp bo 8px, khổ rộng 10px — chỉ cần 4 góc đều bo (không góc nào vuông)
+      const tron = el => { const c = w.getComputedStyle(el); const g = [c.borderTopLeftRadius, c.borderTopRightRadius, c.borderBottomLeftRadius, c.borderBottomRightRadius]
+        return g.every(x => parseFloat(x) >= 6) }
+      for (const el of popLoc.querySelectorAll('.cal-day.cal-selected, .cal-day.cal-in-range'))
+        if (!tron(el)) throw new Error('ô ' + el.dataset.d + ' mất bo góc')
+      // dải vẽ phía sau bằng ::before: ô đầu chỉ phủ nửa phải, ô cuối nửa trái
+      bang(w.getComputedStyle(popLoc.querySelector('.ln-dau'), '::before').left !== '0px', true)
+    })
+    await new Promise(res => setTimeout(res, 700))
+    test('[Lọc ngày] … rồi lịch tự đóng', () => bang(popLoc.style.display, 'none'))
+    w.toggleOrderDatePicker()
+    oNgay(12).click(); oNgay(12).click()
+    test('[Lọc ngày] bấm 2 lần CÙNG 1 ngày → chốt đúng ngày đó, đóng lịch', () => {
+      bang(id('orderDateFilter').value, ym + '-12')
+      bang(id('orderDateTo').value, '')
+      bang(popLoc.style.display, 'none')
+    })
+    w.toggleOrderDatePicker()
+    oNgay(5).click()
+    d.body.click()
+    test('[Lọc ngày] bấm 1 ngày rồi bấm ra ngoài → giữ lọc ngày đó, lịch đóng', () => {
+      bang(id('orderDateFilter').value, ym + '-05')
+      bang(popLoc.style.display, 'none')
+    })
+    w.toggleOrderDatePicker()
+    popLoc.querySelector('.ord-ca-thang').click()
+    test('[Lọc khoảng] nút "Cả tháng" → lọc trọn tháng đang xem', () => {
+      bang(id('orderDateFilter').value, ym + '-01')
+      bang(id('orderDateTo').value, w.thangDauCuoi(ym)[1])
+    })
+    w.ordSetRange('', '')
+    w.orderQuickMonth()
+    test('[Chip Tháng này] bấm → lọc tháng hiện tại; bấm lại → bỏ lọc', () => {
+      bang(id('orderDateFilter').value, w.thangDauCuoi(homNay.slice(0, 7))[0])
+      w.orderQuickMonth()
+      bang(id('orderDateFilter').value, '')
+      bang(id('orderDateTo').value, '')
+    })
+    test('[Chip Hôm nay] sau khi lọc khoảng → về đúng 1 ngày (ô "đến" trống)', () => {
+      w.ordSetRange('2026-10-01', '2026-10-31'); w.orderQuickDate(0)
+      bang(id('orderDateFilter').value, homNay)
+      bang(id('orderDateTo').value, '')
+    })
+    w.ordSetRange('', '')
+    w.applyOrderFilters = _apGoc
     id('orderDateFilter').value = ''
   } else {
     test('[Lịch lọc đơn] có lịch lọc ngày', () => { throw new Error('không thấy #orderDatePicker') })
@@ -390,13 +469,25 @@ const dt = document.getElementById('dt')
   nhom('5f. Form chi phí kiểu mới — chip, mục gấp, sửa dòng cũ')
   const homQua = new Date(Date.now() - 86400000).toLocaleDateString('sv-SE')
   const qdRow = f => d.querySelector(`.qd-row[data-for="${f}"]`)
+  // Loại mặc định = loại của lần thêm trước (nhớ theo máy), lần đầu là "Hoa" — xoá nhớ cho chắc lần đầu
+  try { w.localStorage.removeItem('lt_loaiChiCuoi') } catch (e) {}
   w.openExpenseModal()
   await new Promise(res => setTimeout(res, 50))
   test('Mở form mới: mọi mục tuỳ chọn đều gấp lại', () =>
     bang(d.querySelectorAll('#expenseModal .fx-more.open').length, 0))
-  test('Mở form mới: loại mặc định "Khác" và ô đó được tô', () => {
-    bang(id('exCategory').value, 'Khác')
-    bang(d.querySelector('#expenseModal [data-seg="exCategory"] .on')?.dataset.v, 'Khác')
+  test('Mở form mới lần đầu: loại mặc định "Hoa" (gần như mọi khoản là hoa) và ô đó được tô', () => {
+    bang(id('exCategory').value, 'Hoa')
+    bang(d.querySelector('#expenseModal [data-seg="exCategory"] .on')?.dataset.v, 'Hoa')
+  })
+  test('Đã từng thêm khoản "Vận chuyển" → lần sau mở form chọn sẵn "Vận chuyển" (nhớ theo máy)', () => {
+    w.localStorage.setItem('lt_loaiChiCuoi', 'Vận chuyển')
+    w.closeExpenseModal(); w.openExpenseModal()
+    bang(id('exCategory').value, 'Vận chuyển')
+    w.localStorage.setItem('lt_loaiChiCuoi', 'chữ lạ')
+    w.closeExpenseModal(); w.openExpenseModal()
+    bang(id('exCategory').value, 'Hoa', 'Giá trị nhớ không phải loại hợp lệ → về Hoa')
+    w.localStorage.removeItem('lt_loaiChiCuoi')
+    w.closeExpenseModal(); w.openExpenseModal()
   })
   test('Mở form mới: chip "Hôm nay" sáng, nút lịch chỉ ghi "Ngày khác"', () => {
     bang(qdRow('exDate').querySelector('[data-d="0"]').classList.contains('on'), true)

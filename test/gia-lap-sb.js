@@ -20,7 +20,8 @@ function giaLapSb(w, bang) {
       lt(c, v) { dl = dl.filter(r => (r[c] ?? '') < v); return q },
       ilike() { return q }, or() { return q }, not() { return q }, is() { return q },
       order() { return q }, limit(n) { dl = dl.slice(0, n); return q }, range(a, b) { q._tong = dl.length; dl = dl.slice(a, b + 1); return q },
-      insert(v) { nhatKy.push({ ten, lenh: 'insert', v }); return q },
+      // Như Supabase thật: insert(...).select() trả về ĐÚNG các dòng vừa thêm (không phải cả bảng)
+      insert(v) { nhatKy.push({ ten, lenh: 'insert', v }); dl = (Array.isArray(v) ? v : [v]).map((r, i) => ({ id: 90000 + i, ...r })); return q },
       update(v) { nhatKy.push({ ten, lenh: 'update', v }); return q },
       upsert(v) { nhatKy.push({ ten, lenh: 'upsert', v }); return q },
       delete() { nhatKy.push({ ten, lenh: 'delete' }); return q },

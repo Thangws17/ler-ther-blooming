@@ -157,7 +157,7 @@ function nutCoEmoji(goc) {
       nhom('4. Lịch giao')
       w.applyTab('Delivery'); await cho(300)
       test('2 ô Hôm nay / Ngày mai có số đơn đúng', () => {
-        const n = [...d.querySelectorAll('#delivQuick .dq-n')].map(x => x.textContent)
+        const n = [...d.querySelectorAll('#delivQuick .dq-thu b')].map(x => x.textContent)
         const dem = ds => A.dl.orders.filter(o => o.delivery_date === ds && !w.eval('DONE_STATUSES').includes(o.status)).length
         bang(n, [dem(A.ngay(0)) + ' đơn', dem(A.ngay(1)) + ' đơn'])
       })
@@ -225,7 +225,27 @@ function nutCoEmoji(goc) {
       w.closeCustomerOrdersModal()
 
       // ── Sổ chi phí ──
+      // B1 (rà soát 07/10): đổi trạng thái từ sheet chi tiết ở Tổng quan / Lịch giao → vẽ lại ĐÚNG màn đó
+      nhom('5b. Đổi trạng thái đơn → vẽ lại đúng màn đang mở')
+      for (const [tab, ham] of [['Dashboard', 'loadDashboard'], ['Delivery', 'loadDelivery']]) {
+        w.applyTab(tab); await cho(300)
+        const goc = w[ham]; let daGoi = 0
+        w[ham] = function () { daGoi++; return goc.apply(this, arguments) }
+        const don = A.dl.orders[0]
+        await w.updateOrderStatus(don.id, don.status); await cho(300)
+        w[ham] = goc
+        test(`Ở ${tab === 'Dashboard' ? 'Tổng quan' : 'Lịch giao'}: đổi trạng thái xong tự tải lại màn đó`, () => bang(daGoi > 0, true))
+      }
+      w.applyTab('Orders'); await cho(300)
+      test('Đơn hàng chưa lọc ngày: nút lịch ghi "Chọn ngày" (không phải ngày hôm nay)', () =>
+        bang(id('orderDateBtn').textContent.trim(), 'Chọn ngày'))
+
       nhom('6. Sổ chi phí')
+      test('Không có 2 phần tử trùng id trong admin (trùng là getElementById lấy nhầm — lỗi thật 07/10: nút lịch lọc trùng exDateBtn của form)', () => {
+        const dem = {}
+        d.querySelectorAll('[id]').forEach(e => { dem[e.id] = (dem[e.id] || 0) + 1 })
+        bang(Object.keys(dem).filter(k => dem[k] > 1), [])
+      })
       w.applyTab('Expenses'); await cho(300)
       test('Tỷ trọng theo loại cộng lại ≈ 100%', () => {
         const pt = [...d.querySelectorAll('#expenseSummary .ex-rows')[0].querySelectorAll('.ex-pt')].map(x => parseInt(x.textContent))
@@ -234,6 +254,71 @@ function nutCoEmoji(goc) {
       })
       test('Tổng chi phí khớp dữ liệu (400.000đ)', () => bang(d.querySelector('.ex-tong').textContent.replace(/\s/g, ''), '400.000đ'))
       test('Tối đa 5 mặt hàng tốn nhiều nhất', () => { if (d.querySelectorAll('.ex-row-mh').length > 5) throw new Error('quá 5') })
+
+      // Bộ lọc Sổ chi phí (07/10/2026): chip loại + tìm chữ lọc DANH SÁCH, số tổng hợp giữ nguyên; lịch chọn khoảng ngày
+      const hangChi = () => d.querySelectorAll('#expensesTable .table-desktop tbody tr').length
+      const tongHang = hangChi()
+      const chipLoai = ten => [...d.querySelectorAll('#exLoaiChips .st-chip')].find(c => c.textContent.trim().startsWith(ten))
+      test('Có chip loại: Tất cả + mỗi loại có khoản chi (kèm số khoản)', () => {
+        bang(!!chipLoai('Tất cả'), true)
+        bang(!!chipLoai('Hoa'), true); bang(!!chipLoai('Phụ kiện'), true)
+      })
+      chipLoai('Phụ kiện').click(); await cho(30)
+      test('Bấm chip "Phụ kiện" → chỉ còn khoản Phụ kiện, có dòng "N khoản · tiền"', () => {
+        bang(hangChi(), 1)
+        bang(d.querySelector('.ex-ket-loc strong').textContent.replace(/\s/g, ''), '60.000đ')
+      })
+      test('Lọc loại KHÔNG đổi tổng chi phí phía trên (vẫn 400.000đ)', () =>
+        bang(d.querySelector('.ex-tong').textContent.replace(/\s/g, ''), '400.000đ'))
+      chipLoai('Phụ kiện').click(); await cho(30)
+      test('Bấm lại chip đang chọn → bỏ lọc, hiện đủ', () => bang(hangChi(), tongHang))
+      const oTim = id('exSearch')
+      oTim.value = 'hong do'; oTim.dispatchEvent(new w.Event('input')); await cho(30)
+      test('Tìm "hong do" (không dấu) → ra "Hồng đỏ"', () => {
+        bang(hangChi(), 1)
+        bang(d.querySelector('#expensesTable tbody td:nth-child(4)').textContent, 'Hồng đỏ')
+      })
+      test('Có nút "Xóa lọc" trên thanh lọc Sổ chi phí', () => bang(!!d.querySelector('#panelExpenses .filter-bar > .btn-clear'), true))
+      chipLoai('Hoa').click(); await cho(30)
+      d.querySelector('#panelExpenses .filter-bar > .btn-clear').click(); await cho(300)
+      test('Nút "Xóa lọc" → xoá ô tìm + bỏ chọn loại + hiện đủ', () => {
+        bang(oTim.value, ''); bang(hangChi(), tongHang)
+        bang(chipLoai('Tất cả').classList.contains('on'), true)
+      })
+      test('Không còn nút "Chọn ngày" riêng — chính ô tháng mở lịch', () => bang(id('exLocNgayBtn'), null))
+
+      // Lịch chọn ngày — bấm thật
+      id('expenseMonthDisplay').click(); await cho(30)
+      const popChi = id('exLocNgayPop')
+      test('Bấm ô tháng → lịch Sổ chi phí mở', () => bang(popChi.style.display, 'block'))
+      const oNgayChi = so => [...popChi.querySelectorAll('.cal-day:not(.cal-empty)')].find(c => c.firstChild.textContent.trim() === String(so))
+      oNgayChi(3).click(); await cho(300)
+      test('Bấm 1 ngày → xem ngay ngày đó, lịch vẫn mở', () => {
+        bang(popChi.style.display, 'block'); bang(id('exTu').value.slice(8), '03'); bang(id('exDen').value, '')
+      })
+      oNgayChi(9).click(); await cho(800)
+      test('Bấm thêm ngày nữa → lọc 03 → 09, nhãn kỳ đổi, ô số liệu ghi "trong kỳ"', () => {
+        bang(id('exTu').value.slice(8), '03'); bang(id('exDen').value.slice(8), '09')
+        if (!/03\/\d\d – 09\/\d\d/.test(id('expenseMonthDisplay').textContent)) throw new Error('nhãn: ' + id('expenseMonthDisplay').textContent)
+        if (!d.querySelector('#expenseSummary').textContent.includes('Dự kiến trong kỳ')) throw new Error('thiếu "Dự kiến trong kỳ"')
+        bang(id('expenseMonthDisplay').classList.contains('dang-loc'), true)
+        bang(id('expenseThisMonthBtn').classList.contains('active'), false)
+        bang(popChi.style.display, 'none')
+      })
+      test('Mọi khoản chi hiện ra đều nằm trong khoảng đã chọn', () => {
+        for (const e of w.eval('expenses')) if (e.expense_date < id('exTu').value || e.expense_date > id('exDen').value) throw new Error(e.expense_date)
+      })
+      id('expenseThisMonthBtn').click(); await cho(300)
+      test('Bấm "Tháng này" → về xem cả tháng, bỏ khoảng ngày', () => {
+        bang(id('exTu').value, ''); bang(id('exDen').value, '')
+        bang(d.querySelector('.ex-tong').textContent.replace(/\s/g, ''), '400.000đ')
+      })
+      w.exSetRange('2000-01-01', '2000-01-31'); w.loadExpenses(); await cho(300)
+      test('Chọn khoảng đúng trọn 1 tháng → coi như xem tháng đó (‹ › chạy tiếp)', () => {
+        bang(id('exTu').value, ''); bang(id('expenseMonth').value, '2000-01')
+        bang(id('expenseMonthDisplay').textContent, 'Tháng 1/2000')
+      })
+      w.expenseSetThisMonth(); await cho(300)
 
       // ── Nguyên liệu ──
       nhom('7. Nguyên liệu')

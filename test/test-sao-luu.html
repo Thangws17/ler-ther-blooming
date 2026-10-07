@@ -238,6 +238,12 @@ const MAU = [
   })
   try { w.localStorage.removeItem('lt_saoLuuCuoi') } catch {}
 
+  test('Sao lưu có Bộ sưu tập + Mẫu trong BST (sót tới 07/10/2026 — mất DB là mất hết BST)', () => {
+    const ds = w.eval('SAO_LUU_BANG').map(c => c.bang)
+    for (const b of ['collections', 'collection_products']) if (!ds.includes(b)) throw new Error('thiếu bảng ' + b)
+  })
+  test('Trang nhóm ảnh tên "Nhóm ảnh" (web đã bỏ chữ "danh mục")', () =>
+    bang(w.eval('SAO_LUU_BANG').find(c => c.bang === 'gallery_categories').ten, 'Nhóm ảnh'))
   if (fileThat) {
     let b2 = ''
     for (let i = 0; i < fileThat.length; i++) b2 += String.fromCharCode(fileThat[i])

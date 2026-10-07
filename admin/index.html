@@ -346,6 +346,52 @@
     .date-pop .cal-day.cal-selected .cal-dot { background: #fff; }
     .date-clear-btn { width: 100%; margin-top: 8px; padding: 8px; border: 1.5px solid #ddd; background: #fff; border-radius: 8px; color: #777; font-size: .85rem; font-weight: 600; cursor: pointer; }
     .date-clear-btn:hover { border-color: #E64A19; color: #E64A19; }
+    /* Lịch lọc Đơn hàng: chọn 1 ngày hoặc khoảng ngày (từ → đến), nút lọc cả tháng */
+    .ord-goi-y { font-size: .8rem; color: #6b7f6a; text-align: center; margin: 8px 0 0; line-height: 1.4; }
+    .ord-goi-y b { color: #2E7D32; }
+    /* Dải khoảng ngày: các ô nối liền (lưới không khe ngang), 2 đầu đậm, giữa sáng nhẹ; bo góc ở 2 đầu dải + mép tuần */
+    .date-pop .ln-luoi { column-gap: 0; position: relative; z-index: 0; }   /* lưới = 1 lớp riêng: dải (z −1) nằm dưới nền các ô */
+    /* Ô LUÔN giữ viền bo tròn của nó (ngày chọn, hôm nay…); dải khoảng ngày vẽ PHÍA SAU bằng ::before.
+       Ô phải phủ kín bề ngang cột: .cal-day gốc có aspect-ratio 1 + max-height 40px → ô bị bóp hẹp, dải hở khe */
+    .date-pop .ln-luoi .cal-day { aspect-ratio: auto; height: 38px; position: relative; transition: background-color .18s, color .18s; }
+    /* lấn sang ô bên cạnh 1px: bề ngang cột có số lẻ điểm ảnh → không lấn là hở vạch trắng mảnh giữa các ô */
+    .date-pop .ln-luoi .cal-day::before { content: ''; position: absolute; top: 3px; bottom: 3px; left: -1px; right: -1px; z-index: -1; transition: background-color .18s; }
+    .date-pop .ln-luoi .cal-day.cal-selected { box-shadow: none; }
+    .date-pop .ln-luoi .cal-day.cal-in-range { color: #1B5E20; }
+    .date-pop .ln-luoi .cal-day.cal-in-range::before { background: #DDEFDD; }
+    .date-pop .ln-luoi .cal-day.ln-dau::before  { left: 50%; background: #DDEFDD; }    /* đầu dải: nửa phải */
+    .date-pop .ln-luoi .cal-day.ln-cuoi::before { right: 50%; background: #DDEFDD; }   /* cuối dải: nửa trái */
+    .date-pop .ln-luoi .cal-day.ln-mep-trai::before { border-radius: 10px 0 0 10px; }
+    .date-pop .ln-luoi .cal-day.ln-mep-phai::before { border-radius: 0 10px 10px 0; }
+    .date-pop .ln-luoi .cal-day.ln-dau.ln-mep-phai::before, .date-pop .ln-luoi .cal-day.ln-cuoi.ln-mep-trai::before { display: none; }
+    /* Vừa chọn xong khoảng: dải sáng loé nhẹ 1 nhịp trước khi lịch đóng */
+    .date-pop .ln-sang .cal-day.cal-in-range::before, .date-pop .ln-sang .cal-day.ln-dau::before,
+    .date-pop .ln-sang .cal-day.ln-cuoi::before { animation: ln-loe .45s ease-out; }
+    @keyframes ln-loe { from { background: #A5D6A7; } }
+    /* Máy tính: rê chuột xem trước khoảng sắp chọn (cùng cách vẽ: dải phía sau, ô giữ viền) */
+    .date-pop .ln-luoi .cal-day.ln-xem { color: #1B5E20; }
+    .date-pop .ln-luoi .cal-day.ln-xem::before { background: #EAF5EA; }
+    .date-pop .ln-luoi .cal-day.ln-xem-dau::before  { left: 50%; background: #EAF5EA; }
+    .date-pop .ln-luoi .cal-day.ln-xem-cuoi::before { right: 50%; background: #EAF5EA; }
+    .date-pop .ln-luoi .cal-day.ln-xem-dich { background: #C8E6C9; color: #1B5E20; }
+    .date-pop .ln-luoi .cal-day.ln-xem[data-c="0"]::before { border-radius: 10px 0 0 10px; }
+    .date-pop .ln-luoi .cal-day.ln-xem[data-c="6"]::before { border-radius: 0 10px 10px 0; }
+    .date-pop .ln-luoi .cal-day.ln-xem-dau[data-c="6"]::before, .date-pop .ln-luoi .cal-day.ln-xem-cuoi[data-c="0"]::before { display: none; }
+    .ord-pop-chan { display: flex; gap: 8px; margin-top: 8px; }
+    .ord-pop-chan > button { flex: 1; margin-top: 0; white-space: nowrap; }
+    .ord-ca-thang { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; border: 1.5px solid #2E7D32; background: #fff; border-radius: 8px; color: #2E7D32; font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; }
+    .ord-ca-thang:hover { background: #E8F5E9; }
+    /* Sổ chi phí: nút lịch đang lọc ngày riêng + hàng lọc danh sách (tìm chữ + chip loại) */
+    .filter-select.dang-loc, .month-display.dang-loc { border-color: #2E7D32; color: #2E7D32; font-weight: 700; }
+    button.month-display { display: inline-flex; align-items: center; justify-content: center; gap: 7px; font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer; }
+    button.month-display:hover { border-color: #2E7D32; }
+    .ex-loc { margin: 22px 0 0; }
+    .ex-loc .filter-search { flex: 0 1 300px; }
+    .ex-loai-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .st-chip.ex-loai.on { background: #fff; color: #1f2a1f; border-color: var(--st); }
+    .st-chip .ex-dem { font-size: .72rem; color: #9aa79a; font-weight: 600; }
+    .ex-ket-loc { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: .88rem; color: #5d6b5c; margin-bottom: 12px; }
+    .ex-ket-loc strong { color: #C62828; }
     /* ── Nút chọn ngày trong form ──────────────────
        Thay cho <input type="date">: iOS vẽ ô đó bằng control riêng của hệ
        thống, không nghe padding/chiều cao mình đặt nên nó TRÀN khỏi khung bo
@@ -1078,6 +1124,14 @@
       .modal-box { max-height: calc(var(--vvh, 92vh) - 10px); }
       .filter-bar { gap: 8px; }
       .filter-search { min-width: 0; }
+      /* Ô tìm riêng 1 hàng (không bị ép còn "Tìm m…"); chip trạng thái Đơn hàng 1 hàng vuốt ngang (trước xếp 3 hàng,
+         phần lọc chiếm gần nửa màn hình — rà soát 07/10/2026) */
+      #orderSearch, #exSearch { flex: 1 1 100%; }
+      #panelOrders .status-filter { flex-wrap: nowrap; overflow-x: auto; gap: 8px; padding-bottom: 4px; scrollbar-width: none; }
+      #panelOrders .status-filter::-webkit-scrollbar { display: none; }
+      #panelOrders .status-filter .lbl { display: none; }
+      #orderStatusChips { display: flex; gap: 8px; flex-wrap: nowrap; }
+      #orderStatusChips .st-chip { flex: none; white-space: nowrap; }
       .optimizer-box, .backup-box { flex-direction: column; align-items: flex-start; }
       .backup-box .btn-green { width: 100%; }
     }
@@ -1450,8 +1504,8 @@
     .dq-b { flex: 1; min-width: 0; display: flex; flex-direction: column; }
     .dq-ten { font-weight: 700; }
     .dq-thu { font-size: .76rem; color: #7a877a; }
-    .dq-n { font-size: .82rem; font-weight: 700; color: #7a877a; white-space: nowrap; }
-    .dq-o.co-don .dq-n { color: #2E7D32; }
+    .dq-thu b { font-weight: 700; color: #7a877a; }
+    .dq-o.co-don .dq-thu b { color: #2E7D32; }
 
     /* Lịch tháng: ngày có đơn đậm hơn, hôm nay có viền, ngày đang chọn tô đặc */
     .cal-day.cal-has { background: #C8E6C9; color: #1B5E20; }
@@ -2124,11 +2178,14 @@
         <input type="search" id="orderSearch" class="filter-search" placeholder="Tìm mã đơn / tên khách / SĐT / sản phẩm…" oninput="onOrderSearchInput()">
         <button type="button" id="ordTodayChip" class="chip-thismonth" onclick="orderQuickDate(0)">Giao hôm nay</button>
         <button type="button" id="ordTomoChip" class="chip-thismonth" onclick="orderQuickDate(1)">Ngày mai</button>
+        <button type="button" id="ordMonthChip" class="chip-thismonth" onclick="orderQuickMonth()">Tháng này</button>
         <div class="date-pick-wrap">
           <button type="button" id="orderDateBtn" class="filter-select" onclick="toggleOrderDatePicker()"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg>Chọn ngày giao</button>
           <div id="orderDatePicker" class="date-pop" style="display:none"></div>
         </div>
+        <!-- Lọc ngày giao: orderDateFilter = 1 ngày, hoặc NGÀY ĐẦU của khoảng; orderDateTo = ngày cuối (trống = chỉ 1 ngày) -->
         <input type="hidden" id="orderDateFilter">
+        <input type="hidden" id="orderDateTo">
         <button type="button" class="btn-clear" onclick="clearOrderFilters()">Xóa lọc</button>
       </div>
       <!-- Lọc trạng thái: chip bấm chọn NHIỀU trạng thái, tô màu theo từng loại -->
@@ -2149,12 +2206,25 @@
         <div class="month-nav">
           <button type="button" class="month-arrow" onclick="expenseStepMonth(-1)" title="Tháng trước">‹</button>
           <input type="hidden" id="expenseMonth">
-          <span id="expenseMonthDisplay" class="month-display">—</span>
+          <!-- Bấm chính ô tháng để mở lịch: chọn 1 ngày / khoảng ngày / cả tháng khác -->
+          <div class="date-pick-wrap">
+            <button type="button" id="expenseMonthDisplay" class="month-display" onclick="lnMo('chi')" title="Chọn ngày / khoảng ngày">—</button>
+            <div id="exLocNgayPop" class="date-pop" style="display:none"></div>
+          </div>
           <button type="button" class="month-arrow" onclick="expenseStepMonth(1)" title="Tháng sau">›</button>
         </div>
         <button type="button" id="expenseThisMonthBtn" class="chip-thismonth" onclick="expenseSetThisMonth()">Tháng này</button>
+        <button type="button" class="btn-clear" onclick="exXoaLoc()">Xóa lọc</button>
+        <!-- Khoảng ngày tự chọn (trống = cả tháng expenseMonth). exDen trống = đúng 1 ngày exTu -->
+        <input type="hidden" id="exTu">
+        <input type="hidden" id="exDen">
       </div>
       <div id="expenseSummary"></div>
+      <!-- Lọc danh sách khoản chi (không đổi số tổng hợp ở trên): tìm chữ + loại -->
+      <div class="filter-bar ex-loc">
+        <input type="search" id="exSearch" class="filter-search" placeholder="Tìm mặt hàng / ghi chú…" oninput="renderExpensesKeep()">
+        <span id="exLoaiChips" class="ex-loai-chips"></span>
+      </div>
       <div id="expensesTable" style="margin-top:18px;"><div class="loading-state">Đang tải…</div></div>
     </div>
 
@@ -3562,8 +3632,10 @@ function openStatDetail(kind, src) {
   if (!ctx) return
   cacheOrders(ctx.orders)   // để viewOrderDetail tra cứu được từ modal này
   const mk = ctx.monthKey
-  const inMonth = o => statAttrDate(o).slice(0, 7) === mk
-  const mLabel = statMonthLabel(mk)
+  // Sổ chi phí đang xem khoảng ngày tự chọn → tính theo khoảng đó thay vì cả tháng
+  const inMonth = ctx.ky ? (o => { const d = statAttrDate(o); return d >= ctx.ky.tu && d <= ctx.ky.den })
+                         : (o => statAttrDate(o).slice(0, 7) === mk)
+  const mLabel = ctx.ky ? ctx.ky.nhan : statMonthLabel(mk)
   let title = '', explain = '', list = null, body = ''
 
   if (kind === 'new') {
@@ -3601,7 +3673,7 @@ function openStatDetail(kind, src) {
     })
     title = `${profit >= 0 ? 'Lãi gộp' : 'Lỗ'} thực tế ${mLabel}`
     body = `
-<div class="stat-explain">Lãi gộp = <strong>doanh thu thực tế</strong> (đơn Giao thành công / Hoàn thành trong tháng) trừ <strong>tổng chi phí</strong> đã ghi trong Sổ chi phí ${mLabel}.</div>
+<div class="stat-explain">Lãi gộp = <strong>doanh thu thực tế</strong> (đơn Giao thành công / Hoàn thành ${ctx.ky ? 'trong kỳ' : 'trong tháng'}) trừ <strong>tổng chi phí</strong> đã ghi trong Sổ chi phí ${mLabel}.</div>
 <div class="profit-line"><span>Doanh thu thực tế (${revList.length} đơn)</span><strong style="color:#2E7D32">${fmtVnd(rev)}</strong></div>
 ${Object.entries(byCat).map(([c, s]) => `<div class="profit-line"><span style="color:#7A9879;padding-left:14px;">− Chi phí ${esc(c)}</span><span style="color:#C62828;font-weight:600;">−${fmtVnd(s)}</span></div>`).join('')}
 <div class="profit-line" style="border-bottom:none;"><span><strong>= ${profit >= 0 ? 'Lãi gộp' : 'Lỗ'}</strong></span><strong style="color:${profit >= 0 ? '#1565C0' : '#C62828'};font-size:1.2rem;">${fmtVnd(profit)}</strong></div>
@@ -3707,8 +3779,7 @@ function veDelivQuick() {
     return `
 <button type="button" class="dq-o${n ? ' co-don' : ''}${delivSelectedDate === ds ? ' on' : ''}" onclick="delivPickDate('${ds}')">
   <span class="dq-so">${ds.slice(8, 10)}</span>
-  <span class="dq-b"><span class="dq-ten">${ten}</span><span class="dq-thu">${thuTrongTuan(ds)}, tháng ${Number(ds.slice(5, 7))}</span></span>
-  <span class="dq-n">${n ? n + ' đơn' : 'Trống'}</span>
+  <span class="dq-b"><span class="dq-ten">${ten}</span><span class="dq-thu">${thuTrongTuan(ds)} · <b>${n ? n + ' đơn' : 'Trống'}</b></span></span>
 </button>`
   }).join('')
 }
@@ -4148,51 +4219,106 @@ const CAT_MAU = { 'Hoa': '#2E7D32', 'Phụ kiện': '#FB8C00', 'Vận chuyển':
 
 const curMonthStr = () => new Date().toLocaleDateString('sv-SE').slice(0, 7)
 
-function expenseStepMonth(delta) {
+// Kỳ đang xem của Sổ chi phí: CẢ THÁNG `expenseMonth` (mặc định), hoặc khoảng ngày tự chọn exTu → exDen
+function exThangDangXem() {
   const input = document.getElementById('expenseMonth')
   if (!input.value) input.value = curMonthStr()
-  const [y, m] = input.value.split('-').map(Number)
-  input.value = new Date(y, m - 1 + delta, 1).toLocaleDateString('sv-SE').slice(0, 7)
+  return input.value
+}
+function exRange() {   // chỉ khoảng TỰ CHỌN — đang xem cả tháng thì trả rỗng
+  return { tu: document.getElementById('exTu').value, den: document.getElementById('exDen').value }
+}
+// Đặt khoảng ngày; trùng đúng cả 1 tháng thì coi như xem tháng đó (‹ › và "Tháng này" chạy tiếp được)
+function exSetRange(tu, den) {
+  if (tu && den && den !== tu) {
+    const [dau, cuoi] = thangDauCuoi(tu.slice(0, 7))
+    if (tu === dau && den === cuoi) { document.getElementById('expenseMonth').value = tu.slice(0, 7); tu = den = '' }
+  }
+  if (tu) document.getElementById('expenseMonth').value = tu.slice(0, 7)
+  document.getElementById('exTu').value = tu || ''
+  document.getElementById('exDen').value = (tu && den && den !== tu) ? den : ''
+}
+function exKy() {      // { tu, den } luôn đủ 2 đầu — dùng để truy vấn + tính doanh thu
+  const r = exRange()
+  if (r.tu) return { tu: r.tu, den: r.den || r.tu, tuChon: true }
+  const [tu, den] = thangDauCuoi(exThangDangXem())
+  return { tu, den, tuChon: false }
+}
+
+function expenseStepMonth(delta) {
+  const [y, m] = exThangDangXem().split('-').map(Number)
+  document.getElementById('expenseMonth').value = new Date(y, m - 1 + delta, 1).toLocaleDateString('sv-SE').slice(0, 7)
+  exSetRange('', '')
   loadExpenses()
 }
 
 function expenseSetThisMonth() {
   document.getElementById('expenseMonth').value = curMonthStr()
+  exSetRange('', '')
   loadExpenses()
+}
+
+// Lọc danh sách theo loại (Hoa / Phụ kiện…) — '' = tất cả. Chỉ lọc ở máy: cả kỳ đã tải về rồi.
+let exLoaiLoc = ''
+function exChonLoai(i) {
+  const c = EXPENSE_CATS[i] || ''
+  exLoaiLoc = exLoaiLoc === c ? '' : c
+  renderExpensesKeep()
+}
+// Nút "Xóa lọc" trên cùng: về tháng này + bỏ tìm chữ + bỏ chọn loại
+function exXoaLoc() {
+  exLoaiLoc = ''
+  document.getElementById('exSearch').value = ''
+  expenseSetThisMonth()
+}
+function exBoLocDS() {
+  exLoaiLoc = ''
+  document.getElementById('exSearch').value = ''
+  renderExpensesKeep()
+}
+function exLocDanhSach(list) {
+  const q = noAccent(document.getElementById('exSearch')?.value || '')   // gõ "hong" vẫn ra "Hồng"
+  return list.filter(e =>
+    (!exLoaiLoc || e.category === exLoaiLoc) &&
+    (!q || noAccent(`${e.item || ''} ${e.note || ''}`).includes(q)))
 }
 
 async function loadExpenses() {
   const et = document.getElementById('expensesTable')
   if (et && !expenses.length) et.innerHTML = skeletonTable(5)
   loadMaterials()   // nạp nguyên liệu song song cho autocomplete
-  const input = document.getElementById('expenseMonth')
-  if (!input.value) input.value = curMonthStr()
-  const month = input.value                       // YYYY-MM
-  const start = month + '-01'
+  const month = exThangDangXem()                  // YYYY-MM
+  const ky = exKy()
   const [y, m] = month.split('-').map(Number)
-  const nextStart = new Date(y, m, 1).toLocaleDateString('sv-SE')  // đầu tháng kế
 
-  // Nhãn tháng dễ đọc + đánh dấu nút "Tháng này"
-  document.getElementById('expenseMonthDisplay').textContent = `Tháng ${m}/${y}`
-  document.getElementById('expenseThisMonthBtn').classList.toggle('active', month === curMonthStr())
+  // Nhãn kỳ dễ đọc + đánh dấu nút "Tháng này" / nút lịch khi đang chọn ngày riêng
+  const nutKy = document.getElementById('expenseMonthDisplay')   // chính ô tháng là nút mở lịch
+  nutKy.innerHTML = ic('cal') + (ky.tuChon ? nhanKhoangNgay(ky.tu, exRange().den) : `Tháng ${m}/${y}`)
+  nutKy.classList.toggle('dang-loc', ky.tuChon)
+  document.getElementById('expenseThisMonthBtn').classList.toggle('active', !ky.tuChon && month === curMonthStr())
 
   const { data: exp, error: expErr } = await sb.from('expenses').select('*')
-    .gte('expense_date', start).lt('expense_date', nextStart)
+    .gte('expense_date', ky.tu).lte('expense_date', ky.den)
     .order('expense_date', { ascending: false })
   if (expErr) { if (et) et.innerHTML = loadErrorHTML('loadExpenses'); return }
   expenses = exp || []
   resetListLimit('expenses')
 
-  // Doanh thu cùng tháng: dự kiến (đã chốt giá, chưa hủy) vs thực tế (đã Hoàn thành)
+  // Doanh thu cùng kỳ: dự kiến (đã chốt giá, chưa hủy) vs thực tế (đã Hoàn thành)
   // Ghi nhận theo NGÀY GIAO (đơn không hẹn ngày mới tính theo ngày tạo) — đồng bộ với Tổng quan
   // Lấy đủ cột để modal đối soát mở được chi tiết từng đơn
   const { data: ord } = await sb.from('orders').select('*, customers(name, phone), products(image)')
-  const inMonth = o => (o.delivery_date || (o.created_at || '').slice(0, 10)).slice(0, 7) === month
-  const revenueProjected = (ord || []).filter(o => o.status !== 'Đã hủy' && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
-  const revenueActual = (ord || []).filter(o => REVENUE_STATUSES.includes(o.status) && inMonth(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
+  const inKy = o => { const d = statAttrDate(o); return d >= ky.tu && d <= ky.den }
+  const revenueProjected = (ord || []).filter(o => o.status !== 'Đã hủy' && inKy(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
+  const revenueActual = (ord || []).filter(o => REVENUE_STATUSES.includes(o.status) && inKy(o)).reduce((s, o) => s + (Number(o.total) || 0), 0)
 
-  _statCtxEx = { orders: ord || [], monthKey: month, expenses }
+  _statCtxEx = { orders: ord || [], monthKey: month, expenses,
+                 ky: ky.tuChon ? { tu: ky.tu, den: ky.den, nhan: nhanKyChi(ky) } : null }
   renderExpenses(revenueActual, revenueProjected)
+}
+// "ngày 15/10/2026" / "10/10 – 20/10" — chèn vào câu kiểu "Doanh thu thực tế …"
+function nhanKyChi(ky) {
+  return ky.tu === ky.den ? 'ngày ' + fmtDateVN(ky.tu) : nhanKhoangNgay(ky.tu, ky.den)
 }
 
 let _lastRevActual = 0, _lastRevProjected = 0   // cho nút "Xem thêm" vẽ lại không cần query
@@ -4209,6 +4335,8 @@ function renderExpenses(revenueActual, revenueProjected) {
   expenses.forEach(e => { const t = (e.item || 'Không ghi tên').trim(); theoMH[t] = (theoMH[t] || 0) + (Number(e.amount) || 0) })
   const topMH = Object.entries(theoMH).sort((a, b) => b[1] - a[1]).slice(0, 5)
   const pt = x => totalExpense ? Math.round(x * 100 / totalExpense) : 0
+  const kyChon = !!_statCtxEx?.ky                          // đang xem khoảng ngày tự chọn (không phải cả tháng)
+  const kyChu = kyChon ? 'trong ' + _statCtxEx.ky.nhan : 'trong tháng này'
   const o1 = (kind, nhan, so, mau, phu = '') => `
     <button type="button" class="db-stat" ${kind ? `onclick="openStatDetail('${kind}','ex')"` : 'disabled'}>
       <span class="db-stat-l">${nhan}</span><span class="db-stat-n" style="color:${mau}">${so}</span>${phu ? `<span class="db-stat-p">${phu}</span>` : ''}
@@ -4219,14 +4347,14 @@ function renderExpenses(revenueActual, revenueProjected) {
       <div class="db-sec-head"><h2>Doanh thu</h2></div>
       <div class="db-stats">
         ${o1('revActual', 'Thực tế (đã giao)', fmtVnd(revenueActual), '#2E7D32')}
-        ${o1('revProjected', 'Dự kiến cả tháng', fmtVnd(revenueProjected), '#5d6b5c')}
+        ${o1('revProjected', kyChon ? 'Dự kiến trong kỳ' : 'Dự kiến cả tháng', fmtVnd(revenueProjected), '#5d6b5c')}
         ${o1('profit', profit >= 0 ? 'Lãi gộp' : 'Lỗ', fmtVnd(profit), profit >= 0 ? '#1565C0' : '#C62828',
              revenueActual ? `Chi phí = ${Math.round(totalExpense * 100 / revenueActual)}% doanh thu` : '')}
       </div>
     </section>
     <section class="db-sec ex-cp">
       <div class="db-sec-head"><h2>Chi phí</h2><span class="ex-tong">${fmtVnd(totalExpense)}</span></div>
-      ${!totalExpense ? '<div class="db-empty">Chưa ghi khoản chi nào trong tháng này</div>' : `
+      ${!totalExpense ? `<div class="db-empty">Chưa ghi khoản chi nào ${kyChu}</div>` : `
       <div class="ex-card">
         <div class="ex-bar">${byCat.map(x => `<span style="width:${pt(x.sum)}%;background:${CAT_MAU[x.c] || '#9E9E9E'}" title="${esc(x.c)} ${pt(x.sum)}%"></span>`).join('')}</div>
         <div class="ex-cot">
@@ -4255,11 +4383,27 @@ function renderExpenses(revenueActual, revenueProjected) {
     </section>
     </div>`
 
+  // Chip loại: chỉ hiện loại có khoản chi trong kỳ (kèm số khoản); đang chọn loại thì luôn hiện
+  const demLoai = c => expenses.filter(e => e.category === c).length
+  document.getElementById('exLoaiChips').innerHTML = !expenses.length ? '' :
+    `<button type="button" class="st-chip st-all ${exLoaiLoc ? '' : 'on'}" onclick="exChonLoai(-1)">Tất cả</button>` +
+    EXPENSE_CATS.map((c, i) => (demLoai(c) || exLoaiLoc === c)
+      ? `<button type="button" class="st-chip ex-loai ${exLoaiLoc === c ? 'on' : ''}" style="--st:${CAT_MAU[c] || '#9E9E9E'}" onclick="exChonLoai(${i})">${esc(c)} <span class="ex-dem">${demLoai(c)}</span></button>`
+      : '').join('')
+  document.querySelector('#panelExpenses .ex-loc').style.display = expenses.length ? '' : 'none'
+
+  const list = exLocDanhSach(expenses)
+  const dangLoc = list.length !== expenses.length || exLoaiLoc || document.getElementById('exSearch').value.trim()
   const el = document.getElementById('expensesTable')
-  const { shown: expShown, more: expMore } = limitList('expenses', expenses)
+  const { shown: expShown, more: expMore } = limitList('expenses', list)
+  const dongLoc = dangLoc
+    ? `<div class="ex-ket-loc">${list.length} khoản · <strong>${fmtVnd(list.reduce((s, e) => s + (Number(e.amount) || 0), 0))}</strong></div>`
+    : ''
   el.innerHTML = !expenses.length
-    ? '<div class="empty-state">Chưa có chi phí nào trong tháng này. Bấm nút ＋ để thêm.</div>'
-    : `<div class="table-desktop">
+    ? `<div class="empty-state">Chưa có chi phí nào ${kyChu}. Bấm nút ＋ để thêm.</div>`
+    : !list.length
+    ? `${dongLoc}<div class="empty-state">Không có khoản chi nào khớp bộ lọc. <a href="#" onclick="exBoLocDS();return false" style="color:#2E7D32;font-weight:600;">Xem tất cả</a></div>`
+    : `${dongLoc}<div class="table-desktop">
 <table class="data-table">
 <thead><tr><th></th><th>Ngày</th><th>Loại</th><th>Mặt hàng</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th><th>Ghi chú</th><th></th></tr></thead>
 <tbody>${expShown.map(e => `
@@ -4309,6 +4453,12 @@ function openImageViewer(url) {
   el.innerHTML = `<img src="${esc(url)}" alt="" style="max-width:100%;max-height:100%;border-radius:8px;">`
   el.onclick = () => el.remove()
   document.body.appendChild(el)
+}
+
+function exLoaiNho() {
+  let v = null
+  try { v = localStorage.getItem('lt_loaiChiCuoi') } catch (e) {}
+  return EXPENSE_CATS.includes(v) ? v : 'Hoa'
 }
 
 function exUpdateAmount() {
@@ -4392,8 +4542,9 @@ function openExpenseModal(id = null) {
   } else {
     document.getElementById('expenseModalTitle').textContent = 'Thêm chi phí'
     document.getElementById('exDate').value = new Date().toLocaleDateString('sv-SE')
-    // form.reset() KHÔNG đặt lại ô hidden → phải tự đặt loại về mặc định
-    segSet('exCategory', 'Khác')
+    // form.reset() KHÔNG đặt lại ô hidden → phải tự đặt loại về mặc định:
+    // loại chọn ở lần thêm trước (nhớ theo máy), lần đầu là "Hoa" — gần như mọi khoản là hoa (rà soát 07/10/2026)
+    segSet('exCategory', exLoaiNho())
     setExpenseImagePreview('')
   }
   fdSync('exDate')
@@ -4428,11 +4579,12 @@ async function saveExpense(e) {
     note:         document.getElementById('exNote').value.trim() || null,
     image:        document.getElementById('exImage').value || null,
   }
-  const { error } = id
-    ? await sb.from('expenses').update(data).eq('id', id)
-    : await sb.from('expenses').insert(data)
+  const daLuu = await ghiDb((id
+    ? sb.from('expenses').update(data).eq('id', id)
+    : sb.from('expenses').insert(data)).select('id'), id ? 'lưu chi phí' : 'thêm chi phí')
   btn.textContent = 'Lưu'; btn.disabled = false
-  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  if (!daLuu) return
+  if (!id) try { localStorage.setItem('lt_loaiChiCuoi', data.category) } catch (e) {}
   // Đồng bộ sổ nguyên liệu: thêm mới nếu chưa có, nhớ giá lần mua này
   syncMaterialFromExpense(data.item, data.category, data.unit_price)
   showToast(id ? 'Đã cập nhật chi phí!' : 'Đã thêm chi phí!')
@@ -6462,8 +6614,13 @@ const SAO_LUU_BANG = [
     ['name', 'Tên', 'chu', 26], ['price', 'Giá (như đang nhập)', 'chu', 16], ['category', 'Danh mục', 'chu', 14],
     ['description', 'Mô tả', 'chu', 40], ['featured', 'Nổi bật', 'chu', 8], ['image', 'Ảnh chính (đường dẫn)', 'chu', 24],
     ['images', 'Ảnh phụ (đường dẫn)', 'chu', 24], ['order_index', 'Thứ tự', 'so', 8], ['created_at', 'Ngày tạo', 'ngaygio', 17], ['id', 'id', 'so', 7] ] },
-  { bang: 'gallery', ten: 'Khoảnh khắc', cot: [['caption', 'Chú thích', 'chu', 30], ['category', 'Danh mục', 'chu', 14], ['url', 'Ảnh (đường dẫn)', 'chu', 30], ['order_index', 'Thứ tự', 'so', 8], ['created_at', 'Ngày tạo', 'ngaygio', 17], ['id', 'id', 'so', 7]] },
-  { bang: 'gallery_categories', ten: 'Danh mục', cot: [['name', 'Tên', 'chu', 20], ['emoji', 'Biểu tượng', 'chu', 10], ['order_index', 'Thứ tự', 'so', 8], ['id', 'id', 'so', 7]] },
+  { bang: 'gallery', ten: 'Khoảnh khắc', cot: [['caption', 'Chú thích', 'chu', 30], ['category', 'Nhóm ảnh', 'chu', 14], ['url', 'Ảnh (đường dẫn)', 'chu', 30], ['order_index', 'Thứ tự', 'so', 8], ['created_at', 'Ngày tạo', 'ngaygio', 17], ['id', 'id', 'so', 7]] },
+  { bang: 'gallery_categories', ten: 'Nhóm ảnh', cot: [['name', 'Tên', 'chu', 20], ['emoji', 'Biểu tượng', 'chu', 10], ['order_index', 'Thứ tự', 'so', 8], ['id', 'id', 'so', 7]] },
+  // Bộ sưu tập (SQL 21) — trước 07/10/2026 bị sót khỏi file sao lưu
+  { bang: 'collections', ten: 'Bộ sưu tập', cot: [['name', 'Tên', 'chu', 22], ['emoji', 'Biểu tượng', 'chu', 9], ['tagline', 'Câu giới thiệu', 'chu', 36],
+    ['active', 'Đang bật', 'chu', 9], ['start_date', 'Hiện từ ngày', 'ngay', 12], ['end_date', 'Ẩn sau ngày', 'ngay', 12], ['slug', 'Đuôi link', 'chu', 18],
+    ['cover_url', 'Ảnh bìa (đường dẫn)', 'chu', 24], ['order_index', 'Thứ tự', 'so', 8], ['created_at', 'Ngày tạo', 'ngaygio', 17], ['id', 'id', 'so', 7]] },
+  { bang: 'collection_products', ten: 'Mẫu trong BST', cot: [['collection_id', 'id Bộ sưu tập', 'so', 13], ['product_id', 'id Sản phẩm', 'so', 12], ['order_index', 'Thứ tự', 'so', 8]] },
   { bang: 'testimonials', ten: 'Đánh giá', cot: [['name', 'Tên khách', 'chu', 20], ['content', 'Nội dung', 'chu', 50], ['context', 'Dịp', 'chu', 16], ['active', 'Hiện trên web', 'chu', 12], ['order_index', 'Thứ tự', 'so', 8], ['created_at', 'Ngày tạo', 'ngaygio', 17], ['id', 'id', 'so', 7]] },
   { bang: 'changelog', ten: 'Nhật ký cập nhật', cot: [['release_date', 'Ngày', 'ngay', 12], ['title', 'Tóm tắt', 'chu', 40], ['details', 'Chi tiết', 'chu', 60], ['note', 'Góp ý', 'chu', 30], ['id', 'id', 'so', 7]] },
   { bang: 'contact', ten: 'Cài đặt liên hệ', cot: [] },
@@ -6685,6 +6842,7 @@ function ordersFilterState() {
   return {
     q: document.getElementById('orderSearch').value.trim(),
     date: document.getElementById('orderDateFilter').value,
+    den: document.getElementById('orderDateTo').value,     // trống = lọc đúng 1 ngày `date`
     statuses: [...orderStatusSet],
   }
 }
@@ -6694,9 +6852,12 @@ function ordersFilterState() {
 function buildOrdersQuery(f) {
   let qy = sb.from('orders')
     .select('*, customers(name, phone), products(image)', { count: 'exact' })
-    .order('created_at', { ascending: false })
+  // Đang lọc ngày giao → xếp theo NGÀY GIAO sớm → muộn (dễ chuẩn bị hàng); không lọc thì đơn mới tạo lên đầu
+  if (f.date) qy = qy.order('delivery_date', { ascending: true }).order('created_at', { ascending: false })
+  else qy = qy.order('created_at', { ascending: false })
   if (f.statuses.length) qy = qy.in('status', f.statuses)
-  if (f.date) qy = qy.eq('delivery_date', f.date)
+  if (f.date && f.den) qy = qy.gte('delivery_date', f.date).lte('delivery_date', f.den)
+  else if (f.date) qy = qy.eq('delivery_date', f.date)
   if (f.q) {
     // Bỏ ký tự phá cú pháp của .or() (dấu phẩy, ngoặc, %) kẻo câu truy vấn lỗi
     const s2 = f.q.replace(/[%,()]/g, ' ').trim()
@@ -6779,17 +6940,50 @@ function onOrderSearchInput() {
 
 function clearOrderFilters() {
   document.getElementById('orderSearch').value = ''
-  document.getElementById('orderDateFilter').value = ''
+  ordSetRange('', '')
   orderStatusSet.clear()
   renderStatusFilterChips()
   applyOrderFilters()
 }
 
+// ── Lọc theo ngày giao: 1 ngày HOẶC một khoảng (từ ngày → đến ngày) ──
+// Đặt cả 2 ô cùng lúc; khoảng chỉ 1 ngày thì ô "đến" để trống (= lọc đúng ngày đó)
+function ordSetRange(tu, den) {
+  document.getElementById('orderDateFilter').value = tu || ''
+  document.getElementById('orderDateTo').value = (tu && den && den !== tu) ? den : ''
+}
+function ordRange() {
+  return { tu: document.getElementById('orderDateFilter').value, den: document.getElementById('orderDateTo').value }
+}
+// 'YYYY-MM' → ['YYYY-MM-01', 'YYYY-MM-<ngày cuối>']
+function thangDauCuoi(ym) {
+  const [y, m] = ym.split('-').map(Number)
+  return [ym + '-01', ym + '-' + String(new Date(y, m, 0).getDate()).padStart(2, '0')]
+}
+// Chữ ngắn cho nút lịch / câu "không có đơn": "15/10/2026", "Tháng 10/2026", "10/10 – 20/10"
+function nhanKhoangNgay(tu, den) {
+  if (!tu) return ''
+  if (!den) return fmtDateVN(tu)
+  const [dau, cuoi] = thangDauCuoi(tu.slice(0, 7))
+  if (tu === dau && den === cuoi) return `Tháng ${Number(tu.slice(5, 7))}/${tu.slice(0, 4)}`
+  const ngan = d => d.slice(8, 10) + '/' + d.slice(5, 7)
+  return tu.slice(0, 4) === den.slice(0, 4) && tu.slice(0, 4) === todayStr().slice(0, 4)
+    ? `${ngan(tu)} – ${ngan(den)}` : `${fmtDateVN(tu)} – ${fmtDateVN(den)}`
+}
+
 // Chip lọc nhanh theo ngày giao (bấm lại = bỏ lọc)
 function orderQuickDate(offset) {
   const ds = new Date(Date.now() + offset * 86400000).toLocaleDateString('sv-SE')
-  const input = document.getElementById('orderDateFilter')
-  input.value = (input.value === ds) ? '' : ds
+  const r = ordRange()
+  if (r.tu === ds && !r.den) ordSetRange('', '')
+  else ordSetRange(ds, '')
+  applyOrderFilters()
+}
+function orderQuickMonth() {
+  const [dau, cuoi] = thangDauCuoi(todayStr().slice(0, 7))
+  const r = ordRange()
+  if (r.tu === dau && r.den === cuoi) ordSetRange('', '')
+  else ordSetRange(dau, cuoi)
   applyOrderFilters()
 }
 
@@ -7013,14 +7207,28 @@ const moneySet = (id, v) => {
   el.value = (v == null || v === '') ? '' : Math.round(Number(v)).toLocaleString('vi-VN')
 }
 
-// ── Bộ chọn ngày giao (popover lịch, thay input date thô) ──
-let ordPickMonth = null
+// ── Lịch lọc ngày (popover, thay input date thô) — DÙNG CHUNG cho Đơn hàng + Sổ chi phí ──
+// KHÔNG có nút chọn kiểu (shop chê rườm rà 07/10): bấm 1 ngày = xem ngày đó (lịch vẫn mở);
+// bấm thêm 1 ngày nữa = lấy cả khoảng giữa 2 ngày (bấm ngược cũng được). Hoặc "Cả tháng" đang xem.
+// Các ô trong khoảng nối liền thành 1 dải sáng; máy tính rê chuột thấy trước khoảng sắp chọn.
+// Mỗi nơi khai trong LOC_NGAY: id popover, cách đọc/ghi bộ lọc, việc làm sau khi đổi.
+const LOC_NGAY = {
+  don: { pop: 'orderDatePicker', lay: () => ordRange(), dat: (tu, den) => ordSetRange(tu, den), xong: () => applyOrderFilters(),
+         thangMacDinh: () => todayStr().slice(0, 7), nhanBo: 'Bỏ lọc ngày' },
+  chi: { pop: 'exLocNgayPop', lay: () => exRange(), dat: (tu, den) => exSetRange(tu, den), xong: () => loadExpenses(),
+         thangMacDinh: () => exThangDangXem(), nhanBo: 'Về cả tháng' },
+}
+// thang = tháng đang xem trên lịch; tam = ngày vừa bấm lần 1 (đang chờ có bấm thêm ngày thứ 2 không)
+const _ln = { don: { thang: null, tam: null }, chi: { thang: null, tam: null } }
+const LN_TRE_DONG = 450   // ms: chọn xong khoảng, để dải sáng hiện 1 nhịp rồi mới đóng lịch
 
-function toggleOrderDatePicker() {
-  const pop = document.getElementById('orderDatePicker')
+function lnMo(k) {
+  const pop = document.getElementById(LOC_NGAY[k].pop)
   if (pop.style.display === 'none') {
-    ordPickMonth = (document.getElementById('orderDateFilter').value || todayStr()).slice(0, 7)
-    renderOrderDatePicker()
+    const r = LOC_NGAY[k].lay(), st = _ln[k]
+    st.thang = (r.den || r.tu || LOC_NGAY[k].thangMacDinh()).slice(0, 7)
+    st.tam = null
+    lnVe(k)
     pop.style.display = 'block'
     // Desktop: nếu tràn mép phải màn hình thì neo sang phải (mobile đã fixed giữa màn qua CSS)
     if (window.innerWidth > 600) {
@@ -7030,11 +7238,16 @@ function toggleOrderDatePicker() {
       }
     }
   } else {
-    pop.style.display = 'none'
+    lnDong(k)
   }
 }
+function toggleOrderDatePicker() { lnMo('don') }
+function lnDong(k) {
+  _ln[k].tam = null
+  document.getElementById(LOC_NGAY[k].pop).style.display = 'none'
+}
 
-// Chấm xanh trên lịch: chỉ tải ngày giao của ĐÚNG tháng đang xem (nhẹ, 1 cột),
+// Chấm xanh trên lịch Đơn hàng: chỉ tải ngày giao của ĐÚNG tháng đang xem (nhẹ, 1 cột),
 // nhớ lại tháng vừa tải để bấm qua bấm lại không hỏi server liên tục
 let _ordDotsMonth = null, _ordDots = {}, _ordDotsDang = null
 
@@ -7043,65 +7256,132 @@ async function ordLoadDots(month) {
   _ordDotsDang = month
   const { data, error } = await sb.from('orders')
     .select('delivery_date, status')
-    .gte('delivery_date', month + '-01')
-    .lte('delivery_date', month + '-31')
+    .gte('delivery_date', thangDauCuoi(month)[0])
+    .lte('delivery_date', thangDauCuoi(month)[1])   // KHÔNG ghi cứng "-31": tháng 30 ngày → database báo lỗi, mất hết chấm
   _ordDotsDang = null
   if (error) return
   const m = {}
   ;(data || []).forEach(o => { if (o.delivery_date && o.status !== 'Đã hủy') m[o.delivery_date] = true })
   _ordDots = m
   _ordDotsMonth = month
-  if (document.getElementById('orderDatePicker')?.style.display !== 'none') renderOrderDatePicker()
+  if (document.getElementById('orderDatePicker')?.style.display !== 'none') lnVe('don')
 }
 
-function ordPickStepMonth(delta) {
-  const [y, m] = ordPickMonth.split('-').map(Number)
-  ordPickMonth = new Date(y, m - 1 + delta, 1).toLocaleDateString('sv-SE').slice(0, 7)
-  renderOrderDatePicker()
+function lnBuoc(k, delta) {
+  const [y, m] = _ln[k].thang.split('-').map(Number)
+  _ln[k].thang = new Date(y, m - 1 + delta, 1).toLocaleDateString('sv-SE').slice(0, 7)
+  lnVe(k)
 }
 
-function ordPickDay(ds) {
-  const input = document.getElementById('orderDateFilter')
-  input.value = (input.value === ds) ? '' : ds   // bấm lại ngày đang chọn = bỏ lọc
-  document.getElementById('orderDatePicker').style.display = 'none'
-  applyOrderFilters()
+function lnChon(k, ds) {
+  const st = _ln[k], c = LOC_NGAY[k]
+  if (!st.tam || st.tam === ds) {
+    // Lần 1: xem luôn ngày đó, lịch vẫn mở chờ ngày thứ 2. Bấm lại đúng ngày đó = chốt 1 ngày, đóng lịch.
+    const chot = st.tam === ds
+    c.dat(ds, '')
+    c.xong()
+    if (chot) { lnDong(k); return }
+    st.tam = ds
+    lnVe(k)
+    return
+  }
+  // Lần 2: lấy cả khoảng giữa 2 ngày → dải sáng hiện 1 nhịp rồi đóng
+  const [tu, den] = st.tam < ds ? [st.tam, ds] : [ds, st.tam]
+  st.tam = null
+  c.dat(tu, den)
+  c.xong()
+  lnVe(k, true)
+  setTimeout(() => { if (!_ln[k].tam) lnDong(k) }, LN_TRE_DONG)
 }
 
-function ordPickClear() {
-  document.getElementById('orderDateFilter').value = ''
-  document.getElementById('orderDatePicker').style.display = 'none'
-  applyOrderFilters()
+// Lọc trọn tháng đang xem trên lịch (tháng nào cũng được, không chỉ tháng này)
+function lnCaThang(k) {
+  const [dau, cuoi] = thangDauCuoi(_ln[k].thang)
+  LOC_NGAY[k].dat(dau, cuoi)
+  lnDong(k)
+  LOC_NGAY[k].xong()
 }
 
-function renderOrderDatePicker() {
-  const [y, m] = ordPickMonth.split('-').map(Number)
-  const selected = document.getElementById('orderDateFilter').value
+function lnBo(k) {
+  LOC_NGAY[k].dat('', '')
+  lnDong(k)
+  LOC_NGAY[k].xong()
+}
+
+// Tô dải khoảng ngày cho 1 ô: đầu/cuối đậm, giữa sáng nhẹ, nối liền (bo góc ở 2 đầu dải + mép tuần)
+function lnLopDai(ds, tu, den, cot, lopGiua) {
+  if (!tu) return []
+  const cls = []
+  if (ds === tu || ds === den) {
+    cls.push('cal-selected')
+    if (den && den !== tu) cls.push(ds === tu ? 'ln-dau' : 'ln-cuoi')
+  } else if (den && ds > tu && ds < den) cls.push(lopGiua)
+  else return cls
+  if (cot === 0) cls.push('ln-mep-trai')
+  if (cot === 6) cls.push('ln-mep-phai')
+  return cls
+}
+
+function lnVe(k, sang) {
+  const st = _ln[k], c = LOC_NGAY[k]
+  const [y, m] = st.thang.split('-').map(Number)
+  const r = c.lay()
+  const tu = r.tu, den = r.den
   const today = todayStr()
-  // Chấm xanh: ngày có đơn (chưa hủy) hẹn giao.
+  // Chấm xanh (chỉ Đơn hàng): ngày có đơn (chưa hủy) hẹn giao.
   // Phải hỏi server theo tháng — mảng `orders` giờ chỉ có mấy chục đơn đã tải,
   // đọc từ đó thì tháng cũ sẽ không có chấm nào.
-  const has = _ordDotsMonth === ordPickMonth ? _ordDots : {}
-  ordLoadDots(ordPickMonth)
+  let has = {}
+  if (k === 'don') { has = _ordDotsMonth === st.thang ? _ordDots : {}; ordLoadDots(st.thang) }
 
   const daysInMonth = new Date(y, m, 0).getDate()
   const firstDow = (new Date(y, m - 1, 1).getDay() + 6) % 7
   let cells = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(d => `<div class="cal-dow">${d}</div>`).join('')
   for (let i = 0; i < firstDow; i++) cells += '<div class="cal-day cal-empty"></div>'
   for (let d = 1; d <= daysInMonth; d++) {
-    const ds = `${ordPickMonth}-${String(d).padStart(2, '0')}`
-    const cls = ['cal-day']
+    const ds = `${st.thang}-${String(d).padStart(2, '0')}`
+    const cls = ['cal-day', ...lnLopDai(ds, tu, den, (firstDow + d - 1) % 7, 'cal-in-range')]
     if (ds === today) cls.push('cal-today')
-    if (ds === selected) cls.push('cal-selected')
-    cells += `<div class="${cls.join(' ')}" onclick="ordPickDay('${ds}')">${d}${has[ds] ? '<span class="cal-dot"></span>' : ''}</div>`
+    cells += `<div class="${cls.join(' ')}" data-d="${ds}" data-c="${(firstDow + d - 1) % 7}" onclick="lnChon('${k}','${ds}')">${d}${has[ds] ? '<span class="cal-dot"></span>' : ''}</div>`
   }
-  document.getElementById('orderDatePicker').innerHTML = `
+  const goiY = st.tam
+    ? `Đang xem <b>${fmtDateVN(st.tam)}</b> · bấm thêm 1 ngày để lấy cả khoảng`
+    : 'Bấm 1 ngày để xem ngày đó · bấm thêm ngày nữa để lấy cả khoảng'
+  const pop = document.getElementById(c.pop)
+  pop.innerHTML = `
 <div class="date-pop-head">
-  <button type="button" class="month-arrow" onclick="ordPickStepMonth(-1)">‹</button>
+  <button type="button" class="month-arrow" onclick="lnBuoc('${k}',-1)">‹</button>
   <span class="date-pop-title">Tháng ${m}/${y}</span>
-  <button type="button" class="month-arrow" onclick="ordPickStepMonth(1)">›</button>
+  <button type="button" class="month-arrow" onclick="lnBuoc('${k}',1)">›</button>
 </div>
-<div class="cal-grid">${cells}</div>
-${selected ? `<button type="button" class="date-clear-btn" onclick="ordPickClear()">${ic('x')}Bỏ lọc ngày</button>` : ''}`
+<div class="cal-grid ln-luoi${sang ? ' ln-sang' : ''}">${cells}</div>
+<div class="ord-goi-y">${goiY}</div>
+<div class="ord-pop-chan">
+  <button type="button" class="ord-ca-thang" onclick="lnCaThang('${k}')">${ic('cal')}Cả tháng ${m}</button>
+  ${r.tu ? `<button type="button" class="date-clear-btn" onclick="lnBo('${k}')">${ic('x')}${c.nhanBo}</button>` : ''}
+</div>`
+  // Máy tính: đã bấm ngày đầu thì rê chuột tới đâu, dải sáng kéo tới đó (xem trước, chưa chọn)
+  if (!pop.dataset.reXem) {
+    pop.dataset.reXem = '1'
+    pop.addEventListener('mouseover', e => { const o = e.target.closest('.cal-day[data-d]'); _ln[k].reXem = o ? o.dataset.d : null; lnXemTruoc(k, o) })
+    pop.addEventListener('mouseleave', () => { _ln[k].reXem = null; lnXemTruoc(k, null) })
+  }
+  // Lịch vừa vẽ lại (chấm "ngày có đơn" tải xong…) → giữ nguyên dải xem trước đang rê
+  if (st.reXem) lnXemTruoc(k, pop.querySelector(`.cal-day[data-d="${st.reXem}"]`))
+}
+
+function lnXemTruoc(k, o) {
+  const pop = document.getElementById(LOC_NGAY[k].pop), tam = _ln[k].tam
+  pop.querySelectorAll('.ln-xem, .ln-xem-dich, .ln-xem-dau, .ln-xem-cuoi').forEach(x =>
+    x.classList.remove('ln-xem', 'ln-xem-dich', 'ln-xem-dau', 'ln-xem-cuoi'))
+  if (!tam || !o || o.dataset.d === tam) return
+  const ds = o.dataset.d, [tu, den] = tam < ds ? [tam, ds] : [ds, tam]
+  pop.querySelectorAll('.cal-day[data-d]').forEach(x => {
+    const d = x.dataset.d
+    if (d > tu && d < den) x.classList.add('ln-xem')
+    if (d === tam) x.classList.add(tam === tu ? 'ln-xem-dau' : 'ln-xem-cuoi')
+  })
+  o.classList.add('ln-xem-dich', ds === den ? 'ln-xem-cuoi' : 'ln-xem-dau')
 }
 
 // Bấm ra ngoài thì đóng popover (lịch chọn ngày + gợi ý nguyên liệu)
@@ -7112,8 +7392,10 @@ document.addEventListener('click', e => {
   // Phần tử không còn trong trang thì chắc chắn vừa được bấm BÊN TRONG → bỏ qua.
   if (!e.target.isConnected) return
   if (!e.target.closest('.date-pick-wrap')) {
-    const pop = document.getElementById('orderDatePicker')
-    if (pop && pop.style.display !== 'none') pop.style.display = 'none'
+    for (const k in LOC_NGAY) {
+      const pop = document.getElementById(LOC_NGAY[k].pop)
+      if (pop && pop.style.display !== 'none') pop.style.display = 'none'
+    }
     const sug = document.getElementById('exItemSuggestPop')
     if (sug && sug.style.display !== 'none') sug.style.display = 'none'
     closeFormDatePops()
@@ -7124,18 +7406,20 @@ document.addEventListener('click', e => {
 
 function renderOrders() {
   const el = document.getElementById('ordersTable')
-  const date   = document.getElementById('orderDateFilter').value
+  const { tu: date, den } = ordRange()
   const q      = document.getElementById('orderSearch').value.trim().toLowerCase()
 
   // Đồng bộ trạng thái sáng của chip ngày + nhãn nút chọn ngày
   const _today = todayStr()
   const _tomo  = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE')
-  document.getElementById('ordTodayChip')?.classList.toggle('active', date === _today)
-  document.getElementById('ordTomoChip')?.classList.toggle('active', date === _tomo)
+  const [_dauThang, _cuoiThang] = thangDauCuoi(_today.slice(0, 7))
+  document.getElementById('ordTodayChip')?.classList.toggle('active', date === _today && !den)
+  document.getElementById('ordTomoChip')?.classList.toggle('active', date === _tomo && !den)
+  document.getElementById('ordMonthChip')?.classList.toggle('active', date === _dauThang && den === _cuoiThang)
   const dateBtn = document.getElementById('orderDateBtn')
   if (dateBtn) {
-    // Mặc định hiển thị ngày hôm nay (mờ); khi đang lọc thì xanh đậm kèm ngày lọc
-    dateBtn.innerHTML = ic('cal') + (date || _today).split('-').reverse().join('/')
+    // Chưa lọc: "Chọn ngày" (mờ) — trước ghi ngày hôm nay, dễ tưởng đang lọc hôm nay; đang lọc thì xanh đậm kèm ngày / khoảng ngày
+    dateBtn.innerHTML = ic('cal') + (date ? nhanKhoangNgay(date, den) : 'Chọn ngày')
     dateBtn.style.borderColor = date ? '#2E7D32' : ''
     dateBtn.style.color = date ? '#2E7D32' : '#999'
     dateBtn.style.fontWeight = date ? '700' : ''
@@ -7153,7 +7437,7 @@ function renderOrders() {
   if (!ordersTotal) {
     const parts = []
     if (orderStatusSet.size) parts.push('trạng thái <strong>' + [...orderStatusSet].join(', ') + '</strong>')
-    if (date) parts.push('ngày giao <strong>' + date.split('-').reverse().join('/') + '</strong>')
+    if (date) parts.push((den ? 'ngày giao trong ' : 'ngày giao ') + '<strong>' + nhanKhoangNgay(date, den) + '</strong>')
     if (q) parts.push('từ khoá “<strong>' + esc(q) + '</strong>”')
     const desc = parts.length ? ' ở ' + parts.join(' · ') : ''
     el.innerHTML = `<div class="empty-state">Chưa có đơn nào${desc}. <a href="#" onclick="clearOrderFilters();return false" style="color:#2E7D32;font-weight:600;">Xem tất cả đơn</a></div>`
@@ -7267,11 +7551,15 @@ async function pickQuickStatus(idx) {
 }
 
 async function updateOrderStatus(id, status) {
-  const { error } = await sb.from('orders').update({ status }).eq('id', id)
-  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  if (!(await ghiDb(sb.from('orders').update({ status }).eq('id', id).select('id'), 'đổi trạng thái'))) return
   const o = orderById(id)
   if (o) o.status = status
-  renderOrders()          // vẽ lại ngay cho thấy đổi, khỏi chờ mạng
+  // Đổi từ Tổng quan / Lịch giao (sheet chi tiết đơn) → vẽ lại đúng màn đó; trước chỉ vẽ lại tab Đơn hàng nên
+  // đơn đã "Giao thành công" vẫn nằm trong "Giao hôm nay" tới khi tải lại trang (rà soát 07/10/2026)
+  const dangMo = x => document.getElementById(x)?.style.display !== 'none'
+  if (dangMo('panelDashboard')) loadDashboard()
+  else if (dangMo('panelDelivery')) loadDelivery()
+  else renderOrders()     // tab Đơn hàng: vẽ lại ngay, giữ nguyên trang đơn đang xem
   refreshNewOrderBadge()
   showToast('Đã cập nhật trạng thái!')
 }
@@ -7483,9 +7771,9 @@ async function saveOrderEdit(e) {
     data.customer_id = customerId
   }
 
-  const { error } = await sb.from('orders').update(data).eq('id', id)
+  const daLuu = await ghiDb(sb.from('orders').update(data).eq('id', id).select('id'), 'lưu đơn')
   btn.textContent = 'Lưu đơn'; btn.disabled = false
-  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  if (!daLuu) return
   showToast('Đã lưu đơn!')
   closeOrderEditModal()
   reloadActiveOrderViews()

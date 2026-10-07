@@ -61,8 +61,8 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 
 **Admin — `admin/index.html` là một file monolith ~5000 dòng** (HTML + CSS + JS trong cùng file, cố ý giữ vậy). Điều hướng qua `applyTab(tab)`: ẩn/hiện `.panel`, rồi gọi đúng `loadX()` của tab đó. `switchTab()` đẩy `history.pushState` + `#hash` nên nút Back của trình duyệt và F5 đều giữ đúng tab. `applyTab` cũng gọi `closeAllModals()` — modal của tab cũ phải dọn ở đó, đừng để rò sang tab mới.
 
-**Bảo mật database (kiểm 25/09/2026):** Supabase đang MỞ ĐĂNG KÝ (`/auth/v1/settings` → `disable_signup:false`)
-nên "đã đăng nhập" (`authenticated`) KHÔNG có nghĩa là shop. `supabase/24_chi_quan_tri.sql` thêm lớp luật
+**Bảo mật database (kiểm 25/09/2026):** Supabase từng MỞ ĐĂNG KÝ (`/auth/v1/settings` → `disable_signup:false`; kiểm lại
+07/10/2026: đã TẮT, `true`). Dù vậy vẫn coi "đã đăng nhập" (`authenticated`) KHÔNG có nghĩa là shop. `supabase/24_chi_quan_tri.sql` thêm lớp luật
 RESTRICTIVE "chi quan tri…" trên mọi bảng + kho ảnh: phải nằm trong bảng `quan_tri` (hàm `la_quan_tri()`). File 17/21
 xoá sạch luật cũ nhưng CHỪA tên `chi quan tri%` — viết file SQL mới kiểu "xoá hết luật" cũng phải chừa y vậy. Thêm bảng
 mới: thêm vào danh sách trong file 24.
@@ -201,6 +201,18 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
   (`ORDERS_PAGE` = 20, `buildOrdersQuery()` lọc trên server, `count: 'exact'` để đếm). **Đừng bao giờ
   `orders.filter(...)` để lọc/tìm** — sẽ chỉ tìm trong mấy chục đơn đã tải rồi báo "không có đơn nào".
   Đổi bộ lọc thì gọi `applyOrderFilters()`, không gọi `renderOrders()` suông.
+  **Lọc ngày giao là 1 ngày HOẶC khoảng ngày (07/10/2026)**: `#orderDateFilter` = ngày (hoặc ngày đầu), `#orderDateTo` = ngày
+  cuối (trống = đúng 1 ngày). Đặt cả hai bằng `ordSetRange(tu, den)`, đọc bằng `ordRange()`. Chip "Tháng này" + nút "Cả tháng"
+  trong lịch = khoảng ngày 1 → cuối tháng (`thangDauCuoi`). Lịch KHÔNG có nút chọn kiểu (shop chê rườm rà): bấm 1 ngày =
+  lọc luôn ngày đó, lịch vẫn mở (`_ln[k].tam`); bấm thêm ngày nữa = cả khoảng, dải nối liền loé sáng rồi đóng (`LN_TRE_DONG`).
+  Dải nối cần `.ln-luoi` (column-gap 0 + ô cao cố định — `.cal-day` gốc có aspect-ratio + max-height làm ô hẹp, hở khe).
+  Dải vẽ bằng `::before` PHÍA SAU ô (lưới là lớp riêng, ô KHÔNG đặt z-index) để ô giữ viền bo tròn — đừng đổi border-radius của ô.
+  **Lịch lọc ngày là bộ DÙNG CHUNG `LOC_NGAY` + `lnMo/lnChon/lnVe(k)`** (`k` = `'don'` Đơn hàng, `'chi'` Sổ chi phí; trạng thái
+  ở `_ln[k]`). Nơi mới cần lọc ngày thì khai thêm 1 mục trong `LOC_NGAY`, đừng chép lại lịch.
+  **Sổ chi phí**: KHÔNG có nút "Chọn ngày" riêng — bấm chính ô tháng `#expenseMonthDisplay` (nút) mở lịch; "Xóa lọc" = `exXoaLoc()`
+  (về tháng này + bỏ tìm/loại). Kỳ = cả tháng `expenseMonth` hoặc khoảng tự chọn `exTu`/`exDen` (`exKy()`; chọn trúng trọn 1 tháng thì
+  `exSetRange` tự quy về xem tháng đó). Doanh thu/lãi tính theo kỳ (`_statCtxEx.ky`). Chip loại + ô tìm (`exLocDanhSach`) chỉ
+  lọc DANH SÁCH ở máy, không đổi số tổng hợp phía trên (lọc loại mà đổi tổng thì "Lãi gộp" sai).
 - **Tra đơn theo id phải dùng `orderById(id)`**, không dùng `orders.find`. Tab Tổng quan và Lịch giao
   nạp đơn của chúng vào `_donCache` qua `cacheOrders()` và **không được gán vào `orders`** — gán là phá
   trang đang xem của tab Đơn hàng (đã từng như vậy).
