@@ -1265,6 +1265,30 @@ section    { padding:64px 0; }
 .os-ma { display: inline-block; margin-top: 14px; padding: 9px 16px; border-radius: 12px; background: #f4f7f4; font-family: 'Nunito', sans-serif; color: var(--text-mid); }
 .os-ma b { color: var(--green); }
 .os-nut { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
+/* Chuyển khoản trước (không bắt buộc) trên màn cảm ơn — 08/10/2026 */
+.os-ck { margin-top: 16px; border: 1px solid var(--border); border-radius: 14px; background: #fff; text-align: left; }
+.os-ck summary { list-style: none; display: flex; align-items: center; gap: 8px; padding: 12px 14px; cursor: pointer;
+  font-family: 'Nunito', sans-serif; font-weight: 700; color: var(--green); }
+.os-ck summary::-webkit-details-marker { display: none; }
+.os-ck summary > span { flex: 1; }
+.os-ck summary small { font-family: 'Be Vietnam Pro', sans-serif; font-weight: 500; font-size: .76rem; color: var(--text-light); margin-left: 4px; }
+.os-ck summary .ic { width: 18px; height: 18px; flex-shrink: 0; }
+.os-ck summary .ic:last-child { color: var(--text-light); transition: transform .2s; }
+.os-ck[open] summary .ic:last-child { transform: rotate(180deg); }
+.os-ck-than { padding: 0 14px 14px; font-size: .88rem; color: var(--text-mid); line-height: 1.6; }
+.os-ck-qr { width: min(220px, 64vw); margin: 12px auto; border-radius: 12px; border: 1px solid var(--border); }
+.os-ck-tt { background: #f4f7f4; border-radius: 12px; padding: 4px 12px; }
+.os-ck-tt > div { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+.os-ck-tt > div + div { border-top: 1px solid #e6ebe5; }
+.os-ck-tt span { flex: 0 0 96px; color: var(--text-light); font-size: .82rem; }
+.os-ck-tt b { flex: 1; min-width: 0; overflow-wrap: anywhere; color: var(--text); }
+.os-ck-tt button { border: 1px solid var(--border); background: #fff; color: var(--green); border-radius: 999px; padding: 3px 12px;
+  font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; }
+.os-ck-nho { margin-top: 10px; font-size: .8rem; color: var(--text-light); }
+/* Cảnh báo lừa đảo chuyển khoản — màn đặt xong + trang Chính sách */
+.canh-bao-ld { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; padding: 10px 12px; border-radius: 12px;
+  background: #FFF4E5; border: 1px solid #FFD8A8; color: #7A4100; font-size: .82rem; line-height: 1.6; text-align: left; }
+.canh-bao-ld .ic { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; color: #E65100; }
 
 /* Thanh tab dưới đáy (chỉ điện thoại) */
 .w-tabs { display: none; }

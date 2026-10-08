@@ -142,6 +142,8 @@ const BIEU_TUONG = {
   mail: "<rect width=\"20\" height=\"16\" x=\"2\" y=\"4\" rx=\"2\"/><path d=\"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7\"/>",
   clock: "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 6v6l4 2\"/>",
   card: "<rect width=\"20\" height=\"14\" x=\"2\" y=\"5\" rx=\"2\"/><path d=\"M2 10h20\"/>",
+  qr: "<rect width=\"5\" height=\"5\" x=\"3\" y=\"3\" rx=\"1\"/><rect width=\"5\" height=\"5\" x=\"16\" y=\"3\" rx=\"1\"/><rect width=\"5\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\"/><path d=\"M21 16h-3a2 2 0 0 0-2 2v3\"/><path d=\"M21 21v.01\"/><path d=\"M12 7v3a2 2 0 0 1-2 2H7\"/><path d=\"M3 12h.01\"/><path d=\"M12 3h.01\"/><path d=\"M12 16v.01\"/><path d=\"M16 12h1\"/><path d=\"M21 12v.01\"/><path d=\"M12 21v-1\"/>",
+  copy: "<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\"/><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\"/>",
   heart: "<path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\"/>",
   send: "<path d=\"M14.54 21.69a.5.5 0 0 0 .94-.03l6.5-19a.5.5 0 0 0-.64-.64l-19 6.5a.5.5 0 0 0-.03.94l7.93 3.18a2 2 0 0 1 1.11 1.11z\"/><path d=\"m21.85 2.15-10.94 10.94\"/>",
   shield: "<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/><path d=\"m9 12 2 2 4-4\"/>"
@@ -468,6 +470,39 @@ function cungDongTtc(a, b) {
 
 // Mã đơn hiển thị: #LT-0152 (giống orderCode trong admin)
 function maDon(id) { return '#LT-' + String(id).padStart(4, '0') }
+
+// ── Chuyển khoản bằng mã QR (VietQR, 08/10/2026) — dùng chung web khách + admin ──
+// Tài khoản nhận nằm ở bảng contact (ck_ngan_hang = mã BIN ngân hàng, ck_so_tk, ck_chu_tk — SQL 31).
+// Ảnh QR lấy từ img.vietqr.io (miễn phí, không cần đăng ký). Quét bằng app ngân hàng nào cũng ra
+// sẵn số tài khoản + số tiền + nội dung. Admin có CSP → tên miền này đã thêm vào img-src.
+const NGAN_HANG = [
+  ['970436', 'Vietcombank'], ['970415', 'VietinBank'], ['970418', 'BIDV'], ['970405', 'Agribank'],
+  ['970407', 'Techcombank'], ['970422', 'MB Bank'], ['970416', 'ACB'], ['970432', 'VPBank'],
+  ['970423', 'TPBank'], ['970403', 'Sacombank'], ['970441', 'VIB'], ['970437', 'HDBank'],
+  ['970443', 'SHB'], ['970448', 'OCB'], ['970426', 'MSB'], ['970440', 'SeABank'], ['970449', 'LPBank'],
+  ['970431', 'Eximbank'],
+]
+function tenNganHang(bin) { const n = NGAN_HANG.find(x => x[0] === String(bin || '')); return n ? n[1] : '' }
+// Tài khoản lấy từ dòng contact; thiếu ngân hàng hoặc số TK thì coi như CHƯA cài (trả null)
+function taiKhoanCk(c) {
+  const bin = String(c?.ck_ngan_hang || '').replace(/\D/g, '')
+  const stk = String(c?.ck_so_tk || '').replace(/\D/g, '')
+  if (!tenNganHang(bin) || stk.length < 4) return null
+  return { bin, stk, chu: String(c.ck_chu_tk || '').trim(), ten: tenNganHang(bin) }
+}
+// Nội dung chuyển khoản: "LT152" — chỉ chữ + số, app ngân hàng nào cũng giữ nguyên, shop dò sao kê ra đúng đơn
+function noiDungCk(id) { return 'LT' + String(id || '').replace(/\D/g, '') }
+// soTien trống / 0 → QR không kèm số tiền, khách tự gõ
+function linkQrCk(tk, soTien, noiDung) {
+  if (!tk) return ''
+  const q = []
+  const tien = Math.round(Number(soTien) || 0)
+  if (tien > 0) q.push('amount=' + tien)
+  if (noiDung) q.push('addInfo=' + encodeURIComponent(noiDung))
+  if (tk.chu) q.push('accountName=' + encodeURIComponent(tk.chu))
+  // Không kèm số tiền → mẫu chỉ có mã (mẫu có chữ sẽ in "Số tiền: 0 VND" gây hiểu lầm)
+  return 'https://img.vietqr.io/image/' + tk.bin + '-' + tk.stk + (tien > 0 ? '-compact2' : '-qr_only') + '.png' + (q.length ? '?' + q.join('&') : '')
+}
 
 // ── Kéo dải trượt ngang bằng CHUỘT (26/09/2026) ──────────────────────
 // Điện thoại vuốt ngang được, chuột thì không (lăn chuột chỉ cuộn dọc) → trước phải bấm vào thanh cuộn

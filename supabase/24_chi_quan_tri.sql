@@ -59,7 +59,7 @@ declare
   lenh text;
 begin
   -- Bảng riêng của shop: tài khoản không phải quản trị không đọc, không ghi
-  foreach t in array array['customers', 'orders', 'expenses', 'materials', 'changelog'] loop
+  foreach t in array array['customers', 'orders', 'expenses', 'materials', 'changelog', 'nhat_ky_tai_khoan'] loop
     if to_regclass('public.' || t) is null then continue; end if;
     execute format('drop policy if exists %I on public.%I', 'chi quan tri', t);
     execute format('create policy %I on public.%I as restrictive for all to authenticated '

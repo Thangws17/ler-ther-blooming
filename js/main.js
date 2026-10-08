@@ -930,6 +930,7 @@ async function loadContact() {
   // Policy page content
   setText('policyDelivery', contactInfo.policy_delivery || 'Liên hệ shop để biết thêm chi tiết.');
   setText('policyPayment',  contactInfo.policy_payment  || 'Liên hệ shop để biết thêm chi tiết.');
+  veTkChinhThuc();
   setText('policyQuality',  contactInfo.policy_quality  || 'Liên hệ shop để biết thêm chi tiết.');
 
   // Ảnh chính cụm hero — nhớ URL vào máy để lần sau primeHero() hiện ngay không chờ query.
@@ -1404,6 +1405,11 @@ async function submitOrder(event) {
   }
 
   doLuong('generate_lead', { item_id: String(_orderProduct.id), item_name: _orderProduct.name });
+  veDatXong(maMoi, phone, email);
+}
+
+// Màn "Đã nhận đơn" (tách riêng 08/10/2026 để trang demo vẽ được mà không phải gửi đơn thật)
+function veDatXong(maMoi, phone, email) {
   const zalo = zaloURL(contactInfo?.zalo || contactInfo?.phone);
   document.getElementById('orderModalBody').innerHTML = `
 <div class="order-success">
@@ -1415,11 +1421,64 @@ async function submitOrder(event) {
     ${email ? `<br>Xác nhận đơn đã gửi tới <strong>${esc(email)}</strong>.` : ''}
   </p>
   ${maMoi ? `<div class="os-ma">Mã đơn: <b>${maDon(maMoi)}</b></div>` : ''}
+  ${khoiChuyenKhoan(maMoi)}
   <div class="os-nut">
     <a href="${esc(zalo)}" target="_blank" class="btn btn-primary">${ic('chat')}Nhắn Zalo cho shop</a>
     <a href="san-pham" class="btn btn-outline">Xem thêm mẫu hoa</a>
   </div>
 </div>`;
+}
+
+// Chuyển khoản trước — KHÔNG bắt buộc, số tiền khách tự chọn (cọc 1 phần hay trả đủ đều được).
+// Gấp sẵn cho màn cảm ơn gọn; shop chưa nhập tài khoản (admin → Liên hệ) thì không hiện gì.
+// Mã QR không kèm số tiền: khách tự gõ; nội dung LT<mã đơn> để shop dò ra đúng đơn.
+function khoiChuyenKhoan(maMoi) {
+  const tk = taiKhoanCk(contactInfo);
+  if (!tk || !maMoi) return '';
+  const nd = noiDungCk(maMoi);
+  return `
+<details class="os-ck">
+  <summary>${ic('card')}<span>Chuyển khoản trước <small>không bắt buộc</small></span>${ic('down')}</summary>
+  <div class="os-ck-than">
+    <p>Bạn có thể chuyển trước một phần (cọc) hoặc toàn bộ. Quét mã bằng app ngân hàng, gõ số tiền,
+       <b>giữ nguyên nội dung ${nd}</b> để shop đối chiếu đúng đơn của bạn.</p>
+    <img src="${esc(linkQrCk(tk, 0, nd))}" alt="Mã QR chuyển khoản cho đơn ${maDon(maMoi)}" class="os-ck-qr" onerror="this.remove()">
+    <div class="os-ck-tt">
+      <div><span>Ngân hàng</span><b>${esc(tk.ten)}</b></div>
+      <div><span>Số tài khoản</span><b>${tk.stk}</b><button type="button" onclick="chepCk('${tk.stk}', 'số tài khoản')">Chép</button></div>
+      ${tk.chu ? `<div><span>Chủ tài khoản</span><b>${esc(tk.chu)}</b></div>` : ''}
+      <div><span>Nội dung</span><b>${nd}</b><button type="button" onclick="chepCk('${nd}', 'nội dung')">Chép</button></div>
+    </div>
+    <p class="os-ck-nho">Chuyển xong bạn nhắn Zalo cho shop 1 câu nhé — shop xác nhận lại ngay.</p>
+    ${canhBaoLuaDao(tk)}
+  </div>
+</details>`;
+}
+
+// Cảnh báo lừa đảo (08/10/2026): kẻ gian có thông tin đơn có thể gọi khách "báo chuyển khoản" vào tài khoản khác.
+// Dặn khách: chỉ đúng 1 tài khoản, tên người nhận trong app ngân hàng phải khớp, shop không bao giờ gọi đòi chuyển gấp.
+function canhBaoLuaDao(tk) {
+  return `<div class="canh-bao-ld">${ic('shield')}<span><b>Cẩn thận lừa đảo:</b> shop chỉ nhận tiền vào đúng tài khoản này${tk?.chu
+    ? ` — trước khi bấm chuyển, kiểm tra tên người nhận trong app ngân hàng phải là <b>${esc(tk.chu)}</b>` : ''}.
+    Shop <b>không bao giờ</b> gọi điện / nhắn tin bảo bạn chuyển vào tài khoản khác, chuyển gấp hay chuyển thêm tiền.
+    Gặp trường hợp đó, đừng chuyển — nhắn Zalo shop để kiểm tra.</span></div>`;
+}
+
+// Trang Chính sách (mục hỏi đáp lừa đảo): ghi rõ tài khoản chính thức duy nhất, lấy từ database
+function veTkChinhThuc() {
+  const tk = taiKhoanCk(contactInfo), el = document.getElementById('ckChinhThuc');
+  if (!tk || !el) return;
+  el.innerHTML = `Tài khoản chính thức duy nhất của shop: <strong>${esc(tk.ten)} · ${tk.stk}</strong>${tk.chu
+    ? ` — tên người nhận <strong>${esc(tk.chu)}</strong>` : ''}. Trước khi chuyển, kiểm tra tên người nhận hiện trong app ngân hàng phải khớp.`;
+}
+
+async function chepCk(chu, ten) {
+  try { await navigator.clipboard.writeText(chu); }
+  catch (_) {
+    const t = document.createElement('textarea'); t.value = chu; t.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
+  }
+  showMiniToast('Đã chép ' + ten);
 }
 
 // ─── Banner ───────────────────────────────────────────────

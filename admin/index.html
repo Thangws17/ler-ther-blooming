@@ -9,7 +9,7 @@
          'unsafe-inline' vì admin dùng onclick; 'unsafe-eval' vì trang test gọi eval() trong khung.
          Thêm dịch vụ ngoài mới (ảnh, API…) thì phải thêm tên miền vào đây, không là bị chặn. -->
   <meta name="robots" content="noindex, nofollow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://oijcwborkebjpavzyisl.supabase.co; connect-src 'self' https://oijcwborkebjpavzyisl.supabase.co wss://oijcwborkebjpavzyisl.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://oijcwborkebjpavzyisl.supabase.co https://img.vietqr.io; connect-src 'self' https://oijcwborkebjpavzyisl.supabase.co wss://oijcwborkebjpavzyisl.supabase.co https://img.vietqr.io; object-src 'none'; base-uri 'self'; form-action 'self'">
   <script>
     // Chặn web lạ nhúng trang quản trị vào khung ẩn để lừa bấm (clickjacking). Trang test cùng
     // web vẫn nhúng được (cùng nguồn); khung khác nguồn đọc top.location sẽ lỗi → giấu trang.
@@ -1617,6 +1617,73 @@
     .fx-in select { flex: 1; min-width: 0; border: 0; outline: 0; background: none; padding: 12px 0; font: inherit; font-size: .95rem; color: #1f2a1f; cursor: pointer; }
     .fx-in input:disabled { color: #9aa79a; cursor: not-allowed; }
     .fx-hint { font-size: .8rem; color: #7a877a; margin: -2px 2px 8px; }
+    /* Thanh toán trước (cọc) + mã QR — 08/10/2026 */
+    .fx-chip.tt-dot::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--tt); }
+    .fx-con { display: block; font-size: .78rem; font-weight: 700; color: #1565C0; margin-top: 1px; }
+    .fx-con.du { color: #2E7D32; }
+    .fx-con.du-thua { color: #E65100; }
+    .tt-pill { display: inline-flex; align-items: center; gap: 3px; padding: 1px 8px; border-radius: 999px; font-size: .72rem; font-weight: 700;
+               white-space: nowrap; vertical-align: 1px; }
+    .tt-pill .ic { width: 12px; height: 12px; }
+    .tt-pill.tt-chua { background: #f1f3f0; color: #7a877a; }
+    .tt-pill.tt-coc  { background: #E8F1FB; color: #1565C0; }
+    .tt-pill.tt-du   { background: #E8F5E9; color: #2E7D32; }
+    .tt-chu.tt-chua { color: #7a877a; } .tt-chu.tt-coc { color: #1565C0; } .tt-chu.tt-du { color: #2E7D32; }
+    .od-pills { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .od-pills .tt-pill { font-size: .78rem; padding: 3px 10px; }
+    .od-row small.od-nho { margin-left: 4px; }
+    .od-tt .od-row > span:first-child { flex-basis: 84px; }
+    .od-tt-nut { display: flex; gap: 8px; }
+    .od-tt-nut .od-qr { flex: 1; }
+    .od-du-nut { border-style: solid; background: #fff; }
+    .od-nho { color: #7a877a; font-weight: 500; }
+    .od-conthu { color: #1565C0; }
+    .od-du { color: #2E7D32; display: inline-flex; align-items: center; gap: 4px; }
+    .od-du .ic { width: 15px; height: 15px; }
+    .od-qr { margin: 8px 0 4px; width: 100%; display: flex; min-width: 0; text-align: center; align-items: center; justify-content: center; gap: 8px; padding: 11px;
+             border-radius: 12px; border: 1.5px dashed #2E7D32; background: #F1F8F1; color: #2E7D32; font: inherit; font-weight: 700; cursor: pointer; }
+    .od-qr:hover { background: #E8F5E9; }
+    .dv-tien { font-size: .8rem; color: #1565C0; display: flex; gap: 4px; align-items: center; font-weight: 600; flex-wrap: wrap; }
+    .dv-tien .ic { width: 14px; height: 14px; }
+    .dv-tien small { color: #7a877a; font-weight: 500; }
+    .dv-tien.dv-du { color: #2E7D32; }
+    .qr-khung { display: flex; justify-content: center; margin: 4px 0 2px; min-height: 120px; }
+    .qr-khung [hidden] { display: none !important; }
+    .qr-khung img { width: min(250px, 72vw); height: auto; border-radius: 14px; border: 1px solid #e3e8e2; background: #fff; }
+    .qr-khung p { align-self: center; font-size: .86rem; color: #BF360C; background: #FBE9E7; border-radius: 10px; padding: 10px 12px; margin: 0;
+                  display: flex; gap: 6px; align-items: flex-start; }
+    .qr-meo { font-size: .8rem; color: #7a877a; text-align: center; margin: 4px 0 10px; line-height: 1.5; }
+    .qr-meo .ic { width: 14px; height: 14px; }
+    .qr-tt { background: #f6f8f5; border-radius: 12px; padding: 6px 12px; }
+    .qr-tt .od-row > span:last-child { display: flex; align-items: center; gap: 6px; }
+    .qr-tt .od-row > span:first-child { flex-basis: 82px; }
+    .qr-chep { border: 0; background: none; color: #2E7D32; cursor: pointer; padding: 4px; margin: -4px 0; border-radius: 8px; display: inline-flex; }
+    .qr-chep:hover { background: #E8F5E9; }
+    .qr-chep .ic { width: 16px; height: 16px; }
+    .qr-nut { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .qr-nut > button { min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; }
+    .qr-nut .qr-nut-to { grid-column: 1 / -1; }
+    .qr-moidoi { display: flex; gap: 8px; align-items: flex-start; background: #FFF4E5; color: #7A4100; border: 1px solid #FFCC80;
+                 border-radius: 12px; padding: 10px 12px; font-size: .84rem; line-height: 1.5; margin-bottom: 12px; }
+    .qr-moidoi .ic { width: 18px; height: 18px; flex-shrink: 0; color: #E65100; margin-top: 1px; }
+    .ck-baove { display: flex; gap: 8px; align-items: flex-start; font-size: .84rem; color: #2E5E30; background: #F1F8F1;
+                border-radius: 10px; padding: 10px 12px; margin: 0; line-height: 1.55; }
+    .ck-baove .ic { width: 18px; height: 18px; flex-shrink: 0; color: #2E7D32; margin-top: 1px; }
+    .ck-nk { margin-top: 10px; border: 1px solid #e3e8e2; border-radius: 10px; padding: 8px 12px; font-size: .82rem; }
+    .ck-nk-t { display: flex; gap: 6px; align-items: center; font-weight: 700; color: #5d6b5c; margin-bottom: 4px; }
+    .ck-nk-t .ic { width: 15px; height: 15px; }
+    .ck-nk-r { display: flex; gap: 10px; padding: 6px 0; border-top: 1px solid #f0f3ef; }
+    .ck-nk-r > span:first-child { flex: 0 0 120px; color: #7a877a; }
+    .ck-nk-r > span:last-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .ck-nk-r small { color: #5d6b5c; }
+    .mk-input { width: 100%; padding: 12px 14px; border: 1.5px solid #dfe5de; border-radius: 10px; font: inherit; font-size: 16px; margin-bottom: 8px; }
+    .mk-input:focus { outline: 0; border-color: #2E7D32; }
+    .mk-loi { color: #C62828; font-size: .84rem; margin-bottom: 8px; }
+    #mkDialog .confirm-box p { margin-bottom: 14px; }
+    #mkDialog .confirm-icon .ic { color: #2E7D32; }
+    .qr-nut .btn-green:disabled { opacity: .45; cursor: not-allowed; }
+    .qr-chua { text-align: center; padding: 10px 6px 4px; color: #5d6b5c; }
+    .qr-chua > .ic { width: 34px; height: 34px; color: #E65100; }
     .dv-tre { white-space: nowrap; }
     /* Khoảnh khắc theo album */
     .kk-tieu { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -2366,6 +2433,34 @@
             <label>Cam kết chất lượng</label>
             <textarea name="policy_quality" rows="3" placeholder="VD: Gửi ảnh duyệt trước khi giao…"></textarea>
           </div>
+          <div class="field-group full" style="border-top:1px solid #eee;padding-top:20px;margin-top:8px;">
+            <label>Tài khoản nhận chuyển khoản <span style="font-weight:400;color:#7A9879;text-transform:none;">(để tạo mã QR cho khách quét)</span></label>
+            <p style="font-size:.84rem;color:#5b7a5a;margin:0 0 10px;line-height:1.6;">
+              Khách quét mã QR là app ngân hàng tự điền sẵn số tài khoản, số tiền và nội dung <b>LT + mã đơn</b> (vd LT152).
+              Tiền vào thẳng tài khoản này, không qua bên trung gian nào.
+            </p>
+            <p id="ckCanSql" style="display:none;font-size:.84rem;color:#BF360C;background:#FBE9E7;border-radius:8px;padding:8px 10px;margin:0 0 10px;">
+              <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg> Cần chạy file <b>supabase/31_thanh_toan.sql</b> trước thì mới lưu được 3 ô này.
+            </p>
+          </div>
+          <div class="field-group">
+            <label for="ctNganHang">Ngân hàng</label>
+            <select id="ctNganHang" name="ck_ngan_hang"><option value="">— Chọn ngân hàng —</option></select>
+          </div>
+          <div class="field-group">
+            <label for="ctSoTk">Số tài khoản</label>
+            <input type="text" id="ctSoTk" name="ck_so_tk" inputmode="numeric" autocomplete="off" placeholder="VD: 0123456789">
+          </div>
+          <div class="field-group full">
+            <label for="ctChuTk">Tên chủ tài khoản</label>
+            <input type="text" id="ctChuTk" name="ck_chu_tk" autocomplete="off" placeholder="VD: NGUYEN THI LAN (không dấu, như trên thẻ)" style="text-transform:uppercase">
+          </div>
+          <div class="field-group full">
+            <p class="ck-baove"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>
+              <span>Đổi tài khoản phải <b>nhập lại mật khẩu</b>. Mỗi lần đổi, database tự ghi nhật ký và <b>gửi mail cảnh báo</b>
+              cho shop — nhận mail mà không phải bạn hoặc Ler đổi thì vào đây sửa lại ngay + đổi mật khẩu.</span></p>
+            <div id="ckNhatKy"></div>
+          </div>
           <div class="field-group full">
             <label>Đo lường truy cập <span style="font-weight:400;color:#7A9879;text-transform:none;">(để trống = không đo)</span></label>
             <p style="font-size:.84rem;color:#5b7a5a;margin:0 0 10px;line-height:1.6;">
@@ -2684,6 +2779,33 @@
           <input type="hidden" id="oeGio">
         </section>
 
+        <!-- Trạng thái THANH TOÁN, tách riêng trạng thái đơn (08/10/2026). "Đã cọc" mới hiện ô số tiền — shop tự gõ. -->
+        <section class="fx-grp">
+          <div class="fx-gt"><svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg>Thanh toán</div>
+          <div id="oeTtThan">
+            <div class="fx-chips" data-seg="oeTt">
+              <button type="button" class="fx-chip tt-dot" style="--tt:#9aa79a" data-v="Chưa thanh toán" onclick="segChon(this); ttForm('oe')">Chưa thanh toán</button>
+              <button type="button" class="fx-chip tt-dot" style="--tt:#1565C0" data-v="Đã cọc" onclick="segChon(this); ttForm('oe')">Đã cọc</button>
+              <button type="button" class="fx-chip tt-dot" style="--tt:#2E7D32" data-v="Đã thanh toán" onclick="segChon(this); ttForm('oe')">Đã thanh toán</button>
+            </div>
+            <input type="hidden" id="oeTt">
+            <div id="oeCocRow" style="display:none">
+              <div class="fx-lb">Số tiền đã cọc</div>
+              <label class="fx-in"><input type="text" id="oeCoc" inputmode="numeric" autocomplete="off" placeholder="VD: 200.000"
+                     oninput="onMoneyInput(this); ttForm('oe')"><span class="fx-suf">đ</span></label>
+            </div>
+            <div id="oeCachRow" style="display:none">
+              <div class="fx-lb">Nhận bằng</div>
+              <div class="fx-chips" data-seg="oeTtCach">
+                <button type="button" class="fx-chip" data-v="Chuyển khoản" onclick="segChon(this)">Chuyển khoản</button>
+                <button type="button" class="fx-chip" data-v="Tiền mặt" onclick="segChon(this)">Tiền mặt</button>
+              </div>
+              <input type="hidden" id="oeTtCach">
+            </div>
+          </div>
+          <div class="fx-hint" id="oeCocSql" style="display:none;color:#BF360C">Cần chạy file <b>supabase/31_thanh_toan.sql</b> trước thì mới lưu được trạng thái thanh toán.</div>
+        </section>
+
         <button type="button" class="fx-more" aria-expanded="false" onclick="fxToggle(this)"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg><span>Người nhận (tặng người khác)</span><small>tuỳ chọn</small></button>
         <div class="fx-body">
           <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg><input type="text" id="oeRecvName" placeholder="Tên người nhận"></label>
@@ -2709,7 +2831,7 @@
         </div>
       </div>
       <div class="modal-footer fx-foot">
-        <div class="fx-sum"><small>Tổng</small><b id="oeTotalPreview">—</b></div>
+        <div class="fx-sum"><small>Tổng</small><b id="oeTotalPreview">—</b><span class="fx-con" id="oeConLai"></span></div>
         <button type="submit" class="btn-green" id="saveOrderEditBtn">Lưu đơn</button>
       </div>
     </form>
@@ -2793,6 +2915,33 @@
           <input type="hidden" id="noStatus">
         </section>
 
+        <!-- Trạng thái THANH TOÁN, tách riêng trạng thái đơn (08/10/2026). "Đã cọc" mới hiện ô số tiền — shop tự gõ. -->
+        <section class="fx-grp">
+          <div class="fx-gt"><svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg>Thanh toán</div>
+          <div id="noTtThan">
+            <div class="fx-chips" data-seg="noTt">
+              <button type="button" class="fx-chip tt-dot" style="--tt:#9aa79a" data-v="Chưa thanh toán" onclick="segChon(this); ttForm('no')">Chưa thanh toán</button>
+              <button type="button" class="fx-chip tt-dot" style="--tt:#1565C0" data-v="Đã cọc" onclick="segChon(this); ttForm('no')">Đã cọc</button>
+              <button type="button" class="fx-chip tt-dot" style="--tt:#2E7D32" data-v="Đã thanh toán" onclick="segChon(this); ttForm('no')">Đã thanh toán</button>
+            </div>
+            <input type="hidden" id="noTt">
+            <div id="noCocRow" style="display:none">
+              <div class="fx-lb">Số tiền đã cọc</div>
+              <label class="fx-in"><input type="text" id="noCoc" inputmode="numeric" autocomplete="off" placeholder="VD: 200.000"
+                     oninput="onMoneyInput(this); ttForm('no')"><span class="fx-suf">đ</span></label>
+            </div>
+            <div id="noCachRow" style="display:none">
+              <div class="fx-lb">Nhận bằng</div>
+              <div class="fx-chips" data-seg="noTtCach">
+                <button type="button" class="fx-chip" data-v="Chuyển khoản" onclick="segChon(this)">Chuyển khoản</button>
+                <button type="button" class="fx-chip" data-v="Tiền mặt" onclick="segChon(this)">Tiền mặt</button>
+              </div>
+              <input type="hidden" id="noTtCach">
+            </div>
+          </div>
+          <div class="fx-hint" id="noCocSql" style="display:none;color:#BF360C">Cần chạy file <b>supabase/31_thanh_toan.sql</b> trước thì mới lưu được trạng thái thanh toán.</div>
+        </section>
+
         <button type="button" class="fx-more" aria-expanded="false" onclick="fxToggle(this)"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg><span>Người nhận (tặng người khác)</span><small>tuỳ chọn</small></button>
         <div class="fx-body">
           <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg><input type="text" id="noRecvName" placeholder="Tên người nhận"></label>
@@ -2818,7 +2967,7 @@
         </div>
       </div>
       <div class="modal-footer fx-foot">
-        <div class="fx-sum"><small>Tổng</small><b id="noTotalPreview">—</b></div>
+        <div class="fx-sum"><small>Tổng</small><b id="noTotalPreview">—</b><span class="fx-con" id="noConLai"></span></div>
         <button type="submit" class="btn-green" id="saveNewOrderBtn">Tạo đơn</button>
       </div>
     </form>
@@ -3001,6 +3150,17 @@
   </div>
 </div>
 
+<!-- Mã QR chuyển khoản của 1 đơn (mở từ chi tiết đơn, nằm ĐÈ lên sheet chi tiết) — 08/10/2026 -->
+<div id="qrCkModal" class="modal-overlay" style="display:none" onclick="if(event.target.id==='qrCkModal')dongQrCk()">
+  <div class="modal-box" style="max-width:440px">
+    <div class="modal-header">
+      <h2 id="qrCkTitle">Chuyển khoản</h2>
+      <button class="modal-close" aria-label="Đóng" onclick="dongQrCk()"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="modal-body" id="qrCkBody"></div>
+  </div>
+</div>
+
 <!-- Quản lý nguyên liệu -->
 <div id="materialsModal" class="modal-overlay" style="display:none" onclick="if(event.target.id==='materialsModal')closeMaterialsModal()">
   <div class="modal-box">
@@ -3171,6 +3331,21 @@
   </div>
 </div>
 
+<!-- Nhập lại mật khẩu trước thao tác nhạy cảm (đổi tài khoản nhận tiền) — 08/10/2026 -->
+<div id="mkDialog" class="confirm-overlay" style="display:none">
+  <form class="confirm-box" onsubmit="event.preventDefault(); mkXacNhan()">
+    <div class="confirm-icon"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg></div>
+    <h3>Nhập lại mật khẩu</h3>
+    <p id="mkMsg"></p>
+    <input type="password" id="mkInput" class="mk-input" autocomplete="current-password" placeholder="Mật khẩu đăng nhập trang quản lý">
+    <div id="mkLoi" class="mk-loi" hidden>Mật khẩu chưa đúng, thử lại nhé.</div>
+    <div class="confirm-actions">
+      <button type="button" class="btn-outline" onclick="mkDong(false)">Hủy</button>
+      <button type="submit" class="btn-green" id="mkOk">Xác nhận</button>
+    </div>
+  </form>
+</div>
+
 <!-- ── Toast ──────────────────────────────────────── -->
 <div id="toast" class="toast" style="display:none"></div>
 
@@ -3277,6 +3452,7 @@ function closeAllModals() {
   const gp = document.getElementById('galleryPicker'); if (gp) gp.style.display = 'none'
   const dd = document.getElementById('discardDialog'); if (dd) dd.style.display = 'none'
   if (_confirmResolve) _cfDone(false)   // hộp xác nhận đang chờ → coi như Hủy
+  if (_mkResolve) mkDong(false)
   document.querySelectorAll('.img-viewer').forEach(v => v.remove())
 }
 
@@ -3797,6 +3973,7 @@ function renderDeliveryList() {
     <span class="dv-r1"><span class="db-ma">${orderCode(o.id)}</span>${gioBadge(o, o.delivery_date === todayStr())}${treHan ? `<span class="dv-tre">${ic('alert')}hẹn ${fmtDay(o.delivery_date)}</span>` : ''}<span class="st-pill ${STATUS_CLASS[o.status] || ''}">${esc(o.status)}</span></span>
     <span class="dv-kh">${orderCustomerName(o)}<span class="dv-bo"> · ${esc(o.product_name)}${o.quantity > 1 ? ' ×' + o.quantity : ''}</span></span>
     <span class="dv-dc">${ic('pin')}${esc(o.delivery_address || 'Chưa có địa chỉ')}</span>
+    ${thuKhiGiao(o)}
     ${o.message_card ? `<span class="dv-thiep">${ic('mail')}Có lời nhắn thiếp</span>` : ''}
   </span>
 </button>`
@@ -5787,7 +5964,13 @@ async function loadContact() {
   _contactCot = new Set(Object.keys(data))
   const thieuCot = !_contactCot.has('ga4_id') || !_contactCot.has('clarity_id')
   document.getElementById('doLuongCanSql').style.display = thieuCot ? 'block' : 'none'
-  ;['phone','zalo','address','hours','facebook','instagram','tiktok','threads','banner_text','policy_delivery','policy_payment','policy_quality','ga4_id','clarity_id'].forEach(key => {
+  document.getElementById('ckCanSql').style.display = _contactCot.has('ck_so_tk') ? 'none' : 'block'
+  const nh = document.getElementById('ctNganHang')
+  if (nh.options.length < 2) nh.insertAdjacentHTML('beforeend', NGAN_HANG.map(([bin, ten]) => `<option value="${bin}">${ten}</option>`).join(''))
+  _taiKhoanCk = taiKhoanCk(data)
+  _ckGoc = ckCua(data)
+  veNhatKyCk()
+  ;['phone','zalo','address','hours','facebook','instagram','tiktok','threads','banner_text','policy_delivery','policy_payment','policy_quality','ga4_id','clarity_id','ck_ngan_hang','ck_so_tk','ck_chu_tk'].forEach(key => {
     const el = form.querySelector(`[name="${key}"]`)
     if (el) el.value = data[key] || ''
   })
@@ -5853,16 +6036,29 @@ async function saveContact(e) {
   }
   data.ga4_id = data.ga4_id || null
   data.clarity_id = data.clarity_id || null
+  // Tài khoản nhận chuyển khoản: số TK chỉ giữ chữ số; tên chủ TK viết HOA không dấu như trên thẻ
+  data.ck_so_tk = String(data.ck_so_tk || '').replace(/\D/g, '') || null
+  data.ck_chu_tk = noAccent(data.ck_chu_tk).toUpperCase().replace(/[^A-Z0-9 .]/g, '').replace(/\s+/g, ' ').trim() || null   // khớp luật contact_ck_dinh_dang (SQL 31)
+  data.ck_ngan_hang = data.ck_ngan_hang || null
+  if (!!data.ck_ngan_hang !== !!data.ck_so_tk) {
+    showToast('Tài khoản chuyển khoản cần đủ cả ngân hàng lẫn số tài khoản', 'error')
+    document.getElementById(data.ck_ngan_hang ? 'ctSoTk' : 'ctNganHang').focus(); return
+  }
   // Chưa chạy SQL 20 → bỏ 2 cột này ra, để các ô Liên hệ khác vẫn lưu được
   if (_contactCot) {
     for (const k of Object.keys(data)) if (!_contactCot.has(k)) delete data[k]
   } else {
     // Bấm Lưu khi dữ liệu Liên hệ chưa tải xong: chưa biết database có 2 cột mới chưa.
     // Ô trống thì bỏ hẳn khỏi lần lưu này, để form Liên hệ không hỏng vì cột chưa có.
-    if (data.ga4_id === null) delete data.ga4_id
-    if (data.clarity_id === null) delete data.clarity_id
+    for (const k of ['ga4_id', 'clarity_id', 'ck_ngan_hang', 'ck_so_tk', 'ck_chu_tk']) if (data[k] === null) delete data[k]
   }
+  // Đổi tài khoản nhận tiền = thao tác nguy hiểm nhất của web (đổi là tiền khách chuyển vào túi người khác)
+  // → bắt nhập lại mật khẩu: người cầm máy đang đăng nhập sẵn mà không biết mật khẩu thì không đổi được.
+  const doiTk = 'ck_so_tk' in data && _ckGoc && ckCua(data) !== _ckGoc
+  if (doiTk && !(await hoiMatKhau('Bạn đang đổi TÀI KHOẢN NHẬN TIỀN của shop — khách quét mã QR sẽ chuyển vào tài khoản mới. Nhập mật khẩu để xác nhận.'))) return
   const { error } = await sb.from('contact').update(data).eq('id', 1)
+  if (!error && 'ck_so_tk' in data) { _taiKhoanCk = taiKhoanCk(data); _ckGoc = ckCua(data) }
+  if (!error && doiTk) veNhatKyCk()
   error ? showToast('Lỗi: ' + error.message, 'error') : showToast('Đã lưu thông tin liên hệ!')
 }
 
@@ -6596,6 +6792,7 @@ const SAO_LUU_BANG = [
     ['customer_name', 'Tên khách', 'chu', 20], ['customer_phone', 'SĐT', 'chu', 13], ['customer_email', 'Email', 'chu', 22],
     ['product_name', 'Sản phẩm', 'chu', 26], ['quantity', 'SL', 'so', 6], ['unit_price', 'Đơn giá', 'tien', 12],
     ['shipping_fee', 'Phí ship', 'tien', 11], ['total', 'Tổng tiền', 'tien', 13],
+    ['thanh_toan', 'Thanh toán', 'chu', 15], ['tien_coc', 'Đã cọc', 'tien', 12], ['ngay_tt', 'Ngày nhận tiền', 'ngay', 12], ['cach_tt', 'Nhận bằng', 'chu', 13],
     ['delivery_address', 'Địa chỉ giao', 'chu', 34], ['delivery_area', 'Khu vực', 'chu', 14],
     ['message_card', 'Lời nhắn thiếp', 'chu', 30], ['note', 'Ghi chú', 'chu', 30], ['image', 'Ảnh đơn (đường dẫn)', 'chu', 24],
     ['id', 'id', 'so', 7], ['customer_id', 'id khách', 'so', 9], ['product_id', 'id sản phẩm', 'so', 10] ] },
@@ -7465,7 +7662,7 @@ function renderOrders() {
     <td><strong>${orderCustomerName(o)}</strong><br><span style="font-size:.8rem;color:#7A9879;">${orderCustomerPhone(o)}</span></td>
     <td>${esc(o.product_name)}</td>
     <td>${o.quantity}</td>
-    <td style="font-size:.88rem;">${orderTotalLabel(o)}</td>
+    <td style="font-size:.88rem;">${orderTotalLabel(o)}${nhanThanhToan(o) ? '<br>' + nhanThanhToan(o) : ''}</td>
     <td style="font-size:.85rem;">${esc(o.delivery_address || '—')}</td>
     <td style="white-space:nowrap">${o.delivery_date ? fmtDayShort(o.delivery_date) + (o.delivery_date.slice(0, 4) === _today.slice(0, 4) ? '' : '/' + o.delivery_date.slice(0, 4)) : '—'}</td>
     <td>
@@ -7494,7 +7691,7 @@ function renderOrders() {
         <div class="oc-cust">${orderCustomerName(o)} ${o.customers?.phone ? `<small>· ${orderCustomerPhone(o)}</small>` : ''}</div>
         <div class="oc-prod">${esc(o.product_name)} ×${o.quantity}</div>
         <div class="oc-bottom">
-          <span>${orderTotalLabel(o)}</span>
+          <span>${orderTotalLabel(o)} ${nhanThanhToan(o)}</span>
           <span class="oc-meta">${o.delivery_date ? ic('cal') + fmtDayShort(o.delivery_date) : ''}</span>
         </div>
       </div>
@@ -7583,7 +7780,7 @@ function viewOrderDetail(id) {
     ${img ? `<img ${srcNho(img, 500)} alt="" class="od-img" onclick="openImageViewer('${jsAttr(img)}')" title="Xem ảnh lớn">`
           : `<div class="od-img od-img-trong">${ic('flower')}</div>`}
     <div class="od-top-b">
-      <span class="st-pill ${STATUS_CLASS[o.status] || ''}">${esc(o.status)}</span>
+      <div class="od-pills"><span class="st-pill ${STATUS_CLASS[o.status] || ''}">${esc(o.status)}</span>${nhanThanhToan(o)}</div>
       <div class="od-sp">${esc(o.product_name)}${o.quantity > 1 ? ` <small>×${o.quantity}</small>` : ''}</div>
       <div class="od-tong">${o.unit_price == null ? '<span style="color:#E65100">Chưa định giá</span>' : fmtVnd(o.total)}</div>
     </div>
@@ -7598,6 +7795,7 @@ function viewOrderDetail(id) {
     <h4>${ic('flower')}Hoa</h4>
     ${tien}
   </section>
+  ${odThanhToan(o)}
   <section class="od-sec">
     <h4>${ic('truck')}Giao</h4>
     ${dong('Ngày', (o.delivery_date ? ngayNhan(o.delivery_date) : 'Chưa hẹn ngày') + (gc.gio ? ` · <b style="color:#2E7D32">${esc(gc.gio)}</b>` : ''))}
@@ -7616,6 +7814,25 @@ function viewOrderDetail(id) {
   ${nutTT('trash', 'Xoá đơn', `closeCustomerOrdersModal(); deleteOrder(${o.id})`, { xoa: true })}
 </div>`
   document.getElementById('customerOrdersModal').style.display = 'flex'
+}
+
+// Khối "Thanh toán" trong chi tiết đơn: trạng thái thanh toán · đã cọc · còn thu khi giao · mã QR / đã thu đủ
+function odThanhToan(o) {
+  if (!coCotDon(o, 'thanh_toan')) return ''        // chưa chạy SQL 31
+  const t = ttCua(o), con = conThu(o), huy = o.status === 'Đã hủy'
+  const dong = (nhan, gt) => `<div class="od-row"><span>${nhan}</span><span>${gt}</span></div>`
+  const lan = (o.cach_tt ? ' · ' + esc(o.cach_tt) : '') + (o.ngay_tt ? ' · ' + o.ngay_tt.slice(8, 10) + '/' + o.ngay_tt.slice(5, 7) : '')
+  return `
+  <section class="od-sec od-tt">
+    <h4>${ic('wallet')}Thanh toán</h4>
+    ${dong('Trạng thái', `<span class="tt-chu ${TT_KIEU[t]}">${t}</span>${t === 'Đã thanh toán' && lan ? `<small class="od-nho">${lan}</small>` : ''}`)}
+    ${t === 'Đã cọc' ? dong('Đã cọc', (Number(o.tien_coc) ? fmtVnd(o.tien_coc) : '—') + `<small class="od-nho">${lan}</small>`) : ''}
+    ${huy || t === 'Đã thanh toán' || con == null ? '' : dong('Còn thu', `<b class="od-conthu">${fmtVnd(con)}</b> <small class="od-nho">khi giao</small>`)}
+    ${huy || t === 'Đã thanh toán' ? '' : `<div class="od-tt-nut">
+      <button type="button" class="od-qr" onclick="moQrCk(${o.id})">${ic('qr')}Mã QR chuyển khoản</button>
+      <button type="button" class="od-qr od-du-nut" onclick="daThuDu(${o.id})">${ic('check')}Đã thu đủ</button>
+    </div>`}
+  </section>`
 }
 
 // Đổi trạng thái từ sheet chi tiết (điện thoại) → cập nhật rồi vẽ lại sheet
@@ -7673,6 +7890,7 @@ function oeUpdateTotalPreview() {
   const ship  = moneyNum('oeShipping') || 0
   const total = price * qty + ship
   document.getElementById('oeTotalPreview').textContent = price ? fmtVnd(total) : 'Chưa định giá'
+  ttForm('oe')
 }
 
 const OE_CUSTOMER_EDITABLE_STATUSES = ['Mới', 'Đã xác nhận']
@@ -7722,6 +7940,7 @@ function openOrderEditModal(id) {
   document.getElementById('oeRecvPhone').value = gc.sdtNhan
   document.getElementById('oeGio').value = gc.gio
   setOrderImagePreview('oe', o.image || '')
+  ttDienForm('oe', o, coCotDon(o, 'thanh_toan'))
   document.getElementById('oeQuantity').oninput = oeUpdateTotalPreview   // 2 ô tiền đã có oninput riêng
   oeUpdateTotalPreview()
   fxTheoDuLieu('orderEditModal')
@@ -7738,6 +7957,7 @@ async function saveOrderEdit(e) {
   // Kiểm SĐT TRƯỚC khi đụng vào nút/dữ liệu — có điền thì phải điền cho đúng
   const oePhoneVal = document.getElementById('oePhone').value.trim()
   if (oePhoneVal && !isValidPhone(oePhoneVal)) { phoneError('oePhone'); return }
+  if (!ttKiemForm('oe')) return
   const btn = document.getElementById('saveOrderEditBtn')
   btn.textContent = 'Đang lưu…'; btn.disabled = true
   const id = parseInt(document.getElementById('oeId').value)
@@ -7756,6 +7976,9 @@ async function saveOrderEdit(e) {
     note:             ghiChuTuForm('oe'),   // người nhận + giờ giao + ghi chú
     image:            document.getElementById('oeImage').value || null,
   }
+  // Thanh toán: chỉ gửi khi database đã có cột (đã chạy SQL 31) — không thì hỏng cả lần lưu đơn
+  const cuTt = orderById(id)
+  if (coCotDon(cuTt, 'thanh_toan')) Object.assign(data, ttTuForm('oe', cuTt))
 
   if (OE_CUSTOMER_EDITABLE_STATUSES.includes(status)) {
     const o = orderById(id)
@@ -7807,6 +8030,310 @@ function noUpdateTotalPreview() {
   const qty   = parseInt(document.getElementById('noQuantity').value) || 0
   const ship  = moneyNum('noShipping') || 0
   document.getElementById('noTotalPreview').textContent = price ? fmtVnd(price * qty + ship) : 'Chưa định giá'
+  ttForm('no')
+}
+
+// ── Trạng thái THANH TOÁN (tách riêng trạng thái đơn) + mã QR chuyển khoản — 08/10/2026 ──────────
+// Cột orders.thanh_toan ('Chưa thanh toán' | 'Đã cọc' | 'Đã thanh toán', SQL 31 khoá đúng 3 giá trị này)
+// + tien_coc (số đã cọc, shop tự gõ — không gợi ý %, mỗi bó cọc một khác) + ngay_tt / cach_tt (lần nhận tiền gần nhất).
+// Doanh thu KHÔNG đổi, vẫn theo total. Không bắt buộc cọc. Đơn huỷ: shop trả lại tiền, đơn huỷ vốn không tính doanh thu.
+let _taiKhoanCk = null            // tài khoản nhận CK (bảng contact) — null = chưa cài / chưa tải
+const TT_TRANG_THAI = ['Chưa thanh toán', 'Đã cọc', 'Đã thanh toán']   // khớp check trong supabase/31_thanh_toan.sql
+const TT_KIEU = { 'Chưa thanh toán': 'tt-chua', 'Đã cọc': 'tt-coc', 'Đã thanh toán': 'tt-du' }
+const TT_BIEU_TUONG = { 'Chưa thanh toán': 'clock', 'Đã cọc': 'wallet', 'Đã thanh toán': 'check' }
+function coCotDon(o, cot) { return !!o && Object.prototype.hasOwnProperty.call(o, cot) }
+// Database đã có cột thanh toán chưa (chưa chạy SQL 31 thì gửi cột này lên là HỎNG cả lần lưu đơn).
+// null = chưa biết (chưa tải được đơn nào để xem)
+function coCotTt() {
+  const o = orders[0] || Object.values(_donCache)[0]
+  return o ? coCotDon(o, 'thanh_toan') : null
+}
+function ttCua(o) { return TT_TRANG_THAI.includes(o?.thanh_toan) ? o.thanh_toan : 'Chưa thanh toán' }
+function conThu(o) {              // còn phải thu khi giao; null = đơn chưa định giá
+  if (!o) return null
+  const t = ttCua(o)
+  if (t === 'Đã thanh toán') return 0
+  if (o.unit_price == null) return null
+  return Math.max(0, (Number(o.total) || 0) - (t === 'Đã cọc' ? Number(o.tien_coc) || 0 : 0))
+}
+function fmtGon(n) {              // 300000 → 300k · 1250000 → 1,25tr (nhãn nhỏ cho gọn)
+  n = Math.round(Number(n) || 0)
+  if (n >= 1e6) return (n / 1e6).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) + 'tr'
+  return n % 1000 === 0 ? n / 1000 + 'k' : fmtVnd(n)
+}
+// Nhãn trạng thái thanh toán (danh sách đơn, chi tiết đơn). Đơn huỷ thì không hiện — chuyện tiền đã xong khi trả lại khách
+function nhanThanhToan(o) {
+  if (!coCotDon(o, 'thanh_toan') || o.status === 'Đã hủy') return ''
+  const t = ttCua(o)
+  const chu = t === 'Đã cọc' && Number(o.tien_coc) ? 'Đã cọc ' + fmtGon(o.tien_coc) : t
+  return `<span class="tt-pill ${TT_KIEU[t]}">${ic(TT_BIEU_TUONG[t])}${chu}</span>`
+}
+// Dòng tiền trên thẻ Lịch giao: người đi giao biết phải thu bao nhiêu
+function thuKhiGiao(o) {
+  if (!coCotDon(o, 'thanh_toan')) return ''
+  const con = conThu(o)
+  if (con == null) return ''
+  if (con === 0) return `<span class="dv-tien dv-du">${ic('check')}Đã thanh toán — không thu thêm</span>`
+  return `<span class="dv-tien">${ic('wallet')}Thu khi giao <b>${fmtVnd(con)}</b>${ttCua(o) === 'Đã cọc' && Number(o.tien_coc) ? `<small>· đã cọc ${fmtGon(o.tien_coc)}</small>` : ''}</span>`
+}
+
+// Form Thêm đơn (k = 'no') / Sửa đơn ('oe'): 3 chip trạng thái thanh toán; "Đã cọc" mới hiện ô số tiền
+function ttTongForm(k) {
+  const price = moneyNum(k + 'UnitPrice')
+  if (!price) return null
+  return price * (parseInt(document.getElementById(k + 'Quantity').value) || 0) + (moneyNum(k + 'Shipping') || 0)
+}
+function ttForm(k) {
+  const t = document.getElementById(k + 'Tt').value || 'Chưa thanh toán'
+  document.getElementById(k + 'CocRow').style.display = t === 'Đã cọc' ? '' : 'none'
+  document.getElementById(k + 'CachRow').style.display = t === 'Chưa thanh toán' ? 'none' : ''
+  if (t !== 'Chưa thanh toán' && !document.getElementById(k + 'TtCach').value) segSet(k + 'TtCach', 'Chuyển khoản')   // đa số khách CK
+  const coc = moneyNum(k + 'Coc') || 0, tong = ttTongForm(k), el = document.getElementById(k + 'ConLai')
+  el.className = 'fx-con'
+  el.textContent = ''
+  if (t === 'Đã thanh toán') { el.textContent = 'Đã thanh toán'; el.classList.add('du') }
+  else if (t === 'Đã cọc' && coc && tong) {
+    if (coc >= tong) { el.textContent = 'Cọc bằng tổng — chọn "Đã thanh toán"?'; el.classList.add('du-thua') }
+    else el.textContent = 'Còn thu khi giao ' + fmtVnd(tong - coc)
+  }
+}
+function ttDienForm(k, o, coCot) {
+  segSet(k + 'Tt', o ? ttCua(o) : 'Chưa thanh toán')
+  moneySet(k + 'Coc', o && o.tien_coc ? o.tien_coc : null)
+  segSet(k + 'TtCach', o && ttCua(o) !== 'Chưa thanh toán' ? (o.cach_tt || 'Chuyển khoản') : '')
+  // Chưa chạy SQL 31: ẩn chip, báo cần chạy file (lưu đơn vẫn chạy bình thường, chỉ bỏ qua thanh toán)
+  document.getElementById(k + 'TtThan').style.display = coCot === false ? 'none' : ''
+  document.getElementById(k + 'CocSql').style.display = coCot === false ? '' : 'none'
+  ttForm(k)
+}
+// "Đã cọc" thì phải có số tiền — trả về false (đã báo lỗi) nếu thiếu
+function ttKiemForm(k) {
+  if (document.getElementById(k + 'TtThan').style.display === 'none') return true
+  if (document.getElementById(k + 'Tt').value === 'Đã cọc' && !moneyNum(k + 'Coc')) {
+    showToast('Nhập số tiền khách đã cọc nhé', 'error'); document.getElementById(k + 'Coc').focus(); return false
+  }
+  return true
+}
+// Ghi vào đơn: đổi trạng thái / số cọc thì coi như nhận tiền hôm nay, không đổi thì giữ ngày cũ
+function ttTuForm(k, cu) {
+  const t = document.getElementById(k + 'Tt').value || 'Chưa thanh toán'
+  if (t === 'Chưa thanh toán') return { thanh_toan: t, tien_coc: null, ngay_tt: null, cach_tt: null }
+  const coc = t === 'Đã cọc' ? moneyNum(k + 'Coc') : (cu?.tien_coc ?? null)   // trả đủ: giữ lại số cọc cũ cho có lịch sử
+  const doi = !cu || ttCua(cu) !== t || Number(cu.tien_coc || 0) !== Number(coc || 0)
+  return { thanh_toan: t, tien_coc: coc, ngay_tt: doi || !cu.ngay_tt ? todayStr() : cu.ngay_tt,
+           cach_tt: document.getElementById(k + 'TtCach').value || 'Chuyển khoản' }
+}
+// Chi tiết đơn → "Đã thu đủ": thường bấm lúc giao xong, khách trả nốt bằng tiền mặt hay CK đều được
+async function daThuDu(id) {
+  const o = orderById(id)
+  if (!o) return
+  const con = conThu(o)
+  if (!(await askConfirm({ title: 'Khách đã thanh toán đủ?', icon: 'check', okLabel: 'Đã thanh toán',
+    message: `Đơn ${orderCode(id)}${con ? ` — còn thu ${fmtVnd(con)}` : ''} → chuyển sang "Đã thanh toán".` }))) return
+  const moi = { thanh_toan: 'Đã thanh toán', ngay_tt: todayStr() }
+  if (!(await ghiDb(sb.from('orders').update(moi).eq('id', id).select('id'), 'ghi nhận thanh toán'))) return
+  Object.assign(o, moi)
+  showToast('Đã ghi nhận thanh toán đủ!')
+  sauKhiGhiTt(id)
+}
+function sauKhiGhiTt(id) {
+  viewOrderDetail(id)
+  const dangMo = x => document.getElementById(x)?.style.display !== 'none'
+  if (dangMo('panelDelivery')) renderDeliveryList()
+  else if (dangMo('panelOrders')) renderOrders()
+}
+
+// ── Bảng mã QR chuyển khoản (mở từ chi tiết đơn) ──
+// Ảnh QR từ img.vietqr.io (miễn phí): khách quét là app ngân hàng điền sẵn số TK + số tiền + nội dung LT<mã đơn>.
+// Shop giữ ngón tay lên ảnh → lưu → gửi Zalo; hoặc bấm "Chép tin nhắn" dán gửi khách.
+let _qrCk = null                  // { id, soTien }
+let _qrHen = null
+async function taiTaiKhoanCk() {
+  const { data } = await sb.from('contact').select('*').eq('id', 1).maybeSingle()
+  _taiKhoanCk = taiKhoanCk(data)
+}
+async function moQrCk(id) {
+  const o = orderById(id)
+  if (!o) return
+  if (!_taiKhoanCk) await taiTaiKhoanCk()
+  _qrCk = { id, soTien: 0, moiDoi: await lanDoiTkGanNhat() }        // shop tự gõ số tiền (không gợi ý % — mỗi bó cọc một khác); trống = khách tự gõ
+  document.getElementById('qrCkTitle').textContent = 'Chuyển khoản ' + orderCode(id)
+  veQrCk()
+  document.getElementById('qrCkModal').style.display = 'flex'
+}
+function dongQrCk() { document.getElementById('qrCkModal').style.display = 'none'; _qrCk = null }
+function veQrCk() {
+  const body = document.getElementById('qrCkBody')
+  const tk = _taiKhoanCk
+  if (!tk) {
+    body.innerHTML = `
+<div class="qr-chua">
+  ${ic('alert')}
+  <p><b>Chưa có tài khoản nhận tiền.</b><br>Nhập ngân hàng + số tài khoản ở tab Liên hệ là tạo được mã QR.</p>
+  <button type="button" class="btn-green" onclick="dongQrCk(); document.querySelector('[data-tab=Contact]').click()">Mở tab Liên hệ</button>
+</div>`
+    return
+  }
+  const o = orderById(_qrCk.id)
+  const con = conThu(o)
+  const nd = noiDungCk(o.id)
+  const md = _qrCk.moiDoi
+  body.innerHTML = `${md ? `
+<div class="qr-moidoi">${ic('alert')}<span>Tài khoản nhận tiền <b>vừa đổi</b> lúc ${esc(new Date(md.luc).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }))}
+  (${esc(md.ai || '—')}). Kiểm tra số tài khoản bên dưới đúng là của shop rồi mới gửi khách.</span></div>` : ''}
+<div class="fx-lb">Số tiền khách chuyển ${con ? `<small class="bstm-nho">· còn thu ${fmtVnd(con)}</small>` : ''}</div>
+<label class="fx-in"><input type="text" id="qrCkTien" inputmode="numeric" autocomplete="off" placeholder="Để trống = khách tự gõ"
+       oninput="onMoneyInput(this); qrDoiTien(moneyNum('qrCkTien') || 0)"><span class="fx-suf">đ</span></label>
+<div class="qr-khung">
+  <img id="qrCkAnh" alt="Mã QR chuyển khoản đơn ${orderCode(o.id)}" onerror="qrLoiAnh(true)" onload="qrLoiAnh(false)">
+  <p id="qrCkLoi" hidden>${ic('alert')}Không tải được ảnh mã QR — bấm "Chép tin nhắn" gửi khách thông tin bên dưới nhé.</p>
+</div>
+<p class="qr-meo">Bấm <b>Chép ảnh QR</b> rồi dán vào Zalo gửi khách (hoặc giữ ngón tay lên mã → Lưu ảnh)</p>
+<div class="qr-tt">
+  <div class="od-row"><span>Ngân hàng</span><span>${esc(tk.ten)}</span></div>
+  <div class="od-row"><span>Số TK</span><span>${tk.stk}<button type="button" class="qr-chep" onclick="chepChu('${tk.stk}', 'Đã chép số tài khoản')" aria-label="Chép số tài khoản">${ic('copy')}</button></span></div>
+  ${tk.chu ? `<div class="od-row"><span>Chủ TK</span><span>${esc(tk.chu)}</span></div>` : ''}
+  <div class="od-row"><span>Số tiền</span><span id="qrCkTienChu"></span></div>
+  <div class="od-row"><span>Nội dung</span><span><b>${nd}</b><button type="button" class="qr-chep" onclick="chepChu('${nd}', 'Đã chép nội dung')" aria-label="Chép nội dung chuyển khoản">${ic('copy')}</button></span></div>
+</div>
+<div class="qr-nut">
+  <button type="button" class="btn-outline" onclick="chepAnhQr()">${ic('img')}Chép ảnh QR</button>
+  <button type="button" class="btn-outline" onclick="chepTinCk()">${ic('copy')}Chép tin nhắn</button>
+  <button type="button" class="btn-green qr-nut-to" id="qrCkDaNhan" onclick="ghiNhanCk()">${ic('check')}Đã nhận tiền</button>
+</div>`
+  qrDoiTien(_qrCk.soTien, true)
+}
+// Đổi số tiền: chữ cập nhật ngay, ảnh QR đợi gõ xong (0,4 giây) mới tải lại cho đỡ nháy
+function qrDoiTien(v, ngay) {
+  _qrCk.soTien = v
+  if (ngay) moneySet('qrCkTien', v || null)
+  document.getElementById('qrCkTienChu').innerHTML = v ? `<b>${fmtVnd(v)}</b>` : '<span class="od-nho">khách tự gõ</span>'
+  document.getElementById('qrCkDaNhan').disabled = !v
+  clearTimeout(_qrHen)
+  _qrHen = setTimeout(() => {
+    const img = document.getElementById('qrCkAnh')
+    if (img && _qrCk) img.src = linkQrCk(_taiKhoanCk, _qrCk.soTien, noiDungCk(_qrCk.id))
+  }, ngay ? 0 : 400)
+}
+function qrLoiAnh(loi) {
+  document.getElementById('qrCkAnh').hidden = loi
+  document.getElementById('qrCkLoi').hidden = !loi
+}
+// Chép ẢNH mã QR vào bộ nhớ tạm → dán thẳng vào Zalo. Ảnh lấy lại từ img.vietqr.io (cho phép tải chéo, đã mở CSP).
+// Truyền Promise vào ClipboardItem: Safari iPhone đòi gọi clipboard.write NGAY trong cú bấm, ảnh tải sau.
+// Máy không cho chép ảnh → mở bảng chia sẻ (gửi thẳng Zalo), không nữa thì tải ảnh về máy.
+async function chepAnhQr() {
+  if (!_qrCk) return
+  const ten = 'QR-' + noiDungCk(_qrCk.id) + '.png'
+  const anh = fetch(linkQrCk(_taiKhoanCk, _qrCk.soTien, noiDungCk(_qrCk.id)))
+    .then(r => { if (!r.ok) throw new Error('tải ảnh lỗi'); return r.blob() })
+    .then(b => b.type === 'image/png' ? b : new Blob([b], { type: 'image/png' }))
+  try {
+    if (!navigator.clipboard?.write || !window.ClipboardItem) throw new Error('không hỗ trợ')
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': anh })])
+    showToast('Đã chép ảnh mã QR — mở Zalo, dán gửi khách nhé')
+    return
+  } catch (_) { /* thử cách khác bên dưới */ }
+  try {
+    const f = new File([await anh], ten, { type: 'image/png' })
+    if (navigator.canShare?.({ files: [f] })) {
+      try { await navigator.share({ files: [f] }); return }
+      catch (e) { if (e.name === 'AbortError') return }   // tự bấm huỷ bảng chia sẻ
+    }
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(f); a.download = ten
+    document.body.appendChild(a); a.click(); a.remove()
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000)
+    showToast('Máy này không cho chép ảnh — đã tải ảnh mã QR về máy')
+  } catch (_) {
+    showToast('Không lấy được ảnh mã QR — dùng "Chép tin nhắn" nhé', 'error')
+  }
+}
+
+// ── Bảo vệ tài khoản nhận tiền ──
+let _ckGoc = null          // "bin|stk|chủ" lúc tải tab Liên hệ — so để biết shop có đổi tài khoản không
+function ckCua(d) { return [d?.ck_ngan_hang || '', d?.ck_so_tk || '', d?.ck_chu_tk || ''].join('|') }
+const CK_MOI_DOI_GIO = 48  // tài khoản đổi trong 48 giờ → bảng QR nhắc kiểm lại trước khi gửi khách
+// Nhật ký do DATABASE tự ghi (trigger SQL 31), web không sửa/xoá được — chưa chạy SQL 31 thì bảng chưa có → ẩn
+async function veNhatKyCk() {
+  const el = document.getElementById('ckNhatKy')
+  if (!el) return
+  const { data, error } = await sb.from('nhat_ky_tai_khoan').select('*').order('luc', { ascending: false }).limit(5)
+  if (error || !data?.length) { el.innerHTML = ''; return }
+  el.innerHTML = `<div class="ck-nk"><div class="ck-nk-t">${ic('history')}Lịch sử đổi tài khoản</div>${data.map(r => `
+    <div class="ck-nk-r"><span>${esc(new Date(r.luc).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }))}</span>
+      <span>${esc(r.ai || '—')}<br><small>${esc(tkDocDuoc(r.cu))} → <b>${esc(tkDocDuoc(r.moi))}</b></small></span></div>`).join('')}</div>`
+}
+// "970436 · 0123456789 · LER" → "Vietcombank · 0123456789 · LER" cho dễ đọc
+function tkDocDuoc(t) { return String(t || '—').replace(/^(\d{6})(?= ·)/, m => tenNganHang(m) || m) }
+async function lanDoiTkGanNhat() {
+  const { data } = await sb.from('nhat_ky_tai_khoan').select('luc, ai').order('luc', { ascending: false }).limit(1)
+  const r = data?.[0]
+  return r && Date.now() - new Date(r.luc).getTime() < CK_MOI_DOI_GIO * 3600e3 ? r : null
+}
+
+// Hộp nhập lại mật khẩu — kiểm bằng cách đăng nhập lại đúng tài khoản đang dùng (không lưu mật khẩu ở đâu cả)
+let _mkResolve = null
+function hoiMatKhau(msg) {
+  return new Promise(res => {
+    _mkResolve = res
+    document.getElementById('mkMsg').textContent = msg
+    document.getElementById('mkInput').value = ''
+    document.getElementById('mkLoi').hidden = true
+    document.getElementById('mkDialog').style.display = 'flex'
+    setTimeout(() => document.getElementById('mkInput').focus(), 50)
+  })
+}
+async function mkXacNhan() {
+  const o = document.getElementById('mkInput'), nut = document.getElementById('mkOk')
+  if (!o.value) { o.focus(); return }
+  nut.disabled = true; nut.textContent = 'Đang kiểm…'
+  const { data: { session } } = await sb.auth.getSession()
+  const email = session?.user?.email
+  const { error } = email ? await sb.auth.signInWithPassword({ email, password: o.value }) : { error: true }
+  nut.disabled = false; nut.textContent = 'Xác nhận'
+  if (error) { document.getElementById('mkLoi').hidden = false; o.select(); return }
+  mkDong(true)
+}
+function mkDong(ok) {
+  document.getElementById('mkDialog').style.display = 'none'
+  document.getElementById('mkInput').value = ''
+  const r = _mkResolve; _mkResolve = null
+  if (r) r(ok)
+}
+
+async function chepChu(chu, bao) {
+  try { await navigator.clipboard.writeText(chu) }
+  catch (_) {                      // trình duyệt cũ / không cho dùng clipboard → cách cũ
+    const t = document.createElement('textarea'); t.value = chu; t.style.cssText = 'position:fixed;opacity:0'
+    document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove()
+  }
+  showToast(bao || 'Đã chép')
+}
+function chepTinCk() {
+  const tk = _taiKhoanCk, id = _qrCk.id, v = _qrCk.soTien
+  // null = bỏ dòng; '' = dòng trống ngăn cách phần cảnh báo lừa đảo
+  chepChu([`Thông tin chuyển khoản đơn ${orderCode(id)} — Ler & Ther Blooming`,
+    `Ngân hàng: ${tk.ten}`, `Số tài khoản: ${tk.stk}`, tk.chu ? `Chủ tài khoản: ${tk.chu}` : null,
+    v ? `Số tiền: ${fmtVnd(v)}` : null, `Nội dung: ${noiDungCk(id)}`, '',
+    `⚠️ Shop chỉ nhận tiền vào đúng tài khoản trên${tk.chu ? ` (tên người nhận ${tk.chu})` : ''}. Shop không bao giờ gọi điện bảo chuyển vào tài khoản khác hay chuyển thêm tiền — gặp trường hợp đó bạn nhắn Zalo shop kiểm tra nhé.`
+  ].filter(x => x != null).join('\n'), 'Đã chép — dán vào Zalo gửi khách nhé')
+}
+// Shop thấy tiền về → bấm 1 phát: cộng dồn vào tiền cọc; đủ tổng đơn thì tự thành "Đã thanh toán"
+async function ghiNhanCk() {
+  const id = _qrCk?.id, v = _qrCk?.soTien
+  const o = orderById(id)
+  if (!o || !v) return
+  if (!coCotDon(o, 'thanh_toan')) { showToast('Cần chạy file supabase/31_thanh_toan.sql trước thì mới ghi được thanh toán', 'error'); return }
+  if (!(await askConfirm({ title: 'Đã nhận tiền?', message: `Ghi nhận đơn ${orderCode(id)} đã nhận ${fmtVnd(v)} chuyển khoản.`, okLabel: 'Đã nhận', icon: 'check' }))) return
+  const coc = (ttCua(o) === 'Đã cọc' ? Number(o.tien_coc) || 0 : 0) + v
+  const du = o.unit_price != null && coc >= (Number(o.total) || 0)
+  const moi = { thanh_toan: du ? 'Đã thanh toán' : 'Đã cọc', tien_coc: coc, ngay_tt: todayStr(), cach_tt: 'Chuyển khoản' }
+  if (!(await ghiDb(sb.from('orders').update(moi).eq('id', id).select('id'), 'ghi nhận tiền'))) return
+  Object.assign(o, moi)
+  dongQrCk()
+  showToast(du ? 'Đã thanh toán đủ!' : 'Đã ghi nhận cọc ' + fmtVnd(coc) + '!')
+  sauKhiGhiTt(id)
 }
 
 // ── Chọn sản phẩm CÓ ẢNH khi lên đơn tay ─────────────────────
@@ -7925,6 +8452,7 @@ function openNewOrderModal() {
   veShipChips()
   moneySet('noShipping', null); shipSync()   // trống = miễn phí
   document.getElementById('noTotalPreview').textContent = '—'
+  ttDienForm('no', null, coCotTt())   // reset() không xoá ô hidden → tự đặt về "Chưa thanh toán"
   setOrderImagePreview('no', '')
   ;['noGio', 'noRecvName', 'noRecvPhone'].forEach(x => { document.getElementById(x).value = '' })   // ô hidden: reset() không xoá
   fxTheoDuLieu('orderNewModal')      // mục tuỳ chọn gấp lại hết
@@ -7939,6 +8467,7 @@ async function saveNewOrder(e) {
   e.preventDefault()
   const noPhoneVal = document.getElementById('noPhone').value.trim()
   if (noPhoneVal && !isValidPhone(noPhoneVal)) { phoneError('noPhone'); return }
+  if (!ttKiemForm('no')) return
   const btn = document.getElementById('saveNewOrderBtn')
   btn.textContent = 'Đang tạo…'; btn.disabled = true
 
@@ -7973,11 +8502,12 @@ async function saveNewOrder(e) {
   if (priceVal != null) patch.unit_price = priceVal
   const noImg = document.getElementById('noImage').value
   if (noImg) patch.image = noImg
+  if (coCotTt() !== false && document.getElementById('noTt').value !== 'Chưa thanh toán') Object.assign(patch, ttTuForm('no'))
   const { data: daGhi, error: loiGia } = await sb.from('orders').update(patch).eq('id', newId).select('id')
 
   btn.textContent = 'Tạo đơn'; btn.disabled = false
   if (loiGia || !daGhi?.length)   // đơn ĐÃ tạo, chỉ thiếu giá/ship/trạng thái — không được báo "xong" suông
-    showToast('Đã tạo đơn ' + orderCode(newId) + ' nhưng CHƯA lưu được giá / phí ship / trạng thái — mở đơn để sửa lại nhé.', 'error')
+    showToast('Đã tạo đơn ' + orderCode(newId) + ' nhưng CHƯA lưu được giá / phí ship / trạng thái / thanh toán — mở đơn để sửa lại nhé.', 'error')
   else showToast('Đã tạo đơn ' + orderCode(newId) + '!')
   closeNewOrderModal()
   reloadActiveOrderViews()

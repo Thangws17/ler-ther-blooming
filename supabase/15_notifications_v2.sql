@@ -159,6 +159,8 @@ declare
   v_msg text;
   v_code text;
   v_html text;
+  v_ct jsonb;
+  v_ck text;
 begin
   if v_email is not null and v_email !~* '^[^@[:space:]<>",;]+@[^@[:space:]<>",;]+\.[a-z]{2,}$' then
     v_email := null;
@@ -250,6 +252,23 @@ begin
     if v_email is not null and (
          select count(*) from orders
          where lower(customer_email) = lower(v_email) and created_at > now() - interval '1 day') <= 3 then
+      -- Chuyển khoản trước (không bắt buộc) + CẢNH BÁO LỪA ĐẢO (08/10/2026, SQL 31).
+      -- Đọc bảng contact qua to_jsonb: chưa chạy SQL 31 (chưa có cột ck_*) cũng KHÔNG lỗi, chỉ bỏ khối tài khoản.
+      select to_jsonb(c) into v_ct from contact c where c.id = 1;
+      v_ck := case when coalesce(v_ct->>'ck_so_tk', '') ~ '^[0-9]{4,20}$' and coalesce(v_ct->>'ck_ngan_hang', '') ~ '^[0-9]{6}$' then
+          '<div style="margin-top:14px;padding:12px 14px;border:1px solid #C8E6C9;border-radius:10px;font-size:14px;">'
+        || '<b>Muốn chuyển khoản trước?</b> Không bắt buộc — cọc một phần hay trả đủ đều được.<br>'
+        || '<img src="https://img.vietqr.io/image/' || (v_ct->>'ck_ngan_hang') || '-' || (v_ct->>'ck_so_tk') || '-compact.png?addInfo=LT' || v_order_id
+        || '" alt="Mã QR chuyển khoản" width="200" style="display:block;margin:10px 0;">'
+        || 'Số tài khoản: <b>' || (v_ct->>'ck_so_tk') || '</b>'
+        || coalesce('<br>Chủ tài khoản: <b>' || html_esc(nullif(v_ct->>'ck_chu_tk', '')) || '</b>', '')
+        || '<br>Nội dung: <b>LT' || v_order_id || '</b> (giữ nguyên để shop đối chiếu đúng đơn)</div>'
+        else '' end
+        || '<div style="margin-top:12px;padding:12px 14px;border-radius:10px;background:#FFF4E5;color:#7A4100;font-size:13px;line-height:1.55;">'
+        || '⚠️ <b>Cẩn thận lừa đảo:</b> Ler &amp; Ther chỉ nhận tiền vào <b>đúng tài khoản ghi trên web và trong mail này</b>'
+        || coalesce(' (tên người nhận <b>' || html_esc(nullif(v_ct->>'ck_chu_tk', '')) || '</b>)', '') || '. '
+        || 'Shop <b>không bao giờ</b> gọi điện / nhắn tin bảo bạn chuyển vào tài khoản khác, chuyển gấp hay chuyển thêm tiền. '
+        || 'Gặp trường hợp đó, đừng chuyển — nhắn Zalo shop để kiểm tra nhé.</div>';
       v_html := '<div style="font-family:Arial,Helvetica,sans-serif;max-width:540px;margin:0 auto;color:#1A2E1A;">'
         || '<h2 style="color:#2E7D32;margin-bottom:4px;">🌸 Ler &amp; Ther Blooming</h2>'
         || '<p>Chào <b>' || html_esc(coalesce(v_name, 'bạn')) || '</b>, cảm ơn bạn đã đặt hoa!</p>'
@@ -268,6 +287,7 @@ begin
         || '</table>'
         || '<p style="margin-top:14px;">Shop sẽ gọi/Zalo cho bạn trong <b>15&ndash;30 phút</b> để xác nhận đơn và chốt phí giao (nếu có). '
         || 'Hoa sẽ được chụp ảnh gửi bạn duyệt trước khi giao 🌷</p>'
+        || v_ck
         || '<p style="color:#7A9879;font-size:12px;margin-top:18px;">Ler &amp; Ther Blooming — Hoa tươi trao yêu thương</p>'
         || '</div>';
       perform send_customer_email(
