@@ -1635,7 +1635,7 @@
     .od-tt .od-row > span:first-child { flex-basis: 84px; }
     .od-tt-nut { display: flex; gap: 8px; }
     .od-tt-nut .od-qr { flex: 1; }
-    .od-du-nut { border-style: solid; background: #fff; }
+    .od-qr.od-du-nut { border-style: solid; background: #fff; }   /* phải kèm .od-qr: rule .od-qr nằm sau sẽ đè mất */
     .od-nho { color: #7a877a; font-weight: 500; }
     .od-conthu { color: #1565C0; }
     .od-du { color: #2E7D32; display: inline-flex; align-items: center; gap: 4px; }
@@ -8156,7 +8156,9 @@ async function moQrCk(id) {
   const o = orderById(id)
   if (!o) return
   if (!_taiKhoanCk) await taiTaiKhoanCk()
-  _qrCk = { id, soTien: 0, moiDoi: await lanDoiTkGanNhat() }        // shop tự gõ số tiền (không gợi ý % — mỗi bó cọc một khác); trống = khách tự gõ
+  // Điền sẵn số CÒN PHẢI TRẢ của đơn (chưa thanh toán = tổng đơn; đã cọc = tổng − cọc) — shop sửa được.
+  // Đơn chưa định giá → để trống = khách tự gõ trong app ngân hàng
+  _qrCk = { id, soTien: conThu(o) || 0, moiDoi: await lanDoiTkGanNhat() }
   document.getElementById('qrCkTitle').textContent = 'Chuyển khoản ' + orderCode(id)
   veQrCk()
   document.getElementById('qrCkModal').style.display = 'flex'
