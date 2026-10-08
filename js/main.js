@@ -2,7 +2,71 @@
 
 const SUPABASE_URL = 'https://oijcwborkebjpavzyisl.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_vDRAF-LBS3nOpw1GHBchvw_xYuMfdqP'
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+// ─── Bộ đọc database NHẸ (08/10/2026) — thay thư viện Supabase ở web khách ───
+// Web khách chỉ ĐỌC vài bảng công khai + gọi 1 hàm (place_order). Trước đây nạp cả thư viện Supabase
+// (~200KB từ jsDelivr) và PHẢI chờ nó tải xong mới bắt đầu hỏi dữ liệu → khách mở web lần đầu bằng 4G
+// thấy khung chờ lâu. Bản này nói chuyện thẳng với REST của Supabase, viết y như thư viện:
+//   sb.from('bảng').select('*').eq(…).neq(…).in(…).order(…).limit(…).single() / .maybeSingle() → { data, error }
+//   sb.rpc('hàm', { … }) → { data, error }
+// Không bao giờ ném lỗi (mất mạng → error), y như thư viện. Admin VẪN dùng thư viện đầy đủ (đăng nhập, tải ảnh…).
+// Khoá công khai đi trên ĐƯỜNG DẪN (?apikey=) thay vì phần đầu yêu cầu → lệnh đọc là "yêu cầu đơn giản",
+// trình duyệt khỏi phải hỏi đường (preflight) thêm 1 lượt trước mỗi truy vấn.
+// Trang test thay sb.from / sb.rpc bằng database giả y như trước (test/gia-lap-sb.js).
+const DOC_CHO_TOI_DA = 15000   // ms — mạng treo thì báo lỗi (hiện nút Thử lại), khung chờ không quay mãi
+function taoSbNhe(goc, khoa, choDoc = DOC_CHO_TOI_DA) {
+  async function goi(duong, tuyChon = {}, choToiDa = choDoc) {
+    const ngat = choToiDa && window.AbortController ? new AbortController() : null
+    const hen = ngat ? setTimeout(() => ngat.abort(), choToiDa) : 0
+    try {
+      const r = await fetch(goc + '/rest/v1/' + duong, { ...tuyChon, signal: ngat ? ngat.signal : undefined })
+      const chu = await r.text()
+      let data = null
+      try { data = chu ? JSON.parse(chu) : null } catch (_) {}
+      if (!r.ok) return { data: null, error: { message: (data && data.message) || ('Lỗi ' + r.status), code: data && data.code, status: r.status } }
+      return { data, error: null }
+    } catch (e) {
+      return { data: null, error: { message: e && e.name === 'AbortError' ? 'Mạng chậm — hết thời gian chờ' : String((e && e.message) || e) } }
+    } finally { clearTimeout(hen) }
+  }
+  // Giá trị trong in.(…) có dấu phẩy / ngoặc / nháy / khoảng trắng thì phải bọc nháy kép
+  const giaTriIn = v => /[,()"\\\s]/.test(String(v)) ? '"' + String(v).replace(/["\\]/g, '\\$&') + '"' : String(v)
+  return {
+    from(bang) {
+      let cot = '*', mot = ''
+      const loc = [], xep = []
+      const q = {
+        select(c = '*') { cot = c; return q },
+        eq(c, v) { loc.push(c + '=eq.' + encodeURIComponent(v)); return q },
+        neq(c, v) { loc.push(c + '=neq.' + encodeURIComponent(v)); return q },
+        in(c, ds) { loc.push(c + '=in.' + encodeURIComponent('(' + [...ds].map(giaTriIn).join(',') + ')')); return q },
+        order(c, { ascending = true } = {}) { xep.push(c + (ascending ? '.asc' : '.desc')); return q },
+        limit(n) { loc.push('limit=' + (parseInt(n, 10) || 0)); return q },
+        single() { mot = 'single'; return q },
+        maybeSingle() { mot = 'maybe'; return q },
+        then(ok, loi) {
+          const duong = bang + '?select=' + encodeURIComponent(cot) + (xep.length ? '&order=' + xep.join(',') : '') +
+            (loc.length ? '&' + loc.join('&') : '') + '&apikey=' + encodeURIComponent(khoa)
+          return goi(duong).then(kq => {
+            if (kq.error || !mot) return kq
+            const ds = Array.isArray(kq.data) ? kq.data : []
+            // Giống thư viện: single() cần ĐÚNG 1 dòng; maybeSingle() cho phép 0 dòng (trả null)
+            if (ds.length > 1 || (mot === 'single' && !ds.length))
+              return { data: null, error: { message: ds.length ? 'Có nhiều hơn 1 dòng' : 'Không có dòng nào', code: 'PGRST116' } }
+            return { data: ds[0] || null, error: null }
+          }).then(ok, loi)
+        },
+      }
+      return q
+    },
+    // Gọi hàm (đặt đơn): KHÔNG hẹn giờ cắt — cắt giữa chừng mà đơn đã tạo xong thì khách bấm gửi lại thành 2 đơn
+    rpc(ham, thamSo) {
+      return goi('rpc/' + ham, { method: 'POST', headers: { apikey: khoa, 'Content-Type': 'application/json' },
+                                 body: JSON.stringify(thamSo || {}) }, 0)
+    },
+  }
+}
+const sb = taoSbNhe(SUPABASE_URL, SUPABASE_KEY)
 
 // esc(), jsAttr() (chuỗi trong onclick="fn('…')"), linkAnToan(), normalizePhone(), isValidPhone()
 // → js/dungchung.js (dùng chung với admin)
@@ -354,7 +418,8 @@ async function loadProducts() {
     loadBst(),
   ]);
   if (prodRes.error || !prodRes.data) {
-    grid.innerHTML = '<div class="loading"><p>Không thể tải sản phẩm, vui lòng thử lại.</p></div>';
+    grid.innerHTML = `<div class="loading"><div class="l-icon">${ic('wifi')}</div><p>Không tải được mẫu hoa — mạng có thể đang chập chờn.</p>
+      <button type="button" class="btn btn-outline" style="margin-top:14px" onclick="loadProducts()">Thử lại</button></div>`;
     return;
   }
   allProducts = prodRes.data;
@@ -568,19 +633,37 @@ function galleryColumnCount() {
   return w <= 860 ? 2 : w <= 1180 ? 3 : 4;
 }
 
-// Tỷ lệ cao/rộng của ảnh — đo 1 lần rồi nhớ, phân trang qua lại là tức thì
+// Tỷ lệ cao/rộng của ảnh — đo 1 lần rồi nhớ, phân trang qua lại là tức thì.
+// Nhớ cả vào máy khách (localStorage 'kkTiLe') → lần sau vào trang, lưới hiện NGAY không phải đo lại.
 const _imgRatioCache = new Map();
+try { Object.entries(JSON.parse(localStorage.getItem('kkTiLe') || '{}')).forEach(([u, r]) => { if (r > 0) _imgRatioCache.set(u, r) }) } catch (_) {}
+let _henLuuTiLe = 0;
+function luuTiLe() {
+  clearTimeout(_henLuuTiLe);
+  _henLuuTiLe = setTimeout(() => {
+    try {   // giữ tối đa 300 ảnh gần nhất cho khỏi phình
+      const o = {}; [..._imgRatioCache].slice(-300).forEach(([u, r]) => { o[u] = +r.toFixed(4) });
+      localStorage.setItem('kkTiLe', JSON.stringify(o));
+    } catch (_) {}
+  }, 500);
+}
 function getImageRatio(url) {
   if (_imgRatioCache.has(url)) return Promise.resolve(_imgRatioCache.get(url));
   return new Promise(resolve => {
     const im = new Image();
-    im.onload = () => {
+    let xong = false, hen = 0;
+    const ra = r => { if (xong) return; xong = true; clearInterval(hen); resolve(r); };
+    // Kích thước ảnh nằm ở vài KB ĐẦU file → trình duyệt biết rộng/cao từ rất sớm. Đọc ngay lúc đó thay vì chờ
+    // tải HẾT ảnh (trước 08/10/2026 lưới chờ đủ 12 ảnh ~100KB/ảnh tải xong mới hiện — 4G chậm là khung chờ rất lâu).
+    const doKichThuoc = () => {
+      if (!im.naturalWidth) return;
       const r = (im.naturalHeight / im.naturalWidth) || 1.25;
-      _imgRatioCache.set(url, r);
-      resolve(r);
+      _imgRatioCache.set(url, r); luuTiLe(); ra(r);
     };
-    im.onerror = () => resolve(1.25);
+    im.onload = doKichThuoc;
+    im.onerror = () => ra(1.25);   // không nhớ → lần sau thử lại
     im.src = anhNho(url, 600);   // CÙNG link ảnh nhỏ lưới hiển thị → tải 1 lần, đo xong dùng lại luôn
+    hen = setInterval(doKichThuoc, 50);
   });
 }
 
@@ -907,9 +990,15 @@ function ghiNhanBamLienHe() {
 
 // ─── Contact ──────────────────────────────────────────────
 let contactInfo = null;
+// Lời hỏi bảng contact đang chạy — trang chi tiết cần "Thông tin chung" trong đó, dùng chung kết quả
+// thay vì hỏi database lần thứ 2 (trước 08/10/2026 trang chi tiết hỏi contact 2 lần)
+let _contactReady = null;
 
 async function loadContact() {
-  const { data } = await sb.from('contact').select('*').eq('id', 1).single();
+  // Promise.resolve(): câu truy vấn chỉ CHẠY khi có người chờ nó — gói lại thành 1 lời hỏi duy nhất,
+  // không thì mỗi chỗ await lại gửi 1 lần (y như thư viện Supabase)
+  _contactReady = Promise.resolve(sb.from('contact').select('*').eq('id', 1).maybeSingle());
+  const { data } = await _contactReady;
   if (!data) return;
   contactInfo = data;
 
@@ -984,7 +1073,7 @@ async function loadContact() {
     if (footerEl) { footerEl.href = url; footerEl.style.display = 'inline'; }
     if (ctaRow) {
       const btn = document.createElement('a');
-      btn.href = url; btn.target = '_blank';
+      btn.href = url; btn.target = '_blank'; btn.rel = 'noopener';
       btn.className = `btn-social ${s.cls}`;
       btn.innerHTML = `${icon}<span>${s.label}</span>`;
       ctaRow.appendChild(btn);
@@ -1010,7 +1099,8 @@ function makeContactItemsClickable() {
     item.classList.add('clickable');
     item.addEventListener('click', e => {
       if (e.target.closest('a')) return;               // bấm đúng link thì để mặc định
-      if (a && a.target === '_blank') window.open(href, '_blank');
+      // noopener: trang mở ra (Facebook, Zalo…) không với ngược lại được trang của shop (chống "tabnabbing")
+      if (a && a.target === '_blank') window.open(href, '_blank', 'noopener');
       else window.location.href = href;
     });
   });
@@ -1047,8 +1137,10 @@ function wireOrderButtons() {
     if (num) {
       btn.href   = zaloURL(num);
       btn.target = '_blank';
+      btn.rel    = 'noopener';
       btn.onclick = () => {
-        if (name) {
+        // Trình duyệt trong app Zalo/Facebook đời cũ không có navigator.clipboard → bỏ qua, đừng báo "đã copy" sai
+        if (name && navigator.clipboard) {
           navigator.clipboard.writeText(`Tôi muốn đặt: ${name}`).catch(() => {});
           showMiniToast('Đã copy tên sản phẩm — paste vào Zalo để đặt!');
         }
@@ -1162,10 +1254,12 @@ function openOrderModal(productId, productName, imgOverride) {
     </div>
   </div>
 
+  <!-- maxlength khớp giới hạn của place_order (supabase/15): dài hơn thì database CẮT NGẦM, khách không biết.
+       Ghi chú 800 vì database giữ 1000 ký tự cho cả "Người nhận: …" + "Giờ giao: …" + ghi chú. -->
   <div class="omx-grp">
     <div class="omx-gt">${ic('user')}Người đặt</div>
-    <label class="omx-in">${ic('user')}<input type="text" id="orderName" required placeholder="Tên của bạn" autocomplete="name"></label>
-    <label class="omx-in">${ic('phone')}<input type="tel" id="orderPhone" required placeholder="Số điện thoại" autocomplete="tel"></label>
+    <label class="omx-in">${ic('user')}<input type="text" id="orderName" required maxlength="100" placeholder="Tên của bạn" autocomplete="name"></label>
+    <label class="omx-in">${ic('phone')}<input type="tel" id="orderPhone" required maxlength="20" placeholder="Số điện thoại" autocomplete="tel"></label>
   </div>
 
   <div class="omx-grp">
@@ -1175,14 +1269,14 @@ function openOrderModal(productId, productName, imgOverride) {
       <button type="button" class="om-chip2" data-v="1" onclick="chonNguoiNhan(this)">Tặng người khác</button>
     </div>
     <div id="omNhanKhac" style="display:none">
-      <label class="omx-in">${ic('user')}<input type="text" id="orderRecvName" placeholder="Tên người nhận"></label>
-      <label class="omx-in">${ic('phone')}<input type="tel" id="orderRecvPhone" placeholder="SĐT người nhận (để shop gọi khi giao)"></label>
+      <label class="omx-in">${ic('user')}<input type="text" id="orderRecvName" maxlength="60" placeholder="Tên người nhận"></label>
+      <label class="omx-in">${ic('phone')}<input type="tel" id="orderRecvPhone" maxlength="20" placeholder="SĐT người nhận (để shop gọi khi giao)"></label>
     </div>
   </div>
 
   <div class="omx-grp">
     <div class="omx-gt">${ic('truck')}Giao</div>
-    <label class="omx-in">${ic('pin')}<input type="text" id="orderAddress" required placeholder="Địa chỉ giao: số nhà, ngõ, đường, phường…" autocomplete="street-address"></label>
+    <label class="omx-in">${ic('pin')}<input type="text" id="orderAddress" required maxlength="300" placeholder="Địa chỉ giao: số nhà, ngõ, đường, phường…" autocomplete="street-address"></label>
     <div class="omx-lb">Ngày giao</div>
     <div class="omx-chips" id="omNgay">
       <button type="button" class="om-chip2" data-d="1" onclick="chonNgayGiao(this)">Ngày mai</button>
@@ -1200,11 +1294,11 @@ function openOrderModal(productId, productName, imgOverride) {
 
   <div class="omx-more">
     <button type="button" class="omx-mo" onclick="this.classList.toggle('open')">${ic('plus')}<span>Lời nhắn trên thiếp</span><small>tuỳ chọn</small></button>
-    <div class="omx-than"><label class="omx-in"><textarea id="orderMessage" rows="2" placeholder="VD: Chúc mừng sinh nhật…"></textarea></label></div>
+    <div class="omx-than"><label class="omx-in"><textarea id="orderMessage" rows="2" maxlength="500" placeholder="VD: Chúc mừng sinh nhật…"></textarea></label></div>
     <button type="button" class="omx-mo" onclick="this.classList.toggle('open')">${ic('plus')}<span>Ghi chú / yêu cầu thêm</span><small>tuỳ chọn</small></button>
-    <div class="omx-than"><label class="omx-in"><textarea id="orderNote" rows="2" placeholder="VD: kèm thiệp, nơ, giỏ mây…"></textarea></label></div>
+    <div class="omx-than"><label class="omx-in"><textarea id="orderNote" rows="2" maxlength="800" placeholder="VD: kèm thiệp, nơ, giỏ mây…"></textarea></label></div>
     <button type="button" class="omx-mo" onclick="this.classList.toggle('open')">${ic('plus')}<span>Nhận xác nhận qua email</span><small>tuỳ chọn</small></button>
-    <div class="omx-than"><label class="omx-in">${ic('mail')}<input type="email" id="orderEmail" placeholder="VD: minhanh@gmail.com" autocomplete="email"></label></div>
+    <div class="omx-than"><label class="omx-in">${ic('mail')}<input type="email" id="orderEmail" maxlength="200" placeholder="VD: minhanh@gmail.com" autocomplete="email"></label></div>
   </div>
 
   <!-- Bẫy bot: người thật không thấy ô này; bot tự điền là bị loại -->
@@ -1218,7 +1312,7 @@ function openOrderModal(productId, productName, imgOverride) {
       <div class="omx-tong"><small>Tạm tính</small><b>${price ? esc(price) : 'Shop báo giá'}</b></div>
       <button type="submit" class="btn btn-primary order-submit" id="orderSubmitBtn">Gửi đơn</button>
     </div>
-    <p class="om-foot-note">Miễn phí nội thành · Duyệt ảnh trước khi giao · <a href="chinh-sach" target="_blank">Chính sách</a></p>
+    <p class="om-foot-note">Miễn phí nội thành · Duyệt ảnh trước khi giao · <a href="chinh-sach" target="_blank" rel="noopener">Chính sách</a></p>
   </div>
 </form>`;
   _lichThang = _tomorrow.slice(0, 7)
@@ -1432,7 +1526,7 @@ function veDatXong(maMoi, phone, email) {
   ${maMoi ? `<div class="os-ma">Mã đơn: <b>${maDon(maMoi)}</b></div>` : ''}
   ${khoiChuyenKhoan(maMoi)}
   <div class="os-nut">
-    <a href="${esc(zalo)}" target="_blank" class="btn btn-primary">${ic('chat')}Nhắn Zalo cho shop</a>
+    <a href="${esc(zalo)}" target="_blank" rel="noopener" class="btn btn-primary">${ic('chat')}Nhắn Zalo cho shop</a>
     <a href="san-pham" class="btn btn-outline">Xem thêm mẫu hoa</a>
   </div>
 </div>`;
@@ -1492,7 +1586,7 @@ async function chepCk(chu, ten) {
 
 // ─── Banner ───────────────────────────────────────────────
 function loadBanner() {
-  if (sessionStorage.getItem('banner_dismissed')) return;
+  try { if (sessionStorage.getItem('banner_dismissed')) return; } catch (_) {}   // máy chặn bộ nhớ → cứ hiện
   if (!contactInfo?.banner_active || !contactInfo?.banner_text) return;
   const el = document.getElementById('siteBanner');
   if (!el) return;
@@ -1503,7 +1597,7 @@ function loadBanner() {
 function closeBanner() {
   const el = document.getElementById('siteBanner');
   if (el) el.style.display = 'none';
-  sessionStorage.setItem('banner_dismissed', '1');
+  try { sessionStorage.setItem('banner_dismissed', '1'); } catch (_) {}
 }
 
 // ─── Testimonials ─────────────────────────────────────────
@@ -1577,12 +1671,19 @@ async function loadProductDetail() {
   if (!id) { content.innerHTML = '<div class="loading"><p>Không tìm thấy sản phẩm.</p></div>'; return; }
 
   // contact: lấy "Thông tin chung" (contact.thong_tin_chung). select('*') để chưa chạy SQL 28 cũng không lỗi.
-  const [{ data: p }, , { data: lienHe }] = await Promise.all([
-    sb.from('products').select('*').eq('id', id).single(),
+  // Dùng chung lời hỏi của loadContact() (đã chạy trước ở DOMContentLoaded) — không hỏi lần 2.
+  const [{ data: p, error: loiSp }, , { data: lienHe }] = await Promise.all([
+    sb.from('products').select('*').eq('id', id).maybeSingle(),
     loadBst(),
-    sb.from('contact').select('*').eq('id', 1).maybeSingle().then(r => r, () => ({ data: null })),
+    (_contactReady || sb.from('contact').select('*').eq('id', 1).maybeSingle()).then(r => r, () => ({ data: null })),
   ]);
-  if (!p) { content.innerHTML = '<div class="loading"><p>Sản phẩm không tồn tại.</p></div>'; return; }
+  // Mất mạng ≠ không có mẫu: trước đây mạng chập chờn cũng báo "Sản phẩm không tồn tại" → khách tưởng hết mẫu
+  if (loiSp && loiSp.code !== '22P02') {   // 22P02 = id không phải số (link gõ sai) → coi như không có
+    content.innerHTML = `<div class="loading"><div class="l-icon">${ic('wifi')}</div><p>Không tải được mẫu hoa — mạng có thể đang chập chờn.</p>
+      <button type="button" class="btn btn-outline" style="margin-top:14px" onclick="loadProductDetail()">Thử lại</button></div>`;
+    return;
+  }
+  if (!p) { content.innerHTML = '<div class="loading"><p>Sản phẩm không tồn tại.</p><a href="san-pham" class="btn btn-outline" style="margin-top:14px">Xem các mẫu hoa</a></div>'; return; }
   _prodCache[p.id] = { image: p.images?.[0] || p.image, price: p.price };   // cho header form đặt
 
   document.title = `${p.name} — Ler & Ther Blooming`;
@@ -1715,11 +1816,14 @@ function _setHeroImg(id, url) {
   el.style.backgroundImage = `url('${safe}')`;
   requestAnimationFrame(() => el.classList.add('loaded'));
 }
+// Máy chặn bộ nhớ trình duyệt (chặn cookie, vài trình duyệt trong app) → localStorage NÉM LỖI khi đọc.
+// Trước 08/10/2026 lỗi đó ở đây làm cả trang không tải dữ liệu (các phần sau trong DOMContentLoaded không chạy).
+function docNho(khoa) { try { return localStorage.getItem(khoa) } catch (_) { return null } }
 function primeHero() {
   if (!document.getElementById('heroBg')) return;
-  _setHeroImg('heroBg', localStorage.getItem('heroImageUrl'));
-  _setHeroImg('heroSide1', localStorage.getItem('heroSide1Url'));
-  _setHeroImg('heroSide2', localStorage.getItem('heroSide2Url'));
+  _setHeroImg('heroBg', docNho('heroImageUrl'));
+  _setHeroImg('heroSide1', docNho('heroSide1Url'));
+  _setHeroImg('heroSide2', docNho('heroSide2Url'));
 }
 
 // 2 ảnh phụ của cụm hero = 2 ảnh ĐẦU Gallery (kéo thả sắp xếp Gallery trong admin để đổi)
@@ -1775,30 +1879,26 @@ function initViewportFix() {
   ghi();
 }
 
+// Chạy 1 phần của trang. Phần đó lỗi thì báo lỗi (vẫn hiện trong console / trang test) NHƯNG các phần sau
+// vẫn chạy tiếp — 1 chỗ hỏng không kéo cả trang trắng theo.
+function chayRieng(fn) {
+  try { return fn(); } catch (e) { setTimeout(() => { throw e; }); }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
-  initNav();
-  injectZaloIcons();
-  primeHero();
-  initBackToTop();
-  initViewportFix();
+  [initNav, injectZaloIcons, primeHero, initBackToTop, initViewportFix].forEach(chayRieng);
   // Năm © tự cập nhật (khỏi lỗi thời)
   document.querySelectorAll('.footer-bottom').forEach(el => {
     el.textContent = el.textContent.replace(/©\s*\d{4}/, '© ' + new Date().getFullYear());
   });
   // Tải song song cho nhanh: contact chạy nền, nội dung chính không phải chờ
-  // (ảnh phụ hero do loadContact gọi applyHeroSides xử lý)
-  const contactReady = loadContact();
-  loadHeroPriceHint();
-  loadBoSuuTap();
-  loadFeatured();
-  loadProducts();
-  loadGallery();
-  veThanhTabKhach();
-  loadTestimonials();
-  loadProductDetail();
-  initScrollReveal();
-  await contactReady;
-  initDoLuong(contactInfo);   // mã đo lường nằm trong contact
-  loadBanner();          // cần dữ liệu contact
-  wireOrderButtons();    // nối lại link Zalo sau khi contact sẵn sàng
+  // (ảnh phụ hero do loadContact gọi applyHeroSides xử lý). loadContact chạy TRƯỚC loadProductDetail
+  // để trang chi tiết dùng chung lời hỏi contact (_contactReady).
+  const contactReady = chayRieng(loadContact);
+  [loadHeroPriceHint, loadBoSuuTap, loadFeatured, loadProducts, loadGallery, veThanhTabKhach,
+   loadTestimonials, loadProductDetail, initScrollReveal].forEach(chayRieng);
+  try { await contactReady; } catch (e) { setTimeout(() => { throw e; }); }
+  chayRieng(() => initDoLuong(contactInfo));   // mã đo lường nằm trong contact
+  chayRieng(loadBanner);         // cần dữ liệu contact
+  chayRieng(wireOrderButtons);   // nối lại link Zalo sau khi contact sẵn sàng
 });

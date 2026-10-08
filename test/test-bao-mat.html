@@ -354,18 +354,35 @@ async function moKhung(duong, rong, cao) {
     } else test('Có nút đặt trên thẻ mẫu hoa (dữ liệu thật)', () => { throw new Error('không thấy .product-btn') })
   }
   {
-    // Thư viện Supabase từ CDN: KHOÁ phiên bản + vân tay (integrity). "@2" trần = CDN đổi file lúc nào
-    // cũng chạy luôn trên trang admin có mật khẩu. Nâng phiên bản: đổi CẢ 8 trang + tính lại sha384.
-    const TRANG_JS = ['index', 'san-pham', 'chi-tiet', 'khoanh-khac', 'lien-he', 'cau-chuyen', 'chinh-sach', 'admin/index']
-    const the = {}
-    for (const t of TRANG_JS) {
-      const html = await (await fetch('../' + t + '.html')).text()
-      the[t] = (html.match(/<script[^>]*supabase-js[^>]*>/g) || []).map(s => s.replace(/\s+defer/, ''))
-    }
-    test('Thư viện Supabase: mọi trang khoá phiên bản + có integrity + crossorigin', () => bang(
-      Object.entries(the).filter(([, s]) => s.length !== 1 || !/supabase-js@\d+\.\d+\.\d+\//.test(s[0]) || !/integrity="sha384-/.test(s[0]) || !/crossorigin="anonymous"/.test(s[0])).map(([t]) => t), []))
-    test('Thư viện Supabase: 8 trang dùng CÙNG một bản', () => bang(new Set(Object.values(the).map(s => s[0])).size, 1))
-    test('Thư viện Supabase đã nạp được thật (integrity khớp — sai là web trắng dữ liệu)', () => bang(typeof W.w.supabase?.createClient, 'function'))
+    // Thư viện Supabase từ CDN (CHỈ admin còn dùng — web khách dùng bộ đọc nhẹ taoSbNhe từ 08/10/2026):
+    // KHOÁ phiên bản + vân tay (integrity). "@2" trần = CDN đổi file lúc nào cũng chạy luôn trên trang admin có mật khẩu.
+    const TRANG_KHACH = ['index', 'san-pham', 'chi-tiet', 'khoanh-khac', 'lien-he', 'cau-chuyen', 'chinh-sach', '404']
+    const html = {}
+    for (const t of [...TRANG_KHACH, 'admin/index']) html[t] = await (await fetch('../' + t + '.html', { cache: 'no-store' })).text()
+    const theAdmin = (html['admin/index'].match(/<script[^>]*supabase-js[^>]*>/g) || [])
+    test('Admin: thư viện Supabase khoá phiên bản + có integrity + crossorigin', () => {
+      bang(theAdmin.length, 1)
+      if (!/supabase-js@\d+\.\d+\.\d+\//.test(theAdmin[0]) || !/integrity="sha384-/.test(theAdmin[0]) || !/crossorigin="anonymous"/.test(theAdmin[0])) throw new Error(theAdmin[0])
+    })
+    test('Web khách: không trang nào nạp script từ nơi khác (bớt 1 chỗ phụ thuộc bên ngoài)', () => bang(
+      TRANG_KHACH.filter(t => [...html[t].matchAll(/<script[^>]*\ssrc="([^"]+)"/g)].some(m => /^(https?:)?\/\//.test(m[1]))), []))
+    test('Web khách: bộ đọc nhẹ đọc được dữ liệu thật (trang Sản phẩm có thẻ mẫu hoa)', () =>
+      bang([typeof W.w.supabase, W.d.querySelectorAll('#productsGrid .product-card').length > 0], ['undefined', true]))
+    // Hàng rào CSP web khách: giống hệt nhau ở 8 trang, chỉ cho gửi dữ liệu tới danh sách cố định
+    const cspCua = t => (html[t].match(/http-equiv="Content-Security-Policy" content="([^"]+)"/) || [])[1] || ''
+    test('Web khách: 8 trang đều có CSP và GIỐNG HỆT nhau', () => {
+      bang(TRANG_KHACH.filter(t => !cspCua(t)), [])
+      bang(new Set(TRANG_KHACH.map(cspCua)).size, 1)
+    })
+    const csp = cspCua('index')
+    test('Web khách CSP: không nhúng object, không đổi <base>, form chỉ gửi về chính web', () => {
+      for (const x of ["object-src 'none'", "base-uri 'self'", "form-action 'self'", "default-src 'self'"]) if (!csp.includes(x)) throw new Error('thiếu ' + x)
+    })
+    test('Web khách CSP: không có chỗ "mở toang" (* trần / https: / http: / data: cho script)', () => {
+      const loi = csp.split(';').map(x => x.trim().split(/\s+/)).filter(([ten, ...ds]) =>
+        ds.some(d => d === '*' || d === 'https:' || d === 'http:' || (ten === 'script-src' && d === 'data:')))
+      bang(loi.map(x => x[0]), [])
+    })
   }
   test(`Ảnh thu nhỏ đang ${W.w.eval('ANH_NHO_BAT') ? 'BẬT (gói Pro)' : 'TẮT (gói Free)'} → srcNho ra đúng link`, () => {
     const html = W.w.eval('srcNho')('https://x.supabase.co/storage/v1/object/public/images/a.webp', 300)

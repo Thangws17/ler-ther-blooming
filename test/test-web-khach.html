@@ -55,8 +55,10 @@ async function moTrang(duong, rong, cao = 800) {
   f.style.width = rong + 'px'; f.style.height = cao + 'px'; f.src = '../' + duong
   document.body.appendChild(f)
   await new Promise(res => f.addEventListener('load', res, { once: true }))
-  const w = f.contentWindow, d = f.contentDocument, loi = []
+  const w = f.contentWindow, d = f.contentDocument, loi = [], csp = []
   w.addEventListener('error', e => loi.push(e.message))
+  // CSP (08/10/2026): thứ gì bị hàng rào chặn nhầm (ảnh, bản đồ, mã QR, dữ liệu…) là ghi lại ở đây
+  d.addEventListener('securitypolicyviolation', e => csp.push(e.violatedDirective + ' ← ' + e.blockedURI))
   w.addEventListener('unhandledrejection', e => loi.push('Promise: ' + (e.reason && e.reason.message || e.reason)))
   // Khung test nằm NGOÀI màn hình → trình duyệt dừng hiệu ứng chuyển động giữa chừng, đo sai vị trí.
   // Tắt hiệu ứng trong khung test (chỉ ở đây, web thật không bị ảnh hưởng).
@@ -66,7 +68,7 @@ async function moTrang(duong, rong, cao = 800) {
   await cho(2200)                                  // chờ dữ liệu (đọc Supabase thật) + vẽ xong
   // hiệu ứng "hiện dần" không ảnh hưởng bố cục — bật hết cho dễ đo
   d.querySelectorAll('.reveal').forEach(x => x.classList.add('in-view'))
-  return { f, w, d, loi, zaloChuyenDong, id: x => d.getElementById(x) }
+  return { f, w, d, loi, csp, zaloChuyenDong, id: x => d.getElementById(x) }
 }
 function nutThieuTen(goc) {
   return [...goc.querySelectorAll('button, a[href]')].filter(el => {
@@ -105,6 +107,15 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
         }
       })
       test(`[${ten}] không lỗi JS`, () => bang(T.loi, []))
+      if (rong === 390) {
+        test(`[${ten}] có hàng rào CSP + không nạp thư viện ngoài nào (chỉ js/ của shop)`, () => {
+          bang(!!d.querySelector('meta[http-equiv="Content-Security-Policy"]'), true)
+          bang([...d.querySelectorAll('script[src]')].map(x => x.getAttribute('src')).filter(x => !/^js\//.test(x)), [])
+        })
+        // Font chỉ tải khi trang dùng tới → tự xin tải; ra rỗng = bị chặn (CSP) hoặc Google Fonts lỗi
+        const coFont = await Promise.all(['600 16px "Be Vietnam Pro"', '700 16px "Nunito"'].map(x => d.fonts.load(x, 'Ệ').then(r => r.length > 0, () => false)))
+        test(`[${ten}] font Be Vietnam Pro + Nunito tải được (CSP không chặn)`, () => bang(coFont, [true, true]))
+      }
       test(`[${ten}] nút / link chỉ có biểu tượng đều có tên`, () => bang(nutThieuTen(d.body), []))
       test(`[${ten}] không còn emoji trong nút / menu`, () => bang(nutCoEmoji(d), []))
       const tabs = d.querySelector('.w-tabs')
@@ -339,6 +350,7 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
         // Ảnh THU NHỎ (anhNho, dữ liệu thật): tải được thật, không âm thầm quay về ảnh gốc 1600px.
         // FAIL ở đây = Supabase không còn thu nhỏ ảnh (đổi gói / hết hạn mức) → web chậm lại dù vẫn đủ ảnh.
         const imgs = [...d.querySelectorAll('#productsGrid .product-card img')].slice(0, 6)
+        imgs.forEach(im => { im.loading = 'eager' })   // khung test nằm ngoài màn hình → ảnh "lazy" không bao giờ tự tải
         for (let i = 0; i < 40 && imgs.some(im => !im.complete); i++) await cho(250)
         if (w.eval('ANH_NHO_BAT')) test('[sản phẩm] ảnh thẻ là bản thu nhỏ Supabase, tải xong, rộng ≤ 600px', () => bang(imgs.filter(im =>
           !/\/render\/image\//.test(im.currentSrc || im.src) || !im.naturalWidth || im.naturalWidth > 600)
@@ -369,6 +381,7 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
           }
         }
       }
+      test(`[${ten}] CSP không chặn nhầm thứ gì (ảnh, dữ liệu, bản đồ, mã QR…)`, () => bang(T.csp, []))
       T.f.remove()
     }
   }
@@ -398,6 +411,9 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
     } else {
       test('Máy tính: khối nút nằm trong trang (không ghim)', () => bang(getComputedStyle(bar).position, 'static'))
     }
+    // Đếm TRƯỚC khi chính bài test đọc contact ở dưới
+    const soLanContact = w.performance.getEntriesByType('resource').filter(e => /\/rest\/v1\/contact\?/.test(e.name)).length
+    test(`[${rong}px] bảng Liên hệ chỉ hỏi database 1 lần (trước 08/10 trang chi tiết hỏi 2 lần)`, () => bang(soLanContact, 1))
     // Dòng chung lấy từ chính database đang chạy (chưa chạy SQL 28 → bộ mặc định; chạy rồi → chữ shop đã sửa)
     const lienHe = (await w.eval('sb').from('contact').select('*').eq('id', 1).maybeSingle()).data
     const chung = w.dongThongTinChung(lienHe?.thong_tin_chung)
@@ -431,6 +447,7 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
       const h = d.querySelector('#relatedSection h2').textContent
       if (!['Cùng bộ sưu tập', 'Có thể bạn cũng thích'].includes(h)) throw new Error(h)
     })
+    test(`[${rong}px] CSP không chặn nhầm thứ gì`, () => bang(T.csp, []))
     T.f.remove()
   }
 
@@ -439,6 +456,95 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
   for (const [cu, moi] of [['gallery.html', 'khoanh-khac'], ['dang-sau-nhung-bo-hoa.html', 'cau-chuyen'], ['san-pham-chi-tiet.html', 'chi-tiet']]) {
     const txt = await (await fetch('../' + cu, { cache: 'no-store' })).text()
     test(`${cu} → ${moi}`, () => { if (!txt.includes(`location.replace('${moi}'`)) throw new Error('không chuyển sang ' + moi) })
+  }
+
+  // ── 4. Bộ đọc database nhẹ (taoSbNhe, js/main.js — 08/10/2026 thay thư viện Supabase ở web khách) ──
+  nhom('4. Bộ đọc database nhẹ (thay thư viện Supabase ở web khách)')
+  {
+    const T = await moTrang('chinh-sach', 390, 600)
+    const { w } = T
+    test('Trang khách KHÔNG nạp thư viện Supabase (window.supabase không có), sb là bộ đọc nhẹ', () =>
+      bang([typeof w.supabase, typeof w.eval('sb').from, typeof w.eval('sb').rpc], ['undefined', 'function', 'function']))
+    const that = await w.eval('sb').from('products').select('id,name').order('order_index').limit(2)
+    test('Đọc database THẬT được (khoá trên đường dẫn, không cần phần đầu yêu cầu)', () => {
+      bang(that.error, null); if (!Array.isArray(that.data) || that.data.length !== 2) throw new Error(JSON.stringify(that).slice(0, 200))
+    })
+    // fetch giả: ghi lại link + tuỳ chọn, trả kết quả đặt trước
+    const goi = []
+    let traVe = () => new w.Response('[]', { status: 200 })
+    const fetchGoc = w.fetch
+    w.fetch = (u, o) => { goi.push([u, o]); return Promise.resolve().then(() => traVe(u, o)) }
+    const db = w.taoSbNhe('https://x.test', 'KHOA', 150)
+    await db.from('products').select('*').eq('id', '5&select=id').order('order_index').limit(4)
+    test('Ghép đúng link REST; giá trị lạ (dấu & =) bị mã hoá, không chèn thêm điều kiện được', () =>
+      bang(goi[0][0], 'https://x.test/rest/v1/products?select=*&order=order_index.asc&id=eq.5%26select%3Did&limit=4&apikey=KHOA'))
+    test('Lệnh đọc là "yêu cầu đơn giản": không gắn phần đầu riêng (khỏi lượt hỏi đường preflight)', () =>
+      bang([goi[0][1].method, goi[0][1].headers], [undefined, undefined]))
+    goi.length = 0
+    await db.from('products').select('id,image').in('id', [1, 2, 'a,b']).neq('id', 9).order('id', { ascending: false })
+    test('in(…) bọc nháy giá trị có dấu phẩy; neq; xếp giảm dần', () =>
+      bang(decodeURIComponent(goi[0][0]), 'https://x.test/rest/v1/products?select=id,image&order=id.desc&id=in.(1,2,"a,b")&id=neq.9&apikey=KHOA'))
+    traVe = () => new w.Response('[]', { status: 200 })
+    const s0 = await db.from('contact').select('*').eq('id', 1).single()
+    const m0 = await db.from('contact').select('*').eq('id', 1).maybeSingle()
+    traVe = () => new w.Response('[{"id":1,"a":"x"}]', { status: 200 })
+    const s1 = await db.from('contact').select('*').eq('id', 1).single()
+    const ds = await db.from('contact').select('*')
+    test('single(): 0 dòng → lỗi; maybeSingle(): 0 dòng → null; 1 dòng → đúng dòng đó; không gọi → mảng', () => {
+      bang([s0.data, s0.error && s0.error.code, m0.data, m0.error], [null, 'PGRST116', null, null])
+      bang([s1.data, s1.error, ds.data], [{ id: 1, a: 'x' }, null, [{ id: 1, a: 'x' }]])
+    })
+    traVe = () => new w.Response('{"code":"22P02","message":"invalid input syntax for type bigint: \\"abc\\""}', { status: 400 })
+    const l400 = await db.from('products').select('*').eq('id', 'abc').maybeSingle()
+    test('Database báo lỗi → { data: null, error } có message + code (không ném lỗi)', () =>
+      bang([l400.data, l400.error.code, /bigint/.test(l400.error.message)], [null, '22P02', true]))
+    traVe = () => { throw new TypeError('Failed to fetch') }
+    let nem = null, mat = null
+    try { mat = await db.from('products').select('*') } catch (e) { nem = e }
+    test('Mất mạng → trả về error, KHÔNG ném lỗi (y như thư viện — code cũ dựa vào điều này)', () =>
+      bang([nem, mat && mat.data, mat && /Failed to fetch/.test(mat.error.message)], [null, null, true]))
+    traVe = (u, o) => new Promise((_, loi) => o.signal && o.signal.addEventListener('abort', () => loi(new w.DOMException('x', 'AbortError'))))
+    const treo = await db.from('products').select('*')
+    test('Mạng treo → quá giờ thì báo lỗi "hết thời gian chờ" (khung chờ không quay mãi)', () =>
+      bang([treo.data, /hết thời gian/.test(treo.error && treo.error.message)], [null, true]))
+    goi.length = 0
+    traVe = () => new w.Response('152', { status: 200 })
+    const dat = await db.rpc('place_order', { p_name: 'Lan', p_quantity: 1 })
+    test('rpc (đặt đơn): POST đúng link, gửi JSON + khoá ở phần đầu, trả mã đơn', () => {
+      const [u, o] = goi[0]
+      bang([u, o.method, o.headers.apikey, o.headers['Content-Type'], JSON.parse(o.body).p_name, dat.data], ['https://x.test/rest/v1/rpc/place_order', 'POST', 'KHOA', 'application/json', 'Lan', 152])
+    })
+    test('rpc (đặt đơn) KHÔNG bị cắt giữa chừng vì quá giờ (cắt mà đơn đã tạo → khách gửi lại thành 2 đơn)', () => bang(goi[0][1].signal, undefined))
+    w.fetch = fetchGoc
+    T.f.remove()
+  }
+
+  // ── 5. Máy chặn bộ nhớ trình duyệt (chặn cookie / vài trình duyệt trong app) — lỗi thật trước 08/10/2026: ──
+  //    localStorage ném lỗi ngay lúc đọc → cả trang chủ không tải dữ liệu. Dựng lại trang chủ với localStorage + sessionStorage
+  //    bị khoá TRƯỚC khi mã của web chạy.
+  nhom('5. Máy chặn bộ nhớ trình duyệt — web vẫn chạy đủ')
+  {
+    const html = await (await fetch('../index.html', { cache: 'no-store' })).text()
+    const khoa = `<base href="${location.origin}/"><script>for (const k of ['localStorage', 'sessionStorage'])
+      Object.defineProperty(window, k, { configurable: true, get() { throw new DOMException('Access is denied', 'SecurityError') } })<\/script>`
+    const f = document.createElement('iframe')
+    f.style.width = '390px'; f.style.height = '800px'
+    f.srcdoc = html.replace(/<head>/i, '<head>' + khoa)
+    document.body.appendChild(f)
+    await new Promise(res => f.addEventListener('load', res, { once: true }))
+    const w = f.contentWindow, d = f.contentDocument, loi = []
+    w.addEventListener('error', e => loi.push(e.message))
+    w.addEventListener('unhandledrejection', e => loi.push('Promise: ' + (e.reason && e.reason.message || e.reason)))
+    let chan = false; try { w.localStorage } catch (e) { chan = true }
+    await cho(3000)
+    test('Giả lập đúng: đọc bộ nhớ trình duyệt bị ném lỗi', () => bang(chan, true))
+    test('Trang chủ vẫn tải đủ: ảnh đầu trang, mẫu nổi bật, thanh tab', () => {
+      if (!/url\(/.test(d.getElementById('heroBg').style.backgroundImage)) throw new Error('chưa có ảnh đầu trang')
+      if (!d.querySelector('#featuredGrid .product-card')) throw new Error('chưa có mẫu nổi bật')
+      if (!d.querySelector('.w-tabs')) throw new Error('chưa có thanh tab')
+    })
+    test('Không lỗi JS', () => bang(loi, []))
+    f.remove()
   }
 
   const tk = document.getElementById('tongket')

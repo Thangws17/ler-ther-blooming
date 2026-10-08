@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Hàng rào CSP (08/10/2026): trình duyệt CHỈ nạp / gửi dữ liệu tới chính web + Supabase + Google Fonts + mã QR
+       (img.vietqr.io) + bản đồ Google + Google Analytics / Clarity. Lỡ có mã lạ lọt vào trang cũng không gửi được dữ liệu
+       đi nơi khác, không nạp được script lạ. Thêm dịch vụ ngoài mới (ảnh tên miền khác, widget chat…) thì PHẢI thêm tên miền
+       vào đây ở CẢ 8 trang (test-web-khach bắt vi phạm). 'unsafe-eval' vì trang test gọi eval() trong khung. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://*.clarity.ms https://c.bing.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://oijcwborkebjpavzyisl.supabase.co https://img.vietqr.io https://*.google-analytics.com https://*.googletagmanager.com https://*.g.doubleclick.net https://*.google.com https://*.google.com.vn https://*.clarity.ms https://c.bing.com; connect-src 'self' https://oijcwborkebjpavzyisl.supabase.co https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.g.doubleclick.net https://*.google.com https://*.google.com.vn https://*.clarity.ms https://c.bing.com; frame-src https://maps.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Không tìm thấy trang — Ler &amp; Ther Blooming</title>
   <meta name="robots" content="noindex">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">

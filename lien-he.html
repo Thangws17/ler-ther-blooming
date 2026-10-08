@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Hàng rào CSP (08/10/2026): trình duyệt CHỈ nạp / gửi dữ liệu tới chính web + Supabase + Google Fonts + mã QR
+       (img.vietqr.io) + bản đồ Google + Google Analytics / Clarity. Lỡ có mã lạ lọt vào trang cũng không gửi được dữ liệu
+       đi nơi khác, không nạp được script lạ. Thêm dịch vụ ngoài mới (ảnh tên miền khác, widget chat…) thì PHẢI thêm tên miền
+       vào đây ở CẢ 8 trang (test-web-khach bắt vi phạm). 'unsafe-eval' vì trang test gọi eval() trong khung. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://*.clarity.ms https://c.bing.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://oijcwborkebjpavzyisl.supabase.co https://img.vietqr.io https://*.google-analytics.com https://*.googletagmanager.com https://*.g.doubleclick.net https://*.google.com https://*.google.com.vn https://*.clarity.ms https://c.bing.com; connect-src 'self' https://oijcwborkebjpavzyisl.supabase.co https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.g.doubleclick.net https://*.google.com https://*.google.com.vn https://*.clarity.ms https://c.bing.com; frame-src https://maps.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Liên hệ — Ler & Ther Blooming</title>
   <meta name="description" content="Liên hệ đặt hoa tại Ler & Ther Blooming qua Zalo hoặc điện thoại.">
   <meta property="og:type"        content="website">
@@ -18,7 +23,6 @@
   <link rel="preconnect" href="https://oijcwborkebjpavzyisl.supabase.co">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=Lora:ital,wght@1,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js" integrity="sha384-K1nraABOP/zFehpLIUksXebbs7jMpB8gYMlb+uhVKZcWT/9Vkq1+qhv6ndC+1Yuz" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -76,7 +80,7 @@
           <div>
             <label>Zalo</label>
             <span>
-              <a id="zaloTextLink" href="#" target="_blank">
+              <a id="zaloTextLink" href="#" target="_blank" rel="noopener">
                 Nhấn để chat Zalo
               </a>
             </span>
@@ -103,28 +107,28 @@
           <div class="c-icon fb"></div>
           <div>
             <label>Facebook</label>
-            <span><a id="cFbLink" href="#" target="_blank">Xem trang Facebook</a></span>
+            <span><a id="cFbLink" href="#" target="_blank" rel="noopener">Xem trang Facebook</a></span>
           </div>
         </div>
         <div class="c-item" id="cIgItem" style="display:none">
           <div class="c-icon ig"></div>
           <div>
             <label>Instagram</label>
-            <span><a id="cIgLink" href="#" target="_blank">Xem Instagram</a></span>
+            <span><a id="cIgLink" href="#" target="_blank" rel="noopener">Xem Instagram</a></span>
           </div>
         </div>
         <div class="c-item" id="cTtItem" style="display:none">
           <div class="c-icon tt"></div>
           <div>
             <label>TikTok</label>
-            <span><a id="cTtLink" href="#" target="_blank">Xem TikTok</a></span>
+            <span><a id="cTtLink" href="#" target="_blank" rel="noopener">Xem TikTok</a></span>
           </div>
         </div>
         <div class="c-item" id="cThItem" style="display:none">
           <div class="c-icon th"></div>
           <div>
             <label>Threads</label>
-            <span><a id="cThLink" href="#" target="_blank">Xem Threads</a></span>
+            <span><a id="cThLink" href="#" target="_blank" rel="noopener">Xem Threads</a></span>
           </div>
         </div>
       </div>
@@ -138,7 +142,7 @@
         </p>
         <div class="response-badge"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Thường phản hồi trong 15–30 phút</div>
         <div class="contact-cta-btns">
-          <a href="#" class="btn-zalo" id="zaloBtn" target="_blank">
+          <a href="#" class="btn-zalo" id="zaloBtn" target="_blank" rel="noopener">
             <span class="zi"></span> Nhắn Zalo ngay
           </a>
           <a href="#" class="btn-call" id="callBtn">

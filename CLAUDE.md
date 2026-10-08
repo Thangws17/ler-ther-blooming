@@ -38,6 +38,9 @@ Chạy ngầm không cần mở tay: `chrome --headless=new --virtual-time-budge
 rồi đọc `#tongket` / các `.ca.fail` (mỗi trang tự in dòng tổng kết). **Riêng `test-bao-mat` (phần E, ảnh tải lên) treo
 với `--virtual-time-budget`** — `createImageBitmap`/`toBlob` không chạy trong thời gian ảo. Chạy trang đó bằng Chrome
 `--remote-debugging-port` (thời gian thật, Python `websocket-client` có sẵn trên máy) rồi đọc `#tongket` qua `Runtime.evaluate`.
+`test-web-khach` (~85 giây, đọc Supabase thật) cũng nên chạy kiểu thời gian thật. Chạy bằng cổng gỡ lỗi thì phải thêm
+`--remote-allow-origins=*` và gọi `Emulation.setFocusEmulationEnabled` — thiếu nó `focus()` không bắn sự kiện (cửa sổ ngầm
+không có tiêu điểm) → test admin "Bấm vào ô giá → hiện giá hay dùng" hỏng oan.
 **Dữ liệu giả phải tính ngày theo HÔM NAY**, đừng ghi cứng ngày (01/10/2026 hai test tự hỏng: BST hẹn "2026-10-01", và
 chi phí "1–3 ngày trước" rơi sang tháng trước trong khi tab Chi phí xem tháng này → dùng `ngayTrongThang()`).
 
@@ -55,7 +58,14 @@ SQL chạy thủ công: chủ shop tự dán file trong `supabase/` vào Supabas
 
 ## Kiến trúc
 
-**Hai front-end, một database.** Cả web khách và admin đều là HTML tĩnh gọi thẳng Supabase JS client từ trình duyệt — không có server trung gian, không API layer. Anon key nằm trong code là cố ý; ranh giới bảo mật duy nhất là **RLS**: public chỉ đọc, ghi phải có tài khoản admin đăng nhập (`supabase/17_rls_lockdown.sql`).
+**Hai front-end, một database.** Cả web khách và admin đều là HTML tĩnh gọi thẳng Supabase từ trình duyệt — không có server trung gian, không API layer.
+Admin dùng thư viện Supabase JS đầy đủ; **web khách KHÔNG nạp thư viện** (08/10/2026) mà dùng bộ đọc nhẹ `taoSbNhe()` đầu
+`js/main.js`: cùng cách viết `sb.from().select().eq().neq().in().order().limit().single()/maybeSingle()` + `sb.rpc()`, trả
+`{data, error}`, không bao giờ ném lỗi. Khoá công khai đi trên đường dẫn (`?apikey=`) để lệnh đọc là "yêu cầu đơn giản", khỏi
+preflight. Đọc quá 15 giây (`DOC_CHO_TOI_DA`) → error; `rpc` KHÔNG hẹn giờ cắt (cắt giữa chừng = khách gửi lại thành 2 đơn).
+Cần lệnh thư viện mà bộ nhẹ chưa có (`ilike`, `range`, `gte`…) thì thêm vào `taoSbNhe`, đừng nạp lại thư viện.
+Kết quả của `sb.from(...)` là câu hỏi CHƯA gửi — mỗi lần `await`/`.then` là gửi 1 lần; muốn dùng chung thì gói
+`Promise.resolve(...)` (như `_contactReady`). Anon key nằm trong code là cố ý; ranh giới bảo mật duy nhất là **RLS**: public chỉ đọc, ghi phải có tài khoản admin đăng nhập (`supabase/17_rls_lockdown.sql`).
 
 **Web khách — `js/main.js` dùng chung cho MỌI trang.** Không có router. Mỗi hàm `loadX()` tự thoát sớm nếu trang hiện tại không có element mốc của nó (`const grid = document.getElementById('productsGrid'); if (!grid) return`). Hàm `DOMContentLoaded` ở cuối file gọi *tất cả* các loader song song; trang nào không liên quan thì loader tự no-op. Thêm trang mới = thêm HTML + một `loadX()` theo đúng khuôn này, không tạo file JS riêng.
 
@@ -101,6 +111,15 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
   Fonts. Thêm dịch vụ ngoài mới cho admin (ảnh từ tên miền khác, API…) thì PHẢI thêm tên miền vào CSP, không là bị chặn
   âm thầm (test-bao-mat mở mọi tab và bắt `securitypolicyviolation`). Có `'unsafe-eval'` vì trang test gọi `eval()` trong
   khung. Kèm mã chặn bị nhúng vào khung web lạ (khung cùng nguồn — trang test — vẫn được). Admin + trang test có `noindex`.
+- **Web khách cũng có CSP bằng `<meta>` (08/10/2026)** — 8 trang (7 trang + 404) dùng CÙNG MỘT chuỗi (test-bao-mat kiểm giống
+  hệt nhau, không có `*` / `https:` trần). Cho phép: chính web, Supabase, Google Fonts, `img.vietqr.io`, bản đồ Google (khung),
+  GA4 (`googletagmanager`, `*.google-analytics.com`, `*.analytics.google.com`, `*.g.doubleclick.net`, `*.google.com(.vn)`) và
+  Clarity (`*.clarity.ms`, `c.bing.com`). Thêm dịch vụ ngoài cho web khách → sửa cả 8 trang; test-web-khach bắt
+  `securitypolicyviolation` ở mọi trang. GA/Clarity không chạy ở localhost nên test KHÔNG kiểm được chúng — đổi CSP thì kiểm
+  tay: gọi `initDoLuong(contactInfo, 'lertherblooming.vn')` trong trang và xem bảng điều khiển có lỗi CSP không.
+- **Đọc `localStorage`/`sessionStorage` ở web khách phải bọc `try`** (`docNho()`): máy chặn cookie → đọc là NÉM LỖI. Trước
+  08/10/2026 `primeHero()` lỗi ở đó làm trang chủ chỉ còn khung chờ xám. `DOMContentLoaded` giờ chạy từng phần qua
+  `chayRieng()` (1 phần lỗi không kéo phần sau chết theo); test-web-khach mục 5 dựng trang chủ với bộ nhớ bị khoá.
 - **Admin kiểm quyền sau đăng nhập** (`kiemQuyenQuanTri()` → rpc `la_quan_tri`): tài khoản không có trong `quan_tri` thấy
   cảnh báo đỏ `#canhBaoQuyen` thay vì danh sách trống không lời giải thích.
 - **File SQL đánh số theo thứ tự chạy** (`01_` → `29_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
@@ -345,8 +364,8 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
   không thì ảnh gốc. Cỡ xin > 640 (trang chi tiết 1000, bìa BST lớn) luôn là ảnh gốc.
 - **Ghi database trong admin phải kiểm kết quả**: `if (!(await ghiDb(sb.from(…).delete().eq(…).select('id'), 'xoá'))) return`.
   `.select('id')` để bắt trường hợp hết phiên đăng nhập (không lỗi mà 0 dòng đổi). Đừng `await sb.from(…)` suông rồi báo "Đã xoá".
-- **Thư viện Supabase nạp bản CỐ ĐỊNH `@2.117.1/dist/umd/supabase.js` + `integrity`** ở 8 trang. Nâng phiên bản: đổi cả 8 trang và
-  tính lại sha384 (`openssl dgst -sha384 -binary f.js | openssl base64 -A`). Đừng dùng file `.min.js` của jsDelivr (tự sinh, vân tay đổi).
+- **Thư viện Supabase nạp bản CỐ ĐỊNH `@2.117.1/dist/umd/supabase.js` + `integrity`** — giờ CHỈ ở admin (web khách dùng
+  `taoSbNhe`, test-bao-mat cấm trang khách nạp script từ nơi khác). Nâng phiên bản: tính lại sha384 (`openssl dgst -sha384 -binary f.js | openssl base64 -A`). Đừng dùng file `.min.js` của jsDelivr (tự sinh, vân tay đổi).
 - **Không thêm thư viện/framework/build step.** Giữ HTML+CSS+JS thuần.
 - SQL mới phải **idempotent** (`create ... if not exists`, `add column if not exists`) — chủ shop hay chạy lại file cũ.
 - Tránh UI thô: đừng dùng `prompt()`/`alert()`, đừng dùng input `date`/`month` mặc định của trình duyệt — repo đã có sẵn modal, lịch tự vẽ, bottom-sheet; dùng lại chúng. Responsive điện thoại là bắt buộc, kể cả admin.
