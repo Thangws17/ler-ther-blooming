@@ -137,6 +137,10 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
   (shop muốn luôn tự trôi). Vị trí thật = `scrollLeft − m41 của transform .bst-ray`. Chỉ chạy khi hàng trên màn hình, tắt
   khi máy bật "giảm chuyển động". Đếm thẻ thật phải lọc `:not(.bst-sao)`.
   Hiệu ứng "hiện dần" đặt cho CẢ HÀNG (`#bstGrid.reveal`), đừng gắn lại cho từng thẻ (thẻ khuất bên phải sẽ trồi lên).
+- **iPhone bắn `resize` liên tục chỉ vì đổi CHIỀU CAO** (thanh địa chỉ thu/hiện khi cuộn, bàn phím bật). Trình nghe
+  `resize` nào vẽ lại / đo lại thứ theo bề ngang thì phải bỏ qua khi `innerWidth` không đổi (BST tự trôi, lưới Khoảnh
+  khắc) — trước 08/10 chúng chạy lại mỗi lần đó → shop báo web "nhấp nháy" khi xem BST / khi bàn phím hiện.
+  `--vvh/--vvtop` của web khách ghi lên `.order-overlay` (gộp theo khung hình), KHÔNG ghi lên `:root`.
 - **Trang ảnh tên là "Khoảnh khắc" (`khoanh-khac`), không còn chữ "Gallery" nào khách/admin thấy** (web thuần Việt,
   23/09/2026). Trong code và database vẫn tên `gallery` (bảng, hàm `loadGallery`, `data-tab="Gallery"`) — cố ý
   giữ, đừng đổi tên bảng. Chữ mới hiện ra thì viết "Khoảnh khắc" / "nhóm ảnh", đừng viết "Gallery" / "danh mục".

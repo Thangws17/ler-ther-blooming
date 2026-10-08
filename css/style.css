@@ -1386,6 +1386,9 @@ section    { padding:64px 0; }
   .w-tabs a.on { color: var(--green); }
   .w-tabs .ic { width: 23px; height: 23px; }
   body.dang-go .w-tabs { display: none; }   /* bàn phím đang mở → ẩn thanh tab */
+  /* …và cả nút nổi Zalo / lên đầu trang: iPhone dời phần tử position:fixed theo bàn phím từng nhịp
+     → 2 nút này nhảy lên xuống, nhìn như màn hình nháy (08/10/2026) */
+  body.dang-go .zalo-float, body.dang-go .back-top { visibility: hidden; }
   /* Giờ giao: lưới 2 hàng × 7 ô — thấy đủ 8h–21h, không phải vuốt ngang */
   body.co-w-tabs .footer { padding-bottom: 90px; }
   body.co-w-tabs .zalo-float { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); right: 14px; }

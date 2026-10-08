@@ -327,8 +327,13 @@ function bstTuTruot(hang) {
     if (thay) henLai(300); else veTay();
   }, { threshold: 0.25 }).observe(hang);
 
-  let henDo = 0;
+  // CHỈ đo lại khi BỀ NGANG đổi (xoay máy, kéo cửa sổ). iPhone bắn 'resize' liên tục khi thanh địa chỉ
+  // thu/hiện lúc cuộn trang và khi bàn phím bật lên — chỉ đổi chiều CAO. Trước 08/10 lần nào cũng dừng
+  // băng chuyền + giấu/hiện bản sao để đo lại → hàng Bộ sưu tập nháy / khựng (shop báo trên iPhone).
+  let henDo = 0, rongCu = innerWidth;
   addEventListener('resize', () => {
+    if (innerWidth === rongCu) return;
+    rongCu = innerWidth;
     clearTimeout(henDo);
     henDo = setTimeout(() => { veTay(); doKhung(); henLai(300); }, 150);
   });
@@ -635,9 +640,13 @@ async function renderGalleryPage() {
 }
 
 // Đổi cỡ cửa sổ → tính lại số cột
-let _galResizeT;
+let _galResizeT, _galRongCu = window.innerWidth;
 window.addEventListener('resize', () => {
   if (!document.getElementById('galleryGrid')) return;
+  // Chỉ khi bề NGANG đổi — iPhone bắn resize mỗi lần thanh địa chỉ thu/hiện hay bàn phím bật,
+  // vẽ lại cả lưới ảnh lúc đó = màn hình nháy trắng
+  if (window.innerWidth === _galRongCu) return;
+  _galRongCu = window.innerWidth;
   clearTimeout(_galResizeT);
   _galResizeT = setTimeout(renderGalleryPage, 150);
 });
@@ -1744,24 +1753,26 @@ function initBackToTop() {
 
 // iOS: bàn phím mở làm vùng nhìn thấy co lại, nhưng lớp phủ position:fixed vẫn neo theo
 // màn hình đầy đủ → nút gửi đơn nằm dưới bàn phím. Ghi vùng nhìn thấy THẬT vào biến CSS.
-// --vvh/--vvtop ở đây CHỈ modal đọc (xem css/style.css), không dính chiều cao trang
-// — nên web khách không bị lỗi khung như admin từng bị. Vẫn chặn ghi lặp cho đỡ giật:
-// iOS bắn scroll mỗi frame, ghi biến CSS trên :root mỗi lần là bắt tính lại style cả trang.
+// --vvh/--vvtop CHỈ form đặt hoa đọc (xem css/style.css) → ghi THẲNG lên lớp phủ .order-overlay,
+// KHÔNG ghi lên :root nữa (08/10/2026): iOS bắn sự kiện mỗi khung hình suốt lúc bàn phím trượt lên
+// và lúc thanh địa chỉ thu/hiện; ghi lên :root là bắt cả trang tính lại kiểu chữ mỗi khung hình
+// → nháy màn hình. Gộp mỗi khung hình 1 lần ghi (requestAnimationFrame), giá trị trùng thì bỏ qua.
 function initViewportFix() {
   const vv = window.visualViewport;
   if (!vv) return;
-  const r = document.documentElement.style;
-  const setVar = (name, px) => {
-    const v = Math.round(px) + 'px';
-    if (r.getPropertyValue(name) !== v) r.setProperty(name, v);
+  let cho = 0;
+  const ghi = () => {
+    cho = 0;
+    const h = Math.round(vv.height) + 'px', top = Math.round(vv.offsetTop || 0) + 'px';
+    document.querySelectorAll('.order-overlay').forEach(el => {
+      if (el.style.getPropertyValue('--vvh') !== h) el.style.setProperty('--vvh', h);
+      if (el.style.getPropertyValue('--vvtop') !== top) el.style.setProperty('--vvtop', top);
+    });
   };
-  const apply = () => {
-    setVar('--vvh', vv.height);
-    setVar('--vvtop', vv.offsetTop || 0);
-  };
+  const apply = () => { if (!cho) cho = requestAnimationFrame(ghi); };
   vv.addEventListener('resize', apply);
   vv.addEventListener('scroll', apply);
-  apply();
+  ghi();
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
