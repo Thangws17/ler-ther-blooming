@@ -444,11 +444,16 @@
     /* Gợi ý sản phẩm: có ảnh thật nên nhận ra mẫu hoa ngay, khỏi đọc từng dòng chữ */
     .prod-pop { max-height: 320px; }
     .prod-row { gap: 11px; }
-    .prod-row img, .prod-row .prod-ph, .prod-picked img, .prod-picked .prod-ph {
+    .prod-row img, .prod-row .prod-ph, .prod-le .prod-ph, .prod-picked img, .prod-picked .prod-ph {
       width: 42px; height: 42px; border-radius: 8px; object-fit: cover; flex-shrink: 0;
       background: #E8F5E9; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
     }
-    .prod-row .s-cust { flex: 1; }
+    .prod-row .s-cust, .prod-le .s-cust { flex: 1; }
+    /* Dòng "món lẻ" cuối gợi ý: tách khỏi các mẫu bằng vạch mảnh, chữ ghi nhạt hơn */
+    .prod-le { gap: 11px; border-top: 1px dashed #DDE8DD; border-radius: 0 0 8px 8px; margin-top: 2px; }
+    .suggest-row.prod-le:first-child { border-top: none; margin-top: 0; border-radius: 8px; }
+    .prod-le .prod-ph { color: #7A9879; }
+    .prod-le .s-cust { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .prod-row .s-price { white-space: nowrap; font-weight: 700; color: #2E7D32; font-size: .85rem; }
     /* Thẻ mẫu đã chọn — đứng yên ngay dưới ô tìm, không phải thông báo bay ngang */
     .prod-picked {
@@ -2723,15 +2728,14 @@
 
         <section class="fx-grp">
           <div class="fx-gt"><svg class="ic" aria-hidden="true"><use href="#i-flower"/></svg>Hoa</div>
-          <!-- Cùng bộ chọn mẫu có ảnh như form Thêm đơn (showProdSuggest/pickProduct nhận tiền tố 'oe') -->
-          <div class="date-pick-wrap" id="oeProdSearchWrap">
-            <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input type="text" id="oeProdSearch" placeholder="Tìm mẫu hoa có sẵn…" autocomplete="off"
-                   oninput="showProdSuggest('oe')" onfocus="showProdSuggest('oe')"></label>
+          <!-- Cùng MỘT ô tên + gợi ý mẫu như form Thêm đơn (showProdSuggest/pickProduct nhận tiền tố 'oe') -->
+          <div class="date-pick-wrap" id="oeProductNameRow">
+            <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input type="text" id="oeProductName" autocomplete="off"
+                   placeholder="Tên hoa — gõ để tìm mẫu có sẵn" oninput="showProdSuggest('oe')" onfocus="showProdSuggest('oe')" onkeydown="prodPhim(event, 'oe')"></label>
             <div id="oeProdSuggest" class="date-pop suggest-pop prod-pop" style="display:none"></div>
           </div>
           <input type="hidden" id="oeProductPick">
           <div id="oeProdPicked" style="display:none"></div>
-          <label class="fx-in" id="oeProductNameRow"><svg class="ic" aria-hidden="true"><use href="#i-tag"/></svg><input type="text" id="oeProductName" placeholder="Hoặc gõ tên hoa"></label>
           <div class="fx-row">
             <div class="fx-col-auto">
               <div class="fx-lb">Số lượng</div>
@@ -2861,16 +2865,15 @@
 
         <section class="fx-grp">
           <div class="fx-gt"><svg class="ic" aria-hidden="true"><use href="#i-flower"/></svg>Hoa</div>
-          <!-- Gõ tìm + thấy ảnh → nhận ra mẫu ngay (tên hoa na ná nhau). Chọn mẫu thì ô tên
-               ẩn đi (đã tự điền); bỏ chọn thì hiện lại để gõ tay. -->
-          <div class="date-pick-wrap" id="noProdSearchWrap">
-            <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input type="text" id="noProdSearch" placeholder="Tìm mẫu hoa có sẵn…" autocomplete="off"
-                   oninput="showProdSuggest()" onfocus="showProdSuggest()"></label>
+          <!-- MỘT ô tên (09/10/2026, trước là ô tìm + ô tên riêng): gõ tới đâu gợi ý mẫu có ảnh tới đó.
+               Chọn mẫu → ô ẩn đi, hiện thẻ mẫu; không chọn → chữ đã gõ là tên món lẻ (tự nhập giá). -->
+          <div class="date-pick-wrap" id="noProductNameRow">
+            <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input type="text" id="noProductName" required autocomplete="off"
+                   placeholder="Tên hoa — gõ để tìm mẫu có sẵn" oninput="showProdSuggest()" onfocus="showProdSuggest()" onkeydown="prodPhim(event, 'no')"></label>
             <div id="noProdSuggest" class="date-pop suggest-pop prod-pop" style="display:none"></div>
           </div>
           <input type="hidden" id="noProductPick">
           <div id="noProdPicked" style="display:none"></div>
-          <label class="fx-in" id="noProductNameRow"><svg class="ic" aria-hidden="true"><use href="#i-tag"/></svg><input type="text" id="noProductName" required placeholder="Hoặc gõ tên hoa, VD: Bó hồng đỏ 20 bông"></label>
           <div class="fx-row">
             <div class="fx-col-auto">
               <div class="fx-lb">Số lượng</div>
@@ -8344,17 +8347,21 @@ async function ghiNhanCk() {
 function showProdSuggest(k = 'no') {
   const pop = document.getElementById(k + 'ProdSuggest')
   if (!pop) return
-  const q = noAccent(document.getElementById(k + 'ProdSearch').value)
+  // Chữ trong ô vừa là từ khoá tìm, vừa là tên ghi trên đơn nếu không chọn mẫu nào
+  const goTay = document.getElementById(k + 'ProductName').value.trim()
+  const q = noAccent(goTay)
   const list = (q
     ? products.filter(p => noAccent(p.name).includes(q) || noAccent(p.category).includes(q))
     : products
   ).slice(0, 6)
+  // Dòng cuối: không theo mẫu nào → món lẻ (hoa đặt riêng, phụ kiện, dịch vụ…), giá tự nhập
+  const dongLe = goTay ? `
+<div class="suggest-row prod-le" onclick="hideProdSuggest('${k}')">
+  <span class="prod-ph">${ic('tag')}</span>
+  <span class="s-cust">Ghi “${esc(goTay)}”<small>Món lẻ, không theo mẫu — nhớ nhập giá</small></span>
+</div>` : ''
 
-  if (!list.length) {
-    pop.innerHTML = '<div class="suggest-row" style="cursor:default;color:#7A9879">Không tìm thấy — cứ gõ tay tên sản phẩm bên dưới</div>'
-    pop.style.display = 'block'
-    return
-  }
+  if (!list.length && !dongLe) { pop.style.display = 'none'; return }
   pop.innerHTML = list.map(p => `
 <div class="suggest-row prod-row" onclick="pickProduct(${p.id}, '${k}')">
   ${p.image
@@ -8362,8 +8369,19 @@ function showProdSuggest(k = 'no') {
       : `<span class="prod-ph">${ic('flower')}</span>`}
   <span class="s-cust">${esc(p.name)}<small>${esc(p.category || '')}</small></span>
   <span class="s-price">${fmtPriceText(p.price)}</span>
-</div>`).join('')
+</div>`).join('') + dongLe
   pop.style.display = 'block'
+}
+
+// Ô tên hoa: Enter / Esc / Tab = đóng gợi ý, giữ chữ đã gõ (món lẻ). Enter KHÔNG gửi form khi
+// gợi ý đang mở — tay quen bấm Enter để "chốt" chữ, đừng để nó tạo đơn luôn.
+function prodPhim(e, k) {
+  if (e.isComposing) return   // bộ gõ tiếng Việt đang ghép chữ
+  const pop = document.getElementById(k + 'ProdSuggest')
+  if (!pop || pop.style.display === 'none') return
+  // stopPropagation: Esc ở đây chỉ đóng gợi ý, không để trình nghe chung đóng luôn cả form
+  if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); hideProdSuggest(k) }
+  else if (e.key === 'Tab') hideProdSuggest(k)
 }
 
 function hideProdSuggest(k) {
@@ -8390,7 +8408,6 @@ function pickProduct(id, k = 'no') {
   // của mẫu cũ (hoặc trống) — ảnh chụp riêng cho đơn thì giữ nguyên.
   const anhDon = document.getElementById(k + 'Image').value
   if (p.image && (k === 'no' || !anhDon || (cu && anhDon === cu.image))) setOrderImagePreview(k, p.image)
-  document.getElementById(k + 'ProdSearch').value = ''
   hideProdSuggest(k)
   renderPickedProduct(p, k)
   if (k === 'oe') oeUpdateTotalPreview(); else noUpdateTotalPreview()
@@ -8403,8 +8420,7 @@ function renderPickedProduct(p, k = 'no') {
   const box = document.getElementById(k + 'ProdPicked')
   if (!box) return
   const an = !!p
-  document.getElementById(k + 'ProdSearchWrap').style.display = an ? 'none' : ''
-  document.getElementById(k + 'ProductNameRow').style.display = an ? 'none' : ''
+  document.getElementById(k + 'ProductNameRow').style.display = an ? 'none' : ''   // ô tên + gợi ý
   if (!p) { box.style.display = 'none'; box.innerHTML = ''; return }
   // Hiện đúng tên đang ghi trên đơn (đơn cũ có thể ghi tên khác tên mẫu một chút)
   const ten = document.getElementById(k + 'ProductName').value.trim() || p.name
@@ -8420,12 +8436,14 @@ function renderPickedProduct(p, k = 'no') {
 function clearPickedProduct(k = 'no') {
   document.getElementById(k + 'ProductPick').value = ''
   renderPickedProduct(null, k)
+  // Ô tên hiện lại với tên mẫu cũ, bôi đen sẵn → gõ luôn là thay, khỏi xoá từng chữ
+  const o = document.getElementById(k + 'ProductName')
+  o.focus(); o.select()
   if (k === 'oe') danhDauDangNhap(document.getElementById('oeProductPick'))
 }
 
-// Form Sửa đơn: đơn đã gắn mẫu thì hiện thẻ mẫu có ảnh, chưa gắn thì hiện ô tìm mẫu + ô tên
+// Form Sửa đơn: đơn đã gắn mẫu thì hiện thẻ mẫu có ảnh, chưa gắn thì hiện ô tên (gõ để tìm mẫu)
 function oeHienMau(productId) {
-  document.getElementById('oeProdSearch').value = ''
   hideProdSuggest('oe')
   renderPickedProduct(products.find(x => x.id === productId) || null, 'oe')
 }
@@ -8443,7 +8461,6 @@ function openNewOrderModal() {
   if (!products.length) loadProducts()
   hideCustSuggest('no')
   hideProdSuggest()
-  document.getElementById('noProdSearch').value = ''
   document.getElementById('noProductPick').value = ''
   renderPickedProduct(null)
   // Không cho tạo đơn ở trạng thái "Đã hủy" — vô nghĩa. Trạng thái lấy từ ORDER_STATUSES (CLAUDE.md)

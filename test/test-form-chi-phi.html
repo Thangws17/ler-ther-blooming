@@ -579,8 +579,7 @@ const dt = document.getElementById('dt')
   w.pickProduct(91001)
   test('Chọn mẫu giá "Từ 2xx" → đơn giá để TRỐNG, không thành 2đ (lỗi cũ)', () =>
     bang(id('noUnitPrice').value, ''))
-  test('Chọn mẫu → ô tìm + ô tên ẩn đi, thẻ mẫu đã chọn hiện ra, tên tự điền', () => {
-    bang(id('noProdSearchWrap').style.display, 'none')
+  test('Chọn mẫu → ô tên ẩn đi, thẻ mẫu đã chọn hiện ra, tên tự điền', () => {
     bang(id('noProductNameRow').style.display, 'none')
     bang(id('noProdPicked').style.display, 'block')
     bang(id('noProductName').value, 'Tulip thử')
@@ -588,10 +587,48 @@ const dt = document.getElementById('dt')
   w.pickProduct(91002)
   test('Chọn mẫu giá "600,000đ" → đơn giá "600.000"', () => bang(id('noUnitPrice').value, '600.000'))
   id('noProdPicked').querySelector('.act').click()
-  test('Bấm ✕ bỏ chọn mẫu → ô tìm + ô tên hiện lại', () => {
-    bang(id('noProdSearchWrap').style.display, '')
+  test('Bấm ✕ bỏ chọn mẫu → ô tên hiện lại', () => {
     bang(id('noProductNameRow').style.display, '')
+    bang(id('noProductPick').value, '')
   })
+  // 09/10/2026: gộp ô tìm mẫu + ô tên thành MỘT ô. Không chọn mẫu = món lẻ, chữ gõ là tên trên đơn
+  w.hideProdSuggest('no')
+  // Gõ chữ thường (không phải ô tiền): đặt chữ rồi bắn sự kiện input như người gõ
+  function goChu(el, val) { el.value = val; el.dispatchEvent(new Event('input')) }
+  goChu(id('noProductName'), 'mao lương')
+  test('Gộp 1 ô: gõ tên không trùng mẫu → chỉ còn dòng "món lẻ", tên giữ nguyên', () => {
+    bang(id('noProdSuggest').style.display, 'block')
+    bang(d.querySelectorAll('#noProdSuggest .prod-row').length, 0)
+    bang(d.querySelectorAll('#noProdSuggest .prod-le').length, 1)
+    if (!id('noProdSuggest').textContent.includes('mao lương')) throw new Error(id('noProdSuggest').textContent)
+    bang(id('noProductName').value, 'mao lương')
+  })
+  d.querySelector('#noProdSuggest .prod-le').click()
+  test('Bấm dòng "món lẻ" → đóng gợi ý, không gắn mẫu, tên vẫn còn', () => {
+    bang(id('noProdSuggest').style.display, 'none')
+    bang(id('noProductPick').value, '')
+    bang(id('noProductName').value, 'mao lương')
+  })
+  goChu(id('noProductName'), 'hong')
+  test('Gộp 1 ô: gõ "hong" (không dấu) → gợi ý mẫu "Hồng thử" + dòng món lẻ ở cuối', () => {
+    bang(d.querySelectorAll('#noProdSuggest .prod-row').length, 1)
+    bang(d.querySelector('#noProdSuggest .suggest-row:last-child').classList.contains('prod-le'), true)
+  })
+  let _phimEnter = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })
+  id('noProductName').dispatchEvent(_phimEnter)
+  test('Enter khi gợi ý đang mở → chỉ đóng gợi ý, KHÔNG gửi form', () => {
+    bang(id('noProdSuggest').style.display, 'none')
+    bang(_phimEnter.defaultPrevented, true)
+  })
+  goChu(id('noProductName'), 'hong')
+  d.querySelector('#noProdSuggest .prod-row').click()
+  test('Gộp 1 ô: bấm mẫu trong gợi ý → gắn mẫu, tên = tên mẫu', () => {
+    bang(id('noProductPick').value, '91002')
+    bang(id('noProductName').value, 'Hồng thử')
+    bang(id('noProductNameRow').style.display, 'none')
+  })
+  id('noProdPicked').querySelector('.act').click()
+  w.hideProdSuggest('no')
   test('Mục thiếp / ghi chú / ảnh gấp lại khi mở form', () =>
     bang(d.querySelectorAll('#orderNewModal .fx-more.open').length, 0))
 
@@ -603,18 +640,18 @@ const dt = document.getElementById('dt')
   w.openOrderEditModal(99001)
   test('Sửa đơn đã gắn mẫu → hiện thẻ mẫu, giữ đúng tên ghi trên đơn', () => {
     bang(id('oeProdPicked').style.display, 'block')
-    bang(id('oeProdSearchWrap').style.display, 'none')
+    bang(id('oeProductNameRow').style.display, 'none')
     bang(id('oeProductPick').value, '91002')
     if (!id('oeProdPicked').textContent.includes('Hồng thử (bó to)')) throw new Error(id('oeProdPicked').textContent)
   })
   id('oeProdPicked').querySelector('.act').click()
-  test('Sửa đơn: bấm ✕ → hiện ô tìm mẫu + ô tên (tên cũ còn nguyên)', () => {
-    bang(id('oeProdSearchWrap').style.display, '')
+  test('Sửa đơn: bấm ✕ → hiện lại ô tên (tên cũ còn nguyên)', () => {
+    bang(id('oeProductNameRow').style.display, '')
     bang(id('oeProductName').value, 'Hồng thử (bó to)')
     bang(id('oeProductPick').value, '')
   })
-  id('oeProdSearch').value = 'tulip'
-  id('oeProdSearch').dispatchEvent(new Event('input'))
+  id('oeProductName').value = 'tulip'
+  id('oeProductName').dispatchEvent(new Event('input'))
   test('Sửa đơn: gõ "tulip" → gợi ý đúng mẫu có sẵn', () => {
     bang(id('oeProdSuggest').style.display, 'block')
     bang(d.querySelectorAll('#oeProdSuggest .prod-row').length, 1)
@@ -626,7 +663,7 @@ const dt = document.getElementById('dt')
     bang(id('oeUnitPrice').value, '650.000')
   })
   w.openOrderEditModal(99002)
-  test('Sửa đơn chưa gắn mẫu → hiện ô tìm mẫu + tên gõ tay', () => {
+  test('Sửa đơn chưa gắn mẫu → hiện ô tên với tên gõ tay', () => {
     bang(id('oeProdPicked').style.display, 'none')
     bang(id('oeProductNameRow').style.display, '')
     bang(id('oeProductName').value, 'Bó tự chọn')

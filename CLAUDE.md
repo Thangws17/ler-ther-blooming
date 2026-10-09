@@ -341,6 +341,8 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
 - **Chọn mẫu hoa khi lên đơn chỉ lấy giá khi là số tiền thuần** (`!_priceIsText`). Giá "Từ 2xx" để trống — cùng
   bẫy "2 đồng" với `place_order`. Form Thêm đơn (`no`) và Sửa đơn (`oe`) dùng CHUNG bộ chọn
   `showProdSuggest(k)` / `pickProduct(id, k)` / `renderPickedProduct(p, k)` — thêm ô ở form này thì thêm cả form kia.
+  **Chỉ MỘT ô tên hoa (09/10/2026)** `noProductName`/`oeProductName`: gõ = vừa tìm mẫu vừa là tên trên đơn; không chọn
+  mẫu = món lẻ (dòng `.prod-le` cuối gợi ý). Không còn ô tìm `ProdSearch` riêng. Enter/Esc khi gợi ý mở chỉ đóng gợi ý (`prodPhim`).
   Sửa đơn: chọn mẫu giá chữ thì GIỮ giá đã chốt; `oeProductPick` giữ `product_id` cũ kể cả khi danh sách mẫu chưa tải.
 - **Bộ gõ tiếng Việt (Unikey/EVKey) TỰ GỬI chuỗi phím giả để sửa dấu** (phím xoá, bản "sửa lỗi Chrome" còn kèm ký tự tạm).
   2 lỗi thật 03/10/2026 ở ô thành phần form Sản phẩm: (1) "Backspace ở ô trống = xoá viên cuối" → mất sạch các viên;
