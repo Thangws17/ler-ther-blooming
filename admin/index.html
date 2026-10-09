@@ -1191,6 +1191,8 @@
     /* Mã đơn trong bảng: bấm để xem chi tiết (thay cho nút 👁 riêng — tiết kiệm 1 cột nút) */
     .ma-don { background: none; border: 0; padding: 0; font: inherit; font-weight: 700; color: #2E7D32; cursor: pointer; white-space: nowrap; }
     .ma-don:hover { text-decoration: underline; }
+    .data-table tr.dong-don { cursor: pointer; }
+    .data-table tr.dong-don:hover td { background: #F1F8F1; }
 
     /* Ô tìm kiếm: kính lúp vẽ sẵn, không còn 🔍 trong chữ mờ */
     .filter-search {
@@ -1652,6 +1654,22 @@
     .dv-tien .ic { width: 14px; height: 14px; }
     .dv-tien small { color: #7a877a; font-weight: 500; }
     .dv-tien.dv-du { color: #2E7D32; }
+    /* Bảng QR: điện thoại 1 cột (số tiền → mã → thông tin → nút). Máy tính 2 cột (09/10/2026 — trước 1 cột hẹp 440px,
+       phải cuộn mới tới nút "Đã nhận tiền"): mã QR bên trái, số tiền + thông tin + nút bên phải, nhìn trọn không cuộn. */
+    .qr-hop { max-width: 440px; }
+    .qr-luoi { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "tien" "khung" "meo" "tt" "nut"; }
+    .qr-tien { grid-area: tien; } .qr-khung { grid-area: khung; } .qr-meo { grid-area: meo; } .qr-tt { grid-area: tt; } .qr-nut { grid-area: nut; }
+    @media (min-width: 760px) {
+      .qr-hop:has(.qr-luoi) { max-width: 740px; }
+      .qr-luoi { grid-template-columns: 270px minmax(0, 1fr); column-gap: 26px; align-content: start;
+                 grid-template-areas: "khung tien" "khung tt" "khung nut" "meo nut"; grid-template-rows: auto auto 1fr auto; }
+      .qr-tt, .qr-nut { align-self: start; }   /* cột phải xếp sát nhau, phần dư chiều cao của mã QR dồn xuống dưới */
+      .qr-khung { margin: 0; align-items: flex-start; }
+      .qr-khung img { width: 100%; }
+      .qr-meo { margin: 8px 0 0; }
+      .qr-tt { margin-top: 12px; }
+      .qr-nut { margin-top: 12px; }
+    }
     .qr-khung { display: flex; justify-content: center; margin: 4px 0 2px; min-height: 120px; }
     .qr-khung [hidden] { display: none !important; }
     .qr-khung img { width: min(250px, 72vw); height: auto; border-radius: 14px; border: 1px solid #e3e8e2; background: #fff; }
@@ -2806,6 +2824,9 @@
               </div>
               <input type="hidden" id="oeTtCach">
             </div>
+            <!-- Cùng bảng QR như chi tiết đơn (09/10/2026 — shop tưởng mất nút vì 2 màn nhìn giống nhau).
+                 Số tiền lấy theo form đang sửa; "Đã nhận tiền" chỉ điền vào form, bấm Lưu đơn mới ghi. -->
+            <button type="button" class="od-qr" id="oeQrNut" onclick="moQrCk(+document.getElementById('oeId').value, true)"><svg class="ic" aria-hidden="true"><use href="#i-qr"/></svg>Mã QR chuyển khoản</button>
           </div>
           <div class="fx-hint" id="oeCocSql" style="display:none;color:#BF360C">Cần chạy file <b>supabase/31_thanh_toan.sql</b> trước thì mới lưu được trạng thái thanh toán.</div>
         </section>
@@ -3155,7 +3176,7 @@
 
 <!-- Mã QR chuyển khoản của 1 đơn (mở từ chi tiết đơn, nằm ĐÈ lên sheet chi tiết) — 08/10/2026 -->
 <div id="qrCkModal" class="modal-overlay" style="display:none" onclick="if(event.target.id==='qrCkModal')dongQrCk()">
-  <div class="modal-box" style="max-width:440px">
+  <div class="modal-box qr-hop">
     <div class="modal-header">
       <h2 id="qrCkTitle">Chuyển khoản</h2>
       <button class="modal-close" aria-label="Đóng" onclick="dongQrCk()"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
@@ -7604,6 +7625,14 @@ document.addEventListener('click', e => {
   }
 })
 
+// Bảng đơn (máy tính): bấm chỗ nào trên hàng cũng mở chi tiết đơn (09/10/2026 — trước chỉ mã đơn bấm được).
+// Bấm trúng ô trạng thái / nút Sửa / Xoá / mã đơn thì để chúng tự lo, đừng mở chồng chi tiết.
+function bamDongDon(e, id) {
+  if (e.target.closest('button, select, a, input, label')) return
+  if (getSelection && String(getSelection()).length) return   // đang bôi đen chữ (chép địa chỉ) → không mở
+  viewOrderDetail(id)
+}
+
 function renderOrders() {
   const el = document.getElementById('ordersTable')
   const { tu: date, den } = ordRange()
@@ -7659,7 +7688,7 @@ function renderOrders() {
     <th>Địa chỉ giao</th><th>Ngày giao</th><th>Trạng thái</th><th></th>
   </tr></thead>
   <tbody>${shown.map(o => `
-  <tr>
+  <tr class="dong-don" onclick="bamDongDon(event, ${o.id})">
     <td>${orderThumbHTML(o)}</td>
     <td><button type="button" class="ma-don" title="Xem chi tiết đơn" onclick="viewOrderDetail(${o.id})">${orderCode(o.id)}</button></td>
     <td><strong>${orderCustomerName(o)}</strong><br><span style="font-size:.8rem;color:#7A9879;">${orderCustomerPhone(o)}</span></td>
@@ -8086,11 +8115,20 @@ function ttTongForm(k) {
   if (!price) return null
   return price * (parseInt(document.getElementById(k + 'Quantity').value) || 0) + (moneyNum(k + 'Shipping') || 0)
 }
+function conThuForm(k) {          // như conThu() nhưng đọc từ form đang mở
+  const t = document.getElementById(k + 'Tt').value || 'Chưa thanh toán'
+  if (t === 'Đã thanh toán') return 0
+  const tong = ttTongForm(k)
+  if (tong == null) return null
+  return Math.max(0, tong - (t === 'Đã cọc' ? moneyNum(k + 'Coc') || 0 : 0))
+}
 function ttForm(k) {
   const t = document.getElementById(k + 'Tt').value || 'Chưa thanh toán'
   document.getElementById(k + 'CocRow').style.display = t === 'Đã cọc' ? '' : 'none'
   document.getElementById(k + 'CachRow').style.display = t === 'Chưa thanh toán' ? 'none' : ''
   if (t !== 'Chưa thanh toán' && !document.getElementById(k + 'TtCach').value) segSet(k + 'TtCach', 'Chuyển khoản')   // đa số khách CK
+  const qr = document.getElementById(k + 'QrNut')          // chỉ form Sửa đơn có (đơn mới chưa có mã để ghi nội dung CK)
+  if (qr) qr.style.display = t === 'Đã thanh toán' ? 'none' : ''
   const coc = moneyNum(k + 'Coc') || 0, tong = ttTongForm(k), el = document.getElementById(k + 'ConLai')
   el.className = 'fx-con'
   el.textContent = ''
@@ -8155,13 +8193,15 @@ async function taiTaiKhoanCk() {
   const { data } = await sb.from('contact').select('*').eq('id', 1).maybeSingle()
   _taiKhoanCk = taiKhoanCk(data)
 }
-async function moQrCk(id) {
+// tuSua = mở từ form Sửa đơn: số còn thu tính theo form ĐANG sửa (chưa lưu), không theo đơn đã lưu
+async function moQrCk(id, tuSua) {
   const o = orderById(id)
   if (!o) return
   if (!_taiKhoanCk) await taiTaiKhoanCk()
   // Điền sẵn số CÒN PHẢI TRẢ của đơn (chưa thanh toán = tổng đơn; đã cọc = tổng − cọc) — shop sửa được.
   // Đơn chưa định giá → để trống = khách tự gõ trong app ngân hàng
-  _qrCk = { id, soTien: conThu(o) || 0, moiDoi: await lanDoiTkGanNhat() }
+  const con = tuSua ? conThuForm('oe') : conThu(o)
+  _qrCk = { id, soTien: con || 0, con, tuSua: !!tuSua, moiDoi: await lanDoiTkGanNhat() }
   document.getElementById('qrCkTitle').textContent = 'Chuyển khoản ' + orderCode(id)
   veQrCk()
   document.getElementById('qrCkModal').style.display = 'flex'
@@ -8180,15 +8220,18 @@ function veQrCk() {
     return
   }
   const o = orderById(_qrCk.id)
-  const con = conThu(o)
+  const con = _qrCk.con
   const nd = noiDungCk(o.id)
   const md = _qrCk.moiDoi
   body.innerHTML = `${md ? `
 <div class="qr-moidoi">${ic('alert')}<span>Tài khoản nhận tiền <b>vừa đổi</b> lúc ${esc(new Date(md.luc).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }))}
   (${esc(md.ai || '—')}). Kiểm tra số tài khoản bên dưới đúng là của shop rồi mới gửi khách.</span></div>` : ''}
+<div class="qr-luoi">
+<div class="qr-tien">
 <div class="fx-lb">Số tiền khách chuyển ${con ? `<small class="bstm-nho">· còn thu ${fmtVnd(con)}</small>` : ''}</div>
 <label class="fx-in"><input type="text" id="qrCkTien" inputmode="numeric" autocomplete="off" placeholder="Để trống = khách tự gõ"
        oninput="onMoneyInput(this); qrDoiTien(moneyNum('qrCkTien') || 0)"><span class="fx-suf">đ</span></label>
+</div>
 <div class="qr-khung">
   <img id="qrCkAnh" alt="Mã QR chuyển khoản đơn ${orderCode(o.id)}" onerror="qrLoiAnh(true)" onload="qrLoiAnh(false)">
   <p id="qrCkLoi" hidden>${ic('alert')}Không tải được ảnh mã QR — bấm "Chép tin nhắn" gửi khách thông tin bên dưới nhé.</p>
@@ -8205,6 +8248,7 @@ function veQrCk() {
   <button type="button" class="btn-outline" onclick="chepAnhQr()">${ic('img')}Chép ảnh QR</button>
   <button type="button" class="btn-outline" onclick="chepTinCk()">${ic('copy')}Chép tin nhắn</button>
   <button type="button" class="btn-green qr-nut-to" id="qrCkDaNhan" onclick="ghiNhanCk()">${ic('check')}Đã nhận tiền</button>
+</div>
 </div>`
   qrDoiTien(_qrCk.soTien, true)
 }
@@ -8326,6 +8370,7 @@ function chepTinCk() {
 }
 // Shop thấy tiền về → bấm 1 phát: cộng dồn vào tiền cọc; đủ tổng đơn thì tự thành "Đã thanh toán"
 async function ghiNhanCk() {
+  if (_qrCk?.tuSua) return ghiNhanCkVaoForm()
   const id = _qrCk?.id, v = _qrCk?.soTien
   const o = orderById(id)
   if (!o || !v) return
@@ -8339,6 +8384,24 @@ async function ghiNhanCk() {
   dongQrCk()
   showToast(du ? 'Đã thanh toán đủ!' : 'Đã ghi nhận cọc ' + fmtVnd(coc) + '!')
   sauKhiGhiTt(id)
+}
+
+// Mở QR từ form Sửa đơn → "Đã nhận tiền" chỉ ĐIỀN vào form (cọc thêm / đã thanh toán), bấm Lưu đơn mới ghi.
+// Ghi thẳng database ở đây thì form vẫn giữ chip cũ → bấm Lưu đơn sẽ đè mất khoản tiền vừa ghi.
+function ghiNhanCkVaoForm() {
+  const v = _qrCk?.soTien
+  if (!v) return
+  const t = document.getElementById('oeTt').value
+  const coc = (t === 'Đã cọc' ? moneyNum('oeCoc') || 0 : 0) + v
+  const tong = ttTongForm('oe')
+  const du = tong != null && coc >= tong
+  segSet('oeTt', du ? 'Đã thanh toán' : 'Đã cọc')
+  moneySet('oeCoc', coc)
+  segSet('oeTtCach', 'Chuyển khoản')
+  ttForm('oe')
+  danhDauDangNhap(document.getElementById('oeTt'))
+  dongQrCk()
+  showToast((du ? 'Đã chọn "Đã thanh toán"' : 'Đã điền cọc ' + fmtVnd(coc)) + ' — bấm Lưu đơn để lưu')
 }
 
 // ── Chọn sản phẩm CÓ ẢNH khi lên đơn tay ─────────────────────

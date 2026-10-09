@@ -343,6 +343,10 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
   `showProdSuggest(k)` / `pickProduct(id, k)` / `renderPickedProduct(p, k)` — thêm ô ở form này thì thêm cả form kia.
   **Chỉ MỘT ô tên hoa (09/10/2026)** `noProductName`/`oeProductName`: gõ = vừa tìm mẫu vừa là tên trên đơn; không chọn
   mẫu = món lẻ (dòng `.prod-le` cuối gợi ý). Không còn ô tìm `ProdSearch` riêng. Enter/Esc khi gợi ý mở chỉ đóng gợi ý (`prodPhim`).
+- **Bảng mã QR mở được từ 2 nơi (09/10/2026)**: chi tiết đơn (`moQrCk(id)`) và form Sửa đơn (`#oeQrNut` → `moQrCk(id, true)`).
+  Mở từ form Sửa đơn: số tiền tính theo form ĐANG sửa (`conThuForm`), "Đã nhận tiền" chỉ ĐIỀN vào form (`ghiNhanCkVaoForm`),
+  không ghi database — ghi thẳng thì form giữ chip cũ, bấm Lưu đơn sẽ đè mất khoản tiền. Máy tính ≥760px bảng QR 2 cột
+  (`.qr-luoi`, grid-area), điện thoại 1 cột. Bảng đơn máy tính: bấm cả hàng = chi tiết (`bamDongDon`, bỏ qua nút/select).
   Sửa đơn: chọn mẫu giá chữ thì GIỮ giá đã chốt; `oeProductPick` giữ `product_id` cũ kể cả khi danh sách mẫu chưa tải.
 - **Bộ gõ tiếng Việt (Unikey/EVKey) TỰ GỬI chuỗi phím giả để sửa dấu** (phím xoá, bản "sửa lỗi Chrome" còn kèm ký tự tạm).
   2 lỗi thật 03/10/2026 ở ô thành phần form Sản phẩm: (1) "Backspace ở ô trống = xoá viên cuối" → mất sạch các viên;

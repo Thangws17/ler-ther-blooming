@@ -609,6 +609,61 @@ function nutCoEmoji(goc) {
         const cham = parseFloat((cs.backgroundImage.match(/circle at (\d+(?:\.\d+)?)px/) || [])[1])
         if (!(parseFloat(cs.paddingLeft) >= cham + 8)) throw new Error('chấm ở ' + cham + 'px, chữ bắt đầu ' + cs.paddingLeft)
       })
+      // 09/10/2026: shop muốn bấm chỗ nào trên hàng cũng ra chi tiết đơn (trước chỉ mã đơn bấm được)
+      const hang0 = d.querySelector('#ordersTable tr.dong-don'), idDon0 = +hang0.querySelector('.ma-don').textContent.replace(/\D/g, '')
+      hang0.querySelectorAll('td')[6].click(); await cho(100)
+      test('Bấm vào ô địa chỉ của hàng đơn → mở chi tiết đơn', () => {
+        bang(id('customerOrdersModal').style.display, 'flex')
+        if (!id('customerOrdersModal').textContent.includes('Đặt lúc')) throw new Error('không phải màn chi tiết đơn')
+      })
+      w.closeAllModals(); await cho(50)
+      hang0.querySelector('.status-select').click(); await cho(50)
+      test('Bấm ô trạng thái trong hàng → KHÔNG mở chi tiết (chỉ đổi trạng thái)', () =>
+        bang(id('customerOrdersModal').style.display, 'none'))
+      hang0.querySelector('td.actions button').click(); await cho(100)
+      test('Bấm nút Sửa trong hàng → mở form Sửa đơn, KHÔNG mở chồng chi tiết', () => {
+        bang(id('orderEditModal').style.display, 'flex')
+        bang(id('customerOrdersModal').style.display, 'none')
+      })
+      w.closeAllModals(); await cho(50)
+
+      nhom('11b. Form Sửa đơn có nút Mã QR chuyển khoản (09/10)')
+      w.eval(`_taiKhoanCk = taiKhoanCk({ ck_ngan_hang: '970407', ck_so_tk: '1903456789', ck_chu_tk: 'LER THU' })`)
+      w.eval(`(() => { const o = orderById(${idDon0}); o.thanh_toan = 'Chưa thanh toán'; o.tien_coc = null; o.ngay_tt = null; o.cach_tt = null })()`)
+      w.openOrderEditModal(idDon0); await cho(100)
+      const tongDon0 = w.eval(`ttTongForm('oe')`)
+      test('Đơn chưa thanh toán → nút QR hiện trong mục Thanh toán', () => {
+        const nut = id('oeQrNut')
+        if (!nut || nut.offsetParent === null) throw new Error('không thấy nút QR')
+        if (!tongDon0) throw new Error('đơn thử không có tổng tiền')
+      })
+      w.eval(`moneySet('oeUnitPrice', 500000); oeUpdateTotalPreview()`)
+      const tongMoi = w.eval(`ttTongForm('oe')`)
+      id('oeQrNut').click(); await cho(400)
+      test('Bấm nút QR → mở bảng QR, số tiền = tổng theo form ĐANG sửa (giá vừa đổi, chưa lưu)', () => {
+        bang(id('qrCkModal').style.display, 'flex')
+        bang(w.eval(`moneyNum('qrCkTien')`), tongMoi)
+      })
+      const soLenhTruoc = A.nhatKy.length
+      id('qrCkDaNhan').click(); await cho(100)
+      test('"Đã nhận tiền" từ form Sửa đơn → chỉ điền vào form (Đã thanh toán), KHÔNG ghi database', () => {
+        bang(id('qrCkModal').style.display, 'none')
+        bang(id('oeTt').value, 'Đã thanh toán')
+        bang(A.nhatKy.slice(soLenhTruoc).filter(x => x.lenh !== 'select').map(x => x.lenh), [])
+        bang(id('orderEditModal').dataset.dirty, '1')
+      })
+      test('Đã thanh toán → nút QR ẩn đi', () => bang(id('oeQrNut').style.display, 'none'))
+      w.eval(`segSet('oeTt', 'Đã cọc'); moneySet('oeCoc', 100000); ttForm('oe')`)
+      id('oeQrNut').click(); await cho(400)
+      test('Đã cọc 100.000 → QR điền số còn lại (tổng − cọc)', () => bang(w.eval(`moneyNum('qrCkTien')`), tongMoi - 100000))
+      w.eval(`qrDoiTien(50000, true)`)
+      id('qrCkDaNhan').click(); await cho(100)
+      test('Nhận thêm 50.000 → form thành "Đã cọc" 150.000', () => {
+        bang(id('oeTt').value, 'Đã cọc')
+        bang(w.eval(`moneyNum('oeCoc')`), 150000)
+      })
+      id('orderEditModal').dataset.dirty = ''; w.closeAllModals(); await cho(50)
+
       nhom('12. Máy tính — hàng chip hiện đủ, không phải kéo ngang bằng chuột (26/09)')
       w.openNewOrderModal(); await cho(100)
       test('Form thêm đơn: bánh xe giờ gọn, nằm trọn trong form', () => {
