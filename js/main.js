@@ -938,6 +938,28 @@ function nenDoLuong(tenMay = location.hostname) {
   return true;
 }
 
+// Script GA4 / Clarity CHỜ NẠP (11/10/2026): hàng chờ sự kiện (dataLayer / clarity.q) dựng NGAY, còn tải script thì đợi
+// trang hiện xong — sau sự kiện load + lúc máy rảnh (chậm nhất 4 giây), hoặc ngay khi khách chạm / gõ phím. Trước đó nạp
+// lúc trang còn đang dựng: đo trên điện thoại chậm, 2 script chặn máy ~1 giây, chữ / ảnh chính hiện trễ (trang Sản phẩm 8,5 giây).
+// Lượt xem vẫn đủ (lệnh config nằm sẵn trong dataLayer); chỉ khách thoát trong vài giây đầu là có thể không được đếm.
+let _doLuongScript = [];
+function napScriptDoLuong() {
+  const ds = _doLuongScript; _doLuongScript = [];
+  ds.forEach(sc => document.head.appendChild(sc));
+}
+function henNapDoLuong() {
+  const SU_KIEN = ['pointerdown', 'keydown'];
+  let xong = false;
+  const nap = () => {
+    if (xong) return; xong = true;
+    SU_KIEN.forEach(e => removeEventListener(e, nap, true));
+    napScriptDoLuong();
+  };
+  SU_KIEN.forEach(e => addEventListener(e, nap, { capture: true, passive: true }));
+  const khiRanh = () => (window.requestIdleCallback ? requestIdleCallback(nap, { timeout: 4000 }) : setTimeout(nap, 1500));
+  if (document.readyState === 'complete') khiRanh(); else addEventListener('load', khiRanh, { once: true });
+}
+
 function initDoLuong(cfg, tenMay = location.hostname) {
   if (_doLuongBat) return true;
   _doLuongDaQuyet = true;
@@ -954,7 +976,7 @@ function initDoLuong(cfg, tenMay = location.hostname) {
     s.async = true;
     s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(ga4);
     s.dataset.doLuong = 'ga4';
-    document.head.appendChild(s);
+    _doLuongScript.push(s);
     coGi = true;
   }
   if (MA_CLARITY.test(clarity)) {
@@ -963,11 +985,12 @@ function initDoLuong(cfg, tenMay = location.hostname) {
     s.async = true;
     s.src = 'https://www.clarity.ms/tag/' + encodeURIComponent(clarity);
     s.dataset.doLuong = 'clarity';
-    document.head.appendChild(s);
+    _doLuongScript.push(s);
     coGi = true;
   }
   _doLuongBat = coGi;
   if (coGi) {
+    henNapDoLuong();
     ghiNhanBamLienHe();
     const cho = _doLuongCho; _doLuongCho = [];
     cho.forEach(([ten, thamSo]) => doLuong(ten, thamSo));

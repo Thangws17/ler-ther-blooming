@@ -125,6 +125,9 @@ const WEB_THAT = 'lertherblooming.vn'
     bang(w.eval('_doLuongCho.length'), 1))
   const bat = w.initDoLuong({ ga4_id: 'G-TEST12345', clarity_id: 'test1234ab' }, WEB_THAT)
   test('Bật được đo lường', () => bang(bat, true))
+  test('Script đo lường CHƯA nạp ngay lúc bật (đợi trang hiện xong / khách chạm — đỡ chặn máy)', () =>
+    bang(theDoLuong().length, 0))
+  w.napScriptDoLuong()   // giả lập: tới lúc rảnh
   test('Nạp đúng script Google Analytics với mã', () => {
     const s = theDoLuong().find(x => x.dataset.doLuong === 'ga4')
     if (!s) throw new Error('không có script ga4')

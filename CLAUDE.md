@@ -136,6 +136,8 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
   (cờ `lt_mayCuaShop`, đặt trong `showApp()`). Ghi thao tác bằng `doLuong(ten, thamSo)` — gọi sớm cũng được,
   nó tự xếp hàng chờ tới khi biết có bật hay không. Lưu form Liên hệ phải bỏ cột database chưa có
   (`_contactCot`), không thì chưa chạy SQL 20 là hỏng cả form.
+  **Script GA4/Clarity nạp TRỄ (11/10/2026)**: `initDoLuong` dựng hàng chờ ngay nhưng script chỉ gắn vào trang sau `load` + lúc
+  rảnh (≤ 4 giây) hoặc khi khách chạm/gõ (`henNapDoLuong` / `napScriptDoLuong`) — nạp sớm làm điện thoại chậm bị chặn ~1 giây.
 - **Trạng thái đơn bị database khoá chỉ nhận 6 giá trị** (`supabase/19_order_status_check.sql`), phải
   khớp y hệt `ORDER_STATUSES` trong admin. Thêm/đổi tên trạng thái: sửa SQL **trước**, rồi mới sửa JS —
   ngược lại thì lưu đơn bị từ chối. Mọi chỗ ghi status đều phải lấy từ `ORDER_STATUSES`, đừng gõ tay chuỗi.
