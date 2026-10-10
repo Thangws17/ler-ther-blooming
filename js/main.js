@@ -107,21 +107,23 @@ function initNav() {
 let _revealObserver;
 function initScrollReveal(root = document) {
   if (!_revealObserver) {
+    // Độ trễ so le tính theo LƯỢT HIỆN (các thẻ cùng cuộn tới một lúc), tối đa 0,4 giây — KHÔNG theo vị trí trong cả lưới.
+    // Trước 10/10/2026 thẻ thứ 40 trang Sản phẩm chờ 3,2 giây mới hiện; rê chuột qua thẻ lúc đó làm hiệu ứng chạy lại
+    // cùng độ trễ → thẻ đã rõ nhưng kẹt lệch xuống 36px trong khi thẻ bên cạnh đã về chỗ (shop báo "xô lệch").
+    // Hiện xong thì xoá độ trễ, để mọi thay đổi sau đó (rê chuột, chạm) không phải chờ.
     _revealObserver = new IntersectionObserver((entries) => {
+      let k = 0;
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view');
-          _revealObserver.unobserve(entry.target);
-        }
+        if (!entry.isIntersecting) return;
+        const el = entry.target, tre = Math.min(k++, 5) * 0.08;
+        el.style.setProperty('--reveal-delay', tre + 's');
+        el.classList.add('in-view');
+        _revealObserver.unobserve(el);
+        setTimeout(() => el.style.setProperty('--reveal-delay', '0s'), (tre + 0.8) * 1000);
       });
     }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
   }
   root.querySelectorAll('.reveal:not(.in-view)').forEach(el => _revealObserver.observe(el));
-}
-
-// stagger helper: tag each element in a NodeList/array with an increasing delay
-function staggerReveal(els, step = 0.08) {
-  els.forEach((el, i) => el.style.setProperty('--reveal-delay', `${i * step}s`));
 }
 
 // ─── Category visual styles ───────────────────────────────
@@ -467,7 +469,6 @@ function renderProducts(list, grid) {
   }
   grid.innerHTML = list.map(productCardHTML).join('');
   wireOrderButtons();
-  staggerReveal(grid.querySelectorAll('.reveal'));
   initScrollReveal(grid);
 }
 
@@ -577,7 +578,6 @@ async function loadFeatured() {
   if (!data?.length) { grid.closest('section')?.remove(); return; }
   grid.innerHTML = data.map(productCardHTML).join('');
   wireOrderButtons();
-  staggerReveal(grid.querySelectorAll('.reveal'));
   initScrollReveal(grid);
 }
 
@@ -1614,7 +1614,6 @@ async function loadTestimonials() {
     ${t.context ? `<span class="testimonial-context">— ${esc(t.context)}</span>` : ''}
   </div>
 </div>`).join('');
-  staggerReveal(grid.querySelectorAll('.reveal'));
   initScrollReveal(grid);
 }
 
@@ -1768,7 +1767,6 @@ async function loadRelated(excludeId) {
 
   grid.innerHTML = data.map(productCardHTML).join('');
   wireOrderButtons();
-  staggerReveal(grid.querySelectorAll('.reveal'));
   initScrollReveal(grid);
   const h = section.querySelector('h2');
   if (h) h.textContent = cung.length ? 'Cùng bộ sưu tập' : 'Có thể bạn cũng thích';
