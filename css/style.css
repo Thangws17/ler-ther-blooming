@@ -1437,3 +1437,65 @@ html, body { overflow-x: clip; }
 @media (max-width: 560px) {
   .product-nick { font-size: .74rem; margin: -2px 0 6px; }
 }
+
+/* ══ Chuyển động (rà soát 11/10/2026) ══════════════════════════════════════════════
+   Dùng thuộc tính `scale` / `translate` riêng (không đụng `transform`) — transform của thẻ là của hiệu ứng
+   hiện dần (.reveal), đè lên là thẻ kẹt lệch (bài học 10/10). Máy bật "giảm chuyển động" → tắt hết (cuối khối). */
+
+/* Chuyển trang mượt: trang cũ mờ sang trang mới thay vì chớp trắng (Chrome/Edge/Safari 18+; máy cũ bỏ qua).
+   Thanh menu trên + thanh tab dưới giữ yên, chỉ phần nội dung chuyển. */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; }
+.navbar { view-transition-name: thanh-tren; }
+.w-tabs { view-transition-name: thanh-tab; }
+
+/* Đóng form đặt hoa: bản sao "ma" (dongCoMa) mờ đi + hạ xuống */
+.order-overlay.lop-ma { display: flex; pointer-events: none; animation: ovRa .2s ease forwards; }
+.order-overlay.lop-ma .order-modal { animation: ovBoxRa .2s ease forwards; }
+@keyframes ovRa { to { opacity: 0; } }
+@keyframes ovBoxRa { to { opacity: 0; transform: translateY(12px) scale(.98); } }
+
+/* Menu điện thoại: thả xuống nhẹ thay vì bật cụt */
+@media (max-width: 640px) {
+  .nav-links.open { animation: menuXuong .22s cubic-bezier(.2,.8,.2,1); }
+  .nav-links.open li { animation: menuMuc .3s cubic-bezier(.2,.8,.2,1) backwards; }
+  .nav-links.open li:nth-child(2) { animation-delay: .03s; } .nav-links.open li:nth-child(3) { animation-delay: .06s; }
+  .nav-links.open li:nth-child(4) { animation-delay: .09s; } .nav-links.open li:nth-child(5) { animation-delay: .12s; }
+  .nav-links.open li:nth-child(n+6) { animation-delay: .15s; }
+}
+@keyframes menuXuong { from { opacity: 0; translate: 0 -8px; } }
+@keyframes menuMuc { from { opacity: 0; translate: -6px 0; } }
+
+/* Máy cảm ứng (không có rê chuột): chạm là lún nhẹ — biết là đã bấm trúng.
+   KHÔNG áp cho thẻ sản phẩm / BST / ảnh: đặt transition lên thẻ là đè mất hiệu ứng hiện dần (.reveal) của thẻ. */
+@media (hover: none) {
+  .menu-toggle, .lightbox-nav, .om-chip2, .w-tabs .ic { transition: scale .12s ease, background-color .15s ease, border-color .15s ease, color .15s ease; }
+  .btn:active, .filter-tab:active, .om-chip:active, .om-chip2:active, .menu-toggle:active, .lightbox-nav:active,
+  .btn-zalo:active, .btn-call:active, .btn-social:active { scale: .95; }
+  .w-tabs a:active .ic { scale: .86; }
+}
+
+/* Menu điện thoại đóng: thu lên + mờ đi (main.js thêm .dong rồi 0,18 giây sau mới ẩn) */
+@media (max-width: 640px) { .nav-links.open.dong { animation: menuLen .18s ease-in forwards; } }
+@keyframes menuLen { to { opacity: 0; translate: 0 -6px; } }
+
+/* Ảnh thẻ hiện dần khi tải xong — chỉ khi JS đã bật .anh-mo (JS hỏng thì ảnh vẫn hiện). Giữ transform cũ (phóng to khi rê) */
+.anh-mo .product-img img, .anh-mo .bst-card img, .anh-mo .gallery-item img { opacity: 0; }
+.anh-mo .product-img img.da-tai, .anh-mo .bst-card img.da-tai, .anh-mo .gallery-item img.da-tai { opacity: 1; }
+.product-img img { transition: opacity .4s ease, transform .4s ease; }
+.bst-card img { transition: opacity .4s ease, transform .5s ease; }
+.gallery-item img { transition: opacity .4s ease, transform .45s ease; }
+
+/* Nút "Đang gửi…" (khoá) → vòng xoay nhỏ trước chữ (theoDoiNutCho, js/dungchung.js) */
+.dang-chay:disabled::before { content: ''; display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
+                              border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: xoay .7s linear infinite; }
+@keyframes xoay { to { rotate: 360deg; } }
+
+/* Trang chi tiết: khung chờ cao xấp xỉ nội dung thật → chân trang không bị đẩy khi mẫu hoa tải xong (xô lệch 0,6 trước 11/10) */
+#detailContent > .loading { min-height: 620px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+@media (max-width: 640px) { #detailContent > .loading { min-height: calc(100svh - 120px); } }
+/* Giảm chuyển động: tắt mọi hiệu ứng + không chuyển trang mờ */
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

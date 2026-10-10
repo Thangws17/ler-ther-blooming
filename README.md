@@ -201,6 +201,7 @@ Dựng lại database từ đầu thì cứ chạy **lần lượt `01_` → `17
 21_collections              →  Bộ sưu tập thay danh mục (tự chuyển danh mục cũ sang, không mất mẫu nào)
 22_bst_cua_ler              →  4 BST của Ler (Trông Trăng, 20/10, Em Xinh, Anh Trai) + tắt 5 BST cũ; chỉ tác dụng lần đầu
 28_thong_tin_chung          →  "Thông tin chung" dưới mọi mẫu hoa (giao, COD, size…) sửa ở admin → Sản phẩm
+33_nguon_khach              →  cột "Nguồn khách" của đơn (Facebook / Zalo / Web…) cho tab Báo cáo; đơn web tự ghi "Web"
 ```
 
 > `supabase/da-thay-the/` chứa 3 file `place_order` cũ. **Đừng chạy** — chạy vào là lùi hàm đặt
@@ -208,7 +209,7 @@ Dựng lại database từ đầu thì cứ chạy **lần lượt `01_` → `17
 
 ## 7. Trang quản lý (admin)
 
-Các tab: **📊 Tổng quan · 📦 Đơn hàng · 📅 Lịch giao · 👤 Khách hàng · 💰 Sổ chi phí · 🛍️ Sản phẩm · 🌿 Bộ sưu tập · 📸 Khoảnh khắc · 💬 Đánh giá · 📝 Cập nhật · ⚙️ Liên hệ**.
+Các tab: **📊 Tổng quan · 📦 Đơn hàng · 📅 Lịch giao · 👤 Khách hàng · 💰 Sổ chi phí · 📈 Báo cáo · 🛍️ Sản phẩm · 🌿 Bộ sưu tập · 📸 Khoảnh khắc · 💬 Đánh giá · 📝 Cập nhật · ⚙️ Liên hệ**.
 Dùng tốt trên điện thoại (menu trượt, bảng đổi thành thẻ, bottom-sheet). F5 vẫn giữ nguyên tab đang xem nhờ `#hash` trên URL.
 
 **Vòng đời đơn hàng**

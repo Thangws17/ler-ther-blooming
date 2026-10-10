@@ -81,17 +81,18 @@ function initNav() {
   const links  = document.getElementById('navLinks');
   if (!toggle || !links) return;
 
-  toggle.addEventListener('click', () => {
-    const open = links.classList.toggle('open');
-    toggle.innerHTML = ic(open ? 'x' : 'menu');
-  });
-
-  links.querySelectorAll('a').forEach(a =>
-    a.addEventListener('click', () => {
-      links.classList.remove('open');
-      toggle.innerHTML = ic('menu');
-    })
-  );
+  // Đóng: thu lên + mờ đi 0,18 giây (class .dong) rồi mới ẩn. Bấm mở lại giữa chừng thì huỷ việc ẩn.
+  let henDong = null;
+  const moMenu = () => { clearTimeout(henDong); links.classList.remove('dong'); links.classList.add('open'); toggle.innerHTML = ic('x'); };
+  const dongMenu = () => {
+    if (!links.classList.contains('open') || links.classList.contains('dong')) return;
+    toggle.innerHTML = ic('menu');
+    if (giamChuyenDong()) { links.classList.remove('open'); return; }
+    links.classList.add('dong');
+    henDong = setTimeout(() => links.classList.remove('open', 'dong'), 180);
+  };
+  toggle.addEventListener('click', () => (links.classList.contains('open') && !links.classList.contains('dong') ? dongMenu() : moMenu()));
+  links.querySelectorAll('a').forEach(a => a.addEventListener('click', dongMenu));
 
   // Tô sáng mục menu của trang đang xem. So theo TÊN TRANG đã bỏ đuôi .html,
   // để khớp cả link mới (/san-pham) lẫn link cũ ai đó còn lưu (/san-pham.html),
@@ -102,6 +103,18 @@ function initNav() {
     if (tenTrang(a.getAttribute('href')) === page) a.classList.add('active');
   });
 }
+
+// ─── Ảnh hiện dần khi tải xong (11/10/2026) ──────────────
+// Ảnh thẻ mẫu hoa / bộ sưu tập / Khoảnh khắc mờ dần lên thay vì hiện từng khúc. CSS chỉ làm ảnh trong suốt khi <html>
+// có class .anh-mo (do chính đoạn này đặt) → JS hỏng / không chạy thì ảnh vẫn hiện bình thường. Lỗi ảnh cũng coi như xong.
+(function () {
+  const xong = e => { if (e.target.tagName === 'IMG') e.target.classList.add('da-tai'); };
+  document.addEventListener('load', xong, true);
+  document.addEventListener('error', xong, true);
+  document.documentElement.classList.add('anh-mo');
+  // Ảnh đã có sẵn trong trang lúc chạy tới đây (tải xong trước khi kịp nghe) → đánh dấu luôn
+  document.querySelectorAll('img').forEach(i => { if (i.complete) i.classList.add('da-tai'); });
+})();
 
 // ─── Scroll reveal ───────────────────────────────────────
 let _revealObserver;
@@ -565,7 +578,9 @@ async function loadHeroPriceHint() {
   if (!nums.length) return;
   const min = Math.min(...nums);
   el.textContent = `Hoa tươi chỉ từ ${min.toLocaleString('vi-VN')}đ · Giao tận nơi nội thành`;
-  el.style.display = 'block';
+  // Chỗ đã giữ sẵn trong HTML (chữ mẫu ẩn) → chỉ hiện ra, không đẩy bố cục (11/10/2026)
+  el.style.visibility = '';
+  el.removeAttribute('aria-hidden');
 }
 
 // ─── Featured products (home page) ───────────────────────
@@ -1422,7 +1437,9 @@ function toggleOrderMore() {
 }
 
 function closeOrderModal() {
-  document.getElementById('orderOverlay')?.classList.remove('open');
+  // Đóng có hiệu ứng (form mờ đi + hạ xuống) — form thật đóng NGAY, bản sao diễn cảnh đóng (dongCoMa, js/dungchung.js)
+  const ov = document.getElementById('orderOverlay');
+  if (ov && ov.classList.contains('open')) dongCoMa(ov, () => ov.classList.remove('open'));
   unlockBodyScroll();
 }
 

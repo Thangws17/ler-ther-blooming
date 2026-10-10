@@ -236,6 +236,16 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
   (về tháng này + bỏ tìm/loại). Kỳ = cả tháng `expenseMonth` hoặc khoảng tự chọn `exTu`/`exDen` (`exKy()`; chọn trúng trọn 1 tháng thì
   `exSetRange` tự quy về xem tháng đó). Doanh thu/lãi tính theo kỳ (`_statCtxEx.ky`). Chip loại + ô tìm (`exLocDanhSach`) chỉ
   lọc DANH SÁCH ở máy, không đổi số tổng hợp phía trên (lọc loại mà đổi tổng thì "Lãi gộp" sai).
+- **Tab Báo cáo (`panelReports`, 11/10/2026)**: `loadBaoCao()` tải HẾT đơn từng trang 1.000 (`bcLayDon`) + chi phí + BST, rồi
+  `bcVe()` tính ở máy. Kỳ = ô ẩn `bcTu`/`bcDen` (trống = tháng này): chip `BC_KY` (chip sáng khi khoảng trùng), ‹ › `bcBuoc` (trọn
+  tháng → lùi đúng số tháng), lịch dùng chung `LOC_NGAY.bc`. So kỳ liền trước / cùng kỳ năm ngoái (`bcSoSanh`); kỳ chưa hết thì kỳ so
+  chỉ lấy số ngày đã qua (`bcKhoang`). Lọc thêm nguồn / BST (`bcQuaLoc`) → không tính lãi (chi phí không chia nhóm được).
+  Sắc thái: dải nhận xét `bcDanhGia` (tốt/ổn/cần chú ý/lỗ, luôn kèm chữ + biểu tượng) + ô số tô nền theo ngưỡng `BC_NGUONG_TANG/GIAM`.
+  Doanh thu cùng luật Tổng quan. Máy tính lưới 3 cột; điện thoại dưới biểu đồ chỉ 1 khối (`.an-dt`, thanh tab `bcTabDt`).
+  Bấm số/dòng/cột nào cũng mở danh sách đơn qua `bcMo(khoa)` (dùng chung `statDetailModal`).
+- **Nguồn khách `orders.nguon` (SQL 33)**: chip "Khách tới từ" trong form Thêm/Sửa đơn (`NGUON_KHACH`, `nguonVe(k, v, coCot)`),
+  form Thêm đơn nhớ lần trước (`lt_nguonCuoi`). Database KHÔNG khoá giá trị (chỉ ≤ 30 ký tự) — thêm chip chỉ sửa mảng JS.
+  Đơn web tự ghi `'Web'` bằng trigger (vai `anon`), không sửa `place_order`. Chưa chạy SQL 33 → chip ẩn, hiện nhắc chạy file.
 - **Tra đơn theo id phải dùng `orderById(id)`**, không dùng `orders.find`. Tab Tổng quan và Lịch giao
   nạp đơn của chúng vào `_donCache` qua `cacheOrders()` và **không được gán vào `orders`** — gán là phá
   trang đang xem của tab Đơn hàng (đã từng như vậy).
@@ -353,6 +363,20 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
   (2) "gõ dấu phẩy / ô có dấu phẩy / rời ô = tự thành viên" → gõ "Thắng" ra 6 viên "Tha", "ăng", "ắng"… Luật: **trong lúc
   người dùng đang gõ, KHÔNG làm trống / ghi đè / tách ô đó, KHÔNG gắn hành động xoá vào phím xoá.** Chỉ hành động chủ ý
   (Enter không đang ghép chữ — `!e.isComposing`, hoặc bấm nút) mới được chốt. Test 10b giả lập đúng chuỗi phím bộ gõ.
+- **Chuyển động (rà soát 11/10/2026)**: đóng hộp thoại admin dùng **`anModal(id)`** (không gán `style.display='none'` suông
+  nữa), form đặt hoa web dùng `dongCoMa()` (js/dungchung.js): ô thật ẩn NGAY (code/test thấy đã đóng như cũ), 1 bản sao
+  `.lop-ma` (không id/name, `inert`) diễn cảnh đóng ~0,3 giây rồi tự gỡ — chọn phần tử bằng id thì không vướng bản sao, đếm
+  `.modal-overlay` thì phải `:not(.lop-ma)`. Hiệu ứng mới dùng thuộc tính **`scale` / `translate` riêng, KHÔNG `transform`**
+  (đè transform là thẻ .reveal kẹt lệch, lịch nổi điện thoại lệch tâm). Đừng đặt `transition` lên thẻ sản phẩm/BST/ảnh (đè hiệu ứng
+  hiện dần). Web khách chuyển trang bằng `@view-transition` (thanh trên + thanh tab giữ yên). Cả 2 bên có khối
+  `prefers-reduced-motion` tắt mọi hiệu ứng ở CUỐI file CSS — hiệu ứng JS (`animate()`) thì tự kiểm `giamChuyenDong()`.
+- **Chống xô lệch bố cục (CLS, đo 11/10/2026)**: khối ở màn đầu trang KHÔNG được ẩn sẵn (`display:none`) rồi JS mới bật — giữ chỗ
+  trước: `#bstSection` hiện sẵn khung chờ `.sk-box` (không có bộ nào mới ẩn), `#heroPriceHint` có chữ mẫu + `visibility:hidden`,
+  khung chờ trang chi tiết cao sẵn (`#detailContent > .loading`). Trước đó trang chủ xô 0,4, trang chi tiết 0,6 (chuẩn tốt < 0,1).
+  Đo lại: CDP + PerformanceObserver `layout-shift` (giả lập điện thoại CPU ×4).
+- **Tự động, không cần sửa từng chỗ**: nút bị khoá có chữ "Đang …" tự hiện vòng xoay (`theoDoiNutCho`, dungchung.js — đặt chữ
+  khác "Đang …" là không xoay). Lưu / đổi trạng thái đơn xong gọi `loeDon(id)` → hàng/thẻ đơn đó loé vàng. Ảnh thẻ mẫu hoa /
+  BST / Khoảnh khắc web khách hiện dần nhờ class `.anh-mo` trên `<html>` + `.da-tai` (main.js) — thêm lưới ảnh mới thì thêm vào CSS đó.
 - **Đừng đặt `position: sticky` cho phần tử nằm TRONG `.content`.** `.content` là khung cuộn;
   sticky bên trong khung cuộn là chỗ iOS vẽ sai toạ độ → thấy phần tử nhưng bấm không trúng.
   `.admin-topbar` vì vậy là anh em của `.content`, không phải con.

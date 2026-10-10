@@ -89,6 +89,9 @@ function isValidPhone(raw) { return PHONE_OK.test(normalizePhone(raw)) }
 // Bộ <symbol> được chèn vào đầu <body> ngay khi file này chạy.
 // Thêm biểu tượng: thêm 1 dòng vào BIEU_TUONG (nét vẽ khung 24×24, kiểu Lucide).
 const BIEU_TUONG = {
+  info: "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4M12 8h.01\"/>",
+  filter: "<path d=\"M22 3H2l8 9.46V19l4 2v-8.54L22 3z\"/>",
+  chart: "<path d=\"M3 3v18h18\"/><path d=\"M18 17V9M13 17V5M8 17v-3\"/>",
   dash: "<rect width=\"7\" height=\"9\" x=\"3\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"5\" x=\"14\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"9\" x=\"14\" y=\"12\" rx=\"1\"/><rect width=\"7\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\"/>",
   box: "<path d=\"m7.5 4.27 9 5.15\"/><path d=\"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z\"/><path d=\"m3.3 7 8.7 5 8.7-5\"/><path d=\"M12 22V12\"/>",
   cal: "<rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\"/><path d=\"M16 2v4M8 2v4M3 10h18\"/>",
@@ -552,3 +555,47 @@ function keoNgangBangChuot() {
   })
 }
 keoNgangBangChuot()
+
+// ── Hiệu ứng ĐÓNG cho lớp phủ (hộp thoại admin, form đặt hoa web khách) — 11/10/2026 ──
+// Mở thì vốn đã mượt (CSS animation), đóng thì trước đây biến mất "cái bụp". Cách làm: phần tử THẬT ẩn NGAY
+// (code + test sau đó vẫn thấy "đã đóng" như cũ, không phải chờ), còn 1 bản sao "ma" (không id, không name,
+// không bấm được) diễn cảnh đóng rồi tự gỡ. Kiểu đóng do CSS từng trang lo qua class .lop-ma.
+// Bản sao giữ nguyên chữ đang gõ (cloneNode chép giá trị ô nhập) và vị trí cuộn của form.
+function giamChuyenDong() {
+  try { return matchMedia('(prefers-reduced-motion: reduce)').matches } catch (e) { return false }
+}
+function dongCoMa(el, an) {
+  if (!el || giamChuyenDong() || !el.getClientRects().length) { an(); return }
+  // Chỉ đọc vị trí cuộn ở các khung hay cuộn (quét mọi phần tử của form dài tốn ~40ms trên điện thoại chậm)
+  const KHUNG_CUON = '.modal-box, .modal-body, .order-modal, [data-cuon]'
+  const goc = [el, ...el.querySelectorAll(KHUNG_CUON)]
+  const cuon = []
+  goc.forEach((g, i) => { if (g.scrollTop) cuon.push([i, g.scrollTop]) })
+  const ma = el.cloneNode(true)
+  const cuonMa = [ma, ...ma.querySelectorAll(KHUNG_CUON)]
+  const ban = [ma, ...ma.querySelectorAll('[id], [name], [onclick]')]
+  // name: ô radio cùng tên ở bản sao sẽ "giành" trạng thái chọn của ô thật
+  ban.forEach(b => { b.removeAttribute('id'); b.removeAttribute('name'); b.removeAttribute('onclick') })
+  ma.classList.add('lop-ma')
+  ma.setAttribute('aria-hidden', 'true')
+  ma.inert = true
+  an()
+  document.body.appendChild(ma)
+  cuon.forEach(([i, t]) => { if (cuonMa[i]) cuonMa[i].scrollTop = t })
+  setTimeout(() => ma.remove(), 300)
+}
+
+// ── Nút đang chờ → vòng xoay nhỏ (11/10/2026) ──
+// Nút bị khoá (disabled) mà chữ bắt đầu bằng "Đang …" (Đang lưu… / Đang tạo… / Đang gửi…) → gắn class .dang-chay,
+// CSS từng trang vẽ vòng xoay. Nút mở lại là tự gỡ. Không phải sửa từng chỗ lưu.
+function theoDoiNutCho() {
+  if (!window.MutationObserver || !document.body) return
+  new MutationObserver(ds => {
+    for (const m of ds) {
+      const b = m.target
+      if (b.tagName === 'BUTTON') b.classList.toggle('dang-chay', b.disabled && /^Đang\s/.test(b.textContent.trim()))
+    }
+  }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['disabled'] })
+}
+if (document.body) theoDoiNutCho()
+else document.addEventListener('DOMContentLoaded', theoDoiNutCho)

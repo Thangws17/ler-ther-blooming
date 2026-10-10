@@ -65,7 +65,7 @@
           <a href="san-pham" class="btn btn-white">Đặt hoa</a>
           <a href="khoanh-khac" class="btn btn-ghost">Xem Khoảnh khắc</a>
         </div>
-        <p class="hero-price-hint" id="heroPriceHint" style="display:none"></p>
+        <p class="hero-price-hint" id="heroPriceHint" style="visibility:hidden" aria-hidden="true">Hoa tươi chỉ từ 000.000đ · Giao tận nơi nội thành</p>
       </div>
     </div>
     <div class="trust3">
@@ -78,7 +78,7 @@
 
 <!-- ── Bộ sưu tập ─────────────────────────────────────
      Ẩn sẵn; JS bật lên khi có bộ sưu tập đang hiện (js/main.js → loadBoSuuTap) -->
-<section id="bstSection" style="display:none;background:#fff;">
+<section id="bstSection" style="background:#fff;">
   <div class="container">
     <div class="section-header">
       <span class="sec-kicker">Theo mùa · theo dịp</span>
@@ -86,7 +86,9 @@
       <p>Mỗi mùa một câu chuyện — chọn bộ hợp với dịp của bạn</p>
     </div>
     <!-- "reveal" đặt cho CẢ HÀNG, không cho từng thẻ: thẻ khuất bên phải chưa "được thấy" sẽ trồi lên lúc trôi tới -->
-    <div class="bst-grid reveal" id="bstGrid"></div>
+    <!-- Khung chờ giữ sẵn chỗ (11/10/2026): trước đây khối ẩn rồi mới bật ra → đẩy "Sản phẩm nổi bật" xuống (xô lệch bố cục).
+         Không có bộ nào thì JS mới ẩn cả khối. -->
+    <div class="bst-grid reveal" id="bstGrid"><div class="bst-card sk-box" aria-hidden="true"></div><div class="bst-card sk-box" aria-hidden="true"></div><div class="bst-card sk-box" aria-hidden="true"></div><div class="bst-card sk-box" aria-hidden="true"></div></div>
   </div>
 </section>
 

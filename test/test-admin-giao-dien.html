@@ -87,7 +87,7 @@ function nutCoEmoji(goc) {
 }
 
 ;(async function main() {
-  const TABS = ['Dashboard', 'Orders', 'Delivery', 'Customers', 'Expenses', 'Products', 'Collections', 'Gallery', 'Testimonials', 'Changelog', 'Contact']
+  const TABS = ['Dashboard', 'Orders', 'Delivery', 'Customers', 'Expenses', 'Reports', 'Products', 'Collections', 'Gallery', 'Testimonials', 'Changelog', 'Contact']
 
   for (const [rong, cao, ten] of [[390, 780, 'điện thoại 390px'], [1280, 860, 'máy tính 1280px']]) {
     const A = await moAdmin(rong, cao)
@@ -319,6 +319,209 @@ function nutCoEmoji(goc) {
         bang(id('expenseMonthDisplay').textContent, 'Tháng 1/2000')
       })
       w.expenseSetThisMonth(); await cho(300)
+
+      // ── Báo cáo (11/10/2026) — số tính lại từ dữ liệu giả, không ghi cứng (ngày giả lùi theo hôm nay) ──
+      nhom('6b. Báo cáo')
+      const RS = w.eval('REVENUE_STATUSES'), thangNay = A.ngay(0).slice(0, 7)
+      const ngayGhi = o => o.delivery_date || o.created_at.slice(0, 10)
+      const trongThang = o => ngayGhi(o).slice(0, 7) === thangNay
+      const giaoThang = A.dl.orders.filter(o => RS.includes(o.status) && trongThang(o))
+      const dtThang = giaoThang.reduce((s, o) => s + o.total, 0)
+      const chiThang = A.dl.expenses.reduce((s, e) => s + e.amount, 0)
+      const chiSo = t => t.replace(/[^\d-]/g, '')
+      const nhanThang = ym => `Tháng ${Number(ym.slice(5))}/${ym.slice(0, 4)}`
+      // Đơn 145 (đã giao) chưa thu tiền; các đơn khác đã thanh toán. Vài đơn có nguồn khách.
+      A.dl.orders.forEach(o => { o.thanh_toan = o.id === 145 ? 'Chưa thanh toán' : 'Đã thanh toán' })
+      A.dl.orders[0].nguon = 'Zalo'; A.dl.orders[1].nguon = 'Zalo'; A.dl.orders[2].nguon = 'Facebook'
+      w.applyTab('Reports'); await cho(400)
+      const theBc = () => [...d.querySelectorAll('#bcNoiDung .bc-the')]
+      const khoiBc = n => d.querySelector(`#bcNoiDung .bc-o[data-n="${n}"]`)
+      const chipKy = () => [...d.querySelectorAll('#bcKyChips .chip-thismonth')]
+      test('Mở mặc định "Tháng này", có nhận xét + 4 ô số', () => {
+        bang(d.querySelector('#bcKyChips .active')?.textContent, 'Tháng này')
+        bang(id('bcKyNut').textContent.trim(), nhanThang(thangNay))
+        bang(theBc().length, 4)
+        bang(!!d.querySelector('#bcNoiDung .bc-dg[class*="bc-dg-"]'), true)
+      })
+      test(`Doanh thu tháng = đơn đã giao trong tháng (${dtThang})`, () => bang(chiSo(theBc()[0].querySelector('.bc-the-n').textContent), String(dtThang)))
+      test(`Lãi gộp = doanh thu − chi phí (${dtThang - chiThang})`, () => bang(chiSo(theBc()[1].querySelector('.bc-the-n').textContent), String(dtThang - chiThang)))
+      test('Đang lỗ → ô lãi tô đỏ + nhận xét "Đang lỗ" (dữ liệu giả chi > thu)', () => {
+        if (dtThang - chiThang >= 0) return
+        bang(theBc()[1].classList.contains('bc-the-giam'), true)
+        bang(d.querySelector('#bcNoiDung .bc-dg').classList.contains('bc-dg-xau'), true)
+      })
+      test(`Đơn đã giao = ${giaoThang.length} đơn`, () => bang(theBc()[2].querySelector('.bc-the-n').textContent, giaoThang.length + ' đơn'))
+      test('Viên tín hiệu "Chưa thu 280k" (đơn đã giao chưa thu) — bấm ra đúng 1 đơn', () => {
+        const v = [...d.querySelectorAll('#bcNoiDung .bc-tin')].find(t => /Chưa thu 280k/.test(t.textContent))
+        if (!v) throw new Error([...d.querySelectorAll('#bcNoiDung .bc-tin')].map(t => t.textContent).join(' | '))
+        v.click(); bang(d.querySelectorAll('#statDetailBody .stat-row').length, 1); w.closeStatDetail()
+      })
+      test('Báo cáo ít chữ: không còn câu văn dài trong dải nhận xét (≤ 4 viên, mỗi viên ≤ 18 ký tự)', () => {
+        const v = [...d.querySelectorAll('#bcNoiDung .bc-tin')].map(t => t.textContent.trim())
+        if (v.length > 4 || v.some(x => x.length > 18)) throw new Error(v.join(' | '))
+      })
+      d.querySelector('#bcNoiDung .bc-dg .bc-i').click(); await cho(50)
+      test('Nút (i) → hiện giải thích "Cách đọc báo cáo"; bấm ra ngoài → đóng', () => {
+        bang(id('bcGiaiPop').classList.contains('hien'), true)
+        bang(id('bcGiaiPop').querySelector('b').textContent, 'Cách đọc báo cáo')
+        d.querySelector('#panelReports .panel-topbar').click()
+        bang(id('bcGiaiPop').classList.contains('hien'), false)
+      })
+      test('Mỗi khối có nút (i) riêng', () => bang(['khach', 'mau', 'nguon', 'quen'].map(n => !!khoiBc(n).querySelector('.bc-i')), [true, true, true, true]))
+      test('Biểu đồ 12 cột, cột tháng này tô đậm', () => {
+        const cot = [...d.querySelectorAll('#bcNoiDung .bc-cot')]
+        bang(cot.length, 12)
+        bang(cot[11].classList.contains('on'), true)
+      })
+      test('Nguồn khách: Zalo đứng đầu (2 đơn → % đúng), có dòng "Chưa ghi"', () => {
+        const dong = [...khoiBc('nguon').querySelectorAll('.bc-dong')].map(x => x.querySelector('.bc-ten').textContent + ':' + x.querySelector('.bc-phu').textContent.split(' · ')[0])
+        const n = A.dl.orders.filter(o => o.status !== 'Đã hủy' && trongThang(o)).length
+        bang(dong[0], 'Zalo:' + Math.round(200 / n) + '%')
+        bang(dong.some(x => /^Chưa ghi:/.test(x)), true)
+      })
+      test('Bán chạy: số bó = tổng số lượng đơn chưa huỷ trong tháng', () => {
+        const bo = A.dl.orders.filter(o => o.status !== 'Đã hủy' && trongThang(o)).reduce((s, o) => s + o.quantity, 0)
+        bang(khoiBc('mau').querySelector('.bc-phu').textContent, bo + ' bó')   // dữ liệu giả: mọi đơn cùng product_id 1
+      })
+      test('Điện thoại: dưới biểu đồ chỉ hiện 1 khối (Bán chạy), các khối khác ẩn', () =>
+        bang(['khach', 'mau', 'nguon', 'quen'].map(n => getComputedStyle(khoiBc(n)).display !== 'none'), [false, true, false, false]))
+      d.querySelectorAll('#bcNoiDung .bc-tab button')[1].click(); await cho(50)
+      test('Bấm tab "Khách" → hiện khối Khách hàng, ẩn Bán chạy', () =>
+        bang(['khach', 'mau'].map(n => getComputedStyle(khoiBc(n)).display !== 'none'), [true, false]))
+      w.bcChonTab('mau'); await cho(30)
+      theBc()[0].click(); await cho(50)
+      test('Bấm ô Doanh thu → hiện danh sách đúng các đơn được tính', () => {
+        bang(id('statDetailModal').style.display, 'flex')
+        bang(d.querySelectorAll('#statDetailBody .stat-row').length, giaoThang.length)
+      })
+      d.querySelector('#statDetailBody .stat-row')?.click(); await cho(50)
+      test('Bấm 1 đơn trong danh sách → mở chi tiết đơn', () => bang(d.querySelectorAll('#customerOrdersBody .od-sec').length >= 3, true))
+      w.closeCustomerOrdersModal(); w.closeStatDetail()
+      test('Đóng hộp thoại: ô thật ẩn NGAY + 1 bản sao diễn cảnh đóng (không id, không bấm được)', () => {
+        bang(id('statDetailModal').style.display, 'none')
+        const ma = [...d.querySelectorAll('.modal-overlay.lop-ma')]
+        if (!ma.length) throw new Error('không thấy bản sao')
+        bang(ma.every(m => !m.id && !m.querySelector('[id]') && m.inert), true)
+      })
+      await cho(400)
+      test('Bản sao tự gỡ sau khi diễn xong (≈0,3 giây)', () => bang(d.querySelectorAll('.lop-ma').length, 0))
+      chipKy()[2].click(); await cho(50)
+      const thangTruoc = w.bcThang(thangNay, -1)
+      test('Chip "Tháng trước" → đổi kỳ, biểu đồ vẫn tới tháng này', () => {
+        bang(d.querySelector('#bcKyChips .active')?.textContent, 'Tháng trước')
+        bang(id('bcKyNut').textContent.trim(), nhanThang(thangTruoc))
+        bang([...d.querySelectorAll('#bcNoiDung .bc-cot')].map(c => c.classList.contains('on')).slice(10), [true, false])
+      })
+      d.querySelectorAll('.bc-nav .month-arrow')[1].click(); await cho(50)
+      test('Bấm › → sang tháng sau (về tháng này), chip "Tháng này" sáng lại', () => {
+        bang(id('bcKyNut').textContent.trim(), nhanThang(thangNay))
+        bang(d.querySelector('#bcKyChips .active')?.textContent, 'Tháng này')
+      })
+      chipKy()[3].click(); await cho(50)
+      test('Chip "Quý này" → nhãn "Quý …", bấm ‹ lùi đúng 1 quý', () => {
+        const q = Math.floor((Number(thangNay.slice(5)) - 1) / 3) + 1
+        bang(id('bcKyNut').textContent.trim(), `Quý ${q}/${thangNay.slice(0, 4)}`)
+        d.querySelectorAll('.bc-nav .month-arrow')[0].click()
+        const K = w.bcKhoang()
+        bang(w.bcSoThangTron(K.tu, K.den), 3)
+        bang(K.den < A.ngay(0).slice(0, 7), true)   // quý trước kết thúc trước tháng này
+      })
+      chipKy()[1].click(); await cho(50)
+      id('bcKyNut').click(); await cho(50)
+      test('Bấm chữ kỳ → mở lịch dùng chung', () => bang(id('bcLocNgayPop').style.display, 'block'))
+      d.querySelectorAll('#bcLocNgayPop .cal-day[data-d]')[0].click(); await cho(30)
+      d.querySelectorAll('#bcLocNgayPop .cal-day[data-d]')[4].click(); await cho(600)
+      test('Chọn ngày 1 → 5: nút ghi khoảng ngày, so với 5 ngày liền trước', () => {
+        bang(id('bcKyNut').textContent.trim(), '01/' + thangNay.slice(5) + ' – 05/' + thangNay.slice(5))
+        bang(id('bcLocNgayPop').style.display, 'none')
+        const K = w.bcKhoang()
+        bang([K.tu, K.den, w.bcSoNgay(K.ttu, K.tden)], [thangNay + '-01', thangNay + '-05', 4])
+      })
+      chipKy()[1].click(); await cho(50)
+      test('Kỳ đang chạy dở: kỳ so sánh chỉ lấy đúng số ngày đã qua', () => {
+        const K = w.bcKhoang()
+        bang(w.bcSoNgay(K.ttu, K.tden), w.bcSoNgay(K.tu, A.ngay(0)))
+      })
+      // Lọc thêm
+      id('bcLocNut').click(); await cho(50)
+      test('Nút Lọc mở bảng: So với · Khách tới từ', () => {
+        bang(id('bcLocPop').style.display, 'block')
+        bang([...d.querySelectorAll('#bcLocPop .bc-lp-h')].map(h => h.textContent).slice(0, 2), ['So với', 'Khách tới từ'])
+      })
+      d.querySelector('#bcLocPop [data-loai="nguon"][data-v="Zalo"]').click(); await cho(50)
+      const dtZalo = A.dl.orders.filter(o => o.nguon === 'Zalo' && RS.includes(o.status) && trongThang(o)).reduce((s, o) => s + o.total, 0)
+      test('Lọc "Zalo" → doanh thu chỉ tính đơn Zalo, ô lãi "—", có nhãn lọc + số 1 trên nút', () => {
+        bang(chiSo(theBc()[0].querySelector('.bc-the-n').textContent) || '0', String(dtZalo))
+        bang(theBc()[1].querySelector('.bc-the-n').textContent, '—')
+        bang(!!d.querySelector('#bcNoiDung .bc-loc-pill'), true)
+        bang(id('bcLocNut').querySelector('.bc-loc-so')?.textContent, '1')
+        bang(id('bcLocPop').style.display, 'block')   // chọn xong bảng lọc vẫn mở (bấm thêm được)
+      })
+      d.querySelector('#bcLocPop [data-loai="ss"][data-v="nam"]').click(); await cho(50)
+      test('So với "Cùng kỳ năm ngoái" → kỳ so sánh lùi đúng 1 năm', () => {
+        const K = w.bcKhoang()
+        bang(K.ttu, (Number(K.tu.slice(0, 4)) - 1) + K.tu.slice(4))
+      })
+      d.querySelector('#bcNoiDung .bc-loc-pill').click(); await cho(50)
+      test('Bấm nhãn lọc → bỏ hết lọc, về so với kỳ liền trước', () => {
+        bang([w.eval('bcLocNguon'), w.eval('bcSoSanh')], ['', 'truoc'])
+        bang(chiSo(theBc()[0].querySelector('.bc-the-n').textContent), String(dtThang))
+      })
+      d.body.click(); await cho(30)
+      d.querySelectorAll('#bcNoiDung .bc-bd-o .bc-seg button')[1].click(); await cho(50)
+      test('Biểu đồ "Trong kỳ" → 1 cột mỗi ngày của tháng', () =>
+        bang(d.querySelectorAll('#bcNoiDung .bc-cot').length, Number(w.thangDauCuoi(thangNay)[1].slice(8))))
+      w.bcChonBd('thang'); await cho(30)
+      test('Báo cáo: nút đều có tên, không tràn ngang', () => {
+        bang(nutThieuTen(id('panelReports')), [])
+        const c = d.querySelector('.content'); if (c.scrollWidth - c.clientWidth > 1) throw new Error('tràn')
+      })
+      A.dl.orders.forEach(o => { delete o.thanh_toan; o.nguon = null })
+
+      // ── Nguồn khách trong form đơn (SQL 33) ──
+      nhom('6c. Form đơn — chip "Khách tới từ"')
+      try { w.localStorage.removeItem('lt_nguonCuoi') } catch (e) {}
+      w.cacheOrders(A.dl.orders)
+      w.openNewOrderModal(); await cho(100)
+      const chipNg = k => [...d.querySelectorAll(`[data-seg="${k}Nguon"] .fx-chip`)]
+      test('Form Thêm đơn có 6 chip nguồn, lần đầu chưa chọn sẵn gì', () => {
+        bang(chipNg('no').map(c => c.textContent), ['Facebook', 'Instagram', 'Zalo', 'Web', 'Giới thiệu', 'Khác'])
+        bang(id('noNguon').value, '')
+        bang(id('noNguonSql').style.display, 'none')
+      })
+      chipNg('no')[2].click()
+      test('Bấm Zalo → chọn Zalo; bấm lại → bỏ chọn', () => {
+        bang(id('noNguon').value, 'Zalo')
+        chipNg('no')[2].click(); bang(id('noNguon').value, '')
+        chipNg('no')[2].click(); bang(id('noNguon').value, 'Zalo')
+      })
+      id('noName').value = 'Khách thử'; id('noProductName').value = 'Hoa thử'
+      const dauKy = A.nhatKy.length
+      await w.saveNewOrder({ preventDefault() {} }); await cho(50)
+      test('Tạo đơn → ghi nguồn "Zalo" vào đơn vừa tạo', () =>
+        bang(A.nhatKy.slice(dauKy).some(x => x.ten === 'orders' && x.lenh === 'update' && x.v.nguon === 'Zalo'), true))
+      w.openNewOrderModal(); await cho(100)
+      test('Mở form lần sau → tự chọn sẵn nguồn lần trước (Zalo)', () => bang(id('noNguon').value, 'Zalo'))
+      id('orderNewModal').dataset.dirty = ''; w.closeNewOrderModal()
+      w.openOrderEditModal(152); await cho(100)
+      test('Form Sửa đơn: đơn chưa ghi nguồn → không chip nào sáng', () => bang(chipNg('oe').filter(c => c.classList.contains('on')).length, 0))
+      chipNg('oe')[0].click()
+      const dauKy2 = A.nhatKy.length
+      await w.saveOrderEdit({ preventDefault() {} }); await cho(50)
+      test('Sửa đơn chọn Facebook → lưu nguon = "Facebook"', () =>
+        bang(A.nhatKy.slice(dauKy2).some(x => x.ten === 'orders' && x.lenh === 'update' && x.v.nguon === 'Facebook'), true))
+      w.closeOrderEditModal()
+      try { w.localStorage.removeItem('lt_nguonCuoi') } catch (e) {}
+      // Loé sáng đơn vừa đổi + vòng xoay nút "Đang lưu…" (11/10/2026)
+      w.applyTab('Orders'); await cho(300)
+      w.loeDon(152); await cho(500)
+      test('Đơn vừa lưu: hàng / thẻ của đơn đó loé sáng 1 nhịp', () => bang(d.querySelectorAll('.content .loe').length > 0, true))
+      const nutThu = d.createElement('button'); d.body.appendChild(nutThu)
+      nutThu.textContent = 'Đang lưu…'; nutThu.disabled = true; await cho(20)
+      test('Nút khoá + chữ "Đang …" → có vòng xoay (.dang-chay)', () => bang(nutThu.classList.contains('dang-chay'), true))
+      nutThu.disabled = false; nutThu.textContent = 'Lưu'; await cho(20)
+      test('Nút mở lại → tự bỏ vòng xoay', () => bang(nutThu.classList.contains('dang-chay'), false))
+      nutThu.remove()
 
       // ── Nguyên liệu ──
       nhom('7. Nguyên liệu')

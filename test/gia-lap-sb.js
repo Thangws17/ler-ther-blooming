@@ -64,7 +64,7 @@ function duLieuMau() {
     id, customer_name: ten, customers: sdt ? { name: ten, phone: sdt } : null, customer_phone: sdt, customer_id: sdt ? id : null,
     product_name: sp, product_id: 1, quantity: sl, unit_price: gia, shipping_fee: ship, total: gia * sl + ship,
     delivery_address: dc, status: st, image: IMG, delivery_date: ngay(n), note, message_card: id === 152 ? 'Chúc mừng sinh nhật' : '',
-    created_at: new Date(Date.now() - 864e5).toISOString(),
+    created_at: new Date(Date.now() - 864e5).toISOString(), nguon: null,
   }))
   return {
     ngay,

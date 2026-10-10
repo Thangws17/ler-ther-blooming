@@ -150,7 +150,7 @@ async function moKhung(duong, rong, cao) {
     const quet = buoc => dauVet(d).forEach(x => lot.add(`[${buoc}] ${x}`))
 
     nhom(`A. Admin ${rong}px — mở từng tab, từng form với dữ liệu độc`)
-    const TABS = ['Dashboard', 'Orders', 'Delivery', 'Customers', 'Expenses', 'Products', 'Collections', 'Gallery', 'Testimonials', 'Changelog', 'Contact']
+    const TABS = ['Dashboard', 'Orders', 'Delivery', 'Customers', 'Expenses', 'Reports', 'Products', 'Collections', 'Gallery', 'Testimonials', 'Changelog', 'Contact']
     for (const tab of TABS) { try { w.applyTab(tab) } catch (e) { loi.push(tab + ': ' + e.message) } await cho(300); quet(tab) }
     w.cacheOrders(dl.orders)
     const buoc = [
@@ -492,7 +492,7 @@ async function moKhung(duong, rong, cao) {
     test('Admin có noindex (Google không đưa trang quản trị lên tìm kiếm)', () => bang(/<meta name="robots" content="noindex/.test(html), true))
     test('Admin có mã chặn bị nhúng vào khung web lạ', () => bang(/window\.top\.location\.origin !== location\.origin/.test(html), true))
     const { dl } = duLieuMau(); giaLapSb(w, dl)
-    for (const tab of ['Dashboard', 'Orders', 'Delivery', 'Customers', 'Expenses', 'Products', 'Collections', 'Gallery', 'Contact']) { w.applyTab(tab); await cho(250) }
+    for (const tab of ['Dashboard', 'Orders', 'Delivery', 'Customers', 'Expenses', 'Reports', 'Products', 'Collections', 'Gallery', 'Contact']) { w.applyTab(tab); await cho(250) }
     test('Mở mọi tab admin: CSP không chặn nhầm thứ gì (ảnh Supabase, font, thư viện)', () =>
       bang(viPham.filter(x => !/example\.com/.test(x)), []))
     A.f.remove()
