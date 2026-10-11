@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
+Disallow: /huong-dan/
 
 Sitemap: https://lertherblooming.vn/sitemap.xml

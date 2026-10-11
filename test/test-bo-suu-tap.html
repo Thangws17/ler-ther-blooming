@@ -174,6 +174,15 @@ function doiKhung(fr) {
       if (A.bstDangHien(c, ngay) !== W.bstDangHien(c, ngay))
         throw new Error('admin và web khác nhau ở ca: ' + ten)
   })
+  // Từ 11/10/2026 luật này chỉ còn MỘT bản trong js/dungchung.js. Ai lỡ viết lại bản riêng ở admin
+  // hoặc main.js là 2 bên lại có thể lệch nhau → báo đỏ ngay.
+  const [srcAd, srcMain, srcDc] = await Promise.all(['../admin/index.html', '../js/main.js', '../js/dungchung.js']
+    .map(f => fetch(f + '?t=' + Date.now(), { cache: 'no-store' }).then(r => r.text())))
+  test('Luật hiện/ẩn chỉ có 1 bản (js/dungchung.js), admin và web không tự viết lại', () => {
+    if (!/function bstDangHien\(/.test(srcDc)) throw new Error('js/dungchung.js thiếu bstDangHien')
+    if (/function bstDangHien\(/.test(srcAd)) throw new Error('admin/index.html lại có bản bstDangHien riêng')
+    if (/function bstDangHien\(/.test(srcMain)) throw new Error('js/main.js lại có bản bstDangHien riêng')
+  })
 
   nhom('3. Lý do bộ sưu tập không hiện (admin nói rõ cho chủ shop)')
   test('Tắt tay → "Đang tắt"', () => bang(A.bstLyDoAn({ active: false }, '2026-09-23'), 'Đang tắt'))

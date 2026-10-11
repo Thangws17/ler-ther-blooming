@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Kiểm tra tự động — Ler &amp; Ther Blooming</title>
+<style>
+  :root { --nen: #FAF8F5; --chu: #2B2B2B; --nhat: #6B6B6B; --xanh: #2E7D32; --do: #C62828; --vien: #E6E1DA; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px 16px; font: 15px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--nen); color: var(--chu); }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p.mo-ta { color: var(--nhat); margin: 0 0 16px; }
+  .hang-nut { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  button { font: inherit; font-weight: 600; padding: 10px 18px; border-radius: 10px; border: 1px solid var(--xanh); background: var(--xanh); color: #fff; cursor: pointer; }
+  button:disabled { opacity: .55; cursor: default; }
+  #tongket { padding: 12px 16px; border-radius: 10px; font-weight: 600; margin-bottom: 16px; background: #fff; border: 1px solid var(--vien); }
+  #tongket.ok-box { background: #E8F5E9; color: var(--xanh); border-color: #A5D6A7; }
+  #tongket.fail-box { background: #FFEBEE; color: var(--do); border-color: #EF9A9A; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--vien); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid #F0ECE6; vertical-align: top; }
+  th { font-size: 13px; color: var(--nhat); font-weight: 600; background: #F7F4EF; }
+  td.dau { width: 34px; font-size: 18px; text-align: center; }
+  td .phu { display: block; color: var(--nhat); font-size: 13px; }
+  td .loi { display: block; color: var(--do); font-size: 13px; white-space: pre-wrap; margin-top: 4px; overflow-wrap: anywhere; }
+  tr.dang td { background: #FFFDE7; }
+  a { color: #1565C0; }
+  /* Khung chạy test PHỦ KÍN màn hình trong lúc chạy: web chỉ cho hàng Bộ sưu tập tự trôi khi nó đang hiện trên màn hình,
+     khung nằm khuất dưới đáy trang thì 6 ca "tự trôi" của test-web-khach đỏ oan (lỗi thật 11/10/2026). */
+  #khung { display: none; position: fixed; inset: 0; width: 100vw; height: 100vh; border: 0; background: #fff; z-index: 10; }
+  body.dang-chay #khung { display: block; }
+  #thanhChay { display: none; position: fixed; left: 50%; bottom: 16px; translate: -50% 0; z-index: 11; max-width: calc(100vw - 32px);
+               background: #1f2a1f; color: #fff; padding: 10px 18px; border-radius: 999px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+  body.dang-chay #thanhChay { display: block; }
+  .ghi-chu { color: var(--nhat); font-size: 13px; margin-top: 10px; }
+  @media (max-width: 600px) { td.thoi-gian, th.thoi-gian { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Kiểm tra tự động</h1>
+  <p class="mo-ta">Bấm 1 nút là chạy lần lượt mọi trang kiểm tra (khoảng 4–6 phút). Dùng <b>database giả</b> — không đụng đơn hàng
+    hay dữ liệu thật. Chạy sau mỗi lần sửa web, <b>trước khi đưa lên mạng</b>. Để nguyên tab này trên màn hình cho tới khi xong.</p>
+
+  <div class="hang-nut">
+    <button type="button" id="nutChay">Chạy tất cả</button>
+    <span id="dangChay" class="phu" role="status" aria-live="polite"></span>
+  </div>
+  <div id="tongket">Chưa chạy.</div>
+
+  <table>
+    <thead><tr><th></th><th>Trang kiểm tra</th><th class="thoi-gian">Thời gian</th></tr></thead>
+    <tbody id="bang"></tbody>
+  </table>
+  <p class="ghi-chu">Chạy bằng dòng lệnh (không cần mở trình duyệt): <code>python test/chay-tat-ca.py</code>.
+    Bấm tên trang để mở riêng trang đó, xem chi tiết từng ca. Trong lúc chạy, trang kiểm tra phủ kín màn hình: cứ để yên,
+    xong sẽ tự quay lại bảng kết quả.</p>
+
+  <iframe id="khung" title="Trang kiểm tra đang chạy"></iframe>
+  <div id="thanhChay" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+// Danh sách trang test — giữ CÙNG thứ tự với TRANG trong test/chay-tat-ca.py (nhanh trước, chậm sau)
+const TRANG = [
+  ['test-cu-phap', 'Cú pháp JS toàn bộ web + admin, mục lục admin'],
+  ['test-gia-san-pham', 'Ô giá sản phẩm: dấu chấm, con trỏ, giá hay dùng'],
+  ['test-bo-suu-tap', 'Bộ sưu tập: luật hiện/ẩn, tắt bộ không mất mẫu hoa'],
+  ['test-do-luong', 'Google Analytics + Clarity: khi nào đếm, kiểm mã'],
+  ['test-nguoi-nhan', 'Người nhận + giờ giao ghép vào ghi chú đơn'],
+  ['test-phan-trang-don', 'Phân trang + lọc đơn hàng gửi đúng câu hỏi lên database'],
+  ['test-sao-luu', 'Sao lưu Excel: mở được, giữ tiếng Việt, không lộ mã bí mật'],
+  ['test-form-chi-phi', 'Ô ngày, ô tiền, chip của form chi phí + thêm đơn'],
+  ['test-khung-man-hinh', 'Khung admin trên iPhone + thanh tab dưới đáy'],
+  ['test-admin-giao-dien', 'Admin từng tab (điện thoại + máy tính) với database giả'],
+  ['test-bao-mat', 'Nhồi mã độc vào mọi ô dữ liệu: không mã nào được chạy'],
+  ['test-web-khach', 'Mọi trang web khách × 3 khổ màn hình (đọc dữ liệu thật, chỉ đọc)'],
+]
+const CHO_TOI_DA = 300e3
+const bang = document.getElementById('bang'), khung = document.getElementById('khung')
+const tk = document.getElementById('tongket'), nut = document.getElementById('nutChay'), dangChay = document.getElementById('dangChay')
+const thanhChay = document.getElementById('thanhChay')
+
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) }
+
+bang.innerHTML = TRANG.map(([ten, moTa]) => `<tr id="h-${ten}">
+  <td class="dau">·</td>
+  <td><a href="${ten}.html" target="_blank" rel="noopener">${ten}</a><span class="phu">${esc(moTa)}</span><span class="loi"></span></td>
+  <td class="thoi-gian"></td></tr>`).join('')
+
+// Đọc kết quả trong trang test (cùng cách với chay-tat-ca.py)
+function docKetQua(d) {
+  const out = d.getElementById('out')
+  if (out && !d.getElementById('tongket')) {
+    const t = out.textContent
+    if (!t.includes('KET_QUA=')) return null
+    return { dat: t.includes('KET_QUA=PASS'), tom: t.trim().split('\n').pop(), hong: t.split('\n').filter(x => x.startsWith('LOI')) }
+  }
+  const k = d.getElementById('tongket')
+  if (!k || !/ok-box|fail-box/.test(k.className)) return null
+  return { dat: k.className.includes('ok-box'), tom: k.textContent.trim(),
+           hong: [...d.querySelectorAll('.ca.fail')].map(r => r.textContent.trim()) }
+}
+
+async function chayMot(ten) {
+  const h = document.getElementById('h-' + ten)
+  h.classList.add('dang'); h.querySelector('.dau').textContent = '…'
+  const batDau = Date.now()
+  khung.src = ten + '.html?t=' + batDau
+  let kq = null
+  while (Date.now() - batDau < CHO_TOI_DA) {
+    await new Promise(r => setTimeout(r, 1000))
+    try { kq = docKetQua(khung.contentDocument) } catch { kq = null }
+    if (kq) break
+    dangChay.textContent = `Đang chạy ${ten}… ${Math.round((Date.now() - batDau) / 1000)} giây`
+    thanhChay.textContent = `Đang chạy ${TRANG.findIndex(x => x[0] === ten) + 1}/${TRANG.length}: ${ten} · ${Math.round((Date.now() - batDau) / 1000)} giây — cứ để yên`
+  }
+  if (!kq) kq = { dat: false, tom: 'Quá giờ — trang không tự tổng kết', hong: [] }
+  h.classList.remove('dang')
+  h.querySelector('.dau').textContent = kq.dat ? '✓' : '✕'
+  h.querySelector('.dau').style.color = kq.dat ? 'var(--xanh)' : 'var(--do)'
+  h.querySelector('.loi').textContent = kq.dat ? '' : [kq.tom].concat(kq.hong.slice(0, 8)).join('\n')
+  h.querySelector('.thoi-gian').textContent = Math.round((Date.now() - batDau) / 1000) + ' giây'
+  return kq.dat
+}
+
+nut.addEventListener('click', async () => {
+  nut.disabled = true; tk.className = ''; tk.textContent = 'Đang chạy… để nguyên tab này trên màn hình.'
+  document.body.classList.add('dang-chay')
+  let hong = 0
+  for (const [ten] of TRANG) if (!(await chayMot(ten))) hong++
+  dangChay.textContent = ''
+  document.body.classList.remove('dang-chay'); khung.src = 'about:blank'
+  window.scrollTo(0, 0)
+  tk.className = hong ? 'fail-box' : 'ok-box'
+  tk.textContent = hong ? `✕ ${hong}/${TRANG.length} trang có lỗi — xem dòng đỏ bên dưới` : `✓ Cả ${TRANG.length} trang kiểm tra đều đạt`
+  nut.disabled = false
+})
+</script>
+</body>
+</html>

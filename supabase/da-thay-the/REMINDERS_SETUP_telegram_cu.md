@@ -1,3 +1,6 @@
+> ⚠️ **LỖI THỜI (11/10/2026)** — shop đã bỏ Telegram/Resend, mọi email giờ đi qua Brevo (xem cuối `supabase/15_notifications_v2.sql`).
+> Giữ lại để tra lịch sử. Đừng làm theo.
+
 # Hướng dẫn bật cảnh báo chuẩn bị hàng (Telegram + Email)
 
 Cảnh báo gửi mỗi sáng **8:30** (giờ VN), liệt kê đơn cần giao **ngày mai**.

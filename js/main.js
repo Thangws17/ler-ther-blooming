@@ -205,13 +205,7 @@ let bstAll = [];       // BST đang hiện (đã lọc bật/tắt + ngày hẹn
 let bstGanAll = [];    // [{collection_id, product_id}] của các BST đang hiện
 let _bstReady = null;  // nhiều trang cùng cần → chỉ tải đúng 1 lần
 
-// Luật hiện/ẩn PHẢI giống hàm bstDangHien() trong admin/index.html
-function bstDangHien(c, homNay = new Date().toLocaleDateString('sv-SE')) {
-  if (!c || !c.active) return false;
-  if (c.start_date && c.start_date > homNay) return false;
-  if (c.end_date   && c.end_date   < homNay) return false;
-  return true;
-}
+// Luật hiện/ẩn: bstDangHien() ở js/dungchung.js — admin dùng CHUNG đúng hàm đó
 
 function loadBst() {
   if (_bstReady) return _bstReady;
@@ -485,12 +479,7 @@ function renderProducts(list, grid) {
   initScrollReveal(grid);
 }
 
-// Bỏ dấu tiếng Việt để tìm kiếm dễ tính: gõ "hoa hong" vẫn ra "Hoa Hồng"
-function noAccent(s) {
-  return String(s ?? '').toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')   // dải dấu thanh/mũ Unicode
-    .replace(/đ/g, 'd').trim();
-}
+// noAccent() (bỏ dấu để tìm kiếm) nằm ở js/dungchung.js — dùng chung với admin
 
 let currentBst = 'all';
 let prodSearchTerm = '';
@@ -922,10 +911,7 @@ function openLightbox(url, caption) {
 // Để trống = không nạp gì. KHÔNG đếm khi:
 //   • chạy thử ở máy (localhost / địa chỉ IP)
 //   • máy đã từng đăng nhập admin (cờ lt_mayCuaShop) — để số liệu không lẫn shop
-// Điều kiện mã giống hệt MA_GA4 / MA_CLARITY trong admin: mã được ghép vào địa
-// chỉ tải script nên chỉ nhận đúng chữ-số.
-const MA_GA4 = /^G-[A-Z0-9]{6,12}$/;
-const MA_CLARITY = /^[a-z0-9]{6,20}$/;
+// Điều kiện mã hợp lệ MA_GA4 / MA_CLARITY nằm ở js/dungchung.js (admin dùng chung).
 let _doLuongBat = false;
 // Thao tác xảy ra TRƯỚC khi biết có bật đo lường hay không (contact chưa tải xong —
 // hay gặp trên 4G chậm) thì xếp hàng chờ, quyết xong mới gửi hoặc bỏ.

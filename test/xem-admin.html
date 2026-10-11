@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="vi">
+<head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><title>Xem thử admin</title></head>
+<body>
+<!-- XEM THỬ ADMIN VỚI DỮ LIỆU GIẢ — để xem / chụp màn hình giao diện mà không đụng dữ liệu thật.
+     Nạp đúng admin/index.html đang có, rồi thay sb.from / sb.rpc / sb.storage bằng bản giả:
+     KHÔNG đọc, KHÔNG ghi Supabase thật (kể cả khi máy đang đăng nhập admin). Tên / SĐT trong đây đều bịa.
+     Chọn màn bằng ?v=…  (mở bằng python serve.py → http://localhost:8765/test/xem-admin.html?v=ds)
+       tq Tổng quan · ds Đơn hàng · don form Thêm đơn · sua form Sửa đơn · ct chi tiết đơn · qr bảng mã QR
+       lg Lịch giao · kh / khm Khách hàng · ex / chi Sổ chi phí · nl / nls Nguyên liệu · bc / bcm Báo cáo
+       sp / spm / spx Sản phẩm · ttc Thông tin chung · bst / bstm Bộ sưu tập · kk / kka / kkm Khoảnh khắc
+       lh Liên hệ · menu menu bên (điện thoại). Danh sách đầy đủ: biến `tab` trong giaLap() bên dưới.
+     ?dx=… chỉ dùng trên máy làm việc (nạp bản nháp đề xuất ở thư mục demo/, không có trong git). -->
+<script>
+function giaLap(V) {
+  const d = document, w = window
+  const IMG = 'https://oijcwborkebjpavzyisl.supabase.co/storage/v1/object/public/images/products/'
+  const ngay = n => new Date(Date.now() + n * 864e5).toLocaleDateString('sv-SE')
+  const don = [
+    [152, 'Chị Tuyền', '0908123456', 'Tulip x cỏ suối', 1, 650000, 0, '12 Lê Lợi, P. Bến Nghé, Q.1', 0, 'Mới', '1784038764629_optw_p1_1.webp', 'Chúc mừng sinh nhật em yêu', 'Giờ giao: 9h30\nGiao trước 10h'],
+    [151, 'Anh Minh', null, 'Hồng Ecuador rực rỡ', 2, 390000, 30000, 'Thủ Đức', 0, 'Đã xác nhận', '1784038741137_optw_p4_1.jpg', '', ''],
+    [150, 'Chị Lan', '0935551122', 'Mix Garden - Tone Hồng Pastel', 1, 320000, 20000, 'Q.7', 1, 'Đã xác nhận', '1789490039234_optw_p25_0.jpg', 'Happy anniversary', ''],
+    [149, 'Tuấn Nghĩa', '0911222333', 'Hồng chiết xạ', 3, 150000, 0, 'Q.3', 1, 'Mới', '1784038753671_optw_p17_0.webp', '', ''],
+    [148, 'Anh Long', null, 'Lam tinh x cúc migarret', 1, 250000, 0, 'Bình Thạnh', 2, 'Đã xác nhận', '1784038751527_optw_p2_1.webp', '', ''],
+    [147, 'Chị Hà', '0977000111', 'Hoa ly mix phi yến trắng', 1, 350000, 0, 'Q.10', -2, 'Đang giao', '1784038738364_optw_p9_1.webp', '', ''],
+    [146, 'Khách lẻ', null, 'Hồng Capuchino', 1, 300000, 0, 'Q.5', -5, 'Hoàn thành', '1784038741949_optw_p12_0.jpg', '', ''],
+    [145, 'Chị Mai', null, 'Mix Garden', 1, 280000, 0, 'Q.2', -8, 'Giao thành công', '1784038768343_optw_p10_1.webp', '', ''],
+  ].map(([id, ten, sdt, sp, sl, gia, ship, dc, n, st, img, thiep, gc]) => ({
+    id, customer_name: ten, customers: sdt ? { name: ten, phone: sdt } : null, customer_phone: sdt, product_name: sp, quantity: sl,
+    unit_price: gia, shipping_fee: ship, total: gia * sl + ship, delivery_address: dc, status: st, image: IMG + img,
+    delivery_date: ngay(n), created_at: new Date(Math.floor(Date.now() / 6e4) * 6e4 - 864e5 - (160 - id) * 6e4).toISOString(),   // cố định: mã lớn = tạo sau message_card: thiep, note: gc,
+    customer_email: id === 152 ? 'tuyen@example.com' : null,
+    // Trạng thái thanh toán (SQL 31, 08/10/2026): 152 cọc 300k CK · 150 đã thanh toán · 147 cọc tiền mặt · đơn đã giao = đã thanh toán
+    thanh_toan: { 152: 'Đã cọc', 147: 'Đã cọc', 150: 'Đã thanh toán', 146: 'Đã thanh toán', 145: 'Đã thanh toán' }[id] || 'Chưa thanh toán',
+    tien_coc: { 152: 300000, 147: 150000 }[id] || null,
+    ngay_tt: { 152: ngay(-1), 150: ngay(-2), 147: ngay(-4) }[id] || null,
+    cach_tt: { 152: 'Chuyển khoản', 150: 'Chuyển khoản', 147: 'Tiền mặt' }[id] || null,
+  }))
+  // ?v=bc (Báo cáo): thêm ~80 đơn giả rải 12 tháng (cố định theo id, không ngẫu nhiên) + nguồn khách
+  if (V === 'bc' || V === 'bcm') {
+    const NG = ['Facebook', 'Zalo', 'Instagram', 'Zalo', 'Web', 'Giới thiệu', 'Facebook', null]
+    const MAU = [[1, 'Tulip x cỏ suối', 650000], [4, 'Hồng Ecuador rực rỡ', 390000], [25, 'Mix Garden - Tone Hồng Pastel', 320000],
+                 [17, 'Hồng chiết xạ', 150000], [12, 'Hồng Capuchino', 300000], [9, 'Hoa ly mix phi yến trắng', 350000]]
+    const KH = [[201, 'Chị Thảo', '0901000201'], [202, 'Anh Quân', '0901000202'], [203, 'Chị Ngọc', '0901000203'], [204, 'Bạn Vy', '0901000204'],
+                [205, 'Anh Hoàng', '0901000205'], [150, 'Chị Lan', '0935551122'], [152, 'Chị Tuyền', '0908123456']]
+    for (let i = 0; i < 84; i++) {
+      const lui = Math.floor(i * 340 / 84) + 9 + (i % 5), [pid, ten, gia] = MAU[(i * 7) % MAU.length], k = KH[(i * 3) % KH.length]
+      const dt = new Date(Date.now() - lui * 864e5)
+      don.push({ id: 60 + i, customer_name: i % 6 === 5 ? 'Khách lẻ' : k[1], customers: i % 6 === 5 ? null : { name: k[1], phone: k[2] },
+        customer_phone: i % 6 === 5 ? null : k[2], customer_id: i % 6 === 5 ? null : k[0], product_id: pid, product_name: ten, quantity: 1 + (i % 4 === 0),
+        unit_price: gia, shipping_fee: i % 3 ? 0 : 30000, total: gia * (1 + (i % 4 === 0)) + (i % 3 ? 0 : 30000), delivery_address: 'Q.' + (1 + i % 10),
+        status: i % 13 === 0 ? 'Đã hủy' : 'Hoàn thành', image: IMG + '1784038764629_optw_p1_1.webp', delivery_date: dt.toLocaleDateString('sv-SE'),
+        created_at: new Date(dt - 2 * 864e5).toISOString(), note: ['Giờ giao: 9h', 'Giờ giao: 15h30', 'Giờ giao: 18h', ''][i % 4], message_card: '',
+        thanh_toan: i === 3 ? 'Đã cọc' : 'Đã thanh toán', tien_coc: i === 3 ? 200000 : null, cach_tt: i % 4 ? 'Chuyển khoản' : 'Tiền mặt', nguon: NG[i % NG.length] })
+    }
+    don.forEach((o, i) => { if (!('nguon' in o)) o.nguon = NG[i % NG.length] })
+  }
+  const exp = [
+    { id: 1, expense_date: ngay(-1), category: 'Hoa', item: 'Hồng đỏ Đà Lạt', quantity: 50, unit_price: 6000, amount: 300000, note: '', image: '' },
+    { id: 2, expense_date: ngay(-2), category: 'Phụ kiện', item: 'Giấy gói', quantity: 20, unit_price: 3000, amount: 60000, note: '', image: '' },
+    { id: 3, expense_date: ngay(-3), category: 'Hoa', item: 'Tulip', quantity: 10, unit_price: 25000, amount: 250000, note: 'chợ hoa', image: '' },
+    { id: 4, expense_date: ngay(-3), category: 'Phụ kiện', item: 'Ruy băng', quantity: 5, unit_price: 8000, amount: 40000, note: '', image: '' },
+    { id: 5, expense_date: ngay(-4), category: 'Vận chuyển', item: 'Grab giao hàng', quantity: null, unit_price: null, amount: 85000, note: '', image: '' },
+    { id: 6, expense_date: ngay(-6), category: 'Hoa', item: 'Hồng đỏ Đà Lạt', quantity: 30, unit_price: 6500, amount: 195000, note: '', image: '' },
+  ]
+  if (V === 'bc' || V === 'bcm') for (let m = 1; m < 12; m++) exp.push({ id: 100 + m, expense_date: new Date(Date.now() - (m * 30 + 3) * 864e5).toLocaleDateString('sv-SE'), category: 'Hoa', item: 'Hoa nhập chợ', amount: 900000 + (m % 4) * 250000 })
+  const sp = [[1, 'Tulip x cỏ suối', 'Từ 6xx', '1784038764629_optw_p1_1.webp'], [4, 'Hồng Ecuador rực rỡ', 'Từ 3xx', '1784038741137_optw_p4_1.jpg'],
+    [25, 'Mix Garden - Tone Hồng Pastel', 'Từ 2xx', '1789490039234_optw_p25_0.jpg'], [17, 'Hồng chiết xạ', 'Từ 1xx', '1784038753671_optw_p17_0.webp'],
+    [2, 'Lam tinh x cúc migarret', 'Từ 2xx', '1784038751527_optw_p2_1.webp'], [9, 'Hoa ly mix phi yến trắng', 'Từ 3xx', '1784038738364_optw_p9_1.webp'],
+    [12, 'Hồng Capuchino', 'Từ 3xx', '1784038741949_optw_p12_0.jpg'], [10, 'Mix Garden', 'Từ 3xx', '1784038768343_optw_p10_1.webp']]
+    .map(([id, name, price, img], i) => ({ id, name, price, image: IMG + img, order_index: i, featured: i < 3, category: '',
+      description: id === 4 ? '“Lời thương cô đọng”\nHồng Ecuador đỏ · hoa trắng điểm xuyết · giấy kraft\nSang trọng — đơn giản — nhiều tình cảm.\nPhù hợp tặng người thương, lễ kỷ niệm, 20/10.\nHoa có đặt theo size'
+        : id === 1 ? '“Buổi hẹn đầu”\nTulip trắng · cỏ suối · giấy đen\nTrưởng thành — tinh tế — bay bổng.\nPhù hợp tặng first date, lễ kỷ niệm.\nHoa có đặt theo size' : '' }))
+  const bst = [
+    { id: 6, name: 'BST Trông Trăng', slug: 'bst-trong-trang', emoji: '🌕', tagline: 'Trung thu này, để hoa thay đèn lồng', cover_url: IMG + '1784038764629_optw_p1_1.webp', order_index: -4, active: true, start_date: null, end_date: ngay(2) },
+    { id: 7, name: 'BST 20/10', slug: 'bst-20-10', emoji: '💝', tagline: 'Gửi người phụ nữ của bạn một lời cảm ơn', cover_url: IMG + '1784038738364_optw_p9_1.webp', order_index: -3, active: true, start_date: ngay(7), end_date: ngay(27) },
+    { id: 8, name: 'BST Em Xinh', slug: 'bst-em-xinh', emoji: '✨', tagline: 'Pastel ngọt ngào, dành cho nàng', cover_url: null, order_index: -2, active: true, start_date: null, end_date: null },
+    { id: 1, name: 'Hoa bó', slug: 'hoa-bo', emoji: '🌹', tagline: null, cover_url: IMG + '1784038741137_optw_p4_1.jpg', order_index: 1, active: false, start_date: null, end_date: null },
+  ]
+  const gan = [[6, 1], [6, 10], [6, 2], [7, 9], [7, 12], [7, 4], [8, 25], [8, 2], [1, 4], [1, 17]].map(([c, p]) => ({ collection_id: c, product_id: p }))
+  const gal = sp.concat(sp).map((p, i) => ({ id: 100 + i, url: p.image, caption: i % 3 ? '' : 'Bó giao chị Lan', category: ['Hoa bó', 'Sự kiện', 'Hoa tốt nghiệp'][i % 3], order_index: i, created_at: new Date().toISOString() }))
+  const kh = []
+  don.forEach(o => { if (!o.customer_phone) return; let c = kh.find(x => x.phone === o.customer_phone)
+    if (!c) kh.push(c = { id: o.id, name: o.customer_name, phone: o.customer_phone, address: o.delivery_address, created_at: new Date(Date.now() - 30 * 864e5).toISOString() })
+    o.customer_id = c.id })
+  kh.push({ id: 900, name: 'Trần Bảo Ngọc', phone: '0900000900', address: '12 Phố Mẫu, Q. Thử', created_at: new Date().toISOString() })
+  const contact = [{ id: 1, phone: '0912345678', zalo: '0912345678', ck_ngan_hang: '970436', ck_so_tk: '0123456789', ck_chu_tk: 'LER THER BLOOMING', ga4_id: null, clarity_id: null }]
+  const gioTruoc = h => new Date(Date.now() - h * 3600e3).toISOString()
+  const nhat_ky_tai_khoan = [{ id: 1, luc: gioTruoc(V === 'qrdoi' ? 2 : 24 * 5), ai: 'shop@example.com', cu: '(chưa có)', moi: '970436 · 0123456789 · LER THER BLOOMING' }]
+  const bang = { contact, nhat_ky_tai_khoan, orders: don, expenses: exp, customers: kh, products: sp, collections: bst, collection_products: gan, gallery: gal,
+    gallery_categories: [{ id: 1, name: 'Hoa bó', emoji: '🌹', order_index: 1 }, { id: 5, name: 'Sự kiện', emoji: '🎉', order_index: 2 }, { id: 3, name: 'Hoa tốt nghiệp', emoji: '💐', order_index: 3 }],
+    materials: [{ id: 1, name: 'Hồng đỏ Đà Lạt', category: 'Hoa', last_price: 6500 }, { id: 2, name: 'Giấy gói', category: 'Phụ kiện', last_price: 3000 },
+                { id: 3, name: 'Ruy băng', category: 'Phụ kiện', last_price: 8000 }, { id: 4, name: 'Tulip', category: 'Hoa', last_price: 25000 }] }
+  // Bản giả của sb.from(): chuỗi .select().eq()… trả dữ liệu giả; đếm (head) trả count
+  w.eval('sb').from = ten => {
+    let dl = (bang[ten] || []).slice(), dem = false, vaGhi = null
+    const q = {
+      select(_, o) { if (o && o.head) dem = true; return q },
+      eq(c, v) { dl = dl.filter(r => r[c] === v); return q },
+      in(c, v) { dl = dl.filter(r => v.includes(r[c])); return q },
+      gte(c, v) { dl = dl.filter(r => (r[c] || '') >= v); return q },
+      lt(c, v) { dl = dl.filter(r => (r[c] || '') < v); return q },
+      lte(c, v) { dl = dl.filter(r => (r[c] || '') <= v); return q },
+      ilike() { return q },
+      order(c, o) { const len = !o || o.ascending !== false ? 1 : -1; dl = dl.slice().sort((a, b) => ((a[c] ?? '') < (b[c] ?? '') ? -1 : (a[c] ?? '') > (b[c] ?? '') ? 1 : 0) * len); return q },
+      limit() { return q }, range() { return q }, not() { return q }, or() { return q },
+      maybeSingle() { return Promise.resolve({ data: dl[0] || null, error: null }) },
+      single() { return Promise.resolve({ data: dl[0] || null, error: null }) },
+      update(v) { vaGhi = v; return q }, insert() { return q }, delete() { return q },
+      then(res, rej) { if (vaGhi) { dl.forEach(r => Object.assign(r, vaGhi)); vaGhi = null }
+        return Promise.resolve(dem ? { count: dl.length, data: null, error: null } : { data: dl, error: null, count: dl.length }).then(res, rej) },
+    }
+    return q
+  }
+  // Mọi lệnh gọi hàm database / kho ảnh cũng giả nốt — không bao giờ tới Supabase thật
+  w.eval('sb').rpc = () => Promise.resolve({ data: null, error: { message: 'Trang xem thử: không gửi gì lên database' } })
+  w.eval('sb').storage = { from: () => ({
+    upload: () => Promise.resolve({ error: { message: 'Trang xem thử: không tải ảnh lên' } }),
+    remove: () => Promise.resolve({ error: null }),
+    getPublicUrl: p => ({ data: { publicUrl: IMG + p } }),
+  }) }
+  d.head.insertAdjacentHTML('beforeend', '<style>*,*::before{animation:none!important;transition:none!important}</style>')
+  d.getElementById('loginWrap').style.display = 'none'
+  d.getElementById('appWrap').style.display = 'flex'
+  if (w.measureViewport) w.measureViewport()
+  const tab = { tq: 'Dashboard', ds: 'Orders', exl: 'Expenses', exc: 'Expenses', loc: 'Orders', locm: 'Orders', don: 'Orders', gop: 'Orders', gople: 'Orders', chi: 'Expenses', ct: 'Orders', ct2: 'Orders', qr: 'Orders', qrtt: 'Orders', qrcg: 'Orders', qrdoi: 'Orders', mk: 'Contact', doncoc: 'Orders', suacoc: 'Orders', qrchua: 'Orders', lh: 'Contact', lg: 'Delivery', nl: 'Expenses', nls: 'Expenses', ex: 'Expenses', sua: 'Orders', bst: 'Collections', bstm: 'Collections', kk: 'Gallery', kka: 'Gallery', kkm: 'Gallery', menu: 'Orders', sp: 'Products', spx: 'Products', spm: 'Products', sp5: 'Products', ttc: 'Products', spt: 'Products', kh: 'Customers', khm: 'Customers', bc: 'Reports', bcm: 'Reports' }[V] || 'Dashboard'
+  const P = new URLSearchParams(location.search), DX = P.get('dx')
+  const sauKhiNap = f => { if (!DX) return f(); const sc = d.createElement('script'); sc.src = '/demo/de-xuat.js?t=' + Date.now(); sc.dataset.dx = DX; sc.dataset.ban = P.get('ban') || 'moi'; sc.onload = f; d.body.appendChild(sc) }
+  sauKhiNap(() => {
+  w.applyTab(tab)
+  if (P.get('thang')) setTimeout(() => w.orderQuickMonth(), 300)
+  setTimeout(() => {
+    if (V === 'don') w.openNewOrderModal()
+    if (V === 'gop' || V === 'gople') { w.openNewOrderModal(); setTimeout(() => { d.getElementById('noName').value = 'Em Nhung CSKH'
+      const o = d.getElementById('noProductName'); o.value = V === 'gop' ? 'hong' : 'Hoa mao lương'; o.focus(); w.showProdSuggest() }, 400) }
+    if (V === 'chi') w.openExpenseModal()
+    if (V === 'exl') { w.lnMo('chi'); w.lnCheDo('chi', 'khoang'); w.lnChon('chi', w.eval('todayStr()').slice(0, 8) + '02') }
+    if (V === 'exc') { w.exChonLoai(0) }
+    if (V === 'loc' || V === 'locm') { const ym = w.eval('todayStr()').slice(0, 7); w.ordSetRange(ym + '-10', ym + '-20'); w.applyOrderFilters(); if (V === 'loc') setTimeout(() => w.toggleOrderDatePicker(), 300) }
+    if (V === 'ct') { w.cacheOrders(don); w.viewOrderDetail(152) }
+    if (V === 'doncoc') { w.openNewOrderModal(); setTimeout(() => { w.eval("moneySet('noUnitPrice', 500000)"); w.noUpdateTotalPreview()
+      d.querySelector('[data-seg="noTt"] [data-v="Đã cọc"]').click(); w.eval("moneySet('noCoc', 200000)"); w.ttForm('no')
+      d.getElementById('noTtThan').closest('.fx-grp').scrollIntoView({ block: 'start' }) }, 300) }
+    if (V === 'suacoc') { w.cacheOrders(don); w.openOrderEditModal(152); setTimeout(() => d.getElementById('oeTtThan').closest('.fx-grp').scrollIntoView({ block: 'start' }), 300) }
+    if (V === 'ct2') { w.cacheOrders(don); w.viewOrderDetail(151) }
+    if (V === 'lh') setTimeout(() => d.getElementById('ctNganHang').closest('.field-group').previousElementSibling.scrollIntoView({ block: 'start' }), 400)
+    if (V === 'qrchua') {}
+    if (V === 'qrtt') { w.cacheOrders(don); w.viewOrderDetail(151); setTimeout(() => w.moQrCk(151), 200) }
+    if (V === 'qrcg') { const o = don.find(x => x.id === 149); o.unit_price = null; o.total = 0; w.cacheOrders(don); w.viewOrderDetail(149); setTimeout(() => w.moQrCk(149), 200) }
+    if (V === 'qrdoi') { w.cacheOrders(don); w.viewOrderDetail(152); setTimeout(() => w.moQrCk(152), 200) }
+    if (V === 'mk') setTimeout(() => w.hoiMatKhau('Bạn đang đổi TÀI KHOẢN NHẬN TIỀN của shop — khách quét mã QR sẽ chuyển vào tài khoản mới. Nhập mật khẩu để xác nhận.'), 400)
+    if (V === 'qr') { w.cacheOrders(don); w.viewOrderDetail(152); setTimeout(() => w.moQrCk(152), 200) }
+    if (V === 'qrchua') { contact[0].ck_so_tk = null; w.cacheOrders(don); w.viewOrderDetail(151); setTimeout(() => w.moQrCk(151), 200) }
+    if (V === 'nl') w.openMaterialsModal()
+    if (V === 'nls') w.openMaterialsModal().then(() => w.openMaterialEditModal(1))
+    if (V === 'menu') w.openSidebar()
+    if (V === 'bstm') w.openBstModal(6)
+    if (V === 'kka') w.kkMoAlbum('Hoa bó')
+    if (V === 'kkm') w.kkQuanLyAlbum()
+    if (V === 'sua') { w.cacheOrders(don); w.openOrderEditModal(152) }
+    if (V === 'spx') w.spBatXep()
+    if (V === 'spm') w.openModal(4)
+    if (V === 'ttc') w.openTtcModal()
+    if (V === 'spt') { w.openModal(4); const o = d.getElementById('spcTpO'); o.value = 'Thắng'; o.focus(); const t = d.getElementById('fName'); t.value = 'Chiết xạ và phăng chùm hồng bó tone pastel'; w.spTuCao(t) }
+    if (V === 'khm') w.viewCustomerOrders(don.find(o => o.customer_id).customer_id)
+    if (V === 'bcm') setTimeout(() => d.querySelector('#bcNoiDung .bc-luoi').scrollIntoView({ block: 'start' }), 300)
+    if (V === 'sp5') { w.toggleFeatured(17); setTimeout(() => w.toggleFeatured(2), 100) }
+  }, 500)
+  })
+}
+const V = new URLSearchParams(location.search).get('v') || 'tq'
+fetch('../admin/index.html', { cache: 'no-store' }).then(r => r.text()).then(html => {
+  const duoi = '<script>' + giaLap.toString() + '\nsetTimeout(() => giaLap(' + JSON.stringify(V) + '), 1500)<\/script></body>'
+  html = html.replace('<head>', '<head><base href="/admin/">').replace('</body>', duoi)
+  document.open(); document.write(html); document.close()
+})
+</script>
+</body>
+</html>

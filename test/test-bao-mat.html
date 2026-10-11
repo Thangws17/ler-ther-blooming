@@ -135,6 +135,12 @@ async function moKhung(duong, rong, cao) {
   return { f, w, d, loi, id: x => d.getElementById(x) }
 }
 
+// Cờ "máy của shop" (lt_mayCuaShop) của trình duyệt đang chạy test: ghi nhớ lúc đầu, test xong trả lại y nguyên
+// (test gỡ cờ trong lúc chạy; trước 11/10/2026 gỡ luôn không trả → shop tự chạy test là mất cờ trên localhost)
+let coShopLucDau = null
+try { coShopLucDau = localStorage.getItem('lt_mayCuaShop') } catch {}
+function traCoShop() { try { coShopLucDau === null ? localStorage.removeItem('lt_mayCuaShop') : localStorage.setItem('lt_mayCuaShop', coShopLucDau) } catch {} }
+
 ;(async function main() {
   // ════════════ PHẦN A. ADMIN — dữ liệu khách gõ vào là mã độc ════════════
   for (const [rong, cao] of [[390, 780], [1280, 860]]) {
@@ -498,10 +504,12 @@ async function moKhung(duong, rong, cao) {
     A.f.remove()
   }
 
+  traCoShop()
   const tk = document.getElementById('tongket')
   tk.className = soFail ? 'fail-box' : 'ok-box'
   tk.textContent = soFail ? '✕ ' + soFail + ' ca FAIL / ' + (soOk + soFail) + ' ca' : '✓ Tất cả ' + soOk + ' ca đều PASS'
 })().catch(e => {
+  traCoShop()
   const tk = document.getElementById('tongket'); tk.className = 'fail-box'; tk.textContent = '✕ Lỗi khi chạy test: ' + e.message + '\n' + (e.stack || '')
 })
 </script>

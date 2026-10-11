@@ -35,6 +35,28 @@ function linkAnToan(url) {
   return ''
 }
 
+// Bỏ dấu tiếng Việt để tìm kiếm dễ tính: gõ "hoa hong" vẫn ra "Hoa Hồng", "chi thoa" ra "Chị Thoa"
+function noAccent(s) {
+  return String(s ?? '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')   // dải dấu thanh/mũ Unicode
+    .replace(/đ/g, 'd').trim()
+}
+
+// Bộ sưu tập (BST) có đang hiện trên web khách không: tắt tay, hoặc chưa tới / đã qua ngày hẹn.
+// Admin báo "đang hiện / đang ẩn" và web khách quyết định hiện bộ nào đều dựa vào ĐÚNG hàm này
+// (trước 11/10/2026 viết 2 bản ở main.js + admin, phải nhớ sửa cả hai).
+function bstDangHien(c, homNay = new Date().toLocaleDateString('sv-SE')) {
+  if (!c || !c.active) return false
+  if (c.start_date && c.start_date > homNay) return false
+  if (c.end_date   && c.end_date   < homNay) return false
+  return true
+}
+
+// Mã đo lường shop dán ở admin → tab Liên hệ. Admin dùng để từ chối mã sai, web khách dùng để
+// quyết định có nạp script không (mã được ghép vào địa chỉ tải script nên chỉ nhận đúng chữ-số).
+const MA_GA4 = /^G-[A-Z0-9]{6,12}$/        // Google Analytics 4: "G-XXXXXXXXXX"
+const MA_CLARITY = /^[a-z0-9]{6,20}$/      // Microsoft Clarity: Project ID
+
 // ── Ảnh NHỎ cho thẻ / lưới / ô xem trước (25/09/2026, bản gói Free 01/10/2026) ──
 // Ảnh gốc lưu ~1600px (TB 230KB) nhưng thẻ mẫu hoa trên điện thoại chỉ rộng ~180px.
 // Supabase tự thu nhỏ khi đổi /object/public/ → /render/image/public/ (gói Pro; 100 ảnh

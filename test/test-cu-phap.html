@@ -18,6 +18,26 @@
       }
       new Function(code)                      // chỉ biên dịch, KHÔNG chạy
       ket.push('OK    ' + f + '  (' + code.length + ' ký tự)')
+      // Mục lục đầu admin (11/10/2026): mọi chữ "…" trong mục lục phải tìm thấy trong file — đổi tên
+      // mục mà quên sửa mục lục là báo đỏ. Chú thích không được chứa "-->" (đóng sớm → chữ lộ ra trang).
+      if (f.endsWith('admin/index.html')) {
+        const dau = txt.indexOf('MỤC LỤC'), cuoi = txt.indexOf('-->', dau)
+        const ml = dau < 0 ? '' : txt.slice(dau, cuoi)
+        const conLai = txt.slice(cuoi)
+        // Tên ở PHẦN 2 phải khớp 1 dòng chú thích tab (<!-- Tên), ở PHẦN 3 phải khớp 1 dòng mốc JS (// ── Tên)
+        const ten = doan => [...doan.matchAll(/"([^"\n]+)"/g)].map(m => m[1])
+        const p2 = ml.indexOf('PHẦN 2'), p3 = ml.indexOf('PHẦN 3')
+        const thieu = ten(ml.slice(p2, p3)).filter(k => !conLai.includes('<!-- ' + k))
+          .concat(ten(ml.slice(p3)).filter(k => !conLai.includes('// ── ' + k)))
+        if (dau < 0) ket.push('LOI   mục lục admin: không tìm thấy chữ "MỤC LỤC" ở đầu file')
+        else if (!/═+\s*$/.test(ml) || ml.includes('<!--')) ket.push('LOI   mục lục admin: chú thích bị đóng sớm / lồng chú thích')
+        else if (p2 < 0 || p3 < 0) ket.push('LOI   mục lục admin: thiếu dòng "PHẦN 2" / "PHẦN 3"')
+        // Trang test khác cắt code theo đúng dòng mốc "// ── …" (test-gia-san-pham, test-form-chi-phi) → mục lục mà
+        // chứa nguyên mốc thì chúng cắt nhầm vào mục lục (lỗi thật 11/10/2026)
+        else if (ml.includes('// ──')) ket.push('LOI   mục lục admin: có nguyên dòng mốc "// ──" → trang test cắt code sẽ cắt nhầm')
+        else if (thieu.length) ket.push('LOI   mục lục admin: không khớp mục nào trong file → ' + thieu.join(' | '))
+        else ket.push('OK    mục lục admin: ' + ten(ml.slice(p2)).length + ' mục đều khớp đúng chỗ')
+      }
     } catch (e) {
       ket.push('LOI   ' + f + '  → ' + e.name + ': ' + e.message)
     }

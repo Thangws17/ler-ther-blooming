@@ -1,0 +1,15 @@
+# Những thứ KHÔNG đưa lên git (= không lên web). Mỗi dòng 1 thư mục / kiểu file.
+
+# Bản nháp đề xuất giao diện, ảnh chụp so sánh — chỉ để trên máy làm việc.
+# Công cụ xem thử admin/web bằng dữ liệu giả đã chuyển sang test/xem-admin.html, test/xem-web.html.
+demo/
+
+# Cài đặt riêng của Claude Code trên từng máy (quyền chạy lệnh…)
+.claude/
+
+# Rác do Python / hệ điều hành tự sinh
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+desktop.ini

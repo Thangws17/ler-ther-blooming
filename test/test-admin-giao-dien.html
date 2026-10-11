@@ -153,6 +153,42 @@ function nutCoEmoji(goc) {
       test('Ô sao lưu vẫn còn đủ id (test-sao-luu dựa vào)', () =>
         bang(['backupBox', 'backupLast', 'backupStatus', 'backupBtn'].every(x => id(x)), true))
 
+      // ── Khung "Database còn thiếu file SQL" (kiemSqlDaChay, 11/10/2026) ──
+      test('Database đủ cột → KHÔNG hiện khung thiếu SQL', () => bang(id('sqlThieu').textContent.trim(), ''))
+      const sbA = w.eval('sb'), fromGoc = sbA.from
+      // Giả database báo lỗi cho mọi lượt đọc có cột `cotLoi` của bảng orders
+      const giaLoi = (cotLoi, loi) => {
+        sbA.from = ten => {
+          const q = fromGoc(ten), selGoc = q.select
+          q.select = (cot, o) => ten === 'orders' && new RegExp('\\b' + cotLoi + '\\b').test(cot || '')
+            ? { limit: () => Promise.resolve({ data: null, error: loi }) } : selGoc(cot, o)
+          return q
+        }
+      }
+      const kiemLai = async () => { w.eval('_sqlDaKiem = false'); await w.baoSqlThieu() }
+      giaLoi('nguon', { code: '42703', message: 'column orders.nguon does not exist' })
+      await kiemLai()
+      test('Thiếu cột orders.nguon → khung vàng nhắc ĐÚNG 1 file 33_nguon_khach.sql', () => {
+        const li = [...d.querySelectorAll('#sqlThieu li')].map(x => x.textContent)
+        bang(li.length, 1, JSON.stringify(li))
+        if (!li[0].includes('33_nguon_khach.sql')) throw new Error(li[0])
+      })
+      test('Khung thiếu SQL có hướng dẫn chạy (SQL Editor + F5)', () => {
+        const t = id('sqlThieu').textContent
+        if (!t.includes('SQL Editor') || !t.includes('F5')) throw new Error(t)
+      })
+      giaLoi('nguon', { code: undefined, message: 'TypeError: Failed to fetch' })
+      await kiemLai()
+      test('Mất mạng khi kiểm → KHÔNG báo nhầm là thiếu SQL', () => bang(id('sqlThieu').textContent.trim(), ''))
+      sbA.from = fromGoc
+      await kiemLai()
+      // Tên file trong khung phải có thật — shop sẽ đi tìm đúng tên đó trong thư mục supabase/
+      const tenFile = w.eval('SQL_DAU_HIEU').map(x => x[0])
+      const coThat = await Promise.all(tenFile.map(t => fetch('../supabase/' + t + '.sql', { method: 'HEAD', cache: 'no-store' }).then(r => r.ok, () => false)))
+      test('Mỗi file khai trong SQL_DAU_HIEU có thật trong thư mục supabase/', () =>
+        bang(tenFile.filter((t, i) => !coThat[i]), []))
+      test('Kiểm lại với database đủ cột → khung biến mất', () => bang(id('sqlThieu').textContent.trim(), ''))
+
       // ── Lịch giao ──
       nhom('4. Lịch giao')
       w.applyTab('Delivery'); await cho(300)
@@ -203,12 +239,12 @@ function nutCoEmoji(goc) {
       test('Chip lọc: Tất cả 2 · Khách quen 0 · Chưa có đơn 1', () =>
         bang([...d.querySelectorAll('#khChips .fx-chip small')].map(x => x.textContent), ['2', '0', '1']))
       d.querySelectorAll('#khChips .fx-chip')[2].click(); await cho(30)
-      test('Bấm "Chưa có đơn" → chỉ còn khách chưa mua', () => bang(hangKh().map(h => h.querySelector('.kh-ten').textContent), ['Phan Khánh Linh']))
+      test('Bấm "Chưa có đơn" → chỉ còn khách chưa mua', () => bang(hangKh().map(h => h.querySelector('.kh-ten').textContent), ['Trần Bảo Ngọc']))
       d.querySelectorAll('#khChips .fx-chip')[0].click(); await cho(30)
       id('customerSearch').value = 'tuyen'; id('customerSearch').dispatchEvent(new Event('input')); await cho(30)
       test('Tìm "tuyen" (không dấu) → ra Chị Tuyền', () => bang(hangKh().map(h => h.querySelector('.kh-ten').textContent), ['Chị Tuyền']))
-      id('customerSearch').value = '0382 705'; id('customerSearch').dispatchEvent(new Event('input')); await cho(30)
-      test('Tìm SĐT có dấu cách "0382 705" → ra đúng khách', () => bang(hangKh().map(h => h.querySelector('.kh-ten').textContent), ['Phan Khánh Linh']))
+      id('customerSearch').value = '0900 000'; id('customerSearch').dispatchEvent(new Event('input')); await cho(30)
+      test('Tìm SĐT có dấu cách "0900 000" → ra đúng khách', () => bang(hangKh().map(h => h.querySelector('.kh-ten').textContent), ['Trần Bảo Ngọc']))
       id('customerSearch').value = ''; id('customerSearch').dispatchEvent(new Event('input')); await cho(30)
       hangKh().find(h => h.textContent.includes('Chị Tuyền')).click(); await cho(150)
       test('Bấm cả hàng → mở thẻ khách: Gọi (tel:) · Zalo · Sửa · Xoá ở cuối', () => {

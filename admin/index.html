@@ -1,5 +1,42 @@
 <!DOCTYPE html>
 <html lang="vi">
+<!-- ═══════════════════════════════════════════════════════════════════════════════════════
+  MỤC LỤC — TRANG QUẢN TRỊ (admin). Cả trang nằm trong 1 file này (cố ý, không cần công cụ build).
+  Muốn tìm phần nào: Ctrl+F gõ tên mục (chữ trong ngoặc kép). Phần JavaScript: gõ thêm 2 gạch ── phía
+  trước để nhảy thẳng tới đầu mục, vd "── Báo cáo". test-cu-phap kiểm mọi tên dưới đây có thật trong file —
+  đổi tên mục thì sửa luôn mục lục. KHÔNG chép nguyên dòng mốc (2 dấu / + ── + tên) vào đây: trang test cắt code
+  theo đúng các dòng mốc đó, trùng ở mục lục là cắt nhầm (lỗi thật 11/10/2026).
+
+  PHẦN 1 · KIỂU DÁNG (CSS) — ngay dưới, trong thẻ style ở đầu trang.
+  PHẦN 2 · KHUNG TỪNG TAB (HTML) — mỗi tab mở đầu bằng 1 dòng chú thích HTML mang tên tab:
+      "Tổng quan"  "Đơn hàng"  "Lịch giao"  "Khách hàng"  "Sổ chi phí"  "Báo cáo"
+      "Sản phẩm"  "Bộ sưu tập:"  "Khoảnh khắc"  "Đánh giá"  "Nhật ký cập nhật"  "Liên hệ"
+  PHẦN 3 · CÁCH CHẠY (JavaScript) — cuối trang. Mỗi mục mở đầu bằng 1 dòng mốc: 2 dấu /, 2 gạch ──, rồi tên mục:
+      Dùng chung   "Auth" (đăng nhập)  "Tabs" (chuyển tab)  "Chống mất dữ liệu"
+                   "Toast" (thông báo nhỏ)  "Phân trang dùng chung"  "Nén ảnh trước khi upload"
+                   "Bộ chọn ngày DÙNG CHUNG"  "Lịch lọc ngày"  "Ô tiền trong form"
+                   "Form kiểu mới: chip"
+      Tổng quan    "Dashboard"  "Kiểm file SQL đã chạy chưa"  "Đối soát chỉ số"
+                   "Sao lưu dữ liệu ra Excel"
+      Đơn hàng     "Orders"  "Lọc theo ngày giao"  "Sửa đơn"
+                   "Thêm đơn thủ công"  "Gợi ý khách đã có"  "Chọn sản phẩm CÓ ẢNH"
+                   "Trạng thái THANH TOÁN"  "Bảng mã QR chuyển khoản"  "Nguồn khách"
+                   "Đổi nhanh trạng thái"  "Ảnh đại diện đơn"
+      Lịch giao    "Lịch giao"
+      Khách hàng   "Customers"  "Tab Khách hàng kiểu"  "Xoá khách khỏi sổ"
+      Sổ chi phí   "Sổ chi phí"  "Nguyên liệu"  "Modal quản lý nguyên liệu"
+      Báo cáo      "Báo cáo"
+      Sản phẩm     "Products"  "Sắp xếp:"  "Product Modal"  "Ô giá sản phẩm"
+                   "Thành phần dạng viên"  "Bảng trượt chọn bộ sưu tập"  "Thông tin chung cho mọi mẫu"
+      Bộ sưu tập   "Bộ sưu tập (BST)"  "Modal thêm/sửa BST"  "Ô chọn BST trong form Sản phẩm"
+      Khoảnh khắc  "Gallery"  "Album"  "Chi tiết một ảnh"  "Chọn nhiều ảnh"
+                   "Kéo-thả sắp xếp ảnh"  "Gallery Picker"
+      Liên hệ      "Contact"  "Hero Image"  "Bảo vệ tài khoản nhận tiền"
+      Đánh giá     "Testimonials"
+      Cập nhật     "Nhật ký cập nhật"
+  Hàm dùng chung với web khách (esc, giá, ảnh nhỏ, biểu tượng, bánh xe giờ…) nằm ở ../js/dungchung.js.
+  Đọc thêm: huong-dan/01-ban-do-thu-muc.md · CLAUDE.md (các bẫy đã biết).
+═══════════════════════════════════════════════════════════════════════════════════════ -->
 <head>
   <meta charset="UTF-8">
   <!-- Bảo mật (01/10/2026). GitHub Pages không cho đặt header nên dùng thẻ meta:
@@ -974,6 +1011,11 @@
     .canh-bao-quyen { background: #FFEBEE; color: #B71C1C; border: 1px solid #EF9A9A; border-radius: 12px;
                       padding: 12px 14px; margin-bottom: 14px; font-size: .88rem; line-height: 1.5; }
     .canh-bao-quyen code { background: #fff; padding: 0 4px; border-radius: 4px; }
+    /* Tổng quan: database còn thiếu file SQL (kiemSqlDaChay) */
+    .sql-thieu { background: #FFF8E1; color: #6D4C00; border: 1px solid #FFD54F; border-radius: 12px;
+                 padding: 12px 14px; margin-bottom: 14px; font-size: .86rem; line-height: 1.55; overflow-wrap: anywhere; }
+    .sql-thieu ul { margin: 6px 0 6px 18px; padding: 0; }
+    .sql-thieu code { background: #fff; padding: 0 4px; border-radius: 4px; }
     .toast {
       position: fixed; bottom: 28px; right: 28px; z-index: 9999;
       padding: 13px 22px; border-radius: 10px; font-weight: 600; font-size: .92rem;
@@ -2339,6 +2381,8 @@
       <!-- Thứ tự (23/09/2026): việc cần làm NGAY lên đầu → Giao hôm nay → Sắp giao (chia theo ngày)
            → số liệu tháng thu gọn → công cụ (sao lưu, tối ưu ảnh) nhỏ ở cuối. -->
       <div id="dbNewAlert"></div>
+      <!-- Database còn thiếu file SQL nào (kiemSqlDaChay) — không thiếu thì trống -->
+      <div id="sqlThieu"></div>
       <section class="db-sec db-today">
         <div class="db-sec-head"><h2>Giao hôm nay</h2><span class="db-sub" id="dbTodayDate"></span></div>
         <div id="dashboardToday"><div class="loading-state">Đang tải…</div></div>
@@ -3996,6 +4040,7 @@ const todayStr = () => new Date().toLocaleDateString('sv-SE')  // YYYY-MM-DD the
 
 async function loadDashboard() {
   veSaoLuuCuoi()
+  baoSqlThieu()          // chạy ngầm, không chờ — chỉ hiện khung khi database thật sự thiếu file
   const { data, error } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('created_at', { ascending: false })
   if (error) { document.getElementById('dashboardToday').innerHTML = loadErrorHTML('loadDashboard'); return }
   const all = data || []
@@ -4085,6 +4130,73 @@ async function loadDashboard() {
       ${o.delivery_address ? `<span class="db-don-dc">${ic('pin')}${esc(o.delivery_address)}</span>` : ''}
     </span>
   </button>`).join('')}</div>`
+}
+
+// ── Kiểm file SQL đã chạy chưa (11/10/2026) ──
+// Shop tự dán file SQL vào Supabase nên dễ sót. Mỗi file tạo bảng / cột mới khai 1 dòng ở đây: admin
+// ĐỌC THỬ đúng cột đó (1 dòng, không ghi gì). Database báo "không có cột/bảng" = file chưa chạy → Tổng
+// quan hiện khung vàng kèm tên file. Lỗi khác (mất mạng, hết phiên…) thì im lặng — không báo nhầm.
+// File chỉ sửa hàm / luật bảo mật / dữ liệu (04, 05, 11, 15–19, 22, 23, 26, 27, 29, 30, 32) không kiểm
+// được kiểu này — xem bảng trong supabase/README.md. THÊM FILE SQL MỚI CÓ CỘT/BẢNG → THÊM 1 DÒNG Ở ĐÂY.
+const SQL_DAU_HIEU = [
+  ['01_orders_setup_full', 'Đơn hàng + sổ khách', ['orders.customer_name', 'customers.phone']],
+  ['02_phase1_orders', 'Đơn giá, phí ship, tổng tiền', ['orders.unit_price', 'orders.shipping_fee', 'orders.total']],
+  ['03_order_phone_snapshot', 'SĐT lưu trên đơn', ['orders.customer_phone']],
+  ['06_orders_image', 'Ảnh riêng cho đơn', ['orders.image']],
+  ['07_expenses_setup', 'Sổ chi phí', ['expenses.amount']],
+  ['08_expenses_image', 'Ảnh hoá đơn chi phí', ['expenses.image']],
+  ['09_materials_setup', 'Sổ nguyên liệu', ['materials.last_price']],
+  ['10_gallery_categories_setup', 'Nhóm ảnh Khoảnh khắc', ['gallery_categories.name']],
+  ['12_policy_migration', 'Nội dung trang Chính sách', ['contact.policy_delivery', 'contact.policy_payment', 'contact.policy_quality']],
+  ['13_contact_hero_sides', 'Ảnh phụ trang chủ', ['contact.hero_side1', 'contact.hero_side2']],
+  ['14_changelog_setup', 'Nhật ký cập nhật', ['changelog.title']],
+  ['20_analytics_settings', 'Mã Google Analytics / Clarity', ['contact.ga4_id', 'contact.clarity_id']],
+  ['21_collections', 'Bộ sưu tập', ['collections.slug', 'collections.active', 'collections.start_date', 'collection_products.product_id']],
+  ['24_chi_quan_tri', 'Chỉ tài khoản shop được quản trị', ['quan_tri.user_id']],
+  ['25_nhac_truoc_gio_giao', 'Mail nhắc trước giờ giao', ['orders.nhac_gio_da_gui']],
+  ['28_thong_tin_chung', 'Thông tin chung dưới mọi mẫu', ['contact.thong_tin_chung']],
+  ['31_thanh_toan', 'Thanh toán / cọc + tài khoản nhận tiền', ['orders.thanh_toan', 'orders.tien_coc', 'contact.ck_so_tk', 'nhat_ky_tai_khoan.moi']],
+  ['33_nguon_khach', 'Nguồn khách của đơn', ['orders.nguon']],
+]
+// Mã lỗi Supabase nghĩa là "chưa có cột / chưa có bảng"
+const SQL_LOI_THIEU = ['42703', '42P01', 'PGRST204', 'PGRST205']
+
+// Trả về danh sách file thiếu [[tên file, mô tả], …]; null = không kiểm được (mạng lỗi…) → đừng báo gì
+async function kiemSqlDaChay() {
+  const theoBang = {}
+  for (const [, , dau] of SQL_DAU_HIEU) for (const d of dau) {
+    const [b, c] = d.split('.'); (theoBang[b] = theoBang[b] || new Set()).add(c)
+  }
+  const thieu = new Set(), laThieu = e => e && SQL_LOI_THIEU.includes(String(e.code))
+  let khongKiemDuoc = false
+  // Mỗi bảng 1 lượt đọc gộp mọi cột; lượt nào báo thiếu mới tách ra đọc từng cột để biết đúng cột nào
+  await Promise.all(Object.entries(theoBang).map(async ([b, cots]) => {
+    const { error } = await sb.from(b).select([...cots].join(',')).limit(1)
+    if (!error) return
+    if (!laThieu(error)) { khongKiemDuoc = true; return }
+    await Promise.all([...cots].map(async c => {
+      const r = await sb.from(b).select(c).limit(1)
+      if (laThieu(r.error)) thieu.add(b + '.' + c)
+      else if (r.error) khongKiemDuoc = true
+    }))
+  }))
+  if (khongKiemDuoc) return null
+  return SQL_DAU_HIEU.filter(([, , dau]) => dau.some(d => thieu.has(d))).map(([tep, moTa]) => [tep, moTa])
+}
+
+let _sqlDaKiem = false     // mỗi lần mở trang chỉ kiểm 1 lần (database không tự đổi giữa chừng)
+async function baoSqlThieu() {
+  if (_sqlDaKiem) return
+  _sqlDaKiem = true
+  const hop = document.getElementById('sqlThieu')
+  let ds = null
+  try { ds = await kiemSqlDaChay() } catch { ds = null }
+  if (!hop || !ds || !ds.length) { if (hop) hop.innerHTML = ''; return }
+  hop.innerHTML = `<div class="sql-thieu" role="status">
+    <b>Database còn thiếu ${ds.length} file cài đặt</b> — vài chức năng bên dưới sẽ chưa chạy đúng.
+    Mở Supabase → <b>SQL Editor</b>, dán nội dung từng file (thư mục <code>supabase/</code> của web) rồi bấm <b>Run</b>:
+    <ul>${ds.map(([tep, moTa]) => `<li><code>${esc(tep)}.sql</code> — ${esc(moTa)}</li>`).join('')}</ul>
+    Chạy xong tải lại trang này (F5), khung vàng sẽ tự biến mất.</div>`
 }
 
 // Giờ giao ghi trong ghi chú đơn ("Giờ giao: 15h") — xem ghepGhiChuDon ở js/dungchung.js
@@ -5030,12 +5142,7 @@ const CUST_FIELDS = {
   oe: { pop: 'oeNameSuggest', name: 'oeCustomerName', phone: 'oePhone', addr: 'oeAddress' },
 }
 
-// Bỏ dấu để gõ "chi thoa" vẫn ra "Chị Thoa"
-function noAccent(s) {
-  return String(s ?? '').toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')   // dải dấu thanh/mũ Unicode
-    .replace(/đ/g, 'd').trim()
-}
+// noAccent() — bỏ dấu để gõ "chi thoa" vẫn ra "Chị Thoa" — nằm ở js/dungchung.js (dùng chung với web khách)
 
 function showCustSuggest(key) {
   const f = CUST_FIELDS[key]
@@ -6921,9 +7028,7 @@ function clearHeroImage(slot = 'main') {
   document.getElementById(s.input).value = ''
 }
 
-// Giống hệt điều kiện trong js/main.js (initDoLuong) — sửa một bên phải sửa bên kia
-const MA_GA4 = /^G-[A-Z0-9]{6,12}$/
-const MA_CLARITY = /^[a-z0-9]{6,20}$/
+// Điều kiện mã hợp lệ MA_GA4 / MA_CLARITY nằm ở js/dungchung.js — web khách dùng chung
 
 async function saveContact(e) {
   e.preventDefault()
@@ -7224,7 +7329,7 @@ async function taoAnhNho(file) {
 // Tên file an toàn cho kho ảnh: bỏ dấu, chỉ giữ chữ/số/._- (tên có dấu, ngoặc, emoji… có thể
 // bị Supabase từ chối "Invalid key")
 function tenFileAnh(name) {
-  return String(name || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D')
+  return String(name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D')
     .replace(/[^\w.-]+/g, '_').replace(/_+/g, '_').slice(-80) || 'anh.jpg'
 }
 
@@ -7294,14 +7399,8 @@ function slugVi(s) {
     .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 }
 
-// BST có đang hiện trên web khách không. Tắt tay, hoặc chưa tới / đã qua ngày hẹn.
-// Luật này lặp lại y hệt trong js/main.js — đổi một bên phải đổi bên kia.
-function bstDangHien(c, homNay = todayStr()) {
-  if (!c || !c.active) return false
-  if (c.start_date && c.start_date > homNay) return false
-  if (c.end_date   && c.end_date   < homNay) return false
-  return true
-}
+// bstDangHien(c) — BST có đang hiện trên web khách không — nằm ở js/dungchung.js: admin và web khách
+// dùng CHUNG một hàm nên không thể lệch nhau.
 
 // Vì sao BST không hiện — để admin nói rõ thay vì chỉ "đang tắt"
 function bstLyDoAn(c, homNay = todayStr()) {
@@ -9576,7 +9675,7 @@ function khTinhSo(list) {
   })
 }
 function khSo(c) { return _khSo[c.id] || { n: 0, tong: 0, cuoi: '' } }
-// Chữ cái đầu của TÊN (chữ cuối): "Chị Tuyền" → T, "Phan Khánh Linh" → L
+// Chữ cái đầu của TÊN (chữ cuối): "Chị Tuyền" → T, "Trần Bảo Ngọc" → N
 function khChuDau(ten) {
   const w = String(ten || '').trim().split(/\s+/)
   return (w[w.length - 1] || '?').charAt(0).toUpperCase() || '?'

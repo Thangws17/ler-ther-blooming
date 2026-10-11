@@ -6,7 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Website + hệ quản lý đơn hàng của shop hoa nhỏ (2 người, part-time). Chủ shop **không phải dev** — trả lời bằng tiếng Việt, tránh jargon, giải thích rõ ràng.
 
-Xem thêm [README.md](README.md) cho cấu trúc thư mục và mô tả từng bảng dữ liệu.
+Tài liệu (11/10/2026 sắp xếp lại):
+- [README.md](README.md) — cửa vào, sơ đồ thư mục ngắn.
+- [huong-dan/](huong-dan/) — viết cho **người không biết code**: bắt đầu từ `00-bat-dau-tu-day.md`; quyết định
+  shop đã chốt ở `06-quyet-dinh-da-chot.md` (đọc trước khi đề xuất đổi hướng).
+- [huong-dan/ky-thuat/](huong-dan/ky-thuat/) — chi tiết kỹ thuật + **mọi bẫy đã gặp** (tách từ file này). Danh sách
+  tiêu đề ở mục "Bẫy đã biết" bên dưới: sửa phần nào thì ĐỌC file chủ đề đó trước.
+- [supabase/README.md](supabase/README.md) — 33 file SQL: làm gì, loại nào, đã chạy chưa.
 
 ## Lệnh thường dùng
 
@@ -14,38 +20,15 @@ Xem thêm [README.md](README.md) cho cấu trúc thư mục và mô tả từng 
 python serve.py                   # chạy local; web http://localhost:8765/ , admin /admin/
 ```
 
-Không có bước build, không `npm install`. Vẫn nên mở trình duyệt xem thật, nhưng đã có sẵn
-mấy trang test chạy trong trình duyệt (vẫn server 8765 đó):
+Không có bước build, không `npm install`. Kiểm thử tự động (database giả, không đụng dữ liệu thật):
 
-- `/test/test-gia-san-pham.html` — ô giá sản phẩm: chèn dấu chấm, giữ con trỏ, dãy giá hay dùng
-- `/test/test-khung-man-hinh.html` — khung màn hình admin trên iPhone + thanh tab dưới đáy (xem "Bẫy đã biết")
-- `/test/test-form-chi-phi.html` — ô ngày + ô tiền + chip / mục gấp của form chi phí và form thêm đơn
-- `/test/test-phan-trang-don.html` — phân trang đơn: kiểm đúng URL truy vấn gửi lên Supabase
-- `/test/test-sao-luu.html` — bộ tạo Excel + nút sao lưu thật trong admin (xuất file mẫu base64 để mở lại bằng openpyxl)
-- `/test/test-do-luong.html` — Google Analytics + Clarity: khi nào đếm / không đếm, kiểm mã, hàng chờ thao tác
-- `/test/test-bo-suu-tap.html` — bộ sưu tập: luật hiện/ẩn, đuôi link, tắt bộ không làm mất mẫu hoa
-- `/test/test-nguoi-nhan.html` — người nhận + giờ giao: web ghép vào ghi chú đơn, admin tách ra (bấm thật, database giả)
-- `/test/test-web-khach.html` — mọi trang web khách × 3 khổ (360/390/1280): tràn ngang, lỗi JS, nút có tên, emoji,
-  thanh tab, nút nổi, lọc/tìm/xem ảnh/menu, form đặt hoa + các lỗi nhập (gửi đơn bằng database giả), trang chi tiết
-- `/test/test-admin-giao-dien.html` — admin × 2 khổ (390/1280) với DATABASE GIẢ (`test/gia-lap-sb.js`): từng tab không
-  lỗi / không tràn, số đỏ, nút ＋ nổi, Tổng quan, Lịch giao, chi phí, bộ sưu tập, album, nguyên liệu, cảnh báo nhập dở
-- `/test/test-cu-phap.html` — biên dịch thử toàn bộ JS (web + admin). Chạy sau mọi lần sửa file lớn
-- `/test/test-bao-mat.html` — nhồi MÃ ĐỘC vào mọi ô dữ liệu (database giả) rồi mở mọi tab/form admin + mọi trang web:
-  không mã nào chạy, không thẻ lạ / link `javascript:` / onclick bị phá chuỗi; chữ siêu dài / ô trống không làm tràn;
-  lưu thất bại phải báo thật (`ghiDb`); chống spam đơn; thư viện Supabase khoá phiên bản + integrity; `anhNho`
+```bash
+python test/chay-tat-ca.py       # chạy cả 12 trang test (cần serve.py đang chạy), in ✓/✕ từng trang
+```
 
-Chạy ngầm không cần mở tay: `chrome --headless=new --virtual-time-budget=90000 --dump-dom http://localhost:8765/test/<tên>.html`
-rồi đọc `#tongket` / các `.ca.fail` (mỗi trang tự in dòng tổng kết). **Riêng `test-bao-mat` (phần E, ảnh tải lên) treo
-với `--virtual-time-budget`** — `createImageBitmap`/`toBlob` không chạy trong thời gian ảo. Chạy trang đó bằng Chrome
-`--remote-debugging-port` (thời gian thật, Python `websocket-client` có sẵn trên máy) rồi đọc `#tongket` qua `Runtime.evaluate`.
-`test-web-khach` (~85 giây, đọc Supabase thật) cũng nên chạy kiểu thời gian thật. Chạy bằng cổng gỡ lỗi thì phải thêm
-`--remote-allow-origins=*` và gọi `Emulation.setFocusEmulationEnabled` — thiếu nó `focus()` không bắn sự kiện (cửa sổ ngầm
-không có tiêu điểm) → test admin "Bấm vào ô giá → hiện giá hay dùng" hỏng oan.
-**Dữ liệu giả phải tính ngày theo HÔM NAY**, đừng ghi cứng ngày (01/10/2026 hai test tự hỏng: BST hẹn "2026-10-01", và
-chi phí "1–3 ngày trước" rơi sang tháng trước trong khi tab Chi phí xem tháng này → dùng `ngayTrongThang()`).
-
-Trang test **bốc hàm/DOM thật ra khỏi `admin/index.html`** chứ không copy code, nên sửa admin là test
-biết ngay. Không nối Supabase để ghi, chạy bao nhiêu lần cũng không đụng dữ liệu thật.
+hoặc mở `/test/` bấm "Chạy tất cả". Danh sách từng trang test, cách chạy ngầm, bẫy khi viết test:
+[huong-dan/ky-thuat/kiem-thu.md](huong-dan/ky-thuat/kiem-thu.md). Xem giao diện admin bằng dữ liệu giả:
+`/test/xem-admin.html?v=ds` (đơn hàng), `?v=tq` (tổng quan)… — danh sách `?v=` ở đầu file đó.
 
 ```bash
 git push origin main                                     # deploy: GitHub Pages tự cập nhật sau ~1 phút
@@ -69,7 +52,8 @@ Kết quả của `sb.from(...)` là câu hỏi CHƯA gửi — mỗi lần `awa
 
 **Web khách — `js/main.js` dùng chung cho MỌI trang.** Không có router. Mỗi hàm `loadX()` tự thoát sớm nếu trang hiện tại không có element mốc của nó (`const grid = document.getElementById('productsGrid'); if (!grid) return`). Hàm `DOMContentLoaded` ở cuối file gọi *tất cả* các loader song song; trang nào không liên quan thì loader tự no-op. Thêm trang mới = thêm HTML + một `loadX()` theo đúng khuôn này, không tạo file JS riêng.
 
-**Admin — `admin/index.html` là một file monolith ~5000 dòng** (HTML + CSS + JS trong cùng file, cố ý giữ vậy). Điều hướng qua `applyTab(tab)`: ẩn/hiện `.panel`, rồi gọi đúng `loadX()` của tab đó. `switchTab()` đẩy `history.pushState` + `#hash` nên nút Back của trình duyệt và F5 đều giữ đúng tab. `applyTab` cũng gọi `closeAllModals()` — modal của tab cũ phải dọn ở đó, đừng để rò sang tab mới.
+**Admin — `admin/index.html` là một file monolith ~10.000 dòng** (HTML + CSS + JS trong cùng file, cố ý giữ vậy;
+**MỤC LỤC ở đầu file** — tìm mục bằng Ctrl+F `// ── Tên mục`; test-cu-phap kiểm mục lục không lỗi thời). Điều hướng qua `applyTab(tab)`: ẩn/hiện `.panel`, rồi gọi đúng `loadX()` của tab đó. `switchTab()` đẩy `history.pushState` + `#hash` nên nút Back của trình duyệt và F5 đều giữ đúng tab. `applyTab` cũng gọi `closeAllModals()` — modal của tab cũ phải dọn ở đó, đừng để rò sang tab mới.
 
 **Bảo mật database (kiểm 25/09/2026):** Supabase từng MỞ ĐĂNG KÝ (`/auth/v1/settings` → `disable_signup:false`; kiểm lại
 07/10/2026: đã TẮT, `true`). Dù vậy vẫn coi "đã đăng nhập" (`authenticated`) KHÔNG có nghĩa là shop. `supabase/24_chi_quan_tri.sql` thêm lớp luật
@@ -93,295 +77,97 @@ cỡ xin ≤ 640 thì trả link `nho/`. Đây là bản gói FREE thay cho Supa
 `collections/`, `expenses/` (hoá đơn không lên web), `nho/`. Nút "Tạo ảnh nhỏ cho ảnh cũ" (`optimizeOldImages()`, Tổng
 quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; file cũ để nguyên (link cũ ở đơn hàng vẫn xem được).
 
-**Doanh thu** tính theo **ngày giao** (trống thì lấy ngày tạo). Trạng thái nào được tính nằm ở `REVENUE_STATUSES` / `DONE_STATUSES` (`admin/index.html`, gần dòng 3850). Vòng đời: `Mới → Đã xác nhận → Đang giao → Giao thành công → Hoàn thành` (khoá sửa) hoặc `Đã hủy`.
+**Doanh thu** tính theo **ngày giao** (trống thì lấy ngày tạo). Trạng thái nào được tính nằm ở `REVENUE_STATUSES` / `DONE_STATUSES` (`admin/index.html`, Ctrl+F `const REVENUE_STATUSES`). Vòng đời: `Mới → Đã xác nhận → Đang giao → Giao thành công → Hoàn thành` (khoá sửa) hoặc `Đã hủy`.
 
 ## Bẫy đã biết
 
-- **`place_order` được định nghĩa lại ở 4 file SQL.** Bản hiện hành là `supabase/15_notifications_v2.sql` (11 tham số, có `p_email`). Ba bản cũ (10 tham số) đã dồn vào `supabase/da-thay-the/` — chạy vào là **lùi** hàm về bản cũ. Sửa RPC thì sửa trong `15_notifications_v2.sql`.
-- **Hàm nhắc lịch `send_delivery_reminders()` chỉ còn ở `15_notifications_v2.sql`** (Brevo). File 16 trước đây định nghĩa
-  lại bản Telegram/Resend cũ → chạy lại 16 là đè mất bản mới, mất email nhắc 8:30. File 16 giờ chỉ tạo extension + bảng
-  `app_settings`; file 15 cũng tự tạo nền đó nên không phụ thuộc thứ tự. Mọi chữ ghép vào HTML email phải qua `html_esc()`,
-  và chuỗi `'…' || cột` phải `coalesce` từng cột (1 cột null = cả dòng biến mất khỏi `string_agg`).
-- **Kho ảnh: người lạ từng LIỆT KÊ được mọi file** (kể cả `expenses/` hoá đơn) qua `/storage/v1/object/list/images`
-  dù bảng đã khoá (kiểm 01/10/2026). `supabase/27_khoa_liet_ke_anh.sql` thêm luật RESTRICTIVE `chi quan tri select` trên
-  `storage.objects`. Link ảnh công khai vẫn xem được bình thường (kho public không qua luật SELECT).
-- **Safari/iPhone KHÔNG xuất được WebP**: `canvas.toBlob(cb, 'image/webp')` không trả null mà lặng lẽ trả **PNG** →
-  phải xét `blob.type` (`veVaXuatAnh()`). Trước 01/10 chỉ xét null nên ảnh đăng từ iPhone không được nén (có ảnh 900KB).
-- **Admin có CSP bằng thẻ `<meta>`** (GH Pages không cho header): chỉ nạp/gửi tới chính web + Supabase + jsDelivr + Google
-  Fonts. Thêm dịch vụ ngoài mới cho admin (ảnh từ tên miền khác, API…) thì PHẢI thêm tên miền vào CSP, không là bị chặn
-  âm thầm (test-bao-mat mở mọi tab và bắt `securitypolicyviolation`). Có `'unsafe-eval'` vì trang test gọi `eval()` trong
-  khung. Kèm mã chặn bị nhúng vào khung web lạ (khung cùng nguồn — trang test — vẫn được). Admin + trang test có `noindex`.
-- **Web khách cũng có CSP bằng `<meta>` (08/10/2026)** — 8 trang (7 trang + 404) dùng CÙNG MỘT chuỗi (test-bao-mat kiểm giống
-  hệt nhau, không có `*` / `https:` trần). Cho phép: chính web, Supabase, Google Fonts, `img.vietqr.io`, bản đồ Google (khung),
-  GA4 (`googletagmanager`, `*.google-analytics.com`, `*.analytics.google.com`, `*.g.doubleclick.net`, `*.google.com(.vn)`) và
-  Clarity (`*.clarity.ms`, `c.bing.com`). Thêm dịch vụ ngoài cho web khách → sửa cả 8 trang; test-web-khach bắt
-  `securitypolicyviolation` ở mọi trang. GA/Clarity không chạy ở localhost nên test KHÔNG kiểm được chúng — đổi CSP thì kiểm
-  tay: gọi `initDoLuong(contactInfo, 'lertherblooming.vn')` trong trang và xem bảng điều khiển có lỗi CSP không.
-- **Đọc `localStorage`/`sessionStorage` ở web khách phải bọc `try`** (`docNho()`): máy chặn cookie → đọc là NÉM LỖI. Trước
-  08/10/2026 `primeHero()` lỗi ở đó làm trang chủ chỉ còn khung chờ xám. `DOMContentLoaded` giờ chạy từng phần qua
-  `chayRieng()` (1 phần lỗi không kéo phần sau chết theo); test-web-khach mục 5 dựng trang chủ với bộ nhớ bị khoá.
-- **Admin kiểm quyền sau đăng nhập** (`kiemQuyenQuanTri()` → rpc `la_quan_tri`): tài khoản không có trong `quan_tri` thấy
-  cảnh báo đỏ `#canhBaoQuyen` thay vì danh sách trống không lời giải thích.
-- **File SQL đánh số theo thứ tự chạy** (`01_` → `29_`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`).
-- **Sao lưu Excel (`admin/xlsx.js` + `taiSaoLuu()` trong admin)** tự viết file .xlsx, KHÔNG thêm thư viện.
-  Thêm bảng mới vào database thì thêm vào `SAO_LUU_BANG`; cột lạ tự nối vào cuối nên không mất dữ liệu,
-  nhưng khai báo thì có tên cột tiếng Việt. **Tuyệt đối không thêm `app_settings`** (chứa token). Ngày sao
-  lưu gần nhất nhớ theo TỪNG MÁY (localStorage `lt_saoLuuCuoi`), không phải toàn shop.
-- **Bẫy khi ghi file: chuỗi `\u0000` có thể bị biến thành ký tự điều khiển THẬT.** Đã xảy ra với regex lọc
-  ký tự cấm trong `xlsx.js` (trình duyệt đổi NUL thật thành ký tự lạ → bộ lọc hỏng mà không báo lỗi). Viết
-  xong file có `\uXXXX` thì quét lại ký tự điều khiển ẩn trước khi commit.
-- **Đo lường (GA4 + Clarity):** mã nhập ở admin tab Liên hệ → cột `contact.ga4_id` / `contact.clarity_id`
-  (SQL 20). Web khách chỉ nạp khi mã khớp `MA_GA4` / `MA_CLARITY` — 2 regex này **phải giống hệt nhau** ở
-  `admin/index.html` và `js/main.js` (test kiểm). Không đếm khi chạy ở localhost/IP, và máy đã đăng nhập admin
-  (cờ `lt_mayCuaShop`, đặt trong `showApp()`). Ghi thao tác bằng `doLuong(ten, thamSo)` — gọi sớm cũng được,
-  nó tự xếp hàng chờ tới khi biết có bật hay không. Lưu form Liên hệ phải bỏ cột database chưa có
-  (`_contactCot`), không thì chưa chạy SQL 20 là hỏng cả form.
-  **Script GA4/Clarity nạp TRỄ (11/10/2026)**: `initDoLuong` dựng hàng chờ ngay nhưng script chỉ gắn vào trang sau `load` + lúc
-  rảnh (≤ 4 giây) hoặc khi khách chạm/gõ (`henNapDoLuong` / `napScriptDoLuong`) — nạp sớm làm điện thoại chậm bị chặn ~1 giây.
-- **Trạng thái đơn bị database khoá chỉ nhận 6 giá trị** (`supabase/19_order_status_check.sql`), phải
-  khớp y hệt `ORDER_STATUSES` trong admin. Thêm/đổi tên trạng thái: sửa SQL **trước**, rồi mới sửa JS —
-  ngược lại thì lưu đơn bị từ chối. Mọi chỗ ghi status đều phải lấy từ `ORDER_STATUSES`, đừng gõ tay chuỗi.
-- **Tắt một BST KHÔNG được làm mất mẫu hoa.** Nút "🌸 Tất cả" trên trang Sản phẩm luôn hiện
-  **mọi** mẫu, kể cả mẫu không thuộc BST nào — đây là lá chắn duy nhất sau khi bỏ danh mục, đừng
-  viết lại bộ lọc thành "phải thuộc một BST". Admin cũng cảnh báo mẫu chưa thuộc BST nào.
-  "Sản phẩm liên quan" ở trang chi tiết lấy theo BST, không có thì lùi về mẫu mới nhất — không
-  bao giờ để trống.
-- **`bstDangHien()` viết HAI lần** — `admin/index.html` và `js/main.js`. Luật bật/tắt + hẹn ngày
-  phải giống hệt nhau, lệch là admin báo một đằng web hiện một nẻo (test đối chiếu 2 bản).
-  Tương tự: `slugVi()` trong JS phải cho ra kết quả giống hàm `slug_vi()` trong SQL 21.
-- **Hàng Bộ sưu tập trang chủ tự trôi (05/10/2026, `bstTuTruot()` main.js)**: 1 hàng ngang ở MỌI khổ (trước là lưới,
-  bộ thứ 5 rớt xuống hàng 2). Không vừa khung thì JS bọc thẻ vào băng chuyền `.bst-ray`, nối đuôi 1 bản sao (`.bst-sao`,
-  aria-hidden, tabindex −1) và trôi `BST_TRUOT_TOC_DO` (20px/giây) vòng liền; vừa khung thì đứng yên, bản sao ẩn.
-  **Trôi bằng `ray.animate()` (transform, card đồ hoạ lo), KHÔNG bằng `scrollLeft`** — scrollLeft làm tròn điểm ảnh nên
-  chậm thì nhích từng nấc + khựng khi trang bận (shop chê "chưa mượt" 05/10). Khách chạm / nhấn chuột / lăn / Tab → `veTay()`
-  bỏ hiệu ứng, chuyển sang cuộn thường đúng chỗ đang thấy; buông 1,5 giây → `veTroi()`. Rê chuột chỉ chậm còn ½, KHÔNG dừng
-  (shop muốn luôn tự trôi). Vị trí thật = `scrollLeft − m41 của transform .bst-ray`. Chỉ chạy khi hàng trên màn hình, tắt
-  khi máy bật "giảm chuyển động". Đếm thẻ thật phải lọc `:not(.bst-sao)`.
-  Hiệu ứng "hiện dần" đặt cho CẢ HÀNG (`#bstGrid.reveal`), đừng gắn lại cho từng thẻ (thẻ khuất bên phải sẽ trồi lên).
-- **iPhone bắn `resize` liên tục chỉ vì đổi CHIỀU CAO** (thanh địa chỉ thu/hiện khi cuộn, bàn phím bật). Trình nghe
-  `resize` nào vẽ lại / đo lại thứ theo bề ngang thì phải bỏ qua khi `innerWidth` không đổi (BST tự trôi, lưới Khoảnh
-  khắc) — trước 08/10 chúng chạy lại mỗi lần đó → shop báo web "nhấp nháy" khi xem BST / khi bàn phím hiện.
-  `--vvh/--vvtop` của web khách ghi lên `.order-overlay` (gộp theo khung hình), KHÔNG ghi lên `:root`.
-- **Trang ảnh tên là "Khoảnh khắc" (`khoanh-khac`), không còn chữ "Gallery" nào khách/admin thấy** (web thuần Việt,
-  23/09/2026). Trong code và database vẫn tên `gallery` (bảng, hàm `loadGallery`, `data-tab="Gallery"`) — cố ý
-  giữ, đừng đổi tên bảng. Chữ mới hiện ra thì viết "Khoảnh khắc" / "nhóm ảnh", đừng viết "Gallery" / "danh mục".
-- **`gallery_categories` giờ CHỈ của Thư viện ảnh.** Không còn dùng chung với sản phẩm nữa —
-  đổi tên / xoá nhóm ảnh không đụng gì tới mẫu hoa. Cột `products.category` vẫn còn nhưng
-  **chỉ là ghi chú** (tên BST đầu tiên, cho dễ đọc file sao lưu) — đừng lọc/hiển thị theo nó.
-- **Viết hàm tiện ích bằng `function`, đừng `const ten = () => …`.** `const`/`let` ở phạm vi gốc
-  KHÔNG nằm trong `window`, nên trang test (chạy admin trong iframe) gọi không tới. Cần đặt
-  giá trị cho biến `let` từ test thì phải dùng `khung.eval('ten = …')`, gán thẳng là vô tác dụng.
-- **Giá sản phẩm lưu dạng TEXT** (`"600,000đ"`, `"Liên hệ"`, `"Từ 2xx (Theo size order)"`) — luôn qua `fmtPrice()` (web) /
-  `fmtPriceText()` (admin), cả hai gọi **`hienGia()`** trong dungchung.js; đừng coi là số. Trước 03/10 hai hàm đó dồn MỌI chữ số
-  lại: "Từ 50000" → "50.000đ" (mất "Từ"), "Từ 300.000 - 500.000" → "300.000.500.000đ". Giá thấp nhất trang chủ dùng `soGiaDau()`.
-- **`data/*.json`, `admin/config.yml`, `images/uploads/`, `demo-*.html` đã bị xoá** (16/09/2026) — di sản Decap CMS và bản nháp, không còn trong repo. Đừng tạo lại.
-- **Không đặt được HTTP header trên GitHub Pages.** `_headers`/`netlify.toml` đã xoá vì GH Pages không đọc (đã kiểm: bản live không trả về `X-Frame-Options`). Đừng tạo lại — muốn có header bảo mật thật thì phải đổi hosting.
-- **Chạy local bằng `python serve.py`, KHÔNG dùng `python -m http.server`.** Web bỏ đuôi `.html` trong
-  link (`/san-pham`); GitHub Pages tự hiểu, còn server có sẵn của Python thì không → báo 404 khắp nơi dù
-  web thật vẫn chạy. `serve.py` bắt chước đúng GitHub Pages (URL không đuôi + trả `404.html`).
-- **Link nội bộ KHÔNG ghi đuôi `.html`.** Trang chủ là `./`, các trang khác `san-pham`, `chi-tiet?id=…`.
-  Menu tô sáng mục đang xem bằng `tenTrang()` trong `js/main.js` (bỏ đuôi .html khi so) — đừng quay lại
-  so nguyên tên file. Trang 404 dùng `data-to=""` cho trang chủ vì JS tự ghép tiền tố repo.
-- **3 trang đã đổi tên:** `dang-sau-nhung-bo-hoa` → `cau-chuyen`, `san-pham-chi-tiet` →
-  `chi-tiet` (16/09/2026), `gallery` → `khoanh-khac` (23/09/2026). File tên cũ giờ là **trang chuyển hướng — đừng xoá**, link cũ trên Facebook/Zalo/Google
-  còn trỏ vào. Chúng chuyển bằng JS trước để giữ `?id=` sản phẩm (meta refresh làm rơi mất).
-- **Tên miền riêng `lertherblooming.vn` (01/10/2026)**: file `CNAME` ở gốc repo do GitHub tạo — **đừng xoá**
-  (xoá là mất tên miền). DNS ở PA Việt Nam: 4 bản ghi A `185.199.108–111.153` + `www` CNAME `thangws17.github.io`,
-  không proxy. Link cũ `thangws17.github.io/ler-ther-blooming/…` được GitHub tự chuyển 301 sang tên miền.
-  Địa chỉ tuyệt đối ghi cứng ở: thẻ `og:image` (7 trang), thẻ `canonical` (6 trang), `sitemap.xml`, `robots.txt`,
-  3 trang chuyển hướng, nút "Mở Lịch giao" trong mail nhắc (`supabase/25_nhac_truoc_gio_giao.sql`). Đổi tên miền lần
-  nữa: `grep -rn "lertherblooming.vn" --include=*.html --include=*.xml --include=*.txt --include=*.sql .`
-  Trang `chi-tiet` cố ý **không** có canonical (canonical tĩnh sẽ gộp mọi sản phẩm thành một trang).
-  `localStorage` theo từng tên miền → cờ `lt_mayCuaShop` / `lt_saoLuuCuoi` / phiên đăng nhập admin bên github.io
-  không mang sang; mỗi máy của shop phải đăng nhập admin lại 1 lần trên tên miền mới.
-- **`--vvh` và `--apph` là HAI thứ khác nhau, đừng gộp.** `--vvh` = chiều cao vùng nhìn thấy
-  (co lại khi bàn phím mở, nhảy mỗi frame vì iOS bắn `visualViewport scroll` liên tục) → **chỉ**
-  cho modal/toast. `--apph` = `window.innerHeight`, dùng cho chiều cao `#appWrap`. Từng cho
-  `#appWrap` bám `--vvh` và hậu quả trên iPhone là: cuộn thì thẻ đơn **vẽ ra trắng thông tin**,
-  thanh trên **đè lên nội dung mà chạm không trúng**, và đóng bàn phím xong khung app **kẹt ở
-  chiều cao lúc còn bàn phím** (iOS không bắn `resize` cuối) → nửa dưới màn hình trắng trơn.
-- **Không còn `<input type="date">` nào, đừng thêm lại.** iOS vẽ ô đó bằng control riêng của hệ
-  thống: không nghe padding mình đặt nên **tràn khỏi khung bo tròn**, chữ ra kiểu "ngày 15 thg 9,
-  2026". Cả 4 ô ngày (`exDate`/`oeDate`/`noDate`/`clDate`) giờ là **nút + lịch tự vẽ**; giá trị thật
-  nằm trong `<input type="hidden">` mang đúng id cũ. **Đổi giá trị bằng JS thì phải gọi `fdSync(id)`**,
-  không thì chữ trên nút đứng yên. Nhãn phải NGẮN ("Hôm nay", "Mai") — ô ngày nằm trong cột hẹp
-  ~175px, nhãn dài sẽ xuống 2 dòng làm nút cao hơn các ô khác một bậc.
-- **Ô tiền phải là `type="text"` + `inputmode="numeric"`, KHÔNG dùng `type="number"`.** Ô number
-  không cho hiện dấu chấm hàng nghìn — nó coi `"5.000"` là số không hợp lệ rồi xoá trắng ô. Đọc/ghi
-  qua `moneyNum(id)` / `moneySet(id, v)`; ô trống trả `null` chứ không phải `0`.
-- **`required` KHÔNG có hiệu lực trên input hidden và input readonly** — trình duyệt miễn kiểm tra
-  chúng. Ô ngày (hidden) và ô tiền (text) vì vậy được kiểm tay trong `saveExpense`/`saveChangelog`.
-- **Đừng gọi `scrollIntoView` cho phần tử trong modal mà không dọn sau.** Nó kéo mọi khung cha kể cả
-  trang; trên iOS điều đó đẩy luôn lớp phủ `position: fixed` lên làm **cụt đầu form**. Có
-  `resetPageScroll()` để trả độ cuộn trang về 0, và `initPageScrollGuard()` tự dọn mỗi lần **bất kỳ** ô
-  nhập nào nhận/mất focus (kể cả ô ngoài modal như "Tìm mã đơn"), đồng thời đo lại vùng nhìn thấy.
-- **Không dùng `100vh` cho `body` hay khung toàn màn hình.** Trên iPhone `100vh` = màn hình lúc thanh
-  công cụ đã ẩn, cao hơn vùng nhìn thấy → trang có chỗ để cuộn; `overflow: hidden` không chặn được iOS
-  tự cuộn khi bàn phím hiện, đóng bàn phím thì không trả lại → cả trang kẹt lệch lên, mất thanh Admin,
-  đáy trống. `body` cao `var(--apph)`.
-- **Bàn phím iOS đổi chiều cao mà không báo sự kiện** (chuyển giữa ô có/không có thanh gợi ý chữ) →
-  `--vvh` kẹt số cũ, form dừng cách bàn phím một khúc. Vì vậy `measureViewport()` được gọi lại nhiều
-  nhịp sau mỗi lần focus đổi, không chỉ chờ `visualViewport resize`.
-- **Mảng `orders` CHỈ chứa trang đơn đang xem, không phải cả bảng.** Tab Đơn hàng tải theo trang
-  (`ORDERS_PAGE` = 20, `buildOrdersQuery()` lọc trên server, `count: 'exact'` để đếm). **Đừng bao giờ
-  `orders.filter(...)` để lọc/tìm** — sẽ chỉ tìm trong mấy chục đơn đã tải rồi báo "không có đơn nào".
-  Đổi bộ lọc thì gọi `applyOrderFilters()`, không gọi `renderOrders()` suông.
-  **Lọc ngày giao là 1 ngày HOẶC khoảng ngày (07/10/2026)**: `#orderDateFilter` = ngày (hoặc ngày đầu), `#orderDateTo` = ngày
-  cuối (trống = đúng 1 ngày). Đặt cả hai bằng `ordSetRange(tu, den)`, đọc bằng `ordRange()`. Chip "Tháng này" + nút "Cả tháng"
-  trong lịch = khoảng ngày 1 → cuối tháng (`thangDauCuoi`). Lịch KHÔNG có nút chọn kiểu (shop chê rườm rà): bấm 1 ngày =
-  lọc luôn ngày đó, lịch vẫn mở (`_ln[k].tam`); bấm thêm ngày nữa = cả khoảng, dải nối liền loé sáng rồi đóng (`LN_TRE_DONG`).
-  Dải nối cần `.ln-luoi` (column-gap 0 + ô cao cố định — `.cal-day` gốc có aspect-ratio + max-height làm ô hẹp, hở khe).
-  Dải vẽ bằng `::before` PHÍA SAU ô (lưới là lớp riêng, ô KHÔNG đặt z-index) để ô giữ viền bo tròn — đừng đổi border-radius của ô.
-  **Lịch lọc ngày là bộ DÙNG CHUNG `LOC_NGAY` + `lnMo/lnChon/lnVe(k)`** (`k` = `'don'` Đơn hàng, `'chi'` Sổ chi phí; trạng thái
-  ở `_ln[k]`). Nơi mới cần lọc ngày thì khai thêm 1 mục trong `LOC_NGAY`, đừng chép lại lịch.
-  **Sổ chi phí**: KHÔNG có nút "Chọn ngày" riêng — bấm chính ô tháng `#expenseMonthDisplay` (nút) mở lịch; "Xóa lọc" = `exXoaLoc()`
-  (về tháng này + bỏ tìm/loại). Kỳ = cả tháng `expenseMonth` hoặc khoảng tự chọn `exTu`/`exDen` (`exKy()`; chọn trúng trọn 1 tháng thì
-  `exSetRange` tự quy về xem tháng đó). Doanh thu/lãi tính theo kỳ (`_statCtxEx.ky`). Chip loại + ô tìm (`exLocDanhSach`) chỉ
-  lọc DANH SÁCH ở máy, không đổi số tổng hợp phía trên (lọc loại mà đổi tổng thì "Lãi gộp" sai).
-- **Tab Báo cáo (`panelReports`, 11/10/2026)**: `loadBaoCao()` tải HẾT đơn từng trang 1.000 (`bcLayDon`) + chi phí + BST, rồi
-  `bcVe()` tính ở máy. Kỳ = ô ẩn `bcTu`/`bcDen` (trống = tháng này): chip `BC_KY` (chip sáng khi khoảng trùng), ‹ › `bcBuoc` (trọn
-  tháng → lùi đúng số tháng), lịch dùng chung `LOC_NGAY.bc`. So kỳ liền trước / cùng kỳ năm ngoái (`bcSoSanh`); kỳ chưa hết thì kỳ so
-  chỉ lấy số ngày đã qua (`bcKhoang`). Lọc thêm nguồn / BST (`bcQuaLoc`) → không tính lãi (chi phí không chia nhóm được).
-  Sắc thái: dải nhận xét `bcDanhGia` (tốt/ổn/cần chú ý/lỗ, luôn kèm chữ + biểu tượng) + ô số tô nền theo ngưỡng `BC_NGUONG_TANG/GIAM`.
-  Doanh thu cùng luật Tổng quan. Máy tính lưới 3 cột; điện thoại dưới biểu đồ chỉ 1 khối (`.an-dt`, thanh tab `bcTabDt`).
-  Bấm số/dòng/cột nào cũng mở danh sách đơn qua `bcMo(khoa)` (dùng chung `statDetailModal`).
-- **Nguồn khách `orders.nguon` (SQL 33)**: chip "Khách tới từ" trong form Thêm/Sửa đơn (`NGUON_KHACH`, `nguonVe(k, v, coCot)`),
-  form Thêm đơn nhớ lần trước (`lt_nguonCuoi`). Database KHÔNG khoá giá trị (chỉ ≤ 30 ký tự) — thêm chip chỉ sửa mảng JS.
-  Đơn web tự ghi `'Web'` bằng trigger (vai `anon`), không sửa `place_order`. Chưa chạy SQL 33 → chip ẩn, hiện nhắc chạy file.
-- **Tra đơn theo id phải dùng `orderById(id)`**, không dùng `orders.find`. Tab Tổng quan và Lịch giao
-  nạp đơn của chúng vào `_donCache` qua `cacheOrders()` và **không được gán vào `orders`** — gán là phá
-  trang đang xem của tab Đơn hàng (đã từng như vậy).
-- **Lịch sử mua hàng của khách (`viewCustomerOrders`) tự truy vấn theo `customer_id`**, không dùng mảng
-  `orders`. Nhờ vậy phân trang không ảnh hưởng nó — giữ nguyên cách này.
-- **`js/dungchung.js` giữ hàm dùng chung** (`esc`, `jsAttr`, `linkAnToan`, `anhNho`/`srcNho`, `normalizePhone`, `isValidPhone`, `PHONE_OK`) cho CẢ
-  web khách và admin. Sửa ở đây là cả 2 bên đổi theo — đừng viết lại bản riêng như trước. Nạp bằng thẻ
-  `<script>` thường (không module), phải nạp TRƯỚC `js/main.js`.
-- **Giá sản phẩm có loại dạng CHỮ CÓ SỐ**: `"Từ 2xx (Theo size order)"`. Viết SQL kiểu "bỏ hết ký tự
-  không phải số" sẽ biến nó thành giá **2 đồng**. Xem `supabase/18_price_normalize.sql` để biết cách lọc
-  đúng (chỉ đổi chuỗi thuần số tiền). **`place_order` từng dính đúng lỗi này** (đơn web đặt sản phẩm
-  "Từ 2xx" bị ghi đơn giá 2đ) — đã sửa trong `15_notifications_v2.sql` bằng cùng điều kiện lọc.
-- **Popover tự vẽ lại khi bấm (lịch ‹ ›) + trình xử lý "bấm ra ngoài thì đóng" = lỗi tự đóng.** Vẽ lại
-  bằng `innerHTML` gỡ chính nút vừa bấm khỏi trang; khi sự kiện lan tới `document`, `closest()` trên phần tử
-  đã bị gỡ trả `null` → tưởng bấm ra ngoài → đóng lịch ngay (lỗi thật 17/09: không chuyển được tháng). Trình
-  xử lý chung đã chặn bằng `if (!e.target.isConnected) return`. Viết popover mới cũng phải nhớ điều này.
-  **Test UI phải BẤM NÚT THẬT (`.click()`)**, đừng gọi thẳng hàm — test cũ gọi `fdStepMonth()` nên không bắt được.
-- **Biểu tượng: MỘT bộ duy nhất trong `js/dungchung.js` (`BIEU_TUONG` + `ic('ten')`)**, dùng cho cả admin lẫn
-  web khách; file đó tự chèn bộ `<symbol>` vào đầu `<body>`. HTML tĩnh viết `<svg class="ic"><use href="#i-ten"/></svg>`.
-  **Không thêm emoji vào nút/menu nữa** (23/09/2026 đã đổi hết sang biểu tượng nét mảnh). Emoji shop tự đặt cho
-  Bộ sưu tập / nhóm ảnh là NỘI DUNG — giữ ở thẻ bìa, bỏ ở nút lọc. Logo 🌸 / favicon là thương hiệu — giữ.
-  Chèn `${ic(...)}` thì chuỗi bao ngoài phải là template (dấu `), chuỗi nháy đơn sẽ lỗi cú pháp cả admin.
-- **Nút thao tác trong danh sách admin dùng `nutTT(ten, nhan, onclick, {xoa, tat})`**: máy tính chỉ hiện biểu
-  tượng (rê chuột ra tên), thẻ điện thoại `.mc-actions` hiện cả chữ. Đừng viết lại nút "✏️ Sửa / 🗑 Xóa" kiểu cũ.
-- **Thanh tab dưới đáy `.bottom-tabs` (điện thoại) cùng luật với `.admin-topbar`**: là anh em của `.content`,
-  KHÔNG nằm trong khung cuộn, không fixed/sticky. Tab nào có nút ＋ nổi thì khai ở `FAB_THEO_TAB`.
-- **Tên class đặt lên `<body>` không được trùng class dùng cho phần tử.** Lỗi thật 23/09: `body.co-fab` trùng
-  `.co-fab { display:none }` → mở tab Đơn hàng trên điện thoại là cả trang trắng. Giờ là `body.dang-co-nut-noi`
-  và `.an-tren-dt`; test-khung-man-hinh kiểm từng tab.
-- **`<td>` không được `display:flex`** — rớt khỏi bố cục bảng, cột nút lệch/tràn mép (lỗi cũ của `.actions`).
-- **Form Thêm đơn + Thêm chi phí kiểu mới** (chip, mục gấp `.fx-more`, ô ẩn giữ đúng id cũ): chip chọn giá trị
-  qua `segSet(id, v)` (trạng thái đơn, loại chi phí), ngày nhanh qua `qdPick` và `fdSync` tự tô chip. `form.reset()`
-  KHÔNG đặt lại ô hidden → mở form phải tự `segSet` về mặc định. Chip do JS xử lý không bắn `input` nên tự gọi
-  `danhDauDangNhap(el)` để cảnh báo "đang nhập dở" còn chạy. Ô đơn giá / phí ship của form thêm đơn giờ là ô tiền
-  có dấu chấm (`moneyNum`), không còn `type="number"`.
-- **Số đỏ trên biểu tượng** (menu bên + thanh dưới) đều do `refreshNewOrderBadge()` vẽ: Đơn hàng = đơn chưa giao ("Mới" + "Đã xác nhận", `BADGE_DON_STATUSES`);
-  Lịch giao = đơn giao hôm nay + mai chưa xong. Thêm số đếm mới thì dùng `ganSoDem([...], n)`.
-- **Tổng quan xếp theo việc cần làm**: đơn mới → Giao hôm nay → Sắp giao (3 ngày, chia theo ngày, `ngayNhan()`) →
-  số liệu tháng (gọn) → công cụ. Khung sao lưu giữ id `backupBox/backupLast/backupStatus/backupBtn` + chữ nút
-  "Tải file sao lưu" (test-sao-luu kiểm).
-- **Xem admin với dữ liệu giả**: `/demo/xem-admin.html?v=tq|ds|don|sua|ct|lg|ex|chi|nl|nls|menu` (thư mục `demo/`
-  không lên git). Thay `sb.from` bằng bản giả, không đụng Supabase — dùng để chụp màn hình kiểm giao diện.
-  Trình duyệt chạy ngầm không vẽ iframe, nên trang này nạp thẳng mã admin chứ không nhúng.
-- **Trang test chạy trong khung ẩn NGOÀI màn hình → trình duyệt dừng hiệu ứng chuyển động giữa chừng** (đo vị trí sai).
-  Trang test web khách tự tắt hiệu ứng trong khung. Và đừng để hiệu ứng `transition: all` trên phần tử nổi (nút Zalo):
-  vị trí đổi lúc tải trang sẽ thành "trượt giật" — chỉ cho chuyển động transform / bóng.
-- **Ô không hợp lệ nằm trong mục đang gấp** (vd email sai trong form đặt hoa) → trình duyệt chặn gửi nhưng không tới
-  được ô ẩn → khách bấm Gửi không thấy gì. Có trình bắt sự kiện `invalid` tự mở mục đó — mục gấp mới phải dùng class
-  `.omx-than` (web) để được hưởng.
-- **Người nhận + giờ giao nằm trong GHI CHÚ đơn, không có cột riêng.** Mẫu cố định (mỗi thứ 1 dòng đầu ghi chú):
-  `Người nhận: Lan · 0912…` / `Giờ giao: 15h`. Ghép bằng `ghepGhiChuDon()`, tách bằng `tachGhiChuDon()` (js/dungchung.js)
-  — web khách + form Thêm/Sửa đơn admin + chi tiết đơn + Lịch giao đều dùng 2 hàm này. **Đừng đổi chữ "Người nhận:" /
-  "Giờ giao:"** — đơn cũ sẽ không tách được. Giờ chọn bằng **bánh xe cuộn** giờ | phút (`banhXeGio()` trong
-  dungchung.js — chủ shop chọn "Kiểu A" 26/09, hiện 3 hàng cho gọn), dùng CHUNG admin + web khách (web gọi với `gon: true`: không viền, không chữ bên cạnh); kiểu CSS cũng nằm trong
-  dungchung.js (`chenKieuBanhXe`). Giờ `GIO_GIAO` (8h–21h), phút `PHUT_GIAO` (00 → 55, bước 5 phút), không dùng ô giờ của iOS. Giá trị
-  `"15h30"`, phút 00 ghi gọn `"15h"` (`ghepGio`/`tachGio`/`soPhutGio`). Code tự đổi ô hidden giờ → gọi lại `veGioChips(id)`
-  (admin) để bánh xe quay theo. Lăn chuột 1 nấc = 1 số (tự bắt `wheel`); chỉ tính là chọn khi có tay/chuột
-  chạm cột trong 2 giây (`tayLuc`) — trình duyệt có lúc tự "hít" cột về 8h khi form vừa hiện, từng đổi ngầm giờ đơn.
-- **Mail nhắc trước giờ giao 2 tiếng** (`supabase/25_nhac_truoc_gio_giao.sql`, cron 5 phút/lần): SQL đọc giờ từ ghi chú bằng
-  `gio_giao_cua()` — regex của nó phải khớp `MAU_GIO` trong dungchung.js. Chỉ nhắc đơn "Mới"/"Đã xác nhận"; cột
-  `orders.nhac_gio_da_gui` nhớ đã nhắc cho giờ nào (đổi giờ → nhắc lại). Đổi "2 tiếng": sửa `v_truoc` trong SQL **và**
-  `NHAC_TRUOC_PHUT` trong admin (dòng "Mail nhắc lúc …" dưới ô giờ + nhãn cam "còn 1g20"/đỏ "tới giờ" của `gioBadge()`).
-- **Dải trượt ngang + chuột**: hàng chip trên máy tính phải xuống dòng (CSS `(hover: hover) and (pointer: fine)`), hàng thẻ
-  thì nhấn-giữ-kéo được nhờ `keoNgangBangChuot()` (dungchung.js) — dải trượt ngang mới thêm vào `KEO_NGANG`.
-- **Web khách trên điện thoại có thanh tab dưới đáy** (`veThanhTabKhach()` trong main.js chèn cho mọi trang, trừ trang
-  chi tiết — đáy trang đó là thanh "Zalo + Đặt mẫu này"). Nút nổi (Zalo, lên đầu trang) phải đứng TRÊN thanh này.
-- **Form đặt hoa web khách không còn `<input type="date">`**: chip Ngày mai / Ngày kia + lịch tự vẽ (`veLichGiao`),
-  giá trị vẫn ở `#orderDate` (hidden). Trang chủ chỉ còn 1 ảnh to (`#heroBg`); 2 ô ảnh phụ trong admin đã ẩn.
-- **Khoảnh khắc trong admin theo ALBUM** (mỗi nhóm ảnh = 1 album, `kkAlbum`/`kkMoAlbum`). Album chỉ là lớp vỏ trên
-  `galleryFilterCat` cũ: tải ảnh trong album → `#galleryCategory` tự đặt = album đó.
-- **Tab Sản phẩm kiểu danh sách gọn (24/09/2026)**: bấm cả hàng = mở form sửa, ngôi sao = `featured` (đổi tại chỗ,
-  không tải lại), nút Xoá nằm cuối form (`fXoaMau`), thêm mẫu bằng nút ＋ nổi. Trang chủ web chỉ lấy **4** mẫu nổi bật
-  (`.limit(4)` trong `loadFeatured`) — `SP_TRANG_CHU` trong admin phải khớp số đó. Thứ tự đổi bằng chế độ **Sắp xếp**
-  (`spDoiCho`/`spLenDau` đánh số lại `order_index` 0,1,2…); ô `fOrder` giờ là input hidden, mẫu mới lấy số nhỏ nhất − 1
-  để lên đầu. Nút lọc BST **không** kèm emoji (test-admin-giao-dien kiểm).
-- **Font (24/09/2026, phương án B "dịu mắt")**: web = Nunito cho tiêu đề/nút (tối đa nét 700, không dùng 800/900 nữa)
-  + **Be Vietnam Pro** cho nội dung (thay Open Sans); admin = Be Vietnam Pro toàn bộ (trước là font mặc định của máy),
-  nét đậm nhất 700, `b/strong` 600. Biệt danh mẫu hoa vẫn Lora nghiêng. Be Vietnam Pro rộng hơn Segoe → bảng Đơn hàng
-  đã thu gọn đệm/tiêu đề cột cho vừa khổ 1280 (test-admin-giao-dien kiểm "bảng đơn không rộng hơn khung").
-- **Tab Khách hàng kiểu danh bạ gọn (24/09/2026)**: mỗi khách 1 hàng (chữ cái đầu tên · tên · SĐT · số đơn), bấm cả hàng =
-  thẻ khách (`viewCustomerOrders`, dùng chung modal `customerOrdersModal` với chi tiết đơn): Gọi / Zalo / Sửa, các đơn đã mua
-  (bấm = `viewOrderDetail`), Xoá ở cuối. Số đơn / đã mua / lần cuối đếm trong `khTinhSo()` (bỏ đơn "Đã hủy"); chip lọc
-  Tất cả · Khách quen (`KH_QUEN` = từ 2 đơn) · Chưa có đơn. Thêm khách bằng nút ＋ nổi (`FAB_THEO_TAB.Customers`).
-- **Mô tả mẫu hoa viết theo khuôn "tạp chí"** (SQL 23, 24/09/2026): dòng 1 `“Biệt danh”`, dòng có ` · ` = thành phần,
-  dòng có ` — ` = chữ khoá, `Phù hợp tặng …`, còn lại (size, kích thước) là dòng phụ. `tachCaption()` (js/dungchung.js)
-  tách ra: web hiện biệt danh dưới tên (cả thẻ lẫn trang chi tiết), "Phù hợp tặng" + dòng phụ vào khung `.detail-cam`;
-  admin hiện biệt danh ở danh sách Sản phẩm (`spBietDanh`). Dòng đầu không phải “…” → hiện nguyên chữ (`white-space: pre-line`).
-  **Form Sản phẩm admin = phương án C (02/10/2026, shop chọn)**: xếp Y NHƯ trang chi tiết web — ảnh to (`#spcAnhTo` = ảnh
-  chính, bấm ảnh nhỏ = `spLamAnhChinh`), tên + **ngôi sao** `#fSao` (giá trị thật vẫn ô tick ẩn `fFeatured`), biệt danh `fNick`,
-  giá (chip "giá hay dùng" chỉ hiện khi đang ở ô giá — `spGiaNhanh`), **viên thành phần** (giá trị thật = ô ẩn `fThanhPhan`
-  "a, b, c"; `spTpVe/spTpThem`, Enter/dấu phẩy = thêm viên, chữ gõ dở vẫn được lưu), cảm giác `fChuKhoa`, dòng Bộ sưu tập mở
-  bảng trượt `#fBstSheet` (vẫn là `#fBstChon` + `layProductBstChon`). Không còn ô `fDesc`: mở form `spMoTaDien()` → `tachCaption`,
-  Lưu `spMoTaGhep()` → `ghepCaption()` (dungchung.js) — database vẫn 1 cột `description`. "Phù hợp tặng…" + dòng phụ RIÊNG
-  từng mẫu (Kích thước, Tặng kèm của đèn Trung thu) **không có ô** (shop chốt cách "a"): cất trong `_spMoTaGiu`, ghép lại y nguyên.
-  Thành phần chỉ 1 thứ được ghi `X ·` (thiếu dấu · thì tachCaption không nhận). Mô tả cũ không theo khuôn → dòng "Mô tả cũ: …";
-  không điền ô nào thì lưu giữ nguyên chữ cũ. Trên điện thoại admin ép mọi ô 16px (chống iOS zoom) → tên/giá form C phải `!important`.
-- **"Thông tin chung" cho mọi mẫu (SQL 28, 02/10/2026)**: các dòng dưới mọi mẫu ở trang chi tiết (giao miễn phí, ảnh duyệt, COD,
-  đặt theo size, tặng kèm túi giấy + thiệp) — trước ghi cứng trong main.js, giờ ở cột `contact.thong_tin_chung` (mỗi dòng 1 ý),
-  shop sửa ở tab Sản phẩm → nút "Thông tin chung" (`openTtcModal`/`luuTtc`). `dongThongTinChung(giaTri)` (dungchung.js): `null`
-  = chưa chạy SQL 28 → bộ `THONG_TIN_CHUNG_MAC_DINH`; chuỗi rỗng = không hiện gì. Biểu tượng tự chọn theo chữ (`bieuTuongTtc`).
-  Web bỏ dòng riêng của mẫu nếu trùng dòng chung (`cungDongTtc`); SQL 28 cũng xoá dòng "Hoa có đặt theo size" cuối mô tả
-  từng mẫu. "Phù hợp tặng" trên web giờ biểu tượng trái tim (quà dành cho dòng tặng kèm).
-- **Chọn mẫu hoa khi lên đơn chỉ lấy giá khi là số tiền thuần** (`!_priceIsText`). Giá "Từ 2xx" để trống — cùng
-  bẫy "2 đồng" với `place_order`. Form Thêm đơn (`no`) và Sửa đơn (`oe`) dùng CHUNG bộ chọn
-  `showProdSuggest(k)` / `pickProduct(id, k)` / `renderPickedProduct(p, k)` — thêm ô ở form này thì thêm cả form kia.
-  **Chỉ MỘT ô tên hoa (09/10/2026)** `noProductName`/`oeProductName`: gõ = vừa tìm mẫu vừa là tên trên đơn; không chọn
-  mẫu = món lẻ (dòng `.prod-le` cuối gợi ý). Không còn ô tìm `ProdSearch` riêng. Enter/Esc khi gợi ý mở chỉ đóng gợi ý (`prodPhim`).
-- **Bảng mã QR mở được từ 2 nơi (09/10/2026)**: chi tiết đơn (`moQrCk(id)`) và form Sửa đơn (`#oeQrNut` → `moQrCk(id, true)`).
-  Mở từ form Sửa đơn: số tiền tính theo form ĐANG sửa (`conThuForm`), "Đã nhận tiền" chỉ ĐIỀN vào form (`ghiNhanCkVaoForm`),
-  không ghi database — ghi thẳng thì form giữ chip cũ, bấm Lưu đơn sẽ đè mất khoản tiền. Máy tính ≥760px bảng QR 2 cột
-  (`.qr-luoi`, grid-area), điện thoại 1 cột. Bảng đơn máy tính: bấm cả hàng = chi tiết (`bamDongDon`, bỏ qua nút/select).
-  Sửa đơn: chọn mẫu giá chữ thì GIỮ giá đã chốt; `oeProductPick` giữ `product_id` cũ kể cả khi danh sách mẫu chưa tải.
-- **Bộ gõ tiếng Việt (Unikey/EVKey) TỰ GỬI chuỗi phím giả để sửa dấu** (phím xoá, bản "sửa lỗi Chrome" còn kèm ký tự tạm).
-  2 lỗi thật 03/10/2026 ở ô thành phần form Sản phẩm: (1) "Backspace ở ô trống = xoá viên cuối" → mất sạch các viên;
-  (2) "gõ dấu phẩy / ô có dấu phẩy / rời ô = tự thành viên" → gõ "Thắng" ra 6 viên "Tha", "ăng", "ắng"… Luật: **trong lúc
-  người dùng đang gõ, KHÔNG làm trống / ghi đè / tách ô đó, KHÔNG gắn hành động xoá vào phím xoá.** Chỉ hành động chủ ý
-  (Enter không đang ghép chữ — `!e.isComposing`, hoặc bấm nút) mới được chốt. Test 10b giả lập đúng chuỗi phím bộ gõ.
-- **Chuyển động (rà soát 11/10/2026)**: đóng hộp thoại admin dùng **`anModal(id)`** (không gán `style.display='none'` suông
-  nữa), form đặt hoa web dùng `dongCoMa()` (js/dungchung.js): ô thật ẩn NGAY (code/test thấy đã đóng như cũ), 1 bản sao
-  `.lop-ma` (không id/name, `inert`) diễn cảnh đóng ~0,3 giây rồi tự gỡ — chọn phần tử bằng id thì không vướng bản sao, đếm
-  `.modal-overlay` thì phải `:not(.lop-ma)`. Hiệu ứng mới dùng thuộc tính **`scale` / `translate` riêng, KHÔNG `transform`**
-  (đè transform là thẻ .reveal kẹt lệch, lịch nổi điện thoại lệch tâm). Đừng đặt `transition` lên thẻ sản phẩm/BST/ảnh (đè hiệu ứng
-  hiện dần). Web khách chuyển trang bằng `@view-transition` (thanh trên + thanh tab giữ yên). Cả 2 bên có khối
-  `prefers-reduced-motion` tắt mọi hiệu ứng ở CUỐI file CSS — hiệu ứng JS (`animate()`) thì tự kiểm `giamChuyenDong()`.
-- **Chống xô lệch bố cục (CLS, đo 11/10/2026)**: khối ở màn đầu trang KHÔNG được ẩn sẵn (`display:none`) rồi JS mới bật — giữ chỗ
-  trước: `#bstSection` hiện sẵn khung chờ `.sk-box` (không có bộ nào mới ẩn), `#heroPriceHint` có chữ mẫu + `visibility:hidden`,
-  khung chờ trang chi tiết cao sẵn (`#detailContent > .loading`). Trước đó trang chủ xô 0,4, trang chi tiết 0,6 (chuẩn tốt < 0,1).
-  Đo lại: CDP + PerformanceObserver `layout-shift` (giả lập điện thoại CPU ×4).
-- **Tự động, không cần sửa từng chỗ**: nút bị khoá có chữ "Đang …" tự hiện vòng xoay (`theoDoiNutCho`, dungchung.js — đặt chữ
-  khác "Đang …" là không xoay). Lưu / đổi trạng thái đơn xong gọi `loeDon(id)` → hàng/thẻ đơn đó loé vàng. Ảnh thẻ mẫu hoa /
-  BST / Khoảnh khắc web khách hiện dần nhờ class `.anh-mo` trên `<html>` + `.da-tai` (main.js) — thêm lưới ảnh mới thì thêm vào CSS đó.
-- **Đừng đặt `position: sticky` cho phần tử nằm TRONG `.content`.** `.content` là khung cuộn;
-  sticky bên trong khung cuộn là chỗ iOS vẽ sai toạ độ → thấy phần tử nhưng bấm không trúng.
-  `.admin-topbar` vì vậy là anh em của `.content`, không phải con.
+Chi tiết từng mục (lỗi thật đã xảy ra + cách làm đúng) nằm ở `huong-dan/ky-thuat/`. Dưới đây CHỈ là tiêu đề —
+**sửa phần nào thì mở file chủ đề đó đọc trước**, thêm bẫy mới thì ghi vào đúng file chủ đề (không ghi lại vào đây).
+
+**[Database (Supabase) và file SQL](huong-dan/ky-thuat/database-va-sql.md)**
+- `place_order` được định nghĩa lại ở 4 file SQL
+- Hàm nhắc lịch `send_delivery_reminders()` chỉ còn ở `15_notifications_v2.sql`
+- Kho ảnh: người lạ từng LIỆT KÊ được mọi file
+- Admin kiểm quyền sau đăng nhập
+- File SQL đánh số theo thứ tự chạy
+- Trạng thái đơn bị database khoá chỉ nhận 6 giá trị
+- `gallery_categories` giờ CHỈ của Thư viện ảnh
+- Giá sản phẩm lưu dạng TEXT
+- Giá sản phẩm có loại dạng CHỮ CÓ SỐ
+- Nguồn khách `orders.nguon` (SQL 33)
+- Mail nhắc trước giờ giao 2 tiếng
+- Sao lưu Excel (`admin/xlsx.js` + `taiSaoLuu()` trong admin)
+
+**[Web khách (7 trang + js/main.js)](huong-dan/ky-thuat/web-khach.md)**
+- Web khách cũng có CSP bằng `<meta>` (08/10/2026)
+- Đọc `localStorage`/`sessionStorage` ở web khách phải bọc `try`
+- Đo lường (GA4 + Clarity)
+- Tắt một BST KHÔNG được làm mất mẫu hoa
+- `bstDangHien()` giờ chỉ CÒN 1 BẢN ở `js/dungchung.js`
+- Hàng Bộ sưu tập trang chủ tự trôi (05/10/2026, `bstTuTruot()` main.js)
+- iPhone bắn `resize` liên tục chỉ vì đổi CHIỀU CAO
+- Trang ảnh tên là "Khoảnh khắc" (`khoanh-khac`), không còn chữ "Gallery" nào khách/admin thấy
+- Không đặt được HTTP header trên GitHub Pages
+- Chạy local bằng `python serve.py`, KHÔNG dùng `python -m http.server`
+- Link nội bộ KHÔNG ghi đuôi `.html`
+- 3 trang đã đổi tên
+- Tên miền riêng `lertherblooming.vn` (01/10/2026)
+- Ô không hợp lệ nằm trong mục đang gấp
+- Web khách trên điện thoại có thanh tab dưới đáy
+- Form đặt hoa web khách không còn `<input type="date">`
+- Chống xô lệch bố cục (CLS, đo 11/10/2026)
+
+**[Admin — khung màn hình, iPhone, ô nhập, form](huong-dan/ky-thuat/admin-khung-man-hinh.md)**
+- Admin có CSP bằng thẻ `<meta>`
+- `--vvh` và `--apph` là HAI thứ khác nhau, đừng gộp
+- Không còn `<input type="date">` nào, đừng thêm lại
+- Ô tiền phải là `type="text"` + `inputmode="numeric"`, KHÔNG dùng `type="number"`
+- `required` KHÔNG có hiệu lực trên input hidden và input readonly
+- Đừng gọi `scrollIntoView` cho phần tử trong modal mà không dọn sau
+- Không dùng `100vh` cho `body` hay khung toàn màn hình
+- Bàn phím iOS đổi chiều cao mà không báo sự kiện
+- Đừng đặt `position: sticky` cho phần tử nằm TRONG `.content`
+- Popover tự vẽ lại khi bấm (lịch ‹ ›) + trình xử lý "bấm ra ngoài thì đóng" = lỗi tự đóng
+- Thanh tab dưới đáy `.bottom-tabs` (điện thoại) cùng luật với `.admin-topbar`
+- Tên class đặt lên `<body>` không được trùng class dùng cho phần tử
+- `<td>` không được `display:flex`
+- Form Thêm đơn + Thêm chi phí kiểu mới
+- Nút thao tác trong danh sách admin dùng `nutTT(ten, nhan, onclick, {xoa, tat})`
+- Dải trượt ngang + chuột
+
+**[Admin — từng tab (Đơn hàng, Báo cáo, Khách hàng, Sản phẩm…)](huong-dan/ky-thuat/admin-tung-tab.md)**
+- Mảng `orders` CHỈ chứa trang đơn đang xem, không phải cả bảng
+- Tab Báo cáo (`panelReports`, 11/10/2026)
+- Tra đơn theo id phải dùng `orderById(id)`
+- Lịch sử mua hàng của khách (`viewCustomerOrders`) tự truy vấn theo `customer_id`
+- Số đỏ trên biểu tượng
+- Tổng quan xếp theo việc cần làm
+- Khoảnh khắc trong admin theo ALBUM
+- Tab Sản phẩm kiểu danh sách gọn (24/09/2026)
+- Tab Khách hàng kiểu danh bạ gọn (24/09/2026)
+- Chọn mẫu hoa khi lên đơn chỉ lấy giá khi là số tiền thuần
+- Bảng mã QR mở được từ 2 nơi (09/10/2026)
+
+**[Dùng chung web + admin, và luật viết code](huong-dan/ky-thuat/dung-chung.md)**
+- Safari/iPhone KHÔNG xuất được WebP
+- Bẫy khi ghi file: chuỗi `\u0000` có thể bị biến thành ký tự điều khiển THẬT
+- Viết hàm tiện ích bằng `function`, đừng `const ten = () => …`
+- `data/*.json`, `admin/config.yml`, `images/uploads/`, `demo-*.html` đã bị xoá
+- `js/dungchung.js` giữ hàm dùng chung
+- Biểu tượng: MỘT bộ duy nhất trong `js/dungchung.js` (`BIEU_TUONG` + `ic('ten')`)
+- Người nhận + giờ giao nằm trong GHI CHÚ đơn, không có cột riêng
+- Font (24/09/2026, phương án B "dịu mắt")
+- Mô tả mẫu hoa viết theo khuôn "tạp chí"
+- "Thông tin chung" cho mọi mẫu (SQL 28, 02/10/2026)
+- Bộ gõ tiếng Việt (Unikey/EVKey) TỰ GỬI chuỗi phím giả để sửa dấu
+- Chuyển động (rà soát 11/10/2026)
+- Tự động, không cần sửa từng chỗ
+- File `.md` bị GitHub Pages (Jekyll) biến thành trang web công khai
+- Script Python in tiếng Việt ra cửa sổ lệnh Windows bị lỗi `UnicodeEncodeError`
+
+**[Kiểm thử (test) và xem thử bằng dữ liệu giả](huong-dan/ky-thuat/kiem-thu.md)**
+- Xem admin với dữ liệu giả
+- Trang test chạy trong khung ẩn NGOÀI màn hình → trình duyệt dừng hiệu ứng chuyển động giữa chừng
 
 ## Quy ước khi sửa code
 
@@ -404,4 +190,4 @@ quan) làm bản nhỏ cho ảnh chưa có dấu rồi đổi link trong DB; fil
 
 ## Quy trình làm việc
 
-Code xong → chạy local → **mở sẵn trình duyệt** cho chủ shop tự xem (đừng chỉ dán URL) → họ xác nhận → mới push → verify bản live → soạn sẵn câu SQL `insert into changelog ...` đưa họ dán (tab 📝 Cập nhật) để Ler cùng đọc.
+Code xong → chạy local → `python test/chay-tat-ca.py` (phải "tất cả đạt") → **mở sẵn trình duyệt** cho chủ shop tự xem (đừng chỉ dán URL) → họ xác nhận → mới push → verify bản live → soạn sẵn câu SQL `insert into changelog ...` đưa họ dán (tab 📝 Cập nhật) để Ler cùng đọc.

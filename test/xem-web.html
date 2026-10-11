@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><title>Xem thử web</title></head>
+<body>
+<!-- XEM THỬ WEB KHÁCH — nạp 1 trang web rồi mở sẵn form đặt hoa / màn "Đã nhận đơn" để xem, chụp màn hình.
+     Dữ liệu mẫu hoa là THẬT (chỉ đọc). KHÔNG gửi đơn: màn "Đã nhận đơn" chỉ được vẽ ra, tài khoản ngân hàng là số GIẢ.
+       ?trang=san-pham&dat=1   trang Sản phẩm + mở form đặt hoa
+       ?xong=1 (&mo=1)         màn "Đã nhận đơn" (mo=1: mở sẵn khối chuyển khoản)
+       ?trang=chinh-sach&ck=1  mục hỏi đáp chống lừa đảo chuyển khoản -->
+<script>
+const q = new URLSearchParams(location.search)
+const trang = q.get('trang') || 'san-pham'
+fetch('../' + trang + '.html', { cache: 'no-store' }).then(r => r.text()).then(html => {
+  const duoi = '<style>*,*::before{animation:none!important;transition:none!important}</style><script>setTimeout(() => { if (' + (q.get('dat') ? 'true' : 'false') + ') openOrderModal(1, "Tulip x cỏ suối") }, 2500)<\/script></body>'
+  // ?xong=1: vẽ màn "Đã nhận đơn" (KHÔNG gửi đơn thật) với tài khoản ngân hàng GIẢ — xem khối chuyển khoản trước
+  const xong = '<script>setTimeout(() => { contactInfo = Object.assign(contactInfo || {}, { ck_ngan_hang: "970436", ck_so_tk: "0123456789", ck_chu_tk: "LER THER BLOOMING" });'
+    + ' openOrderModal(1, "Tulip x cỏ suối"); veDatXong(152, "0908 123 456", ""); ' + (q.get('mo') ? 'document.querySelector(".os-ck").open = true' : '') + ' }, 2500)<\/script></body>'
+  if (q.get('xong')) html = html.replace('</body>', xong)
+  // ?trang=chinh-sach&ck=1: điền tài khoản GIẢ vào mục hỏi đáp lừa đảo + mở sẵn mục đó
+  if (q.get('ck')) html = html.replace('</body>', '<script>setTimeout(() => { contactInfo = Object.assign(contactInfo || {}, { ck_ngan_hang: "970436", ck_so_tk: "0123456789", ck_chu_tk: "LER THER BLOOMING" }); veTkChinhThuc();'
+    + ' const d = document.getElementById("ckChinhThuc").closest("details"); d.open = true; d.scrollIntoView({ block: "center" }) }, 2500)<\/script></body>')
+  html = html.replace('<head>', '<head><base href="/">').replace('</body>', duoi)
+  document.open(); document.write(html); document.close()
+})
+</script>
+</body></html>

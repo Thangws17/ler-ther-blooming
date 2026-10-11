@@ -68,6 +68,7 @@ function tongKet() {
 const dt = document.getElementById('dt')
 const WEB_THAT = 'lertherblooming.vn'
 
+let traCoCuaShop = () => {}
 ;(async function main() {
   await new Promise(res => {
     const xong = () => { try { return dt.contentDocument.readyState === 'complete' && dt.contentWindow.location.href !== 'about:blank' } catch { return false } }
@@ -77,6 +78,11 @@ const WEB_THAT = 'lertherblooming.vn'
   await new Promise(res => setTimeout(res, 2500))     // chờ contact tải xong
   const w = dt.contentWindow, d = dt.contentDocument
   const theDoLuong = () => [...d.querySelectorAll('script[data-do-luong]')]
+  // Máy từng đăng nhập admin ở localhost có cờ lt_mayCuaShop (cùng nguồn với trang test) → mọi ca "có đếm" sẽ đỏ oan.
+  // Tạm gỡ cờ, test xong trả lại y nguyên (lỗi thật 11/10/2026 khi shop tự chạy test trên máy mình).
+  let coCuaShop = null
+  try { coCuaShop = w.localStorage.getItem('lt_mayCuaShop'); w.localStorage.removeItem('lt_mayCuaShop') } catch {}
+  traCoCuaShop = () => { try { if (coCuaShop !== null) w.localStorage.setItem('lt_mayCuaShop', coCuaShop) } catch {} }
 
   for (const f of ['initDoLuong', 'nenDoLuong', 'doLuong']) {
     if (typeof w[f] !== 'function') throw new Error('js/main.js thiếu hàm ' + f)
@@ -195,21 +201,25 @@ const WEB_THAT = 'lertherblooming.vn'
   })
 
   nhom('5. Đồng bộ admin ↔ web khách, trang Chính sách')
-  const [srcAdmin, srcMain, srcCs] = await Promise.all([
+  const [srcAdmin, srcMain, srcCs, srcDc] = await Promise.all([
     fetch('../admin/index.html?t=' + Date.now(), { cache: 'no-store' }).then(r => r.text()),
     fetch('../js/main.js?t=' + Date.now(), { cache: 'no-store' }).then(r => r.text()),
     fetch('../chinh-sach.html?t=' + Date.now(), { cache: 'no-store' }).then(r => r.text()),
+    fetch('../js/dungchung.js?t=' + Date.now(), { cache: 'no-store' }).then(r => r.text()),
   ])
-  const layMau = (src, ten) => (src.match(new RegExp('const ' + ten + ' = (/[^\\n]+?/);?')) || [])[1]
-  test('Điều kiện mã GA4 giống hệt nhau ở admin và web khách', () => {
-    const a = layMau(srcAdmin, 'MA_GA4'), m = layMau(srcMain, 'MA_GA4')
-    if (!a || !m) throw new Error('không tìm thấy MA_GA4 ở một bên')
-    bang(a, m, 'Admin cho lưu mã mà web khách từ chối (hoặc ngược lại) → tưởng đã bật mà không đo')
-  })
-  test('Điều kiện mã Clarity giống hệt nhau ở admin và web khách', () => {
-    const a = layMau(srcAdmin, 'MA_CLARITY'), m = layMau(srcMain, 'MA_CLARITY')
-    if (!a || !m) throw new Error('không tìm thấy MA_CLARITY ở một bên')
-    bang(a, m)
+  // Từ 11/10/2026 điều kiện mã chỉ còn MỘT bản trong js/dungchung.js (admin + web khách cùng nạp) →
+  // không thể có chuyện admin cho lưu mã mà web khách từ chối. Kiểm không ai viết lại bản riêng.
+  const coMau = (src, ten) => new RegExp('const ' + ten + ' = /').test(src)
+  for (const ten of ['MA_GA4', 'MA_CLARITY']) {
+    test('Điều kiện mã ' + ten + ' chỉ có 1 bản dùng chung (js/dungchung.js)', () => {
+      if (!coMau(srcDc, ten)) throw new Error('js/dungchung.js thiếu ' + ten)
+      if (coMau(srcAdmin, ten)) throw new Error('admin/index.html lại khai ' + ten + ' riêng (trùng tên = lỗi cả trang)')
+      if (coMau(srcMain, ten)) throw new Error('js/main.js lại khai ' + ten + ' riêng (trùng tên = lỗi cả trang)')
+    })
+  }
+  test('Trang web thật dùng được điều kiện mã chung (mã đúng nhận, mã sai từ chối)', () => {
+    const MA = w.eval('[MA_GA4, MA_CLARITY]')     // const không nằm trong window → đọc qua eval của khung
+    bang([MA[0].test('G-EMW53RY1JW'), MA[0].test('G-1"><x'), MA[1].test('yjiz30o4le'), MA[1].test('a b')], [true, false, true, false])
   })
   test('Admin đánh dấu "máy của shop" khi đăng nhập', () => {
     if (!/function showApp\(\) \{[\s\S]{0,400}lt_mayCuaShop/.test(srcAdmin)) throw new Error('showApp chưa đặt cờ lt_mayCuaShop')
@@ -221,8 +231,10 @@ const WEB_THAT = 'lertherblooming.vn'
     if (!srcCs.includes('Google Analytics') || !srcCs.includes('ẩn danh')) throw new Error('thiếu mục quyền riêng tư')
   })
 
+  traCoCuaShop()
   tongKet()
 })().catch(e => {
+  traCoCuaShop()
   soFail++
   const row = document.createElement('div')
   row.className = 'ca fail'
