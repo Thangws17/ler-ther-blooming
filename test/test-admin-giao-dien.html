@@ -206,6 +206,24 @@ function nutCoEmoji(goc) {
       })
       d.querySelector('#delivQuick .dq-o').click(); await cho(80)
       test('Bấm ô "Hôm nay" → chỉ còn đơn hôm nay', () => bang(d.querySelectorAll('#deliveryList .dv').length, 2))
+      // 12/10/2026: nút "Ghi chú" trên thẻ — chạm hiện ô nổi, KHÔNG mở chi tiết đơn
+      test('Nút "Ghi chú" chỉ có ở đơn có ghi chú tự do (đơn chỉ ghi giờ giao thì không)', () =>
+        bang(d.querySelectorAll('#deliveryList .gc-nut').length, 1))
+      d.querySelector('#deliveryList .gc-nut').click(); await cho(50)
+      test('Chạm "Ghi chú" → hiện ghi chú (bỏ dòng Người nhận/Giờ giao), không mở chi tiết đơn', () => {
+        bang(id('gcPop').style.display, 'block')
+        bang(id('gcPop').querySelector('.gc-chu').textContent, 'Kèm thiệp')
+        bang(id('customerOrdersModal').style.display === 'flex', false)
+      })
+      test('Ô ghi chú nằm gọn trong màn hình', () => {
+        const r = id('gcPop').getBoundingClientRect()
+        if (r.left < 0 || r.right > w.innerWidth || r.top < 0) throw new Error(JSON.stringify(r))
+      })
+      d.querySelector('#deliveryList .gc-nut').click(); await cho(30)
+      test('Chạm lại "Ghi chú" → đóng', () => bang(id('gcPop').style.display, 'none'))
+      d.querySelector('#deliveryList .gc-nut').click(); await cho(30)
+      d.querySelector('#panelDelivery h1').click(); await cho(30)
+      test('Chạm ra ngoài → đóng ô ghi chú', () => bang(id('gcPop').style.display, 'none'))
 
       // ── Chi tiết đơn ──
       nhom('5. Chi tiết đơn')
@@ -856,6 +874,17 @@ function nutCoEmoji(goc) {
         if (!id('customerOrdersModal').textContent.includes('Đặt lúc')) throw new Error('không phải màn chi tiết đơn')
       })
       w.closeAllModals(); await cho(50)
+      test('Bảng có cột "Ghi chú"; chỉ đơn có ghi chú mới có nút', () => {
+        bang([...d.querySelectorAll('#ordersTable .data-table th')].some(t => t.textContent === 'Ghi chú'), true)
+        bang(d.querySelectorAll('#ordersTable .data-table .gc-nut').length, 1)
+      })
+      d.querySelector('#ordersTable .data-table .gc-nut').click(); await cho(50)
+      test('Bấm nút ghi chú trong bảng → hiện ghi chú, không mở chi tiết đơn', () => {
+        bang(id('gcPop').querySelector('.gc-chu').textContent, 'Kèm thiệp')
+        bang(id('customerOrdersModal').style.display === 'flex', false)
+      })
+      w.closeAllModals(); await cho(30)
+      test('Đóng hết hộp thoại → ô ghi chú cũng đóng', () => bang(id('gcPop').style.display, 'none'))
       hang0.querySelector('.status-select').click(); await cho(50)
       test('Bấm ô trạng thái trong hàng → KHÔNG mở chi tiết (chỉ đổi trạng thái)', () =>
         bang(id('customerOrdersModal').style.display, 'none'))

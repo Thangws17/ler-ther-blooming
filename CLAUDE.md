@@ -147,6 +147,7 @@ Chi tiết từng mục (lỗi thật đã xảy ra + cách làm đúng) nằm �
 - Tab Khách hàng kiểu danh bạ gọn (24/09/2026)
 - Chọn mẫu hoa khi lên đơn chỉ lấy giá khi là số tiền thuần
 - Bảng mã QR mở được từ 2 nơi (09/10/2026)
+- Nút "Ghi chú" trên thẻ Lịch giao + bảng/thẻ Đơn hàng (12/10/2026)
 
 **[Dùng chung web + admin, và luật viết code](huong-dan/ky-thuat/dung-chung.md)**
 - Safari/iPhone KHÔNG xuất được WebP

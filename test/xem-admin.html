@@ -18,8 +18,8 @@ function giaLap(V) {
   const ngay = n => new Date(Date.now() + n * 864e5).toLocaleDateString('sv-SE')
   const don = [
     [152, 'Chị Tuyền', '0908123456', 'Tulip x cỏ suối', 1, 650000, 0, '12 Lê Lợi, P. Bến Nghé, Q.1', 0, 'Mới', '1784038764629_optw_p1_1.webp', 'Chúc mừng sinh nhật em yêu', 'Giờ giao: 9h30\nGiao trước 10h'],
-    [151, 'Anh Minh', null, 'Hồng Ecuador rực rỡ', 2, 390000, 30000, 'Thủ Đức', 0, 'Đã xác nhận', '1784038741137_optw_p4_1.jpg', '', ''],
-    [150, 'Chị Lan', '0935551122', 'Mix Garden - Tone Hồng Pastel', 1, 320000, 20000, 'Q.7', 1, 'Đã xác nhận', '1789490039234_optw_p25_0.jpg', 'Happy anniversary', ''],
+    [151, 'Anh Minh', null, 'Hồng Ecuador rực rỡ', 2, 390000, 30000, 'Thủ Đức', 0, 'Đã xác nhận', '1784038741137_optw_p4_1.jpg', '', 'Giờ giao: 15h\nKhách dặn gói giấy kraft, KHÔNG để thẻ giá trong bó.\nGọi trước 15 phút, nhà trong hẻm 45 — đi vào hẻm nhỏ bên trái tiệm tạp hoá.'],
+    [150, 'Chị Lan', '0935551122', 'Mix Garden - Tone Hồng Pastel', 1, 320000, 20000, 'Q.7', 1, 'Đã xác nhận', '1789490039234_optw_p25_0.jpg', 'Happy anniversary', 'Thêm 1 thiệp nhỏ'],
     [149, 'Tuấn Nghĩa', '0911222333', 'Hồng chiết xạ', 3, 150000, 0, 'Q.3', 1, 'Mới', '1784038753671_optw_p17_0.webp', '', ''],
     [148, 'Anh Long', null, 'Lam tinh x cúc migarret', 1, 250000, 0, 'Bình Thạnh', 2, 'Đã xác nhận', '1784038751527_optw_p2_1.webp', '', ''],
     [147, 'Chị Hà', '0977000111', 'Hoa ly mix phi yến trắng', 1, 350000, 0, 'Q.10', -2, 'Đang giao', '1784038738364_optw_p9_1.webp', '', ''],
@@ -28,7 +28,8 @@ function giaLap(V) {
   ].map(([id, ten, sdt, sp, sl, gia, ship, dc, n, st, img, thiep, gc]) => ({
     id, customer_name: ten, customers: sdt ? { name: ten, phone: sdt } : null, customer_phone: sdt, product_name: sp, quantity: sl,
     unit_price: gia, shipping_fee: ship, total: gia * sl + ship, delivery_address: dc, status: st, image: IMG + img,
-    delivery_date: ngay(n), created_at: new Date(Math.floor(Date.now() / 6e4) * 6e4 - 864e5 - (160 - id) * 6e4).toISOString(),   // cố định: mã lớn = tạo sau message_card: thiep, note: gc,
+    delivery_date: ngay(n), created_at: new Date(Math.floor(Date.now() / 6e4) * 6e4 - 864e5 - (160 - id) * 6e4).toISOString(),   // cố định: mã lớn = tạo sau
+    message_card: thiep, note: gc,
     customer_email: id === 152 ? 'tuyen@example.com' : null,
     // Trạng thái thanh toán (SQL 31, 08/10/2026): 152 cọc 300k CK · 150 đã thanh toán · 147 cọc tiền mặt · đơn đã giao = đã thanh toán
     thanh_toan: { 152: 'Đã cọc', 147: 'Đã cọc', 150: 'Đã thanh toán', 146: 'Đã thanh toán', 145: 'Đã thanh toán' }[id] || 'Chưa thanh toán',

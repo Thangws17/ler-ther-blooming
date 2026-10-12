@@ -59,3 +59,12 @@ Cách từng tab tải và vẽ dữ liệu, các quy ước riêng của mỗi 
   không ghi database — ghi thẳng thì form giữ chip cũ, bấm Lưu đơn sẽ đè mất khoản tiền. Máy tính ≥760px bảng QR 2 cột
   (`.qr-luoi`, grid-area), điện thoại 1 cột. Bảng đơn máy tính: bấm cả hàng = chi tiết (`bamDongDon`, bỏ qua nút/select).
   Sửa đơn: chọn mẫu giá chữ thì GIỮ giá đã chốt; `oeProductPick` giữ `product_id` cũ kể cả khi danh sách mẫu chưa tải.
+- **Nút "Ghi chú" trên thẻ Lịch giao + bảng/thẻ Đơn hàng (12/10/2026)**: `nutGhiChu(o, xemTruoc)` — chỉ hiện khi đơn có
+  ghi chú TỰ DO (`tachGhiChuDon(o.note).ghiChu`; dòng "Người nhận:"/"Giờ giao:" không tính). Máy tính rê chuột = hiện ô nổi
+  `#gcPop` (dùng chung, gắn vào `body`, `position: fixed` — nằm trong bảng thì bị khung cuộn ngang cắt), rời chuột = ẩn;
+  bấm/chạm = ghim tới khi bấm ra ngoài / cuộn / Esc / `closeAllModals`. Nút là `<span role="button">` vì thẻ Lịch giao đã là
+  `<button>`; `onclick` phải `stopPropagation` để không mở chi tiết đơn. Điện thoại cũng bắn `mouseenter` khi chạm →
+  `reGhiChu` chỉ chạy khi `(hover: hover)`. Cột Ghi chú làm bảng thành 11 cột: ≤1400px đệm ô còn 7px và nút chỉ còn biểu
+  tượng (test "bảng đơn không rộng hơn khung" ở 1280px); rộng hơn thì xem trước 2 dòng (`.gc-xem`).
+  Vị trí shop chốt: thẻ Lịch giao = GÓC PHẢI DƯỚI thẻ kể cả khi thẻ bị kéo cao theo thẻ bên cạnh (`.dv:has(.gc-nut)` giãn
+  thân thẻ, `.dv-duoi > .gc-nut` bám đáy); thẻ Đơn hàng điện thoại = ngay TRÊN ngày giao (`.oc-meta` xếp dọc).
