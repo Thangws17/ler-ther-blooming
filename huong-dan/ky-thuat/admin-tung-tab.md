@@ -25,9 +25,11 @@ Cách từng tab tải và vẽ dữ liệu, các quy ước riêng của mỗi 
   `bcVe()` tính ở máy. Kỳ = ô ẩn `bcTu`/`bcDen` (trống = tháng này): chip `BC_KY` (chip sáng khi khoảng trùng), ‹ › `bcBuoc` (trọn
   tháng → lùi đúng số tháng), lịch dùng chung `LOC_NGAY.bc`. So kỳ liền trước / cùng kỳ năm ngoái (`bcSoSanh`); kỳ chưa hết thì kỳ so
   chỉ lấy số ngày đã qua (`bcKhoang`). Lọc thêm nguồn / BST (`bcQuaLoc`) → không tính lãi (chi phí không chia nhóm được).
-  Sắc thái: dải nhận xét `bcDanhGia` (tốt/ổn/cần chú ý/lỗ, luôn kèm chữ + biểu tượng) + ô số tô nền theo ngưỡng `BC_NGUONG_TANG/GIAM`.
-  Doanh thu cùng luật Tổng quan. Máy tính lưới 3 cột; điện thoại dưới biểu đồ chỉ 1 khối (`.an-dt`, thanh tab `bcTabDt`).
-  Bấm số/dòng/cột nào cũng mở danh sách đơn qua `bcMo(khoa)` (dùng chung `statDetailModal`).
+  Sắc thái: dải nhận xét `bcDanhGia` (tốt/ổn/cần chú ý/lỗ, luôn kèm chữ + biểu tượng; viên chỉ còn "Huỷ x%" — tiền đã có ở bảng tiền).
+  Đầu trang là **bảng tiền** 3 thẻ `.bc-bang-tien` (xem mục "Bốn con số tiền" bên dưới). Máy tính lưới 3 cột; điện thoại dưới biểu
+  đồ chỉ 1 khối (`.an-dt`, thanh tab `bcTabDt`). Bấm số/dòng/cột nào cũng mở danh sách đơn qua `bcMo(khoa)` → `moDanhSachDon`.
+  ⚠️ Tên class khung bảng tiền là `.bc-bang-tien`, KHÔNG phải `.bc-tien` — `.bc-tien` là cột tiền trong dòng xếp hạng
+  (`bcDong`). Lỗi thật 21/10/2026: đặt trùng → mọi cột tiền thành lưới 3 cột, số lệch khỏi hàng. Đặt class mới thì grep trước.
 - **Tra đơn theo id phải dùng `orderById(id)`**, không dùng `orders.find`. Tab Tổng quan và Lịch giao
   nạp đơn của chúng vào `_donCache` qua `cacheOrders()` và **không được gán vào `orders`** — gán là phá
   trang đang xem của tab Đơn hàng (đã từng như vậy).
@@ -36,8 +38,25 @@ Cách từng tab tải và vẽ dữ liệu, các quy ước riêng của mỗi 
 - **Số đỏ trên biểu tượng** (menu bên + thanh dưới) đều do `refreshNewOrderBadge()` vẽ: Đơn hàng = đơn chưa giao ("Mới" + "Đã xác nhận", `BADGE_DON_STATUSES`);
   Lịch giao = đơn giao hôm nay + mai chưa xong. Thêm số đếm mới thì dùng `ganSoDem([...], n)`.
 - **Tổng quan xếp theo việc cần làm**: đơn mới → Giao hôm nay → Sắp giao (3 ngày, chia theo ngày, `ngayNhan()`) →
-  số liệu tháng (gọn) → công cụ. Khung sao lưu giữ id `backupBox/backupLast/backupStatus/backupBtn` + chữ nút
-  "Tải file sao lưu" (test-sao-luu kiểm).
+  **Tiền tháng này** (4 ô, `#dashboardCards`, nút "Báo cáo chi tiết" = `moBaoCao()`) → công cụ. Từng làm khối "Cần thu tiền"
+  liệt kê từng đơn nợ — shop bỏ (21/10/2026): ô "Còn phải thu" đã đủ, muốn xem đơn thì bấm ô hoặc lọc "Đã giao · chưa thu đủ".
+  Lãi gộp + "Thu hôm nay" đã BỎ khỏi Tổng quan (21/10/2026) — lãi ở Báo cáo. Khung sao lưu giữ id
+  `backupBox/backupLast/backupStatus/backupBtn` + chữ nút "Tải file sao lưu" (test-sao-luu kiểm).
+- **Bốn con số tiền dùng chung (21/10/2026, shop chọn bảng tiền phương án A)**: mỗi tab trả lời 1 câu — Tổng quan "hôm nay
+  làm gì", Báo cáo "tiền bạc ra sao", Sổ chi phí "đã chi gì". Cả Tổng quan lẫn Báo cáo tính bằng `tienCuaKy(ds)` (mục "Trạng
+  thái THANH TOÁN"), cùng tên: **Dự kiến** (đơn chưa huỷ) · **Đã giao** (`REVENUE_STATUSES` = doanh thu) · **Đã nhận tiền**
+  (`daNhanTien`: "Đã thanh toán" đủ tổng, "Đã cọc" số cọc, đơn chưa định giá = 0) · **Còn phải thu** (`conPhaiThu` = tổng −
+  đã nhận; tách `noDs` đã giao chưa trả / `choDs` thu khi giao). Luôn đúng: Đã nhận + Còn phải thu = Dự kiến. Đừng tính lại
+  kiểu khác ở chỗ mới — gọi `tienCuaKy`. Danh sách đơn sau mỗi số: `moDanhSachDon(tiêu đề, giải thích, list, tien, chuTong)`,
+  `tien(o)` = số ở cột phải (đã nhận / còn thu), bỏ trống = tổng đơn. Báo cáo: thẻ Bán được · Thu tiền · Lời (`.bc-tt`), viên
+  ↑↓ so kỳ trước; "Chi phí ›" → Sổ chi phí đúng kỳ (`bcSangChiPhi`). Sổ chi phí: bỏ khối Doanh thu, còn 1 dòng lãi `.ex-lai`
+  → `exSangBaoCao()` mở Báo cáo đúng kỳ đang xem. Mở tab bằng tên: `moTab('Reports')`.
+- **Lọc thanh toán ở Đơn hàng (21/10/2026)**: hàng `#ttLoc` dưới hàng trạng thái — 3 mức `thanh_toan` (chọn nhiều) +
+  `'no'` = "Đã giao · chưa thu đủ" (`status in REVENUE_STATUSES` + `thanh_toan in (Chưa, Đã cọc)`; chọn nó thì bỏ 3 mức kia
+  và ngược lại). Lọc ở SERVER (`buildOrdersQuery`, `f.tt`), như mọi bộ lọc đơn. Database chưa có cột (chưa chạy SQL 31) →
+  `coCotTt() === false` → ẩn hàng. **Không còn chip "Tất cả"** ở hàng trạng thái lẫn thanh toán (shop góp ý): không chọn =
+  tất cả; đang chọn thì đầu hàng có nút ✕ `nutBoLoc()` bỏ chọn cả hàng đó. "Xóa lọc" bỏ cả 2 hàng. Điện thoại: cả 2 hàng
+  KHÔNG có chữ đầu hàng ("Trạng thái:" / "Thanh toán:" chỉ hiện trên máy tính — shop bỏ 21/10/2026).
 - **Khoảnh khắc trong admin theo ALBUM** (mỗi nhóm ảnh = 1 album, `kkAlbum`/`kkMoAlbum`). Album chỉ là lớp vỏ trên
   `galleryFilterCat` cũ: tải ảnh trong album → `#galleryCategory` tự đặt = album đó.
 - **Tab Sản phẩm kiểu danh sách gọn (24/09/2026)**: bấm cả hàng = mở form sửa, ngôi sao = `featured` (đổi tại chỗ,

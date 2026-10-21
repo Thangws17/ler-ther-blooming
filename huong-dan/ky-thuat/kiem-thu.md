@@ -64,6 +64,10 @@ Công cụ xem thử (không phải test, không tự chấm điểm):
   Trình duyệt chạy ngầm không vẽ iframe, nên trang này nạp thẳng mã admin chứ không nhúng.
   Web khách tương tự: `/test/xem-web.html?trang=san-pham&dat=1` (mở sẵn form đặt hoa), `?xong=1` (màn "Đã nhận đơn",
   không gửi đơn thật). Tên / SĐT trong dữ liệu giả phải là tên BỊA — file nằm trong git = công khai trên web.
+  **Đọc tham số `?…` từ chuỗi `Q` chép lúc mở trang, ĐỪNG đọc `location.search` trong `giaLap()`** (lỗi thật 21/10/2026):
+  máy đang đăng nhập admin thì admin tự `history.replaceState(…, '#Dashboard')`, mà trang có `<base href="/admin/">` nên đường
+  dẫn thành `/admin/#Dashboard` → mất `?dx=…` → khung "Đề xuất" hiện y bản cũ. Máy kiểm ngầm không đăng nhập nên không thấy:
+  kiểm demo cho shop phải giả cả phiên đăng nhập (đặt khoá `sb-…-auth-token` trong localStorage trước khi mở).
 - **Trang test chạy trong khung ẩn NGOÀI màn hình → trình duyệt dừng hiệu ứng chuyển động giữa chừng** (đo vị trí sai).
   Trang test web khách tự tắt hiệu ứng trong khung. Và đừng để hiệu ứng `transition: all` trên phần tử nổi (nút Zalo):
   vị trí đổi lúc tải trang sẽ thành "trượt giật" — chỉ cho chuyển động transform / bóng.

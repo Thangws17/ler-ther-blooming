@@ -12,7 +12,7 @@
        lh Liên hệ · menu menu bên (điện thoại). Danh sách đầy đủ: biến `tab` trong giaLap() bên dưới.
      ?dx=… chỉ dùng trên máy làm việc (nạp bản nháp đề xuất ở thư mục demo/, không có trong git). -->
 <script>
-function giaLap(V) {
+function giaLap(V, Q) {
   const d = document, w = window
   const IMG = 'https://oijcwborkebjpavzyisl.supabase.co/storage/v1/object/public/images/products/'
   const ngay = n => new Date(Date.now() + n * 864e5).toLocaleDateString('sv-SE')
@@ -31,9 +31,11 @@ function giaLap(V) {
     delivery_date: ngay(n), created_at: new Date(Math.floor(Date.now() / 6e4) * 6e4 - 864e5 - (160 - id) * 6e4).toISOString(),   // cố định: mã lớn = tạo sau
     message_card: thiep, note: gc,
     customer_email: id === 152 ? 'tuyen@example.com' : null,
-    // Trạng thái thanh toán (SQL 31, 08/10/2026): 152 cọc 300k CK · 150 đã thanh toán · 147 cọc tiền mặt · đơn đã giao = đã thanh toán
-    thanh_toan: { 152: 'Đã cọc', 147: 'Đã cọc', 150: 'Đã thanh toán', 146: 'Đã thanh toán', 145: 'Đã thanh toán' }[id] || 'Chưa thanh toán',
-    tien_coc: { 152: 300000, 147: 150000 }[id] || null,
+    // Trạng thái thanh toán (SQL 31, 08/10/2026): 152 cọc 300k CK · 150 đã thanh toán · 147 cọc tiền mặt
+    // · đã giao mà chưa trả đủ (ô "Còn phải thu", lọc "Đã giao · chưa thu đủ" — 21/10/2026): 145 chưa trả · 146 mới cọc 100k
+    thanh_toan: { 152: 'Đã cọc', 147: 'Đã cọc', 150: 'Đã thanh toán', 146: 'Đã cọc' }[id] || 'Chưa thanh toán',
+    tien_coc: { 152: 300000, 147: 150000, 146: 100000 }[id] || null,
+    nguon: null,   // shop đã chạy SQL 33 — có cột này thì form không hiện dòng đỏ "Cần chạy file 33"
     ngay_tt: { 152: ngay(-1), 150: ngay(-2), 147: ngay(-4) }[id] || null,
     cach_tt: { 152: 'Chuyển khoản', 150: 'Chuyển khoản', 147: 'Tiền mặt' }[id] || null,
   }))
@@ -52,9 +54,9 @@ function giaLap(V) {
         unit_price: gia, shipping_fee: i % 3 ? 0 : 30000, total: gia * (1 + (i % 4 === 0)) + (i % 3 ? 0 : 30000), delivery_address: 'Q.' + (1 + i % 10),
         status: i % 13 === 0 ? 'Đã hủy' : 'Hoàn thành', image: IMG + '1784038764629_optw_p1_1.webp', delivery_date: dt.toLocaleDateString('sv-SE'),
         created_at: new Date(dt - 2 * 864e5).toISOString(), note: ['Giờ giao: 9h', 'Giờ giao: 15h30', 'Giờ giao: 18h', ''][i % 4], message_card: '',
-        thanh_toan: i === 3 ? 'Đã cọc' : 'Đã thanh toán', tien_coc: i === 3 ? 200000 : null, cach_tt: i % 4 ? 'Chuyển khoản' : 'Tiền mặt', nguon: NG[i % NG.length] })
+        thanh_toan: i === 3 ? 'Đã cọc' : i === 0 || i === 2 ? 'Chưa thanh toán' : 'Đã thanh toán', tien_coc: i === 3 ? 200000 : null, cach_tt: i % 4 ? 'Chuyển khoản' : 'Tiền mặt', nguon: NG[i % NG.length] })
     }
-    don.forEach((o, i) => { if (!('nguon' in o)) o.nguon = NG[i % NG.length] })
+    don.forEach((o, i) => { if (o.id >= 145) o.nguon = NG[i % NG.length] })   // 8 đơn gốc (đơn thêm đã có nguồn)
   }
   const exp = [
     { id: 1, expense_date: ngay(-1), category: 'Hoa', item: 'Hồng đỏ Đà Lạt', quantity: 50, unit_price: 6000, amount: 300000, note: '', image: '' },
@@ -125,8 +127,10 @@ function giaLap(V) {
   d.getElementById('appWrap').style.display = 'flex'
   if (w.measureViewport) w.measureViewport()
   const tab = { tq: 'Dashboard', ds: 'Orders', exl: 'Expenses', exc: 'Expenses', loc: 'Orders', locm: 'Orders', don: 'Orders', gop: 'Orders', gople: 'Orders', chi: 'Expenses', ct: 'Orders', ct2: 'Orders', qr: 'Orders', qrtt: 'Orders', qrcg: 'Orders', qrdoi: 'Orders', mk: 'Contact', doncoc: 'Orders', suacoc: 'Orders', qrchua: 'Orders', lh: 'Contact', lg: 'Delivery', nl: 'Expenses', nls: 'Expenses', ex: 'Expenses', sua: 'Orders', bst: 'Collections', bstm: 'Collections', kk: 'Gallery', kka: 'Gallery', kkm: 'Gallery', menu: 'Orders', sp: 'Products', spx: 'Products', spm: 'Products', sp5: 'Products', ttc: 'Products', spt: 'Products', kh: 'Customers', khm: 'Customers', bc: 'Reports', bcm: 'Reports' }[V] || 'Dashboard'
-  const P = new URLSearchParams(location.search), DX = P.get('dx')
-  const sauKhiNap = f => { if (!DX) return f(); const sc = d.createElement('script'); sc.src = '/demo/de-xuat.js?t=' + Date.now(); sc.dataset.dx = DX; sc.dataset.ban = P.get('ban') || 'moi'; sc.onload = f; d.body.appendChild(sc) }
+  // Đọc ?dx= / ?thang= từ chuỗi Q chép lúc mở trang, KHÔNG từ location.search: máy đang đăng nhập admin thì admin tự
+  // replaceState('#Dashboard'), mà trang có <base href="/admin/"> nên đường dẫn thành /admin/#Dashboard — mất hết ?… (lỗi thật 21/10/2026)
+  const P = new URLSearchParams(Q), DX = P.get('dx')
+  const sauKhiNap = f => { if (!DX) return f(); const sc = d.createElement('script'); sc.src = '/demo/de-xuat.js?t=' + Date.now(); sc.dataset.dx = DX; sc.dataset.ban = P.get('ban') || 'moi'; sc.dataset.q = Q; sc.onload = f; d.body.appendChild(sc) }
   sauKhiNap(() => {
   w.applyTab(tab)
   if (P.get('thang')) setTimeout(() => w.orderQuickMonth(), 300)
@@ -171,7 +175,7 @@ function giaLap(V) {
 }
 const V = new URLSearchParams(location.search).get('v') || 'tq'
 fetch('../admin/index.html', { cache: 'no-store' }).then(r => r.text()).then(html => {
-  const duoi = '<script>' + giaLap.toString() + '\nsetTimeout(() => giaLap(' + JSON.stringify(V) + '), 1500)<\/script></body>'
+  const duoi = '<script>' + giaLap.toString() + '\nsetTimeout(() => giaLap(' + JSON.stringify(V) + ', ' + JSON.stringify(location.search).replace(/</g, '\\u003c') + '), 1500)<\/script></body>'
   html = html.replace('<head>', '<head><base href="/admin/">').replace('</body>', duoi)
   document.open(); document.write(html); document.close()
 })

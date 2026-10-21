@@ -126,6 +126,7 @@ Chi tiết từng mục (lỗi thật đã xảy ra + cách làm đúng) nằm �
 - Đừng gọi `scrollIntoView` cho phần tử trong modal mà không dọn sau
 - Không dùng `100vh` cho `body` hay khung toàn màn hình
 - Bàn phím iOS đổi chiều cao mà không báo sự kiện
+- Bàn phím đang mở → `body.phim-dang-mo` (21/10/2026)
 - Đừng đặt `position: sticky` cho phần tử nằm TRONG `.content`
 - Popover tự vẽ lại khi bấm (lịch ‹ ›) + trình xử lý "bấm ra ngoài thì đóng" = lỗi tự đóng
 - Thanh tab dưới đáy `.bottom-tabs` (điện thoại) cùng luật với `.admin-topbar`
@@ -148,6 +149,8 @@ Chi tiết từng mục (lỗi thật đã xảy ra + cách làm đúng) nằm �
 - Chọn mẫu hoa khi lên đơn chỉ lấy giá khi là số tiền thuần
 - Bảng mã QR mở được từ 2 nơi (09/10/2026)
 - Nút "Ghi chú" trên thẻ Lịch giao + bảng/thẻ Đơn hàng (12/10/2026)
+- Bốn con số tiền dùng chung (21/10/2026, shop chọn bảng tiền phương án A)
+- Lọc thanh toán ở Đơn hàng (21/10/2026)
 
 **[Dùng chung web + admin, và luật viết code](huong-dan/ky-thuat/dung-chung.md)**
 - Safari/iPhone KHÔNG xuất được WebP

@@ -37,6 +37,13 @@ Những lỗi hiển thị trên iPhone đã gặp, cách làm ô ngày / ô ti�
 - **Bàn phím iOS đổi chiều cao mà không báo sự kiện** (chuyển giữa ô có/không có thanh gợi ý chữ) →
   `--vvh` kẹt số cũ, form dừng cách bàn phím một khúc. Vì vậy `measureViewport()` được gọi lại nhiều
   nhịp sau mỗi lần focus đổi, không chỉ chờ `visualViewport resize`.
+- **Bàn phím đang mở → `body.phim-dang-mo` (21/10/2026)**: `measureViewport()` bật class khi vùng nhìn thấy thấp hơn
+  `innerHeight` > 150px và KHÔNG đang phóng to 2 ngón (`visualViewport.scale < 1.05`). CSS (khối ≤820px, cạnh thanh tab dưới):
+  form bung kín phần trên bàn phím (`.modal-box` cao `--vvh`, bỏ bo góc + tay nắm), tiêu đề + chân form 1 dòng mảnh, ẩn
+  `.fx-con` ("Còn thu khi giao"), ẩn thanh tab dưới / nút ＋ / nút lên đầu. Trước đó trên iPhone tiêu đề + chân form ăn gần
+  hết chỗ, chỉ thấy ~2 ô (shop: "giao diện còn xíu"). Bật class xong / đổi ô khi đang mở → `giuONhapTrongTam()` cuộn RIÊNG
+  `.modal-body` cho ô đang gõ nằm 1/3 trên (không `scrollIntoView`). Test giả bàn phím bằng `Object.defineProperty(w,
+  'visualViewport', …)` rồi gọi `measureViewport()` (test-admin-giao-dien nhóm 5d) — nhớ trả descriptor gốc sau đó.
 - **Đừng đặt `position: sticky` cho phần tử nằm TRONG `.content`.** `.content` là khung cuộn;
   sticky bên trong khung cuộn là chỗ iOS vẽ sai toạ độ → thấy phần tử nhưng bấm không trúng.
   `.admin-topbar` vì vậy là anh em của `.content`, không phải con.
