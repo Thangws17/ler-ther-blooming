@@ -9,7 +9,7 @@
        tq Tổng quan · ds Đơn hàng · don form Thêm đơn · sua form Sửa đơn · ct chi tiết đơn · qr bảng mã QR
        lg Lịch giao · kh / khm Khách hàng · ex / chi Sổ chi phí · nl / nls Nguyên liệu · bc / bcm Báo cáo
        sp / spm / spx Sản phẩm · ttc Thông tin chung · bst / bstm Bộ sưu tập · kk / kka / kkm Khoảnh khắc
-       lh Liên hệ · menu menu bên (điện thoại). Danh sách đầy đủ: biến `tab` trong giaLap() bên dưới.
+       lh Liên hệ · menu menu bên (điện thoại) · dsn Đơn hàng nhiều trang (thanh phân trang). Danh sách đầy đủ: biến `tab` trong giaLap() bên dưới.
      ?dx=… chỉ dùng trên máy làm việc (nạp bản nháp đề xuất ở thư mục demo/, không có trong git). -->
 <script>
 function giaLap(V, Q) {
@@ -40,7 +40,8 @@ function giaLap(V, Q) {
     cach_tt: { 152: 'Chuyển khoản', 150: 'Chuyển khoản', 147: 'Tiền mặt' }[id] || null,
   }))
   // ?v=bc (Báo cáo): thêm ~80 đơn giả rải 12 tháng (cố định theo id, không ngẫu nhiên) + nguồn khách
-  if (V === 'bc' || V === 'bcm') {
+  // ?v=dsn (Đơn hàng nhiều trang): dùng lại 84 đơn này → 92 đơn = 5 trang 20 đơn
+  if (V === 'bc' || V === 'bcm' || V === 'dsn') {
     const NG = ['Facebook', 'Zalo', 'Instagram', 'Zalo', 'Web', 'Giới thiệu', 'Facebook', null]
     const MAU = [[1, 'Tulip x cỏ suối', 650000], [4, 'Hồng Ecuador rực rỡ', 390000], [25, 'Mix Garden - Tone Hồng Pastel', 320000],
                  [17, 'Hồng chiết xạ', 150000], [12, 'Hồng Capuchino', 300000], [9, 'Hoa ly mix phi yến trắng', 350000]]
@@ -96,7 +97,7 @@ function giaLap(V, Q) {
                 { id: 3, name: 'Ruy băng', category: 'Phụ kiện', last_price: 8000 }, { id: 4, name: 'Tulip', category: 'Hoa', last_price: 25000 }] }
   // Bản giả của sb.from(): chuỗi .select().eq()… trả dữ liệu giả; đếm (head) trả count
   w.eval('sb').from = ten => {
-    let dl = (bang[ten] || []).slice(), dem = false, vaGhi = null
+    let dl = (bang[ten] || []).slice(), dem = false, vaGhi = null, khuc = null
     const q = {
       select(_, o) { if (o && o.head) dem = true; return q },
       eq(c, v) { dl = dl.filter(r => r[c] === v); return q },
@@ -106,12 +107,12 @@ function giaLap(V, Q) {
       lte(c, v) { dl = dl.filter(r => (r[c] || '') <= v); return q },
       ilike() { return q },
       order(c, o) { const len = !o || o.ascending !== false ? 1 : -1; dl = dl.slice().sort((a, b) => ((a[c] ?? '') < (b[c] ?? '') ? -1 : (a[c] ?? '') > (b[c] ?? '') ? 1 : 0) * len); return q },
-      limit() { return q }, range() { return q }, not() { return q }, or() { return q },
+      limit() { return q }, range(a, b) { khuc = [a, b + 1]; return q }, not() { return q }, or() { return q },
       maybeSingle() { return Promise.resolve({ data: dl[0] || null, error: null }) },
       single() { return Promise.resolve({ data: dl[0] || null, error: null }) },
       update(v) { vaGhi = v; return q }, insert() { return q }, delete() { return q },
       then(res, rej) { if (vaGhi) { dl.forEach(r => Object.assign(r, vaGhi)); vaGhi = null }
-        return Promise.resolve(dem ? { count: dl.length, data: null, error: null } : { data: dl, error: null, count: dl.length }).then(res, rej) },
+        return Promise.resolve(dem ? { count: dl.length, data: null, error: null } : { data: khuc ? dl.slice(...khuc) : dl, error: null, count: dl.length }).then(res, rej) },
     }
     return q
   }
@@ -126,7 +127,7 @@ function giaLap(V, Q) {
   d.getElementById('loginWrap').style.display = 'none'
   d.getElementById('appWrap').style.display = 'flex'
   if (w.measureViewport) w.measureViewport()
-  const tab = { tq: 'Dashboard', ds: 'Orders', exl: 'Expenses', exc: 'Expenses', loc: 'Orders', locm: 'Orders', don: 'Orders', gop: 'Orders', gople: 'Orders', chi: 'Expenses', ct: 'Orders', ct2: 'Orders', qr: 'Orders', qrtt: 'Orders', qrcg: 'Orders', qrdoi: 'Orders', mk: 'Contact', doncoc: 'Orders', suacoc: 'Orders', qrchua: 'Orders', lh: 'Contact', lg: 'Delivery', nl: 'Expenses', nls: 'Expenses', ex: 'Expenses', sua: 'Orders', bst: 'Collections', bstm: 'Collections', kk: 'Gallery', kka: 'Gallery', kkm: 'Gallery', menu: 'Orders', sp: 'Products', spx: 'Products', spm: 'Products', sp5: 'Products', ttc: 'Products', spt: 'Products', kh: 'Customers', khm: 'Customers', bc: 'Reports', bcm: 'Reports' }[V] || 'Dashboard'
+  const tab = { tq: 'Dashboard', ds: 'Orders', exl: 'Expenses', exc: 'Expenses', loc: 'Orders', locm: 'Orders', don: 'Orders', gop: 'Orders', gople: 'Orders', chi: 'Expenses', ct: 'Orders', ct2: 'Orders', qr: 'Orders', qrtt: 'Orders', qrcg: 'Orders', qrdoi: 'Orders', mk: 'Contact', doncoc: 'Orders', suacoc: 'Orders', qrchua: 'Orders', lh: 'Contact', lg: 'Delivery', nl: 'Expenses', nls: 'Expenses', ex: 'Expenses', sua: 'Orders', bst: 'Collections', bstm: 'Collections', kk: 'Gallery', kka: 'Gallery', kkm: 'Gallery', menu: 'Orders', sp: 'Products', spx: 'Products', spm: 'Products', sp5: 'Products', ttc: 'Products', spt: 'Products', kh: 'Customers', khm: 'Customers', bc: 'Reports', bcm: 'Reports', dsn: 'Orders' }[V] || 'Dashboard'
   // Đọc ?dx= / ?thang= từ chuỗi Q chép lúc mở trang, KHÔNG từ location.search: máy đang đăng nhập admin thì admin tự
   // replaceState('#Dashboard'), mà trang có <base href="/admin/"> nên đường dẫn thành /admin/#Dashboard — mất hết ?… (lỗi thật 21/10/2026)
   const P = new URLSearchParams(Q), DX = P.get('dx')

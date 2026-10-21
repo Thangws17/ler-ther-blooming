@@ -94,7 +94,7 @@ const dt = document.getElementById('dt')
   const w = dt.contentWindow, d = dt.contentDocument
   const id = x => d.getElementById(x)
 
-  for (const f of ['buildOrdersQuery', 'ordersFilterState', 'applyOrderFilters', 'onOrderSearchInput', 'loadOrders', 'showMoreOrders', 'cacheOrders', 'orderById', 'ordLoadDots']) {
+  for (const f of ['buildOrdersQuery', 'ordersFilterState', 'applyOrderFilters', 'onOrderSearchInput', 'loadOrders', 'denTrangDon', 'soTrangHien', 'thanhTrangHTML', 'cacheOrders', 'orderById', 'ordLoadDots']) {
     if (typeof w[f] !== 'function') {
       const tk = document.getElementById('tongket')
       tk.className = 'fail-box'
@@ -250,10 +250,45 @@ const dt = document.getElementById('dt')
   })
   test('Số đếm hiển thị lấy từ tổng của server (ordersTotal)', () =>
     chua(w.renderOrders.toString(), 'ordersTotal'))
-  test('"Xem thêm" tải trang sau từ server, không phải vẽ thêm', () => {
-    const src = w.showMoreOrders.toString()
-    chua(src, 'append', 'Phải gọi loadOrders({ append: true })')
-    khongChua(src, 'ordersLimit')
+  test('Mỗi lần chỉ hỏi server ĐÚNG 1 trang (range theo trang × cỡ trang)', () => {
+    const src = w.loadOrders.toString()
+    chua(src, '.range(tu, tu + coTrang - 1)', 'Phải tải đúng 1 trang, không tải dồn')
+    chua(src, 'ordersPage = 1', 'Đổi bộ lọc phải về trang 1')
+  })
+  test('Bấm số trang → tải trang đó từ server', () => {
+    chua(w.denTrangDon.toString(), 'ordersPage = p')
+    chua(w.taiTrangDon.toString(), 'loadOrders')
+  })
+
+  // ── 6b. Thanh số trang ──────────────────────────────────────────
+  nhom('6b. Thanh số trang 1 2 3 … và chọn 20/30/50')
+  test('Ít trang thì hiện hết số', () => bang(w.soTrangHien(5, 2), [1, 2, 3, 4, 5]))
+  test('Đầu danh sách: 1 2 3 4 5 … 629', () => bang(w.soTrangHien(629, 1), [1, 2, 3, 4, 5, '…', 629]))
+  test('Giữa: 1 … 9 10 11 … 629', () => bang(w.soTrangHien(629, 10), [1, '…', 9, 10, 11, '…', 629]))
+  test('Cuối: 1 … 625 626 627 628 629', () => bang(w.soTrangHien(629, 629), [1, '…', 625, 626, 627, 628, 629]))
+  test('Đổi cỡ trang giữ dòng đầu đang xem (trang 3 cỡ 20 = dòng 41 → trang 2 cỡ 30)', () => {
+    const cu = w.datCoTrang(30)
+    bang(w.trangSauDoiCo(3, 20), 2)
+    w.datCoTrang(cu)
+  })
+  test('Thanh hiện đúng "Từ … đến … trên tổng …" và ô chọn 20/30/50', () => {
+    const cu = w.datCoTrang(20)
+    const h = w.thanhTrangHTML(57, 3, 'f(', 'g(', 'đơn')
+    chua(h, 'Từ 41 đến 57 trên tổng 57 đơn')
+    chua(h, '<option selected>20</option><option>30</option><option>50</option>')
+    chua(h, 'aria-current="page" onclick="f(3, this)"')
+    bang(w.thanhTrangHTML(15, 1, 'f(', 'g(', 'đơn'), '', 'Ít hơn 20 dòng thì khỏi hiện thanh')
+    w.datCoTrang(cu)
+  })
+  test('Danh sách tải đủ về máy (Sản phẩm, Khách…) cắt đúng trang', () => {
+    const cu = w.datCoTrang(20)
+    const ds = Array.from({ length: 45 }, (_, i) => i + 1)
+    w.resetListLimit('__test')
+    bang(w.limitList('__test', ds).shown.length, 20)
+    w.denTrangList('__test', 'Object', 3)
+    bang(w.limitList('__test', ds).shown, [41, 42, 43, 44, 45])
+    bang(w.limitList('__test', ds.slice(0, 10)).shown.length, 10, 'Danh sách ngắn lại thì không kẹt ở trang trống')
+    w.datCoTrang(cu)
   })
 
   // ── 7. Chấm xanh trên lịch chọn ngày ────────────────────────────

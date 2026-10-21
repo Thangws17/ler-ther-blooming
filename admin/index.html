@@ -200,6 +200,33 @@
       font-weight: 600; font-size: .92rem; transition: all .2s;
     }
     .btn-outline:hover { background: #E8F5E9; }
+    /* Thanh phân trang dùng chung (thanhTrangHTML): đếm | chọn cỡ trang | số trang */
+    .pg-bar {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 18px;
+      margin-top: 16px; padding: 10px 14px; background: #fff; border: 1px solid #E3ECE2; border-radius: 10px;
+      font-size: .85rem; color: #5F7A5E;
+    }
+    .pg-co { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .pg-co select {
+      font: inherit; color: #2B2B2B; padding: 5px 8px; border: 1px solid #D3E0D1; border-radius: 6px;
+      background: #fff; cursor: pointer;
+    }
+    .pg-so { display: flex; align-items: center; gap: 2px; }
+    .pg-nut {
+      min-width: 32px; height: 32px; padding: 0 6px; border: none; border-radius: 16px; background: none;
+      font: inherit; font-weight: 600; color: #3A4A39; cursor: pointer;
+    }
+    .pg-nut:hover:not(:disabled):not(.on) { background: #E8F5E9; }
+    .pg-nut.on { background: #2E7D32; color: #fff; cursor: default; }
+    .pg-nut:disabled { color: #C9D3C8; cursor: default; }
+    .pg-ba { min-width: 20px; text-align: center; color: #9AAB99; }
+    .pg-dang-tai { opacity: .55; pointer-events: none; transition: opacity .15s; }
+    @media (max-width: 720px) {
+      /* Điện thoại: hàng số trang lên trên, căn giữa; đếm + chọn cỡ xuống dưới */
+      .pg-bar { justify-content: center; padding: 10px 8px; }
+      .pg-so { order: -1; flex: 1 1 100%; justify-content: center; }
+      .pg-co select { font-size: 16px; }   /* <16px thì iPhone tự phóng to trang khi bấm */
+    }
     .btn-edit {
       background: #E8F5E9; color: #2E7D32; border: none;
       padding: 6px 14px; border-radius: 6px; cursor: pointer;
@@ -1131,7 +1158,7 @@
       }
       .admin-topbar .hamburger { background: none; border: none; color: #fff; font-size: 1.5rem; line-height: 1; cursor: pointer; padding: 2px 8px; }
       .admin-topbar .tb-brand { font-weight: 700; font-size: 1.1rem; }
-      /* Chừa khoảng trống cuối trang: nút "Xem thêm…" ở dòng cuối luôn cuộn lên được
+      /* Chừa khoảng trống cuối trang: thanh phân trang ở dòng cuối luôn cuộn lên được
          khỏi thanh công cụ trình duyệt / vạch home, không bị dính sát mép dưới */
       .content > .panel { padding: 16px 14px calc(84px + env(safe-area-inset-bottom, 0px)); }
       .panel-topbar { flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
@@ -5119,7 +5146,7 @@ function renderChangelog() {
     el.innerHTML = '<div class="empty-state">Chưa có bản cập nhật nào. Chạy file supabase/14_changelog_setup.sql để nạp lịch sử, hoặc nhấn "+ Thêm bản cập nhật".</div>'
     return
   }
-  const { shown, more } = limitList('changelog', changelogs)
+  const { shown } = limitList('changelog', changelogs)
   el.innerHTML = shown.map(c => `
 <div class="cl-card">
   <div class="cl-head">
@@ -5135,7 +5162,7 @@ function renderChangelog() {
     <label>Góp ý / ghi chú</label>
     <textarea rows="2" placeholder="Ler ơi thấy sao, ghi vào đây nhé…" onblur="saveChangelogNote(${c.id}, this.value)">${esc(c.note || '')}</textarea>
   </div>
-</div>`).join('') + moreBtnHTML('changelog', more, 'renderChangelog', 'bản')
+</div>`).join('') + thanhTrangList('changelog', 'renderChangelog', 'bản')
 }
 
 function openChangelogModal(id = null) {
@@ -5346,7 +5373,7 @@ function renderMaterialsList() {
     el.innerHTML = nutThem || '<div class="db-empty">Chưa có nguyên liệu nào — gõ tên ở ô trên để thêm.</div>'
     return
   }
-  const { shown, more } = limitList('materials', list)
+  const { shown } = limitList('materials', list)
   // Bấm cả dòng = sửa / xem lịch sử giá; chỉ còn 1 nút xoá
   el.innerHTML = nutThem + shown.map(mt => `
 <div class="mt-row">
@@ -5356,7 +5383,7 @@ function renderMaterialsList() {
     <span class="mt-price">${mt.last_price != null ? fmtVnd(mt.last_price) : '—'}</span>
   </button>
   ${nutTT('trash', 'Xoá', `deleteMaterial(${mt.id})`, { xoa: true })}
-</div>`).join('') + moreBtnHTML('materials', more, 'renderMaterialsList')
+</div>`).join('') + thanhTrangList('materials', 'renderMaterialsList')
 }
 
 function openMaterialEditModal(id) {
@@ -5572,7 +5599,7 @@ function nhanKyChi(ky) {
   return ky.tu === ky.den ? 'ngày ' + fmtDateVN(ky.tu) : nhanKhoangNgay(ky.tu, ky.den)
 }
 
-let _lastRevActual = 0   // cho nút "Xem thêm" vẽ lại không cần query
+let _lastRevActual = 0   // cho thanh phân trang chi phí vẽ lại không cần query
 function renderExpenses(revenueActual) {
   _lastRevActual = revenueActual
   const totalExpense = expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0)
@@ -5634,7 +5661,7 @@ function renderExpenses(revenueActual) {
   const list = exLocDanhSach(expenses)
   const dangLoc = list.length !== expenses.length || exLoaiLoc || document.getElementById('exSearch').value.trim()
   const el = document.getElementById('expensesTable')
-  const { shown: expShown, more: expMore } = limitList('expenses', list)
+  const { shown: expShown } = limitList('expenses', list)
   const dongLoc = dangLoc
     ? `<div class="ex-ket-loc">${list.length} khoản · <strong>${fmtVnd(list.reduce((s, e) => s + (Number(e.amount) || 0), 0))}</strong></div>`
     : ''
@@ -5676,10 +5703,10 @@ function renderExpenses(revenueActual) {
         ${nutTT('trash', 'Xoá', `deleteExpense(${e.id})`, { xoa: true })}
       </div>
     </div>
-  </div>`).join('')}</div>${moreBtnHTML('expenses', expMore, 'renderExpensesKeep')}`
+  </div>`).join('')}</div>${thanhTrangList('expenses', 'renderExpensesKeep', 'khoản chi')}`
 }
 
-// Xem thêm chi phí: vẽ lại với số liệu doanh thu đang có (không query lại)
+// Sang trang chi phí: vẽ lại với số liệu doanh thu đang có (không query lại)
 function renderExpensesKeep() {
   renderExpenses(_lastRevActual)
 }
@@ -5952,7 +5979,7 @@ function renderProducts() {
     el.innerHTML = `<div class="empty-state">${q ? 'Không tìm thấy mẫu khớp.' : 'Không có mẫu nào ở mục này.'} <a href="#" onclick="document.getElementById('productSearch').value='';spChonLoc('all');return false" style="color:#2E7D32;font-weight:600;">Xem tất cả</a></div>`
     return
   }
-  const { shown: prodShown, more: prodMore } = limitList('products', list)
+  const { shown: prodShown } = limitList('products', list)
   const anh = p => `<div class="thumb">${p.image ? `<img ${srcNho(p.image, 200)} alt="" loading="lazy">` : ic('flower')}</div>`
   el.innerHTML = `
 <div class="table-desktop">
@@ -5985,7 +6012,7 @@ function renderProducts() {
       ${spNhanBst(p)}
     </div>
     ${spSao(p)}
-  </div>`).join('')}</div>${moreBtnHTML('products', prodMore, 'renderProducts', 'sản phẩm')}`
+  </div>`).join('')}</div>${thanhTrangList('products', 'renderProducts', 'sản phẩm')}`
 }
 
 // Biệt danh trong caption (dòng đầu “…” của mô tả) — giống cách web khách hiện dưới tên mẫu
@@ -6750,7 +6777,7 @@ function renderGalleryGrid() {
     grid.innerHTML = '<div class="empty-state">Album này chưa có ảnh. Bấm "Tải ảnh lên" để thêm.</div>'
     return
   }
-  const { shown, more: gMore } = limitList('gallery', filtered)
+  const { shown } = limitList('gallery', filtered)
   // Thẻ giờ CHỈ CÒN ẢNH. Chú thích + danh mục + xóa chuyển hết vào màn chi tiết —
   // để ngoài lưới thì mỗi thẻ cao gấp đôi mà vẫn khó đọc.
   grid.innerHTML = shown.map(ph => `
@@ -6765,7 +6792,7 @@ function renderGalleryGrid() {
     ${kkAlbum === 'all' ? `<span class="gal-cat-badge">${esc(ph.category || 'Chưa phân loại')}</span>` : ''}
     ${ph.caption ? `<span class="gal-cap">${esc(ph.caption)}</span>` : ''}
   </div>
-</div>`).join('') + (gMore > 0 ? `<div style="grid-column:1/-1;">${moreBtnHTML('gallery', gMore, 'renderGalleryGrid', 'ảnh')}</div>` : '')
+</div>`).join('') + ((h => h ? `<div style="grid-column:1/-1;">${h}</div>` : '')(thanhTrangList('gallery', 'renderGalleryGrid', 'ảnh')))
 }
 
 // Danh sách ảnh đang hiện theo bộ lọc — dùng chung cho lưới và cho nút ← → ở chi tiết
@@ -7141,7 +7168,7 @@ function renderTestimonials() {
     el.innerHTML = '<div class="empty-state">Chưa có đánh giá nào. Thêm đánh giá đầu tiên!</div>'
     return
   }
-  const { shown: tShown, more: tMore } = limitList('testimonials', testimonials)
+  const { shown: tShown } = limitList('testimonials', testimonials)
   el.innerHTML = `
 <div class="table-desktop">
 <table class="data-table">
@@ -7171,7 +7198,7 @@ function renderTestimonials() {
       ${nutTT('pen', 'Sửa', `openTestimonialModal(${t.id})`)}
       ${nutTT('trash', 'Xoá', `deleteTestimonial(${t.id})`, { xoa: true })}
     </div>
-  </div>`).join('')}</div>${moreBtnHTML('testimonials', tMore, 'renderTestimonials', 'đánh giá')}`
+  </div>`).join('')}</div>${thanhTrangList('testimonials', 'renderTestimonials', 'đánh giá')}`
 }
 
 async function toggleTestimonial(id, current) {
@@ -7235,7 +7262,7 @@ async function saveTestimonial(e) {
 
 // ── Orders ────────────────────────────────────────
 let orders = []
-const ORDERS_PAGE = 20            // số đơn tải mỗi lần, bấm "Xem thêm" để tải tiếp
+let ordersPage = 1                // trang đang xem (từ 1); cỡ trang = coTrang (20/30/50, phân trang dùng chung)
 // ⚠️ `orders` CHỈ chứa những đơn ĐÃ TẢI (trang đang xem), không còn là toàn bộ bảng.
 // Vì vậy lọc / tìm kiếm / đếm phải hỏi SERVER, tuyệt đối đừng filter trên mảng này —
 // filter ở máy sẽ chỉ tìm trong mấy chục đơn đã tải, tưởng "không có đơn nào".
@@ -7250,22 +7277,74 @@ let _donCache = {}
 function cacheOrders(list) { (list || []).forEach(o => { _donCache[o.id] = o }) }
 function orderById(id) { return _donCache[id] || orders.find(x => x.id === id) }
 
-// ── Phân trang dùng chung: mục nào quá 20 dòng → hiện 20 + nút "Xem thêm" ──
-const LIST_PAGE = 20
-const _listLimits = {}
+// ── Phân trang dùng chung (21/10/2026): thanh "Từ 1 đến 20 trên tổng 57 · Hiển thị [20▾] · ‹ 1 2 3 … 9 ›" ──
+// Thay nút "Xem thêm" cũ. Cỡ trang 20/30/50 nhớ theo TỪNG MÁY, dùng chung mọi danh sách.
+// Đơn hàng hỏi server từng trang (loadOrders); danh sách khác đã tải đủ về máy thì chỉ cắt khúc (limitList).
+const CO_TRANG = [20, 30, 50]
+let coTrang = 20
+try { const v = Number(localStorage.getItem('lt_coTrang')); if (CO_TRANG.includes(v)) coTrang = v } catch {}
+function datCoTrang(v) {
+  const cu = coTrang
+  if (CO_TRANG.includes(v)) { coTrang = v; try { localStorage.setItem('lt_coTrang', v) } catch {} }
+  return cu
+}
+// Đổi cỡ trang mà dòng đầu tiên đang xem vẫn nằm trong trang mới (đang ở dòng 41 thì không bị đá về dòng 1)
+function trangSauDoiCo(trang, coCu) { return Math.floor((trang - 1) * coCu / coTrang) + 1 }
+// Số trang hiện ra: tối đa 7 ô, kiểu 1 2 3 4 5 … 629 / 1 … 7 8 9 … 629 / 1 … 625 626 627 628 629
+function soTrangHien(n, p) {
+  if (n <= 7) return Array.from({ length: n }, (_, i) => i + 1)
+  if (p <= 4) return [1, 2, 3, 4, 5, '…', n]
+  if (p >= n - 3) return [1, '…', n - 4, n - 3, n - 2, n - 1, n]
+  return [1, '…', p - 1, p, p + 1, '…', n]
+}
+// goTrang / goCo: đầu lời gọi hàm, vd "denTrangDon(" — nút tự nối thêm "<số>, this)"
+function thanhTrangHTML(tong, trang, goTrang, goCo, unit) {
+  if (tong <= CO_TRANG[0]) return ''   // ít hơn 1 trang nhỏ nhất thì khỏi hiện thanh
+  const n = Math.max(1, Math.ceil(tong / coTrang))
+  const tu = (trang - 1) * coTrang + 1, den = Math.min(tong, trang * coTrang)
+  const so = x => x.toLocaleString('vi-VN')
+  const nut = (p, nhan, tat, ten) => `<button type="button" class="pg-nut${!ten && p === trang ? ' on' : ''}"${tat ? ' disabled' : ''}${ten ? ` aria-label="${ten}"` : p === trang ? ' aria-current="page"' : ''} onclick="${goTrang}${p}, this)">${nhan}</button>`
+  return `<div class="pg-bar">
+  <div class="pg-dem">Từ ${so(tu)} đến ${so(den)} trên tổng ${so(tong)} ${unit}</div>
+  <label class="pg-co">Hiển thị <select onchange="${goCo}+this.value, this)">${CO_TRANG.map(c => `<option${c === coTrang ? ' selected' : ''}>${c}</option>`).join('')}</select> ${unit}/trang</label>
+  <nav class="pg-so" aria-label="Chuyển trang">${nut(trang - 1, '‹', trang <= 1, 'Trang trước')}${soTrangHien(n, trang).map(p => p === '…' ? '<span class="pg-ba">…</span>' : nut(p, p)).join('')}${nut(trang + 1, '›', trang >= n, 'Trang sau')}</nav>
+</div>`
+}
+// Sang trang khác: vẽ lại xong thì kéo đầu danh sách vào tầm mắt (bấm số ở đáy mà đứng yên thì chỉ thấy dòng cuối)
+function cuonDauDs(id) {
+  const ds = id && document.getElementById(id), kh = document.querySelector('.content')
+  if (!ds || !kh) return
+  const lech = ds.getBoundingClientRect().top - kh.getBoundingClientRect().top
+  if (lech < 0) kh.scrollTo({ top: kh.scrollTop + lech - 12, behavior: 'smooth' })
+}
+
+const _listPages = {}     // key → trang đang xem (từ 1)
+const _listTongs = {}     // key → tổng số dòng lần vẽ gần nhất
 function limitList(key, list) {
-  const lim = _listLimits[key] || LIST_PAGE
-  return { shown: list.slice(0, lim), more: Math.max(0, list.length - lim) }
+  const n = Math.max(1, Math.ceil(list.length / coTrang))
+  const p = Math.min(_listPages[key] || 1, n)   // danh sách ngắn lại (xoá, lọc) → không kẹt ở trang trống
+  _listPages[key] = p
+  _listTongs[key] = list.length
+  const shown = list.slice((p - 1) * coTrang, p * coTrang)
+  return { shown }
 }
-function showMoreList(key, renderFn) {
-  _listLimits[key] = (_listLimits[key] || LIST_PAGE) + LIST_PAGE
+function resetListLimit(key) { _listPages[key] = 1 }   // đổi bộ lọc / tải lại → về trang 1
+function denTrangList(key, renderFn, p, el) {
+  if (p === _listPages[key]) return
+  const id = el?.closest('[id]')?.id   // lấy trước khi vẽ lại (nút cũ bị thay mất)
+  _listPages[key] = p
   window[renderFn]()
+  cuonDauDs(id)
 }
-function resetListLimit(key) { _listLimits[key] = LIST_PAGE }
-function moreBtnHTML(key, more, renderFn, unit = 'dòng') {
-  return more > 0
-    ? `<div style="text-align:center;margin-top:16px;"><button class="btn-outline" onclick="showMoreList('${key}','${renderFn}')">Xem thêm ${more} ${unit} nữa ▾</button></div>`
-    : ''
+function doiCoTrangList(key, renderFn, v, el) {
+  const id = el?.closest('[id]')?.id
+  _listPages[key] = trangSauDoiCo(_listPages[key] || 1, datCoTrang(v))
+  window[renderFn]()
+  cuonDauDs(id)
+}
+function thanhTrangList(key, renderFn, unit = 'dòng') {
+  return thanhTrangHTML(_listTongs[key] || 0, _listPages[key] || 1,
+    `denTrangList('${key}','${renderFn}',`, `doiCoTrangList('${key}','${renderFn}',`, unit)
 }
 
 // Khung chờ skeleton dùng chung cho các bảng trong admin
@@ -8157,19 +8236,25 @@ function buildOrdersQuery(f) {
   return qy
 }
 
-// opt.append   = bấm "Xem thêm", nối thêm trang sau
-// opt.giuTrang = tải lại đúng số đơn đang xem (sau khi sửa/đổi trạng thái),
-//                để danh sách không nhảy về 20 đơn đầu
-async function loadOrders(opt = {}) {
+// Tải đúng 1 trang (ordersPage). Gọi lại sau khi sửa / đổi trạng thái thì GIỮ trang đang xem;
+// chỉ khi bộ lọc khác lần trước mới về trang 1 (khỏi phải nhớ reset ở từng chỗ đổi bộ lọc).
+let _locDonCu = null, _luotTaiDon = 0
+async function loadOrders() {
   const el = document.getElementById('ordersTable')
   if (el && !orders.length) el.innerHTML = skeletonTable(6)
   const f = ordersFilterState()
-  const tu  = opt.append ? orders.length : 0
-  const den = opt.append ? orders.length + ORDERS_PAGE - 1
-            : Math.max(ORDERS_PAGE, opt.giuTrang ? orders.length : 0) - 1
-  const { data, error, count } = await buildOrdersQuery(f).range(tu, den)
+  const khoaLoc = JSON.stringify(f)
+  if (khoaLoc !== _locDonCu) { ordersPage = 1; _locDonCu = khoaLoc }
+  const luot = ++_luotTaiDon
+  const tu = (ordersPage - 1) * coTrang
+  const { data, error, count } = await buildOrdersQuery(f).range(tu, tu + coTrang - 1)
+  if (luot !== _luotTaiDon) return   // bấm sang trang khác lúc đang chờ → bỏ kết quả cũ, kẻo vẽ nhầm trang
+  el?.classList.remove('pg-dang-tai')
+  // Trang đang xem không còn đơn (vừa xoá đơn cuối của trang cuối) — server báo lỗi PGRST103
+  // hoặc trả rỗng → lùi 1 trang, đừng hiện "chưa có đơn"
+  if (ordersPage > 1 && (error ? error.code === 'PGRST103' : !(data || []).length)) { ordersPage--; return loadOrders() }
   if (error) { if (el) el.innerHTML = loadErrorHTML('loadOrders'); return }
-  orders = opt.append ? orders.concat(data || []) : (data || [])
+  orders = data || []
   cacheOrders(orders)
   ordersTotal = count == null ? orders.length : count
   renderStatusFilterChips()
@@ -8220,11 +8305,17 @@ function loeDon(id) {
   ;[60, 400, 1000, 1800].forEach(t => setTimeout(tim, t))
 }
 
-function reloadActiveOrderViews() {
+// Ghi đơn xong (tạo / sửa / xoá / đổi trạng thái / ghi tiền) → tải lại ĐÚNG màn đang mở, kẻo phải F5 mới thấy số mới.
+// opt.trongDs: tab Đơn hàng đã tự vẽ lại tại chỗ (đổi trạng thái ngay trên bảng) thì khỏi hỏi lại server
+function reloadActiveOrderViews(opt = {}) {
   const vis = id => { const el = document.getElementById(id); return el && el.style.display !== 'none' }
   if (vis('panelDashboard')) loadDashboard()
   else if (vis('panelDelivery')) loadDelivery()
-  else loadOrders()
+  else if (vis('panelReports')) loadBaoCao()
+  else if (!vis('panelCustomers') && !opt.trongDs) loadOrders()
+  // Sổ khách cũng đổi theo đơn (số đơn · tổng đã mua từng khách, khách mới để gợi ý ở form đơn) — trước đây
+  // sửa đơn từ thẻ khách xong danh bạ vẫn số cũ tới khi tải lại trang (21/10/2026). Chưa tải lần nào thì thôi.
+  if (customers.length || vis('panelCustomers')) loadCustomers({ giuTrang: true })
 }
 
 // Đổi bộ lọc là phải hỏi lại server — đừng gọi renderOrders() suông,
@@ -8759,14 +8850,10 @@ function renderOrders() {
     return
   }
   const fmtDayShort = d => d ? d.slice(8, 10) + '/' + d.slice(5, 7) : ''
-  const shown = list                         // đã tải bao nhiêu thì vẽ bấy nhiêu
-  const moreBtn = ordersTotal > shown.length
-    ? `<div style="text-align:center;margin-top:16px;">
-         <button class="btn-outline" id="ordMoreBtn" onclick="showMoreOrders()">Xem thêm ${ordersTotal - shown.length} đơn nữa ▾</button>
-       </div>`
-    : ''
+  const shown = list                         // đã tải trang nào thì vẽ trang đó
+  const soTrang = Math.ceil(ordersTotal / coTrang)
   el.innerHTML = `
-<div class="orders-count" style="font-size:.85rem;color:#7A9879;margin-bottom:10px;">Hiển thị ${shown.length}/${ordersTotal} đơn</div>
+<div class="orders-count" style="font-size:.85rem;color:#7A9879;margin-bottom:10px;">${ordersTotal.toLocaleString('vi-VN')} đơn${soTrang > 1 ? ` · trang ${ordersPage}/${soTrang}` : ''}</div>
 <div class="orders-desktop">
 <table class="data-table">
   <thead><tr>
@@ -8816,13 +8903,23 @@ function renderOrders() {
       </div>
     </div>
   </div>`).join('')}</div>
-${moreBtn}`
+${thanhTrangHTML(ordersTotal, ordersPage, 'denTrangDon(', 'doiCoTrangDon(', 'đơn')}`
 }
 
-async function showMoreOrders() {
-  const btn = document.getElementById('ordMoreBtn')
-  if (btn) { btn.textContent = 'Đang tải…'; btn.disabled = true }
-  await loadOrders({ append: true })
+// Sang trang khác: hỏi server đúng trang đó (không tải dồn), làm mờ danh sách trong lúc chờ
+async function denTrangDon(p) {
+  if (p === ordersPage) return
+  ordersPage = p
+  await taiTrangDon()
+}
+async function doiCoTrangDon(v) {
+  ordersPage = trangSauDoiCo(ordersPage, datCoTrang(v))
+  await taiTrangDon()
+}
+async function taiTrangDon() {
+  document.getElementById('ordersTable')?.classList.add('pg-dang-tai')
+  await loadOrders()
+  cuonDauDs('ordersTable')
 }
 
 // Nút −/+ ô Số lượng (giống hệt bên web khách). Bắn sự kiện 'input' để Tổng tạm tính
@@ -8872,10 +8969,10 @@ async function updateOrderStatus(id, status) {
   if (o) o.status = status
   // Đổi từ Tổng quan / Lịch giao (sheet chi tiết đơn) → vẽ lại đúng màn đó; trước chỉ vẽ lại tab Đơn hàng nên
   // đơn đã "Giao thành công" vẫn nằm trong "Giao hôm nay" tới khi tải lại trang (rà soát 07/10/2026)
+  // Thẻ khách / Báo cáo cũng phải đổi theo → dùng chung reloadActiveOrderViews
   const dangMo = x => document.getElementById(x)?.style.display !== 'none'
-  if (dangMo('panelDashboard')) loadDashboard()
-  else if (dangMo('panelDelivery')) loadDelivery()
-  else renderOrders()     // tab Đơn hàng: vẽ lại ngay, giữ nguyên trang đơn đang xem
+  if (dangMo('panelOrders')) renderOrders()     // tab Đơn hàng: vẽ lại ngay, giữ nguyên trang đơn đang xem
+  reloadActiveOrderViews({ trongDs: true })
   refreshNewOrderBadge()
   showToast('Đã cập nhật trạng thái!')
   loeDon(id)
@@ -9401,6 +9498,8 @@ function sauKhiGhiTt(id) {
   const dangMo = x => document.getElementById(x)?.style.display !== 'none'
   if (dangMo('panelDelivery')) renderDeliveryList()
   else if (dangMo('panelOrders')) renderOrders()
+  // Tổng quan (4 số tiền: còn phải thu…), Báo cáo, sổ khách: ghi tiền xong phải tính lại, trước chỉ đổi khi F5
+  if (!dangMo('panelDelivery')) reloadActiveOrderViews({ trongDs: true })
 }
 
 // ── Bảng mã QR chuyển khoản (mở từ chi tiết đơn) ──
@@ -9822,7 +9921,7 @@ async function saveNewOrder(e) {
 // ── Customers ─────────────────────────────────────
 let customers = []
 
-async function loadCustomers() {
+async function loadCustomers(opt = {}) {
   const ct = document.getElementById('customersTable')
   if (ct && !customers.length) ct.innerHTML = skeletonTable(5)
   // Kèm vài cột của đơn để đếm "mấy đơn · đã mua bao nhiêu · lần cuối" cho từng khách
@@ -9833,7 +9932,7 @@ async function loadCustomers() {
   if (res.error) { if (ct) ct.innerHTML = loadErrorHTML('loadCustomers'); return }
   customers = res.data || []
   khTinhSo(donRes.data || [])
-  resetListLimit('customers')
+  if (!opt.giuTrang) resetListLimit('customers')   // vừa ghi đơn → ở yên trang khách đang xem
   renderCustomers()
 }
 
@@ -9934,7 +10033,7 @@ function renderCustomers() {
       : '<div class="empty-state">Chưa có khách hàng nào.</div>'
     return
   }
-  const { shown: cuShown, more: cuMore } = limitList('customers', list)
+  const { shown: cuShown } = limitList('customers', list)
   const soDon = c => { const k = khSo(c); return k.n ? `<span class="kh-n">${k.n} đơn</span>` : '<span class="kh-n kh-chua">Chưa có đơn</span>' }
   el.innerHTML = `
 <div class="table-desktop">
@@ -9963,7 +10062,7 @@ function renderCustomers() {
       <div class="kh-sdt">${khSdtDep(c.phone)}</div>
     </div>
     <div class="kh-phai">${soDon(c)}<span class="kh-ngay">${khNgay(khSo(c).cuoi)}</span></div>
-  </div>`).join('')}</div>${moreBtnHTML('customers', cuMore, 'renderCustomers', 'khách')}`
+  </div>`).join('')}</div>${thanhTrangList('customers', 'renderCustomers', 'khách')}`
 }
 
 // ── Xoá khách khỏi sổ ─────────────────────────────────────────

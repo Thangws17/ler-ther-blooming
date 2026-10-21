@@ -6,9 +6,13 @@
 Cách từng tab tải và vẽ dữ liệu, các quy ước riêng của mỗi tab.
 
 - **Mảng `orders` CHỈ chứa trang đơn đang xem, không phải cả bảng.** Tab Đơn hàng tải theo trang
-  (`ORDERS_PAGE` = 20, `buildOrdersQuery()` lọc trên server, `count: 'exact'` để đếm). **Đừng bao giờ
+  (`ordersPage` × `coTrang`, `buildOrdersQuery()` lọc trên server, `count: 'exact'` để đếm). **Đừng bao giờ
   `orders.filter(...)` để lọc/tìm** — sẽ chỉ tìm trong mấy chục đơn đã tải rồi báo "không có đơn nào".
   Đổi bộ lọc thì gọi `applyOrderFilters()`, không gọi `renderOrders()` suông.
+  **Phân trang kiểu số trang (21/10/2026)** thay nút "Xem thêm": `thanhTrangHTML()` vẽ "Từ 1 đến 20 trên tổng N · Hiển thị
+  [20/30/50] · ‹ 1 2 3 … ›", cỡ trang `coTrang` nhớ theo máy (`lt_coTrang`), dùng chung mọi danh sách. Đơn hàng: `loadOrders()`
+  tự về trang 1 khi bộ lọc khác lần trước (so `JSON.stringify` bộ lọc), gọi lại sau khi sửa thì GIỮ trang. Danh sách tải đủ về
+  máy (Sản phẩm, Khách, Chi phí…) dùng `limitList(key, list)` + `thanhTrangList(key, renderFn, đơn vị)`.
   **Lọc ngày giao là 1 ngày HOẶC khoảng ngày (07/10/2026)**: `#orderDateFilter` = ngày (hoặc ngày đầu), `#orderDateTo` = ngày
   cuối (trống = đúng 1 ngày). Đặt cả hai bằng `ordSetRange(tu, den)`, đọc bằng `ordRange()`. Chip "Tháng này" + nút "Cả tháng"
   trong lịch = khoảng ngày 1 → cuối tháng (`thangDauCuoi`). Lịch KHÔNG có nút chọn kiểu (shop chê rườm rà): bấm 1 ngày =
@@ -21,6 +25,9 @@ Cách từng tab tải và vẽ dữ liệu, các quy ước riêng của mỗi 
   (về tháng này + bỏ tìm/loại). Kỳ = cả tháng `expenseMonth` hoặc khoảng tự chọn `exTu`/`exDen` (`exKy()`; chọn trúng trọn 1 tháng thì
   `exSetRange` tự quy về xem tháng đó). Doanh thu/lãi tính theo kỳ (`_statCtxEx.ky`). Chip loại + ô tìm (`exLocDanhSach`) chỉ
   lọc DANH SÁCH ở máy, không đổi số tổng hợp phía trên (lọc loại mà đổi tổng thì "Lãi gộp" sai).
+- **Ghi đơn xong phải gọi `reloadActiveOrderViews()`** (21/10/2026): nó tải lại đúng màn đang mở (Tổng quan / Lịch giao /
+  Báo cáo / Đơn hàng) VÀ sổ khách (số đơn, tổng đã mua; khách mới cho ô gợi ý). Trước đó ghi tiền ở Tổng quan, sửa đơn từ
+  thẻ khách… xong phải F5 mới thấy số mới. Viết thêm chỗ ghi đơn mới thì gọi hàm này, đừng tự chọn tab để vẽ lại.
 - **Tab Báo cáo (`panelReports`, 11/10/2026)**: `loadBaoCao()` tải HẾT đơn từng trang 1.000 (`bcLayDon`) + chi phí + BST, rồi
   `bcVe()` tính ở máy. Kỳ = ô ẩn `bcTu`/`bcDen` (trống = tháng này): chip `BC_KY` (chip sáng khi khoảng trùng), ‹ › `bcBuoc` (trọn
   tháng → lùi đúng số tháng), lịch dùng chung `LOC_NGAY.bc`. So kỳ liền trước / cùng kỳ năm ngoái (`bcSoSanh`); kỳ chưa hết thì kỳ so
