@@ -774,7 +774,14 @@
     .gi-arrow:disabled { opacity: .3; cursor: default; }
 
     /* ── Contact form ─────────────────────────── */
-    .contact-form { background: #fff; border-radius: 12px; padding: 28px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+    .contact-form { display: grid; gap: 16px; }
+    .ct-muc { background: #fff; border-radius: 12px; padding: 24px 28px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+    .ct-muc h2 { font-size: 1.02rem; margin: 0 0 14px; color: #2E5E2D; }
+    .ct-muc .ct-mota { font-size: .84rem; color: #5b7a5a; margin: -6px 0 14px; line-height: 1.6; }
+    .ct-muc .form-grid { margin-bottom: 0; }
+    .ct-muc .hero-slots { grid-template-columns: 1fr; }
+    .ct-muc .check-row { padding-top: 0; }
+    @media (max-width: 720px) { .ct-muc { padding: 18px 16px; } .ct-muc .ct-anh { grid-column: 1 / -1; } }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; margin-bottom: 24px; }
     .form-grid .full { grid-column: 1 / -1; }
     .check-row { display: flex; align-items: center; gap: 10px; padding-top: 20px; }
@@ -2807,6 +2814,8 @@
     <div id="panelContact" class="panel" style="display:none">
       <div class="panel-topbar"><h1>Thông tin liên hệ</h1></div>
       <form id="contactForm" class="contact-form" onsubmit="saveContact(event)">
+        <section class="ct-muc">
+        <h2>Liên hệ &amp; mạng xã hội</h2>
         <div class="form-grid">
           <div class="field-group">
             <label>Số điện thoại</label>
@@ -2840,7 +2849,13 @@
             <label>Threads</label>
             <input type="text" name="threads" placeholder="https://threads.net/@…">
           </div>
-          <div class="field-group full">
+        </div>
+        </section>
+
+        <section class="ct-muc">
+        <h2>Ảnh trên web</h2>
+        <div class="form-grid">
+          <div class="field-group ct-anh">
             <label>Ảnh đầu trang chủ <span style="font-weight:400;color:#7A9879;">(1 ảnh to, lời chào nằm đè lên — nên chọn ảnh ngang, sáng)</span></label>
             <div class="hero-slots">
               <!-- Ảnh chính -->
@@ -2894,6 +2909,29 @@
             </div>
             <p style="font-size:.8rem;color:#7A9879;margin-top:8px;">Để trống thì trang chủ dùng ảnh mặc định của shop.</p>
           </div>
+          <div class="field-group ct-anh">
+            <label>Ảnh khi chia sẻ link <span style="font-weight:400;color:#7A9879;">(hiện khi dán link web vào Zalo, Facebook, Messenger — tự cắt ngang 1200×630)</span></label>
+            <div class="hero-slots">
+              <div class="hero-slot">
+                <div id="ogPreviewWrap" class="img-preview-wrap" style="display:none">
+                  <img id="ogPreview" alt="ảnh chia sẻ" style="max-height:110px;border-radius:8px;object-fit:cover;">
+                </div>
+                <div class="hero-slot-btns">
+                  <div class="img-upload-area" onclick="document.getElementById('ogInput').click()">
+                    <input type="file" id="ogInput" accept="image/*" style="display:none" onchange="handleAnhChiaSe(this)">
+                    <svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg>Tải ảnh lên
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p style="font-size:.8rem;color:#7A9879;margin-top:8px;">Ảnh được lưu ngay khi tải lên (không cần bấm Lưu). Facebook/Zalo sẽ cập nhật ảnh mới sau một thời gian.</p>
+          </div>
+        </div>
+        </section>
+
+        <section class="ct-muc">
+        <h2>Banner thông báo</h2>
+        <div class="form-grid">
           <div class="field-group full">
             <label>Nội dung banner thông báo</label>
             <input type="text" name="banner_text" placeholder="VD: 🌸 Khuyến mãi 8/3 — giảm 10% tất cả đơn hàng!">
@@ -2902,8 +2940,13 @@
             <input type="checkbox" name="banner_active" id="bannerActive">
             <label for="bannerActive">Hiện banner trên website</label>
           </div>
+        </div>
+        </section>
 
-          <div class="field-group full" style="border-top:1px solid #eee;padding-top:20px;margin-top:8px;">
+        <section class="ct-muc">
+        <h2>Chính sách <span style="font-weight:400;font-size:.84rem;color:#7A9879;">(hiện ở trang Chính sách)</span></h2>
+        <div class="form-grid">
+          <div class="field-group full">
             <label>Chính sách giao hàng <span style="font-weight:400;color:#7A9879;">(mỗi dòng là 1 ý — hiện ở trang Chính sách)</span></label>
             <textarea name="policy_delivery" rows="4" placeholder="VD: Miễn phí giao nội thành…"></textarea>
           </div>
@@ -2915,8 +2958,13 @@
             <label>Cam kết chất lượng</label>
             <textarea name="policy_quality" rows="3" placeholder="VD: Gửi ảnh duyệt trước khi giao…"></textarea>
           </div>
-          <div class="field-group full" style="border-top:1px solid #eee;padding-top:20px;margin-top:8px;">
-            <label>Tài khoản nhận chuyển khoản <span style="font-weight:400;color:#7A9879;text-transform:none;">(để tạo mã QR cho khách quét)</span></label>
+        </div>
+        </section>
+
+        <section class="ct-muc">
+        <h2>Tài khoản nhận chuyển khoản <span style="font-weight:400;font-size:.84rem;color:#7A9879;">(để tạo mã QR cho khách quét)</span></h2>
+        <div class="form-grid">
+          <div class="field-group full">
             <p style="font-size:.84rem;color:#5b7a5a;margin:0 0 10px;line-height:1.6;">
               Khách quét mã QR là app ngân hàng tự điền sẵn số tài khoản, số tiền và nội dung <b>LT + mã đơn</b> (vd LT152).
               Tiền vào thẳng tài khoản này, không qua bên trung gian nào.
@@ -2943,8 +2991,13 @@
               cho shop — nhận mail mà không phải bạn hoặc Ler đổi thì vào đây sửa lại ngay + đổi mật khẩu.</span></p>
             <div id="ckNhatKy"></div>
           </div>
+        </div>
+        </section>
+
+        <section class="ct-muc">
+        <h2>Đo lường truy cập <span style="font-weight:400;font-size:.84rem;color:#7A9879;">(để trống = không đo)</span></h2>
+        <div class="form-grid">
           <div class="field-group full">
-            <label>Đo lường truy cập <span style="font-weight:400;color:#7A9879;text-transform:none;">(để trống = không đo)</span></label>
             <p style="font-size:.84rem;color:#5b7a5a;margin:0 0 10px;line-height:1.6;">
               Dán mã để biết bao nhiêu người vào web, xem mẫu nào, bấm đặt hoa bao nhiêu lần.
               Máy nào đã đăng nhập trang quản lý này thì <b>không bị đếm</b>, nên số liệu không lẫn lượt xem của shop.
@@ -2962,7 +3015,8 @@
             <input type="text" id="ctClarity" name="clarity_id" placeholder="VD: abcd1234ef" autocomplete="off" spellcheck="false">
           </div>
         </div>
-        <button type="submit" class="btn-green">Lưu thay đổi</button>
+        </section>
+        <div><button type="submit" class="btn-green">Lưu thay đổi</button></div>
       </form>
     </div>
 
@@ -7068,6 +7122,7 @@ async function loadContact() {
   if (data.hero_image) setHeroImagePreview(data.hero_image, 'main')
   if (data.hero_side1) setHeroImagePreview(data.hero_side1, 'side1')
   if (data.hero_side2) setHeroImagePreview(data.hero_side2, 'side2')
+  veAnhChiaSe()
 }
 
 // ── Hero Image ────────────────────────────────────
@@ -7101,6 +7156,49 @@ function clearHeroImage(slot = 'main') {
   document.getElementById(s.wrap).style.display = 'none'
   document.getElementById(s.hidden).value = ''
   document.getElementById(s.input).value = ''
+}
+
+// ── Ảnh khi chia sẻ link (og:image) ───────────────
+// Facebook/Zalo không chạy JS nên không đọc được database: 7 trang web khách ghi sẵn MỘT địa chỉ cố định
+// (ANH_CHIA_SE_PATH trong kho ảnh), admin chỉ thay file nằm ở địa chỉ đó. Luôn JPEG 1200×630 (Zalo/FB kén WebP).
+const ANH_CHIA_SE_PATH = 'site/anh-chia-se.jpg'
+
+function veAnhChiaSe() {
+  const img = document.getElementById('ogPreview'), wrap = document.getElementById('ogPreviewWrap')
+  img.onload = () => { wrap.style.display = 'block' }
+  img.onerror = () => { wrap.style.display = 'none' }   // chưa có ảnh nào
+  img.src = sb.storage.from('images').getPublicUrl(ANH_CHIA_SE_PATH).data.publicUrl + '?t=' + Date.now()
+}
+
+async function catAnhChiaSe(file) {   // cắt giữa ảnh theo tỉ lệ 1200:630 (kiểu cover)
+  const bm = await createImageBitmap(file)
+  const W = 1200, H = 630
+  const k = Math.max(W / bm.width, H / bm.height)
+  const sw = W / k, sh = H / k
+  const canvas = document.createElement('canvas')
+  canvas.width = W; canvas.height = H
+  const ctx = canvas.getContext('2d')
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H)
+  ctx.drawImage(bm, (bm.width - sw) / 2, (bm.height - sh) / 2, sw, sh, 0, 0, W, H)
+  bm.close()
+  return new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85))
+}
+
+async function handleAnhChiaSe(input) {
+  const raw = input.files[0]
+  input.value = ''
+  if (!raw) return
+  showToast('Đang tải ảnh…')
+  try {
+    const blob = await catAnhChiaSe(raw)
+    if (!blob || blob.type !== 'image/jpeg') throw new Error('Không xử lý được ảnh này')
+    const kho = sb.storage.from('images')
+    await kho.remove([ANH_CHIA_SE_PATH])   // xoá ảnh cũ rồi đặt ảnh mới vào cùng địa chỉ
+    const { error } = await kho.upload(ANH_CHIA_SE_PATH, blob, { cacheControl: '300', contentType: 'image/jpeg' })
+    if (error) throw error
+  } catch (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  veAnhChiaSe()
+  showToast('Đã đổi ảnh chia sẻ link!')
 }
 
 // Điều kiện mã hợp lệ MA_GA4 / MA_CLARITY nằm ở js/dungchung.js — web khách dùng chung
