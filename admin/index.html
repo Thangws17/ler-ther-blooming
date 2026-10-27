@@ -2921,6 +2921,7 @@
                     <input type="file" id="ogInput" accept="image/*" style="display:none" onchange="handleAnhChiaSe(this)">
                     <svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg>Tải ảnh lên
                   </div>
+                  <div class="img-upload-area pick" onclick="openGalleryPickerForOg()"><svg class="ic" aria-hidden="true"><use href="#i-img"/></svg>Chọn từ Khoảnh khắc</div>
                 </div>
               </div>
             </div>
@@ -7184,10 +7185,14 @@ async function catAnhChiaSe(file) {   // cắt giữa ảnh theo tỉ lệ 1200:
   return new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85))
 }
 
-async function handleAnhChiaSe(input) {
+function handleAnhChiaSe(input) {
   const raw = input.files[0]
   input.value = ''
-  if (!raw) return
+  if (raw) datAnhChiaSe(raw)
+}
+
+// raw = file từ máy, hoặc ảnh đã tải về từ Khoảnh khắc (Blob)
+async function datAnhChiaSe(raw) {
   showToast('Đang tải ảnh…')
   try {
     const blob = await catAnhChiaSe(raw)
@@ -10261,6 +10266,11 @@ function openGalleryPickerForHero(slot = 'main') {
   openGalleryPicker()
 }
 
+function openGalleryPickerForOg() {
+  _galleryPickerTarget = 'og'
+  openGalleryPicker()
+}
+
 async function openGalleryPicker() {
   _galleryPickerTarget = _galleryPickerTarget || 'product'
   const grid = document.getElementById('galleryPickerGrid')
@@ -10279,7 +10289,20 @@ async function openGalleryPicker() {
 </div>`).join('')
 }
 
-function selectGalleryImage(url) {
+async function selectGalleryImage(url) {
+  if (_galleryPickerTarget === 'og') {
+    _galleryPickerTarget = 'product'
+    closeGalleryPicker()
+    showToast('Đang tải ảnh…')
+    let blob
+    try {
+      const res = await fetch(url)
+      if (!res.ok) throw new Error('không tải được ảnh')
+      blob = await res.blob()
+    } catch (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+    datAnhChiaSe(blob)
+    return
+  }
   if (_galleryPickerTarget.startsWith('hero-')) {
     setHeroImagePreview(url, _galleryPickerTarget.slice(5))
     closeGalleryPicker()
