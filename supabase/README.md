@@ -50,6 +50,7 @@ Mọi file đều **chạy lại được nhiều lần** mà không hỏng dữ
 | 31 | `31_thanh_toan.sql` | Trạng thái **thanh toán / cọc**, tài khoản nhận tiền, nhật ký đổi tài khoản. Chạy xong nên chạy lại 15 | 🧱🔒 | ✅ | ✓ |
 | 32 | `32_caption_mau_moi_4.sql` | Mô tả mẫu #51, #52 | 📝 | ✅ | |
 | 33 | `33_nguon_khach.sql` | **Nguồn khách** của đơn; đơn web tự ghi "Web" | 🧱 | ✅ | ✓ |
+| 34 | `34_caption_mau_moi_5.sql` | Mô tả mẫu #54, #55 | 📝 | chờ chạy | |
 
 ## Thêm file SQL mới
 
