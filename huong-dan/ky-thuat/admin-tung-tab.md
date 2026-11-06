@@ -90,7 +90,12 @@ Cách từng tab tải và vẽ dữ liệu, các quy ước riêng của mỗi 
   `#gcPop` (dùng chung, gắn vào `body`, `position: fixed` — nằm trong bảng thì bị khung cuộn ngang cắt), rời chuột = ẩn;
   bấm/chạm = ghim tới khi bấm ra ngoài / cuộn / Esc / `closeAllModals`. Nút là `<span role="button">` vì thẻ Lịch giao đã là
   `<button>`; `onclick` phải `stopPropagation` để không mở chi tiết đơn. Điện thoại cũng bắn `mouseenter` khi chạm →
-  `reGhiChu` chỉ chạy khi `(hover: hover)`. Cột Ghi chú làm bảng thành 11 cột: ≤1400px đệm ô còn 7px và nút chỉ còn biểu
-  tượng (test "bảng đơn không rộng hơn khung" ở 1280px); rộng hơn thì xem trước 2 dòng (`.gc-xem`).
+  `reGhiChu` chỉ chạy khi `(hover: hover)`. Cột Ghi chú làm bảng thành 11 cột: ≤1400px đệm ô còn 7px, ≤1480px nút chỉ còn
+  biểu tượng (test "bảng đơn không rộng hơn khung" ở 1280px); rộng hơn thì xem trước 2 dòng (`.gc-xem`), ô rộng tối thiểu
+  104px và chỉ ngắt ở khoảng trắng (`overflow-wrap: break-word`). Đừng dùng `anywhere`: cột hẹp bẻ đôi giữa chữ "Khác / h dặ…"
+  (06/11/2026). Đặt `min-width` thì phải trả về 0 ở khổ chỉ-biểu-tượng, không là bảng 1280 tràn 55px.
+- **Bảng đơn chỉ hiện từ 1280px** (06/11/2026): ≤1279px tab Đơn hàng dùng THẺ như điện thoại (821–1279px xếp 2 cột) — bảng
+  11 cột cần ~1500px, màn 900–1280 (iPad nằm ngang, laptop nhỏ) từng khuất cột Trạng thái + nút sửa / xoá. CSS thẻ đơn nằm
+  ở khối `@media (max-width: 1279px)` riêng, KHÔNG còn trong khối 820px.
   Vị trí shop chốt: thẻ Lịch giao = GÓC PHẢI DƯỚI thẻ kể cả khi thẻ bị kéo cao theo thẻ bên cạnh (`.dv:has(.gc-nut)` giãn
   thân thẻ, `.dv-duoi > .gc-nut` bám đáy); thẻ Đơn hàng điện thoại = ngay TRÊN ngày giao (`.oc-meta` xếp dọc).

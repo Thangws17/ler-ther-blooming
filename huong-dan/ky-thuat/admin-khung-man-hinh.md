@@ -54,6 +54,10 @@ Những lỗi hiển thị trên iPhone đã gặp, cách làm ô ngày / ô ti�
   **Test UI phải BẤM NÚT THẬT (`.click()`)**, đừng gọi thẳng hàm — test cũ gọi `fdStepMonth()` nên không bắt được.
 - **Thanh tab dưới đáy `.bottom-tabs` (điện thoại) cùng luật với `.admin-topbar`**: là anh em của `.content`,
   KHÔNG nằm trong khung cuộn, không fixed/sticky. Tab nào có nút ＋ nổi thì khai ở `FAB_THEO_TAB`.
+- **Thứ "ẩn bằng cách trượt ra ngoài màn" phải trượt HẲN ra** (06/11/2026): thanh chọn nhiều ảnh `.bulk-bar` ẩn bằng
+  `translate(-50%, 160%)` — trên điện thoại nó đứng cao 74px (trên thanh tab) nên ở khổ 600–900px còn lòi lên ~13px, che
+  chữ thanh tab ở MỌI tab. Giờ là `calc(100% + 140px)`. Cùng kiểu: menu bên đóng (`.sidebar` trượt -100%) vẫn đổ bóng
+  thành dải xám mép trái → bóng chỉ đặt ở `.sidebar.open`.
 - **Tên class đặt lên `<body>` không được trùng class dùng cho phần tử.** Lỗi thật 23/09: `body.co-fab` trùng
   `.co-fab { display:none }` → mở tab Đơn hàng trên điện thoại là cả trang trắng. Giờ là `body.dang-co-nut-noi`
   và `.an-tren-dt`; test-khung-man-hinh kiểm từng tab.
