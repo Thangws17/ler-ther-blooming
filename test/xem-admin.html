@@ -6,7 +6,7 @@
      Nạp đúng admin/index.html đang có, rồi thay sb.from / sb.rpc / sb.storage bằng bản giả:
      KHÔNG đọc, KHÔNG ghi Supabase thật (kể cả khi máy đang đăng nhập admin). Tên / SĐT trong đây đều bịa.
      Chọn màn bằng ?v=…  (mở bằng python serve.py → http://localhost:8765/test/xem-admin.html?v=ds)
-       tq Tổng quan · ds Đơn hàng · don form Thêm đơn · sua form Sửa đơn · ct chi tiết đơn · qr bảng mã QR
+       tq (Tổng quan đã bỏ 06/11/2026 → mở Đơn hàng) · ds Đơn hàng · don form Thêm đơn · sua form Sửa đơn · ct chi tiết đơn · qr bảng mã QR
        lg Lịch giao · kh / khm Khách hàng · ex / chi Sổ chi phí · nl / nls Nguyên liệu · bc / bcm Báo cáo
        sp / spm / spx Sản phẩm · ttc Thông tin chung · bst / bstm Bộ sưu tập · kk / kka / kkm Khoảnh khắc
        lh Liên hệ · menu menu bên (điện thoại) · dsn Đơn hàng nhiều trang (thanh phân trang). Danh sách đầy đủ: biến `tab` trong giaLap() bên dưới.
@@ -97,7 +97,7 @@ function giaLap(V, Q) {
                 { id: 3, name: 'Ruy băng', category: 'Phụ kiện', last_price: 8000 }, { id: 4, name: 'Tulip', category: 'Hoa', last_price: 25000 }] }
   // Bản giả của sb.from(): chuỗi .select().eq()… trả dữ liệu giả; đếm (head) trả count
   w.eval('sb').from = ten => {
-    let dl = (bang[ten] || []).slice(), dem = false, vaGhi = null, khuc = null
+    let dl = (bang[ten] || []).slice(), dem = false, vaGhi = null, khuc = null, khoa = []
     const q = {
       select(_, o) { if (o && o.head) dem = true; return q },
       eq(c, v) { dl = dl.filter(r => r[c] === v); return q },
@@ -106,7 +106,13 @@ function giaLap(V, Q) {
       lt(c, v) { dl = dl.filter(r => (r[c] || '') < v); return q },
       lte(c, v) { dl = dl.filter(r => (r[c] || '') <= v); return q },
       ilike() { return q },
-      order(c, o) { const len = !o || o.ascending !== false ? 1 : -1; dl = dl.slice().sort((a, b) => ((a[c] ?? '') < (b[c] ?? '') ? -1 : (a[c] ?? '') > (b[c] ?? '') ? 1 : 0) * len); return q },
+      // Xếp NHIỀU cột như database thật: .order(a).order(b) = theo a, bằng nhau mới xét b; ô trống theo nullsFirst
+      // (mặc định Postgres: tăng dần → trống cuối, giảm dần → trống đầu). Trước chỉ cột cuối có tác dụng (06/11/2026)
+      order(c, o) { khoa.push([c, !o || o.ascending !== false ? 1 : -1, o && o.nullsFirst]); const ks = khoa.slice()
+        dl = dl.slice().sort((a, b) => { for (const [k, len, nf] of ks) { const x = a[k] ?? null, y = b[k] ?? null
+          if (x === y) continue
+          if (x === null || y === null) return (x === null ? 1 : -1) * ((nf ?? len < 0) ? -1 : 1)
+          return (x < y ? -1 : 1) * len } return 0 }); return q },
       limit() { return q }, range(a, b) { khuc = [a, b + 1]; return q }, not() { return q }, or() { return q },
       maybeSingle() { return Promise.resolve({ data: dl[0] || null, error: null }) },
       single() { return Promise.resolve({ data: dl[0] || null, error: null }) },
@@ -127,7 +133,7 @@ function giaLap(V, Q) {
   d.getElementById('loginWrap').style.display = 'none'
   d.getElementById('appWrap').style.display = 'flex'
   if (w.measureViewport) w.measureViewport()
-  const tab = { tq: 'Dashboard', ds: 'Orders', exl: 'Expenses', exc: 'Expenses', loc: 'Orders', locm: 'Orders', don: 'Orders', gop: 'Orders', gople: 'Orders', chi: 'Expenses', ct: 'Orders', ct2: 'Orders', qr: 'Orders', qrtt: 'Orders', qrcg: 'Orders', qrdoi: 'Orders', mk: 'Contact', doncoc: 'Orders', suacoc: 'Orders', qrchua: 'Orders', lh: 'Contact', lg: 'Delivery', nl: 'Expenses', nls: 'Expenses', ex: 'Expenses', sua: 'Orders', bst: 'Collections', bstm: 'Collections', kk: 'Gallery', kka: 'Gallery', kkm: 'Gallery', menu: 'Orders', sp: 'Products', spx: 'Products', spm: 'Products', sp5: 'Products', ttc: 'Products', spt: 'Products', kh: 'Customers', khm: 'Customers', bc: 'Reports', bcm: 'Reports', dsn: 'Orders' }[V] || 'Dashboard'
+  const tab = { tq: 'Orders', ds: 'Orders', exl: 'Expenses', exc: 'Expenses', loc: 'Orders', locm: 'Orders', don: 'Orders', gop: 'Orders', gople: 'Orders', chi: 'Expenses', ct: 'Orders', ct2: 'Orders', qr: 'Orders', qrtt: 'Orders', qrcg: 'Orders', qrdoi: 'Orders', mk: 'Contact', doncoc: 'Orders', suacoc: 'Orders', qrchua: 'Orders', lh: 'Contact', lg: 'Delivery', nl: 'Expenses', nls: 'Expenses', ex: 'Expenses', sua: 'Orders', bst: 'Collections', bstm: 'Collections', kk: 'Gallery', kka: 'Gallery', kkm: 'Gallery', menu: 'Orders', sp: 'Products', spx: 'Products', spm: 'Products', sp5: 'Products', ttc: 'Products', spt: 'Products', kh: 'Customers', khm: 'Customers', bc: 'Reports', bcm: 'Reports', dsn: 'Orders' }[V] || 'Dashboard'
   // Đọc ?dx= / ?thang= từ chuỗi Q chép lúc mở trang, KHÔNG từ location.search: máy đang đăng nhập admin thì admin tự
   // replaceState('#Dashboard'), mà trang có <base href="/admin/"> nên đường dẫn thành /admin/#Dashboard — mất hết ?… (lỗi thật 21/10/2026)
   const P = new URLSearchParams(Q), DX = P.get('dx')

@@ -17,7 +17,7 @@ Bảng, hàm SQL, luật bảo mật, cách viết/chạy file SQL, sao lưu. Đ
   cảnh báo đỏ `#canhBaoQuyen` thay vì danh sách trống không lời giải thích.
 - **File SQL đánh số theo thứ tự chạy** (`01_` → `33_`; mục lục + "đã chạy chưa" ở `supabase/README.md`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`) **và** bảng `SQL_DAU_HIEU`.
   **File SQL mới có thêm bảng/cột → thêm 1 dòng vào `SQL_DAU_HIEU` (admin, mục "Kiểm file SQL đã chạy chưa")**:
-  Tổng quan tự đọc thử đúng cột đó, database báo "không có cột" là hiện khung vàng nhắc chạy file (11/10/2026).
+  Admin (lúc mở, khung ở đầu Đơn hàng) tự đọc thử đúng cột đó, database báo "không có cột" là hiện khung vàng nhắc chạy file (11/10/2026).
   Và thêm 1 dòng vào bảng trong `supabase/README.md`.
 - **Trạng thái đơn bị database khoá chỉ nhận 6 giá trị** (`supabase/19_order_status_check.sql`), phải
   khớp y hệt `ORDER_STATUSES` trong admin. Thêm/đổi tên trạng thái: sửa SQL **trước**, rồi mới sửa JS —

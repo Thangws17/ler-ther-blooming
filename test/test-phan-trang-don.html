@@ -235,10 +235,10 @@ const dt = document.getElementById('dt')
       'loadDelivery gán vào mảng `orders` → phá trang đang xem của tab Đơn hàng')
     chua(src, 'cacheOrders')
   })
-  test('Tổng quan cũng không ghi đè', () => {
-    const src = w.loadDashboard.toString()
-    khongChua(src, 'orders = all')
-    chua(src, 'cacheOrders')
+  test('Dải nhắc đầu Đơn hàng (thay Tổng quan, 06/11/2026) đếm bằng database, không đụng mảng orders', () => {
+    const src = w.veNhacDon.toString()
+    khongChua(src, 'orders =')
+    chua(src, "count: 'exact'")
   })
 
   // ── 6. renderOrders không còn tự lọc ────────────────────────────
@@ -250,10 +250,35 @@ const dt = document.getElementById('dt')
   })
   test('Số đếm hiển thị lấy từ tổng của server (ordersTotal)', () =>
     chua(w.renderOrders.toString(), 'ordersTotal'))
-  test('Mỗi lần chỉ hỏi server ĐÚNG 1 trang (range theo trang × cỡ trang)', () => {
+  test('Mỗi lần chỉ hỏi server ĐÚNG 1 trang (đếm 2 nhóm rồi lấy đúng đoạn của trang)', () => {
     const src = w.loadOrders.toString()
-    chua(src, '.range(tu, tu + coTrang - 1)', 'Phải tải đúng 1 trang, không tải dồn')
+    chua(src, "buildOrdersQuery(f, 'lam', true)", 'Phải ĐẾM nhóm còn làm trước (không tải hết)')
+    chua(src, "buildOrdersQuery(f, 'lam').range(tu, Math.min(den, A) - 1)", 'Nhóm còn làm: đúng đoạn của trang')
+    chua(src, "buildOrdersQuery(f, 'xong').range(Math.max(0, tu - A), Math.min(den - A, D) - 1)", 'Nhóm đã xong: phần còn lại của trang')
     chua(src, 'ordersPage = 1', 'Đổi bộ lọc phải về trang 1')
+  })
+
+  // ── 6c. Đơn sắp giao lên đầu (06/11/2026) ──
+  nhom('6c. Đơn sắp giao lên đầu, đơn đã xong / huỷ xuống dưới')
+  test('Nhóm "còn làm": chỉ Mới / Đã xác nhận / Đang giao, NGÀY GIAO gần → xa, chưa hẹn ngày xuống cuối', () => {
+    const u = decodeURIComponent(w.buildOrdersQuery({ q: '', date: '', statuses: [] }, 'lam').url.toString()).replace(/\+/g, ' ')
+    chua(u, 'status=in.(Mới,Đã xác nhận,Đang giao)')
+    chua(u, 'order=delivery_date.asc.nullslast,created_at.desc')
+  })
+  test('Nhóm "đã xong": Giao thành công / Hoàn thành / Đã hủy, gần đây → cũ', () => {
+    const u = decodeURIComponent(w.buildOrdersQuery({ q: '', date: '', statuses: [] }, 'xong').url.toString()).replace(/\+/g, ' ')
+    chua(u, 'status=in.(Giao thành công,Hoàn thành,Đã hủy)')
+    chua(u, 'order=delivery_date.desc.nullslast,created_at.desc')
+  })
+  test('Đang chọn trạng thái thì vẫn giữ điều kiện đó (2 điều kiện status cùng lúc = giao nhau)', () => {
+    const u = decodeURIComponent(w.buildOrdersQuery({ q: '', date: '', statuses: ['Mới'] }, 'lam').url.toString()).replace(/\+/g, ' ')
+    chua(u, 'status=in.(Mới)')
+  })
+  test('Trong trang: đơn còn làm cùng ngày xếp theo GIỜ hẹn; đơn đã xong giữ nguyên thứ tự', () => {
+    const o = (id, d, st, gio) => ({ id, delivery_date: d, status: st, note: gio ? 'Giờ giao: ' + gio : '' })
+    const ra = w.xepGioTrongNgay([o(1, '2026-11-07', 'Mới', '15h'), o(2, '2026-11-07', 'Đang giao', '8h30'), o(3, '2026-11-08', 'Mới', ''),
+      o(4, '2026-11-05', 'Hoàn thành', '18h'), o(5, '2026-11-05', 'Đã hủy', '9h')]).map(x => x.id)
+    bang(ra, [2, 1, 3, 4, 5])
   })
   test('Bấm số trang → tải trang đó từ server', () => {
     chua(w.denTrangDon.toString(), 'ordersPage = p')

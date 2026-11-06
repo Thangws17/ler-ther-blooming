@@ -66,6 +66,12 @@
   (đè transform là thẻ .reveal kẹt lệch, lịch nổi điện thoại lệch tâm). Đừng đặt `transition` lên thẻ sản phẩm/BST/ảnh (đè hiệu ứng
   hiện dần). Web khách chuyển trang bằng `@view-transition` (thanh trên + thanh tab giữ yên). Cả 2 bên có khối
   `prefers-reduced-motion` tắt mọi hiệu ứng ở CUỐI file CSS — hiệu ứng JS (`animate()`) thì tự kiểm `giamChuyenDong()`.
+- **Rà theo skill Emil Kowalski (06/11/2026, admin)**: (1) mọi quy tắc `:hover` trong `<style>` admin bọc
+  `@media (hover: hover) and (pointer: fine) { … }` — iPhone chạm 1 cái là `:hover` DÍNH (nút xanh đậm mãi). Viết hover
+  mới cũng phải bọc, test-cu-phap báo đỏ nếu quên. (2) Không dùng `transition: all` — ghi rõ thuộc tính. (3) Nhịp chung
+  `--ease-out` / `--ease-drawer` ở `:root`; đóng hộp thoại nhanh hơn mở; đổi tab .18s (làm hàng chục lần/ngày → càng ngắn
+  càng tốt). (4) Bấm nút là lún `scale: .97` cả trên chuột (điện thoại .95) — thêm loại nút mới thì thêm vào khối "Bấm là nút
+  lún nhẹ". (5) `html` bỏ ô xám khi chạm; nút không bôi đen chữ khi giữ tay — CHỈ nút, chữ nội dung vẫn chép được.
 - **Tự động, không cần sửa từng chỗ**: nút bị khoá có chữ "Đang …" tự hiện vòng xoay (`theoDoiNutCho`, dungchung.js — đặt chữ
   khác "Đang …" là không xoay). Lưu / đổi trạng thái đơn xong gọi `loeDon(id)` → hàng/thẻ đơn đó loé vàng. Ảnh thẻ mẫu hoa /
   BST / Khoảnh khắc web khách hiện dần nhờ class `.anh-mo` trên `<html>` + `.da-tai` (main.js) — thêm lưới ảnh mới thì thêm vào CSS đó.

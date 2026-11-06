@@ -87,7 +87,7 @@ function nutCoEmoji(goc) {
 }
 
 ;(async function main() {
-  const TABS = ['Dashboard', 'Orders', 'Delivery', 'Customers', 'Expenses', 'Reports', 'Products', 'Collections', 'Gallery', 'Testimonials', 'Changelog', 'Contact']
+  const TABS = ['Orders', 'Delivery', 'Customers', 'Expenses', 'Reports', 'Products', 'Collections', 'Gallery', 'Testimonials', 'Changelog', 'Contact']
 
   for (const [rong, cao, ten] of [[390, 780, 'điện thoại 390px'], [1280, 860, 'máy tính 1280px']]) {
     const A = await moAdmin(rong, cao)
@@ -110,7 +110,7 @@ function nutCoEmoji(goc) {
       bang(nutThieuTen(d.querySelector('.sidebar')).concat(nutThieuTen(d.querySelector('.bottom-tabs'))), []))
 
     // ── Số đỏ trên biểu tượng ──
-    w.applyTab('Dashboard'); await cho(300)
+    w.applyTab('Orders'); await cho(300)
     const chuaGiao = A.dl.orders.filter(o => ['Mới', 'Đã xác nhận'].includes(o.status)).length
     const homMai = A.dl.orders.filter(o => [A.ngay(0), A.ngay(1)].includes(o.delivery_date) && !w.eval('DONE_STATUSES').includes(o.status)).length
     nhom(`2. Số đỏ + nút ＋ nổi — ${ten}`)
@@ -122,7 +122,7 @@ function nutCoEmoji(goc) {
       w.ganSoDem([b], 150); bang(b.textContent, '99+')
     })
     if (rong <= 820) {
-      for (const [tab, hien] of [['Orders', true], ['Expenses', true], ['Customers', true], ['Dashboard', false], ['Delivery', false]]) {
+      for (const [tab, hien] of [['Orders', true], ['Expenses', true], ['Customers', true], ['Delivery', false]]) {
         w.applyTab(tab); await cho(150)
         test(`[${tab}] nút ＋ nổi ${hien ? 'HIỆN' : 'ẩn'}`, () => bang(getComputedStyle(id('fabAdd')).display !== 'none', hien))
       }
@@ -134,54 +134,43 @@ function nutCoEmoji(goc) {
     }
 
     if (rong === 390) {
-      // ── Tổng quan ──
-      nhom('3. Tổng quan')
-      w.applyTab('Dashboard'); await cho(300)
+      // ── Bỏ tab Tổng quan (06/11/2026): mở vào Đơn hàng + dải nhắc việc + Công cụ ở cuối Báo cáo ──
+      nhom('3. Không còn Tổng quan — dải nhắc đầu Đơn hàng, Công cụ ở Báo cáo')
+      test('Không còn nút / trang Tổng quan (menu bên, thanh dưới)', () => {
+        bang(d.querySelector('[data-tab="Dashboard"]'), null)
+        bang(id('panelDashboard'), null)
+      })
+      test('Tab mở đầu tiên là Đơn hàng', () => bang(w.eval('TAB_DAU'), 'Orders'))
+      const KHOA = w.eval('SAO_LUU_KHOA')
+      try { w.localStorage.removeItem(KHOA) } catch (e) {}
+      w.applyTab('Orders'); await w.veNhacDon(); await cho(50)
       const soMoi = A.dl.orders.filter(o => o.status === 'Mới').length
-      test(`Thanh nhắc đơn mới hiện đúng số (${soMoi})`, () => bang(d.querySelector('.db-new-num')?.textContent, String(soMoi)))
-      test('Giao hôm nay: đơn trong ngày XẾP THEO GIỜ (9h trước 16h)', () => {
-        const ma = [...d.querySelectorAll('#dashboardToday .db-don .db-ma')].map(x => x.textContent.trim().slice(0, 8))
-        bang(ma.slice(0, 2), ['#LT-0151', '#LT-0152'])
+      const nutNhac = () => [...d.querySelectorAll('#donNhac button')]
+      test(`Dải nhắc: "${soMoi} đơn mới chờ xác nhận" (đếm cả database, không chỉ trang đang xem)`, () => {
+        const n = nutNhac().find(b => b.textContent.includes('đơn mới'))
+        bang(n?.querySelector('b').textContent, String(soMoi))
       })
-      test('Giao hôm nay không có đơn đã hủy / đã xong', () =>
-        bang([...d.querySelectorAll('#dashboardToday .db-ma')].some(x => /0144/.test(x.textContent)), false))
-      test('Sắp giao: chia theo ngày, dòng đầu là "Ngày mai · …"', () => {
-        const h = [...d.querySelectorAll('.db-day-h')].map(x => x.textContent)
-        if (!h.length || !/^Ngày mai · Thứ|^Ngày mai · Chủ nhật/.test(h[0])) throw new Error(JSON.stringify(h))
-      })
-      test('Tiền tháng: đúng 4 ô, cùng tên với Báo cáo', () =>
-        bang([...d.querySelectorAll('#dashboardCards .db-stat-l')].map(x => x.textContent), ['Dự kiến', 'Đã giao', 'Đã nhận tiền', 'Còn phải thu']))
-      test('Không có khối liệt kê từng đơn cần thu (shop bỏ 21/10/2026 — ô "Còn phải thu" đã đủ)', () => bang(id('dbCanThu'), null))
       {
-        // 145 (đã giao) chưa trả · 146 (hoàn thành) mới cọc 100k · còn lại đã thanh toán
-        const tt = { 145: ['Chưa thanh toán', null], 146: ['Đã cọc', 100000] }
-        A.dl.orders.forEach(o => { [o.thanh_toan, o.tien_coc] = tt[o.id] || ['Đã thanh toán', null] })
-        w.loadDashboard(); await cho(300)
-        const thangNay0 = A.ngay(0).slice(0, 7)
-        const con0 = A.dl.orders.filter(o => o.status !== 'Đã hủy' && (o.delivery_date || '').slice(0, 7) === thangNay0)
-        const duKien0 = con0.reduce((s, o) => s + o.total, 0)
-        const thu0 = con0.reduce((s, o) => s + (o.id === 145 ? o.total : o.id === 146 ? o.total - 100000 : 0), 0)
-        const so0 = i => d.querySelectorAll('#dashboardCards .db-stat-n')[i].textContent.replace(/\D/g, '')
-        test(`Dự kiến = mọi đơn chưa huỷ trong tháng (${duKien0}) · Đã nhận + Còn phải thu = Dự kiến`, () => {
-          bang(so0(0), String(duKien0))
-          bang(so0(3), String(thu0))
-          bang(Number(so0(2)) + Number(so0(3)), duKien0)
-        })
-        d.querySelectorAll('#dashboardCards .db-stat')[2].click(); await cho(50)
-        test('Bấm "Đã nhận tiền" → danh sách đơn, cột phải là số ĐÃ NHẬN (146 chỉ tính 100k cọc)', () => {
-          const dong = [...d.querySelectorAll('#statDetailBody .stat-row')].find(r => r.textContent.includes('#LT-0146'))
-          if (con0.some(o => o.id === 146)) bang(dong?.querySelector('.sr-total').textContent.replace(/\s/g, ''), '100.000đ')
-          bang(d.querySelector('#statDetailBody .stat-total-bar strong').textContent.replace(/\D/g, ''), so0(2))
-        })
-        w.closeStatDetail()
-        d.querySelector('#panelDashboard .db-link').click(); await cho(300)
-        test('Nút "Báo cáo chi tiết" → sang tab Báo cáo, kỳ tháng này', () => {
-          bang(id('panelReports').style.display, 'block')
-          bang(d.querySelector('#bcKyChips .active')?.textContent, 'Tháng này')
-        })
-        A.dl.orders.forEach(o => { delete o.thanh_toan; delete o.tien_coc })
-        w.applyTab('Dashboard'); await cho(300)
+        const hn = A.ngay(0), d0 = new Date(), bay = d0.getHours() * 60 + d0.getMinutes()
+        const tre = A.dl.orders.filter(o => !w.eval('DONE_STATUSES').includes(o.status) && o.delivery_date &&
+          (o.delivery_date < hn || (o.delivery_date === hn && (w.soPhutGio(w.gioCua(o)) ?? 1440) <= bay))).length
+        test(`Dải nhắc: trễ hẹn = ${tre} (qua ngày hẹn, hoặc hôm nay đã quá giờ)`, () =>
+          bang(nutNhac().find(b => b.textContent.includes('trễ hẹn'))?.querySelector('b').textContent ?? '0', String(tre)))
       }
+      test('Máy chưa sao lưu lần nào → dải nhắc có nút tải file sao lưu', () =>
+        bang(nutNhac().some(b => b.textContent.includes('Chưa sao lưu')), true))
+      try { w.localStorage.setItem(KHOA, A.ngay(0)) } catch (e) {}
+      await w.veNhacDon()
+      test('Vừa sao lưu hôm nay → không nhắc sao lưu nữa', () => bang(nutNhac().some(b => b.textContent.includes('sao lưu')), false))
+      try { w.localStorage.removeItem(KHOA) } catch (e) {}
+      nutNhac().find(b => b.textContent.includes('đơn mới'))?.click(); await cho(300)
+      test('Bấm "đơn mới" → lọc đúng trạng thái Mới', () => bang([...w.eval('orderStatusSet')], ['Mới']))
+      w.clearStatusFilter(); await cho(200)
+      test('Khung "thiếu file SQL" nằm đầu tab Đơn hàng', () => bang(id('sqlThieu')?.closest('.panel')?.id, 'panelOrders'))
+      test('Công cụ (sao lưu + ảnh nhỏ) nằm cuối tab Báo cáo', () => {
+        bang(id('congCu')?.closest('.panel')?.id, 'panelReports')
+        bang(!!id('congCu').querySelector('#backupBox') && !!id('congCu').querySelector('#optimizeBtn'), true)
+      })
       test('Ô sao lưu vẫn còn đủ id (test-sao-luu dựa vào)', () =>
         bang(['backupBox', 'backupLast', 'backupStatus', 'backupBtn'].every(x => id(x)), true))
 
@@ -311,16 +300,16 @@ function nutCoEmoji(goc) {
       w.closeCustomerOrdersModal()
 
       // ── Sổ chi phí ──
-      // B1 (rà soát 07/10): đổi trạng thái từ sheet chi tiết ở Tổng quan / Lịch giao → vẽ lại ĐÚNG màn đó
+      // B1 (rà soát 07/10): đổi trạng thái từ sheet chi tiết ở Lịch giao → vẽ lại ĐÚNG màn đó (Tổng quan đã bỏ 06/11/2026)
       nhom('5b. Đổi trạng thái đơn → vẽ lại đúng màn đang mở')
-      for (const [tab, ham] of [['Dashboard', 'loadDashboard'], ['Delivery', 'loadDelivery']]) {
+      for (const [tab, ham] of [['Delivery', 'loadDelivery']]) {
         w.applyTab(tab); await cho(300)
         const goc = w[ham]; let daGoi = 0
         w[ham] = function () { daGoi++; return goc.apply(this, arguments) }
         const don = A.dl.orders[0]
         await w.updateOrderStatus(don.id, don.status); await cho(300)
         w[ham] = goc
-        test(`Ở ${tab === 'Dashboard' ? 'Tổng quan' : 'Lịch giao'}: đổi trạng thái xong tự tải lại màn đó`, () => bang(daGoi > 0, true))
+        test('Ở Lịch giao: đổi trạng thái xong tự tải lại màn đó', () => bang(daGoi > 0, true))
       }
       w.applyTab('Orders'); await cho(300)
       test('Đơn hàng chưa lọc ngày: nút lịch ghi "Chọn ngày" (không phải ngày hôm nay)', () =>
@@ -1010,14 +999,14 @@ function nutCoEmoji(goc) {
       })
       // 09/10/2026: shop muốn bấm chỗ nào trên hàng cũng ra chi tiết đơn (trước chỉ mã đơn bấm được)
       const hang0 = d.querySelector('#ordersTable tr.dong-don'), idDon0 = +hang0.querySelector('.ma-don').textContent.replace(/\D/g, '')
-      hang0.querySelectorAll('td')[6].click(); await cho(100)
-      test('Bấm vào ô địa chỉ của hàng đơn → mở chi tiết đơn', () => {
+      hang0.querySelector('td.dh-khi').click(); await cho(100)
+      test('Bấm vào ô Giao (ngày + địa chỉ) của hàng đơn → mở chi tiết đơn', () => {
         bang(id('customerOrdersModal').style.display, 'flex')
         if (!id('customerOrdersModal').textContent.includes('Đặt lúc')) throw new Error('không phải màn chi tiết đơn')
       })
       w.closeAllModals(); await cho(50)
-      test('Bảng có cột "Ghi chú"; chỉ đơn có ghi chú mới có nút', () => {
-        bang([...d.querySelectorAll('#ordersTable .data-table th')].some(t => t.textContent === 'Ghi chú'), true)
+      test('Bảng gọn 7 cột (Giao · Khách · Mẫu · Tiền · Trạng thái); chỉ đơn có ghi chú mới có nút ghi chú', () => {
+        bang([...d.querySelectorAll('#ordersTable .data-table th')].map(t => t.textContent).filter(Boolean), ['Giao', 'Khách', 'Mẫu hoa', 'Tiền', 'Trạng thái'])
         bang(d.querySelectorAll('#ordersTable .data-table .gc-nut').length, 1)
       })
       d.querySelector('#ordersTable .data-table .gc-nut').click(); await cho(50)
@@ -1030,6 +1019,8 @@ function nutCoEmoji(goc) {
       hang0.querySelector('.status-select').click(); await cho(50)
       test('Bấm ô trạng thái trong hàng → KHÔNG mở chi tiết (chỉ đổi trạng thái)', () =>
         bang(id('customerOrdersModal').style.display, 'none'))
+      test('…mà mở bảng đổi nhanh trạng thái', () => bang(id('quickStatusModal').style.display, 'flex'))
+      w.closeQuickStatus(); await cho(50)
       hang0.querySelector('td.actions button').click(); await cho(100)
       test('Bấm nút Sửa trong hàng → mở form Sửa đơn, KHÔNG mở chồng chi tiết', () => {
         bang(id('orderEditModal').style.display, 'flex')

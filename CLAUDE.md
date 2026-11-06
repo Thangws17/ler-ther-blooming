@@ -142,7 +142,8 @@ Chi tiết từng mục (lỗi thật đã xảy ra + cách làm đúng) nằm �
 - Tra đơn theo id phải dùng `orderById(id)`
 - Lịch sử mua hàng của khách (`viewCustomerOrders`) tự truy vấn theo `customer_id`
 - Số đỏ trên biểu tượng
-- Tổng quan xếp theo việc cần làm
+- Tab Tổng quan đã BỎ (06/11/2026) — dải nhắc đầu Đơn hàng thay thế
+- Danh sách Đơn hàng kiểu gọn + đơn sắp giao lên đầu (06/11/2026)
 - Khoảnh khắc trong admin theo ALBUM
 - Tab Sản phẩm kiểu danh sách gọn (24/09/2026)
 - Tab Khách hàng kiểu danh bạ gọn (24/09/2026)

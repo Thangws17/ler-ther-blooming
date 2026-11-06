@@ -23,10 +23,12 @@ Mỗi dòng là một lựa chọn **shop đã cân nhắc và chốt**, kèm l�
 | Doanh thu tính theo **ngày giao**, mốc ghi nhận là "Giao thành công" | trước 09/2026 | Khớp với lúc thật sự nhận tiền |
 | **Cọc không bắt buộc, không có chip gợi ý 30% / 50%**, shop tự gõ số tiền. Không có nút "đã hoàn cọc" | 08/10/2026 | Mỗi đơn mỗi khác. Đơn huỷ thì trả tiền lại, đã không tính doanh thu |
 | Trạng thái **thanh toán tách riêng** trạng thái đơn (Chưa / Đã cọc / Đã thanh toán), mã QR qua VietQR, shop tự bấm "Đã nhận tiền" | 08/10/2026 | Tự nhận biết tiền về (SePay/Casso) để sau, khi thật cần |
-| Báo cáo là **tab riêng** (không nhồi vào Tổng quan), ít chữ, giải thích để sau nút (i) | 11/10/2026 | "Nhìn phát là rõ vấn đề" |
+| Báo cáo là **tab riêng**, ít chữ, giải thích để sau nút (i) | 11/10/2026 | "Nhìn phát là rõ vấn đề" |
+| **Bỏ tab Tổng quan**: admin mở vào Đơn hàng, việc gấp (trễ hẹn, đơn mới, chưa sao lưu) thành dải nhắc ở đầu Đơn hàng; Công cụ dời xuống cuối Báo cáo | 06/11/2026 | Trang cũ chỉ chép lại Lịch giao + Báo cáo, "vào không biết để làm gì". Đã thử 3 hướng (Việc cần làm / Nhịp tuần / Bỏ), chọn Bỏ |
+| Admin **"Nội dung nổi"**: menu bên trên nền kem đậm, phần làm việc là 1 tấm sáng bo góc | 06/11/2026 | Menu cùng màu nội dung thì không biết đâu là menu. Đã thử Menu trắng / xanh rêu / nội dung nổi |
 | **Nguồn khách** chọn bằng chip (Facebook / Instagram / Zalo / Web / Giới thiệu / Khác) | 11/10/2026 | |
 | Hoãn: nhập đơn bằng giọng nói | 28/06/2026 | Để sau. Nếu làm thì làm kiểu "mic cho từng ô", miễn phí |
-| Hoãn: tối ưu cho >1.000 đơn ở Tổng quan / Lịch giao | 07/10/2026 | Làm khi shop có khoảng 600 đơn (tab Báo cáo đã tự xử lý) |
+| Hoãn: tối ưu cho >1.000 đơn ở Lịch giao | 07/10/2026 | Làm khi shop có khoảng 600 đơn (tab Báo cáo đã tự xử lý) |
 | Không làm nút "AI tự viết mô tả mẫu" trong admin | 24/09/2026 | Cần khoá AI trả phí, mà khoá đặt trong trình duyệt là lộ. Nhờ Claude viết theo đợt |
 
 ## Giao diện

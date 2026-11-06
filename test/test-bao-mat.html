@@ -156,7 +156,7 @@ function traCoShop() { try { coShopLucDau === null ? localStorage.removeItem('lt
     const quet = buoc => dauVet(d).forEach(x => lot.add(`[${buoc}] ${x}`))
 
     nhom(`A. Admin ${rong}px — mở từng tab, từng form với dữ liệu độc`)
-    const TABS = ['Dashboard', 'Orders', 'Delivery', 'Customers', 'Expenses', 'Reports', 'Products', 'Collections', 'Gallery', 'Testimonials', 'Changelog', 'Contact']
+    const TABS = ['Orders', 'Delivery', 'Customers', 'Expenses', 'Reports', 'Products', 'Collections', 'Gallery', 'Testimonials', 'Changelog', 'Contact']
     for (const tab of TABS) { try { w.applyTab(tab) } catch (e) { loi.push(tab + ': ' + e.message) } await cho(300); quet(tab) }
     w.cacheOrders(dl.orders)
     const buoc = [
@@ -178,7 +178,7 @@ function traCoShop() { try { coShopLucDau === null ? localStorage.removeItem('lt
       ['sửa cập nhật', () => w.openChangelogModal(1), () => w.closeAllModals()],
       ['album 1', () => { w.applyTab('Gallery'); d.querySelectorAll('#kkAlbums .kk-alb')[1]?.click() }, () => {}],
       ['xem ảnh khoảnh khắc', () => w.openGalItem(101), () => w.closeAllModals()],
-      ['chi tiết số liệu tháng', () => w.openStatDetail('rev'), () => w.closeAllModals()],
+      ['danh sách đơn đối soát (Báo cáo)', () => w.moDanhSachDon('Đối soát', 'Đơn được tính', dl.orders), () => w.closeAllModals()],
     ]
     for (const [ten, mo, dong] of buoc) {
       const truoc = loi.length
@@ -215,7 +215,7 @@ function traCoShop() { try { coShopLucDau === null ? localStorage.removeItem('lt
     id('loginWrap').style.display = 'none'; id('appWrap').style.display = 'flex'
     w.measureViewport && w.measureViewport()
     nhom('B. Admin 390px — dữ liệu trống / chữ siêu dài không làm vỡ màn hình')
-    for (const tab of ['Dashboard', 'Orders', 'Delivery', 'Customers', 'Products']) {
+    for (const tab of ['Orders', 'Delivery', 'Customers', 'Products']) {
       const truoc = loi.length
       try { w.applyTab(tab) } catch (e) { loi.push(tab + ': ' + e.message) }
       await cho(300)
@@ -498,7 +498,7 @@ function traCoShop() { try { coShopLucDau === null ? localStorage.removeItem('lt
     test('Admin có noindex (Google không đưa trang quản trị lên tìm kiếm)', () => bang(/<meta name="robots" content="noindex/.test(html), true))
     test('Admin có mã chặn bị nhúng vào khung web lạ', () => bang(/window\.top\.location\.origin !== location\.origin/.test(html), true))
     const { dl } = duLieuMau(); giaLapSb(w, dl)
-    for (const tab of ['Dashboard', 'Orders', 'Delivery', 'Customers', 'Expenses', 'Reports', 'Products', 'Collections', 'Gallery', 'Contact']) { w.applyTab(tab); await cho(250) }
+    for (const tab of ['Orders', 'Delivery', 'Customers', 'Expenses', 'Reports', 'Products', 'Collections', 'Gallery', 'Contact']) { w.applyTab(tab); await cho(250) }
     test('Mở mọi tab admin: CSP không chặn nhầm thứ gì (ảnh Supabase, font, thư viện)', () =>
       bang(viPham.filter(x => !/example\.com/.test(x)), []))
     A.f.remove()

@@ -10,7 +10,7 @@ Claude sẽ mở sẵn đúng màn hình đó trên máy để xem cùng.
 | Vừa đưa bản mới lên mà web chưa đổi | GitHub cần ~1–2 phút; trình duyệt còn giữ bản cũ | Đợi 2 phút → **Ctrl+F5**. Vẫn chưa đổi: mở GitHub → repo → tab **Actions**, xem dòng "pages build and deployment" có bị **đỏ** không (xem mục "Đưa lên mạng bị lỗi" bên dưới) |
 | Web trắng, hoặc chỉ hiện khung xám chờ mãi | Supabase tạm dừng / mạng chập chờn / lỗi code mới | Mở <https://supabase.com>: dự án có bị **Paused** không (gói miễn phí tự dừng nếu cả tuần không ai dùng) → bấm **Restore**. Nếu vừa đưa bản mới lên → báo Claude ngay, kèm ảnh chụp |
 | Mẫu hoa / bộ sưu tập không hiện | Bộ sưu tập đang tắt hoặc chưa tới ngày hẹn | Admin → **Bộ sưu tập**: xem nhãn "Đang tắt / Chờ tới …". Nút **Tất cả** trên trang Sản phẩm luôn hiện mọi mẫu |
-| Ảnh tải chậm | Ảnh cũ chưa có bản nhỏ | Admin → **Tổng quan** → Công cụ → **Tạo ảnh nhỏ cho ảnh cũ** → Bắt đầu (bấm 1 lần là xong) |
+| Ảnh tải chậm | Ảnh cũ chưa có bản nhỏ | Admin → **Báo cáo** → cuối trang, Công cụ → **Tạo ảnh nhỏ cho ảnh cũ** → Bắt đầu (bấm 1 lần là xong) |
 | Khách báo "không gửi được đơn", web mời nhắn Zalo | Chống spam: 1 số điện thoại tối đa 3 đơn / 10 phút, cả web tối đa 20 đơn / 10 phút | Bình thường, chỉ để chặn kẻ phá. Nhận đơn qua Zalo rồi tự lên đơn trong admin |
 | Gõ `lertherblooming.vn` không vào được | Tên miền hết hạn / cài đặt tên miền bị đổi / mất file `CNAME` | Kiểm hạn tên miền ở **PA Việt Nam**. GitHub → repo → **Settings → Pages**: ô Custom domain phải là `lertherblooming.vn`. File `CNAME` phải còn trong thư mục dự án |
 

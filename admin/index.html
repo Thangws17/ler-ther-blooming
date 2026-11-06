@@ -9,14 +9,14 @@
 
   PHẦN 1 · KIỂU DÁNG (CSS) — ngay dưới, trong thẻ style ở đầu trang.
   PHẦN 2 · KHUNG TỪNG TAB (HTML) — mỗi tab mở đầu bằng 1 dòng chú thích HTML mang tên tab:
-      "Tổng quan"  "Đơn hàng"  "Lịch giao"  "Khách hàng"  "Sổ chi phí"  "Báo cáo"
+      "Đơn hàng"  "Lịch giao"  "Khách hàng"  "Sổ chi phí"  "Báo cáo"
       "Sản phẩm"  "Bộ sưu tập:"  "Khoảnh khắc"  "Đánh giá"  "Nhật ký cập nhật"  "Liên hệ"
   PHẦN 3 · CÁCH CHẠY (JavaScript) — cuối trang. Mỗi mục mở đầu bằng 1 dòng mốc: 2 dấu /, 2 gạch ──, rồi tên mục:
       Dùng chung   "Auth" (đăng nhập)  "Tabs" (chuyển tab)  "Chống mất dữ liệu"
                    "Toast" (thông báo nhỏ)  "Phân trang dùng chung"  "Nén ảnh trước khi upload"
                    "Bộ chọn ngày DÙNG CHUNG"  "Lịch lọc ngày"  "Ô tiền trong form"
                    "Form kiểu mới: chip"
-      Tổng quan    "Dashboard"  "Kiểm file SQL đã chạy chưa"  "Đối soát chỉ số"
+      Nhắc việc    "Ngày hôm nay"  "Kiểm file SQL đã chạy chưa"  "Đối soát chỉ số"
                    "Sao lưu dữ liệu ra Excel"
       Đơn hàng     "Orders"  "Lọc theo ngày giao"  "Sửa đơn"
                    "Thêm đơn thủ công"  "Gợi ý khách đã có"  "Chọn sản phẩm CÓ ẢNH"
@@ -57,6 +57,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Lora:ital,wght@1,500&family=Nunito:wght@700&display=swap" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Màu thanh trình duyệt trên điện thoại = màu thanh trên / tấm nội dung (#F8F5EE) → liền một khối như app -->
+  <meta name="theme-color" content="#F8F5EE">
   <title>Quản trị — Ler & Ther Blooming</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
   <style>
@@ -68,6 +70,15 @@
        lệch lên (mất thanh Admin, chữ "Đơn hàng" bị cắt), đáy trống một khúc.
        Cao đúng bằng vùng nhìn thấy (--apph) thì trang không còn chỗ nào để cuộn. */
     html { height: 100%; overflow: hidden; }
+    /* Nhịp chuyển động chung (06/11/2026, theo skill emil-design-eng): đường cong "ra nhanh, chậm dần" cho mọi thứ
+       hiện ra / phản hồi bấm; --ease-drawer là kiểu kéo ngăn của iOS cho menu bên + sheet điện thoại. */
+    :root { --ease-out: cubic-bezier(.23, 1, .32, 1); --ease-drawer: cubic-bezier(.32, .72, 0, 1); }
+    /* Cảm giác "app" trên điện thoại (skill mobile-native): bỏ ô xám nháy lên khi chạm (nút đã có hiệu ứng lún riêng);
+       giữ tay lên nút/thẻ chọn KHÔNG bôi đen chữ, không bật menu Sao chép. Chỉ áp cho NÚT — chữ nội dung
+       (SĐT, địa chỉ, mã đơn) vẫn bôi đen chép được như cũ. */
+    html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
+    button, .nav-item, .bt-item, .st-chip, .fx-chip, .act, .pg-nut {
+      -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
     body { font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif; background: #f4f7f4; color: #243324;
            height: 100%; height: var(--apph, 100dvh); overflow: hidden; overscroll-behavior: none; }
     input, textarea, select, button { font-family: inherit; font-size: .95rem; }
@@ -118,9 +129,9 @@
       flex-shrink: 0; width: 38px; height: 42px; border: none;
       background: #E8F5E9; color: #2E7D32;
       font-size: 1.15rem; font-weight: 700; line-height: 1; cursor: pointer;
-      transition: all .2s;
+      transition: color .2s, background-color .2s, border-color .2s, box-shadow .2s, opacity .2s, filter .2s;
     }
-    .qty-step button:hover { background: #2E7D32; color: #fff; }
+    @media (hover: hover) and (pointer: fine) { .qty-step button:hover { background: #2E7D32; color: #fff; } }
     .qty-step button:active { transform: scale(.92); }
     /* Ô giữa: khung ngoài đã lo viền/nền, và bỏ mũi tên xoay mặc định của trình duyệt */
     .qty-step input[type="number"] {
@@ -152,9 +163,9 @@
       display: flex; align-items: center; gap: 10px;
       padding: 11px 14px; border-radius: 10px; border: none;
       background: none; color: rgba(255,255,255,.6); cursor: pointer;
-      font-size: .92rem; font-weight: 600; text-align: left; transition: all .2s;
+      font-size: .92rem; font-weight: 600; text-align: left; transition: color .2s, background-color .2s, border-color .2s, box-shadow .2s, opacity .2s, filter .2s;
     }
-    .nav-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+    @media (hover: hover) and (pointer: fine) { .nav-item:hover { background: rgba(255,255,255,.08); color: #fff; } }
     .nav-item.active { background: #2E7D32; color: #fff; }
     .nav-badge {
       margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px;
@@ -168,14 +179,14 @@
       color: rgba(255,255,255,.5); font-size: .85rem; font-weight: 600;
       transition: color .2s;
     }
-    .view-site-btn:hover { color: #fff; }
+    @media (hover: hover) and (pointer: fine) { .view-site-btn:hover { color: #fff; } }
     .logout-btn {
       padding: 10px 14px; border-radius: 10px; border: none;
       background: rgba(255,255,255,.07); color: rgba(255,255,255,.6);
       cursor: pointer; font-size: .88rem; font-weight: 600; text-align: left;
-      transition: all .2s;
+      transition: color .2s, background-color .2s, border-color .2s, box-shadow .2s, opacity .2s, filter .2s;
     }
-    .logout-btn:hover { background: rgba(255,112,67,.25); color: #FF7043; }
+    @media (hover: hover) and (pointer: fine) { .logout-btn:hover { background: rgba(255,112,67,.25); color: #FF7043; } }
 
     /* ── Main content ─────────────────────────── */
     .content { flex: 1; min-width: 0; overflow-y: auto; padding: 32px 36px; }
@@ -192,14 +203,14 @@
       padding: 10px 22px; border-radius: 8px; cursor: pointer;
       font-weight: 600; font-size: .92rem; transition: background .2s;
     }
-    .btn-green:hover { background: #1B5E20; }
+    @media (hover: hover) and (pointer: fine) { .btn-green:hover { background: #1B5E20; } }
     .btn-green:disabled { background: #aaa; cursor: not-allowed; }
     .btn-outline {
       background: transparent; color: #2E7D32; border: 1.5px solid #2E7D32;
       padding: 10px 22px; border-radius: 8px; cursor: pointer;
-      font-weight: 600; font-size: .92rem; transition: all .2s;
+      font-weight: 600; font-size: .92rem; transition: color .2s, background-color .2s, border-color .2s, box-shadow .2s, opacity .2s, filter .2s;
     }
-    .btn-outline:hover { background: #E8F5E9; }
+    @media (hover: hover) and (pointer: fine) { .btn-outline:hover { background: #E8F5E9; } }
     /* Thanh phân trang dùng chung (thanhTrangHTML): đếm | chọn cỡ trang | số trang */
     .pg-bar {
       display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 18px;
@@ -216,7 +227,7 @@
       min-width: 32px; height: 32px; padding: 0 6px; border: none; border-radius: 16px; background: none;
       font: inherit; font-weight: 600; color: #3A4A39; cursor: pointer;
     }
-    .pg-nut:hover:not(:disabled):not(.on) { background: #E8F5E9; }
+    @media (hover: hover) and (pointer: fine) { .pg-nut:hover:not(:disabled):not(.on) { background: #E8F5E9; } }
     .pg-nut.on { background: #2E7D32; color: #fff; cursor: default; }
     .pg-nut:disabled { color: #C9D3C8; cursor: default; }
     .pg-ba { min-width: 20px; text-align: center; color: #9AAB99; }
@@ -232,14 +243,14 @@
       padding: 6px 14px; border-radius: 6px; cursor: pointer;
       font-size: .82rem; font-weight: 600; transition: background .2s;
     }
-    .btn-edit:hover { background: #C8E6C9; }
+    @media (hover: hover) and (pointer: fine) { .btn-edit:hover { background: #C8E6C9; } }
     .btn-edit:disabled { background: #f0f0f0; color: #aaa; cursor: not-allowed; }
     .btn-delete {
       background: #FBE9E7; color: #E64A19; border: none;
       padding: 6px 14px; border-radius: 6px; cursor: pointer;
       font-size: .82rem; font-weight: 600; transition: background .2s;
     }
-    .btn-delete:hover { background: #FFCCBC; }
+    @media (hover: hover) and (pointer: fine) { .btn-delete:hover { background: #FFCCBC; } }
     .btn-delete-sm {
       background: rgba(230,74,25,.12); color: #E64A19; border: none;
       padding: 4px 10px; border-radius: 6px; cursor: pointer;
@@ -251,7 +262,7 @@
     .data-table th { background: #f8faf8; padding: 12px 16px; text-align: left; font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #557355; border-bottom: 1px solid #e8f0e8; white-space: nowrap; }
     .data-table td { padding: 12px 16px; border-bottom: 1px solid #f0f4f0; vertical-align: middle; font-size: .9rem; }
     .data-table tr:last-child td { border-bottom: none; }
-    .data-table tr:hover td { background: #fafcfa; }
+    @media (hover: hover) and (pointer: fine) { .data-table tr:hover td { background: #fafcfa; } }
     .data-table th:last-child, .data-table td:last-child { width: 1%; }
     .thumb { width: 48px; height: 48px; border-radius: 8px; overflow: hidden; background: #E8F5E9; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
     .thumb img { width: 100%; height: 100%; object-fit: cover; }
@@ -265,14 +276,14 @@
     .filter-select { padding: 9px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: .88rem; background: #fafafa; outline: none; }
     .filter-select:focus { border-color: #2E7D32; background: #fff; }
     .btn-clear { padding: 9px 14px; border: 1.5px solid #ddd; border-radius: 8px; background: #fff; color: #6b6b6b; font-size: .85rem; font-weight: 600; cursor: pointer; }
-    .btn-clear:hover { border-color: #E64A19; color: #E64A19; }
+    @media (hover: hover) and (pointer: fine) { .btn-clear:hover { border-color: #E64A19; color: #E64A19; } }
     /* Điều hướng tháng (Sổ chi phí) */
     .month-nav { display: inline-flex; align-items: center; gap: 6px; }
-    .month-arrow { width: 34px; height: 36px; border-radius: 8px; border: 1.5px solid #ddd; background: #fff; color: #2E7D32; font-size: 1.15rem; font-weight: 700; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all .15s; }
-    .month-arrow:hover { border-color: #2E7D32; background: #E8F5E9; }
+    .month-arrow { width: 34px; height: 36px; border-radius: 8px; border: 1.5px solid #ddd; background: #fff; color: #2E7D32; font-size: 1.15rem; font-weight: 700; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: color .15s, background-color .15s, border-color .15s, box-shadow .15s, opacity .15s, filter .15s; }
+    @media (hover: hover) and (pointer: fine) { .month-arrow:hover { border-color: #2E7D32; background: #E8F5E9; } }
     .month-display { padding: 8px 16px; border: 1.5px solid #ddd; border-radius: 8px; font-size: .9rem; font-weight: 600; color: #2E7D32; background: #fff; min-width: 128px; text-align: center; display: inline-block; }
-    .chip-thismonth { padding: 8px 16px; border-radius: 50px; border: 1.5px solid #2E7D32; background: #fff; color: #2E7D32; font-weight: 600; font-size: .85rem; cursor: pointer; transition: all .15s; }
-    .chip-thismonth:hover { background: #E8F5E9; }
+    .chip-thismonth { padding: 8px 16px; border-radius: 50px; border: 1.5px solid #2E7D32; background: #fff; color: #2E7D32; font-weight: 600; font-size: .85rem; cursor: pointer; transition: color .15s, background-color .15s, border-color .15s, box-shadow .15s, opacity .15s, filter .15s; }
+    @media (hover: hover) and (pointer: fine) { .chip-thismonth:hover { background: #E8F5E9; } }
     .chip-thismonth.active { background: #2E7D32; color: #fff; cursor: default; }
     .month-label { color: #557355; font-size: .9rem; font-weight: 600; margin-left: auto; }
     @media (max-width: 600px) { .month-label { margin-left: 0; flex: 1 1 100%; } }
@@ -282,7 +293,7 @@
       .btn-edit, .btn-delete { padding: 5px 10px; font-size: .78rem; }
       .btn-green, .btn-outline { padding: 9px 16px; font-size: .88rem; }
     }
-    .toggle-btn { padding: 5px 12px; border-radius: 50px; border: none; cursor: pointer; font-size: .78rem; font-weight: 600; background: #eee; color: #999; transition: all .2s; }
+    .toggle-btn { padding: 5px 12px; border-radius: 50px; border: none; cursor: pointer; font-size: .78rem; font-weight: 600; background: #eee; color: #999; transition: color .2s, background-color .2s, border-color .2s, box-shadow .2s, opacity .2s, filter .2s; }
     .toggle-btn.on { background: #C8E6C9; color: #2E7D32; }
     .status-select { padding: 6px 10px; border-radius: 8px; border: 1.5px solid #ddd; font-size: .82rem; font-weight: 600; background: #fafafa; color: #555; cursor: pointer; }
     .status-select.s-moi        { background: #FFF3E0; color: #E65100; border-color: #FFCC80; }
@@ -292,16 +303,14 @@
     .status-select.s-hoanthanh  { background: #E8F5E9; color: #2E7D32; border-color: #A5D6A7; }
     .status-select.s-huy        { background: #FFEBEE; color: #C62828; border-color: #EF9A9A; }
 
-    /* Đổi nhanh trạng thái: nhãn trên thẻ đơn bấm được + bảng chọn 1 chạm */
-    .oc-badge-tap { cursor: pointer; font-family: inherit; }
-    .oc-badge-tap:active { transform: scale(.96); }
+    /* Đổi nhanh trạng thái: nhãn trên thẻ / hàng đơn (.dh-tt) bấm được + bảng chọn 1 chạm */
     .qs-list { display: flex; flex-direction: column; gap: 9px; }
     .qs-item {
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
       width: 100%; padding: 14px 16px; font-size: .95rem; font-weight: 600;
-      font-family: inherit; text-align: left; cursor: pointer; transition: all .18s;
+      font-family: inherit; text-align: left; cursor: pointer; transition: color .18s, background-color .18s, border-color .18s, box-shadow .18s, opacity .18s, filter .18s;
     }
-    .qs-item:hover { filter: brightness(.96); }
+    @media (hover: hover) and (pointer: fine) { .qs-item:hover { filter: brightness(.96); } }
     .qs-item.qs-current { box-shadow: 0 0 0 2px currentColor inset; }
     .qs-tick { font-weight: 700; }
 
@@ -321,9 +330,9 @@
     .st-chip {
       padding: 8px 16px; border-radius: 50px; border: 1.5px solid #e2e2e2;
       background: #fff; color: #6b6b6b; font-weight: 600; font-size: .82rem;   /* #888 chỉ 3,5:1 — khó đọc (soi 06/11/2026) */
-      cursor: pointer; transition: all .13s; line-height: 1.4;
+      cursor: pointer; transition: color .13s, background-color .13s, border-color .13s, box-shadow .13s, opacity .13s, filter .13s; line-height: 1.4;
     }
-    .st-chip:hover { border-color: #bdbdbd; color: #555; }
+    @media (hover: hover) and (pointer: fine) { .st-chip:hover { border-color: #bdbdbd; color: #555; } }
     .st-chip.on { border-width: 2px; padding: 7px 15px; }
     .st-all.on { background: #2E7D32; border-color: #2E7D32; color: #fff; }
     .st-chip.s-moi.on       { background: #FFF3E0; color: #E65100; border-color: #E65100; }
@@ -337,24 +346,12 @@
     .prep-alert { background: #FFF8E1; border: 1.5px solid #FFCC80; border-left: 5px solid #FB8C00; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; }
     .prep-alert-head { font-size: 1.02rem; font-weight: 600; color: #E65100; margin-bottom: 12px; }
     .prep-alert-list { display: flex; flex-wrap: wrap; gap: 8px; }
-    .prep-chip { background: #fff; border: 1px solid #FFCC80; border-radius: 50px; padding: 6px 14px; font-size: .85rem; color: #5d4037; cursor: pointer; transition: all .15s; }
-    .prep-chip:hover { background: #FB8C00; color: #fff; border-color: #FB8C00; }
+    .prep-chip { background: #fff; border: 1px solid #FFCC80; border-radius: 50px; padding: 6px 14px; font-size: .85rem; color: #5d4037; cursor: pointer; transition: color .15s, background-color .15s, border-color .15s, box-shadow .15s, opacity .15s, filter .15s; }
+    @media (hover: hover) and (pointer: fine) { .prep-chip:hover { background: #FB8C00; color: #fff; border-color: #FB8C00; } }
 
-    /* ── Dashboard ────────────────────────────── */
-    .dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 16px; }
-    .dash-card { background: #fff; border-radius: 14px; padding: 20px 16px; box-shadow: 0 2px 12px rgba(0,0,0,.06); text-align: center; min-width: 0; overflow: hidden; }
-    /* cỡ chữ co giãn theo bề rộng thẻ để số tiền lớn không tràn ra ngoài */
-    .dash-num { font-size: clamp(1.35rem, 1.05rem + 1vw, 1.9rem); font-weight: 700; line-height: 1.15; overflow-wrap: break-word; }
-    .dash-label { margin-top: 8px; color: #557355; font-size: .9rem; font-weight: 600; }
-    @media (max-width: 720px) { .dash-cards { grid-template-columns: 1fr; } }
-
-    /* Thẻ chỉ số bấm được → modal đối soát */
-    .dash-card.clickable { cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
-    .dash-card.clickable:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.11); }
-    .dash-hint { margin-top: 6px; font-size: .72rem; color: #B7C9B7; font-weight: 600; }
     .stat-explain { background: #F1F8F1; border: 1px solid #DCEBDC; border-radius: 10px; padding: 10px 14px; font-size: .85rem; color: #4E6B4E; margin-bottom: 14px; line-height: 1.5; }
     .stat-row { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border: 1px solid #eef3ee; border-radius: 10px; margin-bottom: 8px; cursor: pointer; background: #fff; transition: background .12s, border-color .12s; }
-    .stat-row:hover { background: #F7FBF7; border-color: #CDE3CD; }
+    @media (hover: hover) and (pointer: fine) { .stat-row:hover { background: #F7FBF7; border-color: #CDE3CD; } }
     .stat-row-main { flex: 1; min-width: 0; }
     .stat-row-main .sr-code { font-weight: 700; color: #2E7D32; }
     .stat-row-main .sr-sub { font-size: .82rem; color: #557355; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -389,9 +386,9 @@
     .cal-day.cal-past { color: #c5cfc5; }
     .cal-day.cal-today { border-color: #2E7D32; color: #2E7D32; font-weight: 700; }
     .cal-day.cal-has { background: #E8F5E9; color: #1B5E20; cursor: pointer; font-weight: 700; }
-    .cal-day.cal-has:hover { background: #C8E6C9; }
+    @media (hover: hover) and (pointer: fine) { .cal-day.cal-has:hover { background: #C8E6C9; } }
     .cal-day.cal-overdue { background: #FFEBEE; color: #C62828; }
-    .cal-day.cal-overdue:hover { background: #FFCDD2; }
+    @media (hover: hover) and (pointer: fine) { .cal-day.cal-overdue:hover { background: #FFCDD2; } }
     .cal-day.cal-selected { border-color: #2E7D32; box-shadow: 0 0 0 2px rgba(46,125,50,.25); }
     .cal-count {
       position: absolute; top: 3px; right: 3px; min-width: 17px; height: 17px; padding: 0 4px;
@@ -412,12 +409,12 @@
     .date-pop-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
     .date-pop-title { font-weight: 700; color: #2E7D32; font-size: .92rem; }
     .date-pop .cal-day { cursor: pointer; max-height: 40px; }
-    .date-pop .cal-day:hover { background: #E8F5E9; }
+    @media (hover: hover) and (pointer: fine) { .date-pop .cal-day:hover { background: #E8F5E9; } }
     .date-pop .cal-day.cal-selected { background: #2E7D32; color: #fff; border-color: #2E7D32; }
     .cal-dot { position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: #2E7D32; }
     .date-pop .cal-day.cal-selected .cal-dot { background: #fff; }
     .date-clear-btn { width: 100%; margin-top: 8px; padding: 8px; border: 1.5px solid #ddd; background: #fff; border-radius: 8px; color: #777; font-size: .85rem; font-weight: 600; cursor: pointer; }
-    .date-clear-btn:hover { border-color: #E64A19; color: #E64A19; }
+    @media (hover: hover) and (pointer: fine) { .date-clear-btn:hover { border-color: #E64A19; color: #E64A19; } }
     /* Lịch lọc Đơn hàng: chọn 1 ngày hoặc khoảng ngày (từ → đến), nút lọc cả tháng */
     .ord-goi-y { font-size: .8rem; color: #6b7f6a; text-align: center; margin: 8px 0 0; line-height: 1.4; }
     .ord-goi-y b { color: #2E7D32; }
@@ -452,11 +449,11 @@
     .ord-pop-chan { display: flex; gap: 8px; margin-top: 8px; }
     .ord-pop-chan > button { flex: 1; margin-top: 0; white-space: nowrap; }
     .ord-ca-thang { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; border: 1.5px solid #2E7D32; background: #fff; border-radius: 8px; color: #2E7D32; font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; }
-    .ord-ca-thang:hover { background: #E8F5E9; }
+    @media (hover: hover) and (pointer: fine) { .ord-ca-thang:hover { background: #E8F5E9; } }
     /* Sổ chi phí: nút lịch đang lọc ngày riêng + hàng lọc danh sách (tìm chữ + chip loại) */
     .filter-select.dang-loc, .month-display.dang-loc { border-color: #2E7D32; color: #2E7D32; font-weight: 700; }
     button.month-display { display: inline-flex; align-items: center; justify-content: center; gap: 7px; font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer; }
-    button.month-display:hover { border-color: #2E7D32; }
+    @media (hover: hover) and (pointer: fine) { button.month-display:hover { border-color: #2E7D32; } }
     .ex-loc { margin: 22px 0 0; }
     .ex-loc .filter-search { flex: 0 1 300px; }
     .ex-loai-chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -490,7 +487,7 @@
       background: #fff; border-radius: 8px; color: #2E7D32; font-family: inherit;
       font-size: .86rem; font-weight: 600; cursor: pointer;
     }
-    .date-today-btn:hover { background: #2E7D32; color: #fff; }
+    @media (hover: hover) and (pointer: fine) { .date-today-btn:hover { background: #2E7D32; color: #fff; } }
     /* Nhật ký cập nhật */
     .cl-card { background: #fff; border: 1px solid #eef3ee; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 1px 6px rgba(0,0,0,.04); }
     .cl-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -505,7 +502,7 @@
     /* Gợi ý nguyên liệu (autocomplete) + danh sách nguyên liệu */
     .suggest-pop { width: 100%; max-height: 250px; overflow-y: auto; padding: 6px; }
     .suggest-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; font-size: .9rem; }
-    .suggest-row:hover { background: #E8F5E9; }
+    @media (hover: hover) and (pointer: fine) { .suggest-row:hover { background: #E8F5E9; } }
     .suggest-row .s-cat { color: #557355; font-size: .78rem; }
     /* Dòng gợi ý khách: tên trên, địa chỉ nhỏ bên dưới, SĐT nằm phải */
     .suggest-row .s-cust { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
@@ -553,8 +550,8 @@
     .deliv-group { margin-bottom: 26px; }
     .deliv-head { font-size: 1rem; color: #2E7D32; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
     .deliv-count { font-size: .78rem; font-weight: 600; color: #557355; background: #E8F5E9; padding: 2px 10px; border-radius: 50px; }
-    .deliv-row { display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #f0f4f0; border-radius: 10px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer; transition: all .15s; }
-    .deliv-row:hover { border-color: #C8E6C9; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+    .deliv-row { display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #f0f4f0; border-radius: 10px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer; transition: color .15s, background-color .15s, border-color .15s, box-shadow .15s, opacity .15s, filter .15s; }
+    @media (hover: hover) and (pointer: fine) { .deliv-row:hover { border-color: #C8E6C9; box-shadow: 0 2px 10px rgba(0,0,0,.05); } }
     .deliv-code { font-weight: 700; color: #2E7D32; min-width: 78px; }
     .deliv-name { font-weight: 600; min-width: 120px; }
     .deliv-area { color: #555; font-size: .85rem; min-width: 90px; }
@@ -597,7 +594,7 @@
     .bst-warn { background: #FFF8E1; border-left: 4px solid #FFA000; border-radius: 10px; padding: 13px 16px; margin-bottom: 16px; font-size: .88rem; color: #6D4C41; line-height: 1.6; }
     .bst-warn-ds { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .bst-warn-nut { background: #fff; border: 1.5px solid #FFCC80; color: #E65100; border-radius: 50px; padding: 4px 12px; font: 600 .8rem inherit; font-family: inherit; }
-    .bst-warn-nut:hover { background: #FFF3E0; }
+    @media (hover: hover) and (pointer: fine) { .bst-warn-nut:hover { background: #FFF3E0; } }
 
     /* Công tắc bật/tắt */
     .sw { position: relative; display: inline-block; width: 44px; height: 25px; flex: 0 0 auto; }
@@ -614,14 +611,14 @@
     .bst-cover-cot { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 190px; }
     .bst-cover-nut { display: flex; gap: 7px; flex-wrap: wrap; }
     .bst-cover-nut button { background: #fff; border: 1.5px solid #C8E6C9; color: #2E7D32; border-radius: 8px; padding: 7px 12px; font: 600 .82rem inherit; font-family: inherit; }
-    .bst-cover-nut button:hover { background: #E8F5E9; }
+    @media (hover: hover) and (pointer: fine) { .bst-cover-nut button:hover { background: #E8F5E9; } }
     .bst-cover-nut button.bo { border-color: #FFCDD2; color: #C62828; }
-    .bst-cover-nut button.bo:hover { background: #FFEBEE; }
+    @media (hover: hover) and (pointer: fine) { .bst-cover-nut button.bo:hover { background: #FFEBEE; } }
     .bst-cover-link { display: flex; gap: 6px; }
     .bst-cover-link input { flex: 1; min-width: 0; padding: 7px 10px; border: 1.5px solid #ddd; border-radius: 8px; font-size: .84rem; }
     .bst-cover-tumau { display: flex; gap: 6px; overflow-x: auto; padding: 6px 0; }
     .bst-cover-tumau img { width: 52px; height: 52px; border-radius: 7px; object-fit: cover; cursor: pointer; border: 2.5px solid transparent; flex: 0 0 auto; }
-    .bst-cover-tumau img:hover { border-color: #2E7D32; }
+    @media (hover: hover) and (pointer: fine) { .bst-cover-tumau img:hover { border-color: #2E7D32; } }
     .bst-cover-nhac { font-size: .82rem; color: #557355; }
 
     /* Lưới tick chọn mẫu hoa cho BST */
@@ -660,7 +657,7 @@
     .cat-row .cat-emoji:focus, .cat-row .cat-name:focus { border-color: #2E7D32; outline: none; }
     .cat-count { font-size: .78rem; color: #557355; background: #E8F5E9; border-radius: 50px; padding: 3px 10px; white-space: nowrap; }
     .cat-move { background: #eef3ee; border: none; border-radius: 6px; width: 28px; height: 30px; cursor: pointer; color: #2E7D32; font-weight: 700; font-size: .85rem; }
-    .cat-move:hover { background: #C8E6C9; }
+    @media (hover: hover) and (pointer: fine) { .cat-move:hover { background: #C8E6C9; } }
     .cat-move:disabled { opacity: .35; cursor: not-allowed; }
     /* flex-wrap + min-width:0 để ô nhập co lại được, không đẩy modal rộng quá màn hình */
     .cat-add-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -679,18 +676,18 @@
     .upload-zone {
       border: 2px dashed #C8E6C9; border-radius: 12px;
       padding: 40px; text-align: center; cursor: pointer;
-      transition: all .2s; margin-bottom: 24px; background: #fff;
+      transition: color .2s, background-color .2s, border-color .2s, box-shadow .2s, opacity .2s, filter .2s; margin-bottom: 24px; background: #fff;
     }
-    .upload-zone:hover { border-color: #2E7D32; background: #f0faf0; }
+    @media (hover: hover) and (pointer: fine) { .upload-zone:hover { border-color: #2E7D32; background: #f0faf0; } }
     .upload-icon { font-size: 2.5rem; margin-bottom: 10px; }
     .upload-text { font-weight: 600; color: #2E7D32; font-size: 1rem; }
     .upload-hint { color: #557355; font-size: .85rem; margin-top: 4px; }
     .img-upload-area {
       border: 1.5px dashed #C8E6C9; border-radius: 8px;
       padding: 14px; text-align: center; cursor: pointer;
-      color: #557355; font-size: .88rem; transition: all .2s;
+      color: #557355; font-size: .88rem; transition: color .2s, background-color .2s, border-color .2s, box-shadow .2s, opacity .2s, filter .2s;
     }
-    .img-upload-area:hover { border-color: #2E7D32; color: #2E7D32; background: #f0faf0; }
+    @media (hover: hover) and (pointer: fine) { .img-upload-area:hover { border-color: #2E7D32; color: #2E7D32; background: #f0faf0; } }
     .img-upload-area.pick { color: #2E7D32; border-color: #2E7D32; }
 
     /* 3 ô ảnh hero: máy tính 3 cột, điện thoại xuống 1 cột */
@@ -718,7 +715,7 @@
     .gallery-drag { position: relative; cursor: grab; }
     .gallery-drag:active { cursor: grabbing; }
     .drag-grip { position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,.55); color: #fff; font-size: .7rem; font-weight: 600; padding: 2px 8px; border-radius: 50px; pointer-events: none; opacity: 0; transition: opacity .15s; }
-    .gallery-admin-item:hover .drag-grip { opacity: 1; }
+    @media (hover: hover) and (pointer: fine) { .gallery-admin-item:hover .drag-grip { opacity: 1; } }
     .gallery-admin-item.dragging { opacity: .35; }
     .gallery-admin-item.drag-over { outline: 2px dashed #2E7D32; outline-offset: 2px; }
 
@@ -731,9 +728,9 @@
       background: rgba(255,255,255,.92); border: 2px solid #C8E6C9;
       display: flex; align-items: center; justify-content: center;
       font-size: .82rem; font-weight: 700; color: #C8E6C9;
-      cursor: pointer; padding: 0; transition: all .15s;
+      cursor: pointer; padding: 0; transition: color .15s, background-color .15s, border-color .15s, box-shadow .15s, opacity .15s, filter .15s;
     }
-    .gal-tick:hover { border-color: #2E7D32; color: #2E7D32; }
+    @media (hover: hover) and (pointer: fine) { .gal-tick:hover { border-color: #2E7D32; color: #2E7D32; } }
     .gallery-admin-item.gal-sel { outline: 3px solid #2E7D32; outline-offset: -1px; }
     .gallery-admin-item.gal-sel .gal-tick { background: #2E7D32; border-color: #2E7D32; color: #fff; }
     /* Nhãn ảnh vừa upload — để biết cái nào cần đặt chú thích */
@@ -770,9 +767,9 @@
     .gi-arrow {
       flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
       border: 1.5px solid #C8E6C9; background: #fff; color: #2E7D32;
-      font-size: 1rem; font-weight: 700; cursor: pointer; transition: all .18s;
+      font-size: 1rem; font-weight: 700; cursor: pointer; transition: color .18s, background-color .18s, border-color .18s, box-shadow .18s, opacity .18s, filter .18s;
     }
-    .gi-arrow:hover:not(:disabled) { background: #2E7D32; border-color: #2E7D32; color: #fff; }
+    @media (hover: hover) and (pointer: fine) { .gi-arrow:hover:not(:disabled) { background: #2E7D32; border-color: #2E7D32; color: #fff; } }
     .gi-arrow:disabled { opacity: .3; cursor: default; }
 
     /* ── Contact form ─────────────────────────── */
@@ -816,11 +813,11 @@
     .ttc-h > .ic { color: #2E7D32; }
     .ttc-h input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; font-size: .93rem; padding: 12px 0; color: #1f2a1f; }
     .ttc-h button { flex-shrink: 0; width: 36px; height: 36px; border: 0; border-radius: 9px; background: none; color: #9aa79a; display: grid; place-items: center; cursor: pointer; }
-    .ttc-h button:hover { background: #FFEBEE; color: #C62828; }
+    @media (hover: hover) and (pointer: fine) { .ttc-h button:hover { background: #FFEBEE; color: #C62828; } }
     .ttc-h button .ic { width: 17px; height: 17px; }
     .ttc-them { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; height: 44px; margin-top: 8px;
                 border: 1.5px dashed #b9c6b8; border-radius: 12px; background: #fff; color: #5d6b5c; font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; }
-    .ttc-them:hover { border-color: #2E7D32; color: #2E7D32; }
+    @media (hover: hover) and (pointer: fine) { .ttc-them:hover { border-color: #2E7D32; color: #2E7D32; } }
     .ttc-them .ic { width: 16px; height: 16px; }
     .ttc-xem { margin-top: 14px; background: #f6f8f6; border-radius: 12px; padding: 10px 12px; }
     .ttc-xem > b { display: block; font-size: .72rem; letter-spacing: .04em; text-transform: uppercase; color: #9aa79a; margin-bottom: 6px; }
@@ -851,12 +848,12 @@
     .spc-tn-them { flex-shrink: 0; width: 74px; height: 52px; margin-top: 5px; border-radius: 9px; border: 1.5px dashed #b9c6b8; background: #fff;
                    color: #6a786a; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
                    font: inherit; font-size: .64rem; font-weight: 600; cursor: pointer; }
-    .spc-tn-them:hover { border-color: #2E7D32; color: #2E7D32; }
+    @media (hover: hover) and (pointer: fine) { .spc-tn-them:hover { border-color: #2E7D32; color: #2E7D32; } }
     .spc-tn-them .ic { width: 17px; height: 17px; }
     /* Ô sửa tại chỗ: không viền, gạch chân mờ khi rê / xanh khi đang gõ */
     .spc .spc-o { display: block; width: 100%; border: 0; border-bottom: 1.5px dashed transparent; border-radius: 0; outline: 0;
                   background: none; box-shadow: none; color: #1f2a1f; font: inherit; padding: 4px 0; }
-    .spc .spc-o:hover { border-bottom-color: #dfe5de; }
+    @media (hover: hover) and (pointer: fine) { .spc .spc-o:hover { border-bottom-color: #dfe5de; } }
     .spc .spc-o:focus { border-bottom-color: #2E7D32; background: none; box-shadow: none; }
     .spc .spc-o::placeholder { color: #aab5a9; font-weight: 400; }
     .spc .spc-dong1 { resize: none; overflow: hidden; line-height: 1.35; min-height: 0; }
@@ -864,7 +861,7 @@
     .spc .spc-ten { flex: 1; min-width: 0; font-family: 'Nunito', 'Be Vietnam Pro', sans-serif; font-size: 1.4rem; font-weight: 700; line-height: 1.3; }
     .spc-sao { flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; border: 0; background: none; color: #c3ccc2;
                display: grid; place-items: center; cursor: pointer; transition: transform .15s; }
-    .spc-sao:hover { background: #f4f7f4; }
+    @media (hover: hover) and (pointer: fine) { .spc-sao:hover { background: #f4f7f4; } }
     .spc-sao:active { transform: scale(.88); }
     .spc-sao .ic { width: 25px; height: 25px; }
     .spc-sao.on { color: #F9A825; }
@@ -883,7 +880,7 @@
                 padding: 5px 4px 5px 12px; font-size: .86rem; font-weight: 600; }
     .spc-tp-v button { width: 22px; height: 22px; border-radius: 50%; border: 0; background: none; color: #557355; display: grid;
                        place-items: center; cursor: pointer; padding: 0; }
-    .spc-tp-v button:hover { background: #d5ead6; color: #2E7D32; }
+    @media (hover: hover) and (pointer: fine) { .spc-tp-v button:hover { background: #d5ead6; color: #2E7D32; } }
     .spc-tp-v .ic { width: 12px; height: 12px; stroke-width: 2.5; }
     .spc-tp-go { position: relative; flex: 1 1 190px; min-width: 150px; display: flex; }
     .spc .spc-tp-o { flex: 1; min-width: 0; width: 100%; height: 34px; border: 1px dashed #b9c6b8; border-radius: 999px;
@@ -897,7 +894,7 @@
     #fMoTaNhac, #fMoTaCu { margin: 8px 0 0; color: #B26A00; }
     .spc-dong { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 18px; padding: 11px 12px; border: 1px solid #dfe5de;
                 border-radius: 12px; background: #fff; font: inherit; text-align: left; cursor: pointer; color: #1f2a1f; }
-    .spc-dong:hover { border-color: #b9c6b8; }
+    @media (hover: hover) and (pointer: fine) { .spc-dong:hover { border-color: #b9c6b8; } }
     .spc-dong > .ic { color: #9aa79a; }
     .spc-dong-tt { flex: 1; min-width: 0; }
     .spc-dong-tt b { display: block; font-size: .9rem; font-weight: 600; }
@@ -938,9 +935,9 @@
       border: 1.5px solid #C8E6C9; background: #fff; color: #2E7D32;
       border-radius: 50px; padding: 7px 15px;
       font-family: inherit; font-size: .82rem; font-weight: 600; cursor: pointer;
-      transition: all .18s;
+      transition: color .18s, background-color .18s, border-color .18s, box-shadow .18s, opacity .18s, filter .18s;
     }
-    .price-chip:hover { background: #2E7D32; border-color: #2E7D32; color: #fff; }
+    @media (hover: hover) and (pointer: fine) { .price-chip:hover { background: #2E7D32; border-color: #2E7D32; color: #fff; } }
     .check-row input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; accent-color: #2E7D32; }
     .check-row label { cursor: pointer; font-weight: 600; }
 
@@ -972,7 +969,7 @@
     .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; flex-shrink: 0; }
     .modal-header h2 { font-size: 1.2rem; }
     .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #999; padding: 4px 8px; border-radius: 6px; }
-    .modal-close:hover { background: #f0f0f0; }
+    @media (hover: hover) and (pointer: fine) { .modal-close:hover { background: #f0f0f0; } }
     .modal-body { padding: 20px 24px; }
     .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 0 24px 20px; flex-shrink: 0; background: #fff; }
     .img-preview-wrap { margin-bottom: 10px; }
@@ -1026,7 +1023,7 @@
     .confirm-actions { display: flex; gap: 10px; }
     .confirm-actions button { flex: 1; padding: 12px 14px; border-radius: 10px; font-weight: 700; font-size: .9rem; cursor: pointer; font-family: inherit; }
     .btn-discard { background: #E53935; color: #fff; border: none; }
-    .btn-discard:hover { background: #C62828; }
+    @media (hover: hover) and (pointer: fine) { .btn-discard:hover { background: #C62828; } }
     @media (max-width: 480px) { .confirm-actions { flex-direction: column-reverse; } }
 
     /* ── Nút ↑ quay lại đầu trang ─────────────── */
@@ -1043,7 +1040,7 @@
     }
     .back-top svg { width: 17px; height: 17px; flex-shrink: 0; }
     .back-top.show { visibility: visible; transform: none; }
-    .back-top:hover { background: #2E7D32; color: #fff; }
+    @media (hover: hover) and (pointer: fine) { .back-top:hover { background: #2E7D32; color: #fff; } }
     @media (max-width: 820px) {
       /* thu tròn trên điện thoại — chỉ còn mũi tên */
       .back-top { right: 16px; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); width: 50px; height: 50px; padding: 0; border-radius: 50%; }
@@ -1095,20 +1092,6 @@
         -webkit-tap-highlight-color: rgba(46,125,50,.08);
       }
       .order-card:active { background: #f7fbf7; }
-      .oc-wrap { display: flex; gap: 12px; }
-      .oc-wrap .thumb { width: 56px; height: 56px; flex-shrink: 0; }
-      .oc-body { flex: 1; min-width: 0; }
-      .oc-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
-      .oc-code { color: #2E7D32; font-weight: 700; }
-      .oc-badge { font-size: .76rem; font-weight: 600; padding: 4px 11px; border-radius: 50px; border: 1.5px solid transparent; }
-      .oc-cust { font-weight: 600; font-size: .92rem; margin-bottom: 2px; }
-      .oc-cust small { font-weight: 400; color: #557355; }
-      .oc-prod { color: #555; font-size: .88rem; margin-bottom: 8px; }
-      .oc-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .85rem; }
-      .oc-meta { color: #557355; font-size: .8rem; text-align: right; }
-      /* Nút "Ghi chú" nằm ngay TRÊN ngày giao, góc phải dưới thẻ (shop chọn 12/10/2026) */
-      .oc-meta:has(.gc-nut) { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; white-space: nowrap; }
-      .oc-bottom:has(.gc-nut) { align-items: flex-end; }
     }
     /* Màn vừa (821–1279px): thẻ xếp 2 cột cho đỡ dài */
     @media (min-width: 821px) and (max-width: 1279px) {
@@ -1136,7 +1119,7 @@
 
 
       /* Modal → bottom sheet: trượt từ dưới lên + tay nắm */
-      .modal-box { animation: sheetUp .3s cubic-bezier(.2,.8,.3,1); }
+      .modal-box { animation: sheetUp .3s var(--ease-drawer); }
       .modal-box::before { content: ''; display: block; width: 44px; height: 5px; border-radius: 3px; background: #e0e0e0; margin: 10px auto 0; }
       @keyframes sheetUp { from { transform: translateY(55%); opacity: .4; } to { transform: translateY(0); opacity: 1; } }
 
@@ -1147,7 +1130,7 @@
 
       .sidebar {
         position: fixed; top: 0; left: 0; height: 100vh; height: 100dvh; z-index: 1001;
-        transform: translateX(-100%); transition: transform .25s ease;
+        transform: translateX(-100%); transition: transform .3s var(--ease-drawer);
         overflow-y: auto;   /* menu dài thì cuộn được để luôn tới nút Đăng xuất / Xem website */
       }
       /* Bóng chỉ khi mở — menu đóng (trượt ra ngoài) vẫn đổ bóng thành dải xám dọc mép trái màn (soi 06/11/2026) */
@@ -1267,8 +1250,8 @@
       display: inline-flex; align-items: center; justify-content: center; gap: 6px;
       transition: background .15s, color .15s; vertical-align: middle;
     }
-    .act:hover { background: #eef3ee; color: #1f2a1f; }
-    .act.act-xoa:hover { background: #FFEBEE; color: #C62828; }
+    @media (hover: hover) and (pointer: fine) { .act:hover { background: #eef3ee; color: #1f2a1f; } }
+    @media (hover: hover) and (pointer: fine) { .act.act-xoa:hover { background: #FFEBEE; color: #C62828; } }
     .act:disabled, .act:disabled:hover { opacity: .35; cursor: not-allowed; background: none; color: #8a978a; }
     .act .act-txt { display: none; }
     /* Ô <td> mà display:flex thì rớt khỏi bố cục bảng → cột nút lệch, tràn mép phải (lỗi cũ).
@@ -1287,9 +1270,9 @@
     .orders-desktop, .table-desktop { overflow-x: auto; }
     /* Mã đơn trong bảng: bấm để xem chi tiết (thay cho nút 👁 riêng — tiết kiệm 1 cột nút) */
     .ma-don { background: none; border: 0; padding: 0; font: inherit; font-weight: 700; color: #2E7D32; cursor: pointer; white-space: nowrap; }
-    .ma-don:hover { text-decoration: underline; }
+    @media (hover: hover) and (pointer: fine) { .ma-don:hover { text-decoration: underline; } }
     .data-table tr.dong-don { cursor: pointer; }
-    .data-table tr.dong-don:hover td { background: #F1F8F1; }
+    @media (hover: hover) and (pointer: fine) { .data-table tr.dong-don:hover td { background: #F1F8F1; } }
 
     /* Ô tìm kiếm: kính lúp vẽ sẵn, không còn 🔍 trong chữ mờ */
     .filter-search {
@@ -1325,12 +1308,12 @@
     .date-btn .db-ico .ic { width: 17px; height: 17px; }
     .qty-step { border: 1px solid #dfe5de; border-radius: 12px; }
     .qty-step button { background: none; color: #1f2a1f; }
-    .qty-step button:hover { background: #f0f3ef; color: #1f2a1f; }
+    @media (hover: hover) and (pointer: fine) { .qty-step button:hover { background: #f0f3ef; color: #1f2a1f; } }
     .img-upload-area {
       border: 1px solid #dfe5de; border-radius: 12px; color: #1f2a1f; font-weight: 600;
       display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    .img-upload-area:hover { border-color: #2E7D32; background: #f7fbf7; }
+    @media (hover: hover) and (pointer: fine) { .img-upload-area:hover { border-color: #2E7D32; background: #f7fbf7; } }
     .upload-icon { display: flex; justify-content: center; color: #8a978a; }
     .upload-icon .ic { width: 34px; height: 34px; stroke-width: 1.5; }
     .modal-close { display: inline-flex; align-items: center; justify-content: center; color: #8a978a; }
@@ -1340,7 +1323,7 @@
     .empty-state .ic { width: 20px; height: 20px; color: #9aa79a; }
     .empty-state .btn-outline .ic { width: 16px; height: 16px; color: currentColor; }
     .prep-alert-head .ic, .bst-rot .ic { width: 17px; height: 17px; margin-right: 6px; color: #E65100; }
-    .oc-meta .ic, .bst-chip .ic { width: 13px; height: 13px; margin-right: 3px; vertical-align: -2px; }
+    .bst-chip .ic { width: 13px; height: 13px; margin-right: 3px; vertical-align: -2px; }
     .suggest-add .ic { width: 15px; height: 15px; margin-right: 4px; }
     .cat-fold .ic { width: 17px; height: 17px; color: #8a978a; }
     .field-group > .ic, label + .ic { color: #E65100; }
@@ -1381,7 +1364,7 @@
       font: inherit; font-size: .86rem; font-weight: 600; cursor: pointer; white-space: nowrap;
       transition: background .15s, border-color .15s, color .15s;
     }
-    .fx-chip:hover { border-color: #b9c6b8; }
+    @media (hover: hover) and (pointer: fine) { .fx-chip:hover { border-color: #b9c6b8; } }
     .fx-chip.on { background: #E8F5E9; border-color: #2E7D32; color: #2E7D32; }
     .fx-chip .ic { width: 15px; height: 15px; }
     .fx-chip.st-dot::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--st, #bdbdbd); }
@@ -1510,8 +1493,7 @@
     /* Nhãn trạng thái dạng chấm + chữ (không phải ô chọn) */
     .st-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 8px; border: 1px solid #e3e8e2;
                border-radius: 999px; background: #fff; font-size: .74rem; font-weight: 600; color: #3d4a3c; white-space: nowrap; }
-    .st-pill::before, .st-dot-only { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--st, #bdbdbd); flex-shrink: 0; }
-    .st-dot-only { display: inline-block; }
+    .st-pill::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--st, #bdbdbd); flex-shrink: 0; }
 
     /* Khối trang: tiêu đề nhỏ + nội dung */
     .db-sec { margin-bottom: 26px; }
@@ -1522,62 +1504,6 @@
                 color: #7a877a; font-size: .88rem; font-weight: 600; background: #fff; }
     .db-empty .ic { color: #43A047; }
     .db-ma { font-weight: 700; color: #2E7D32; white-space: nowrap; }
-
-    /* Thanh nhắc đơn mới */
-    .db-new { display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 18px; padding: 12px 16px;
-              border: 1px solid #FFCC80; border-radius: 14px; background: #FFF8E1; cursor: pointer; font: inherit; text-align: left; color: #5d4037; }
-    .db-new:hover { border-color: #FB8C00; }
-    .db-new-num { min-width: 38px; height: 38px; padding: 0 8px; border-radius: 12px; background: #FB8C00; color: #fff;
-                  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; }
-    .db-new-txt { flex: 1; display: flex; flex-direction: column; }
-    .db-new-txt small { color: #8d6e63; font-size: .78rem; }
-
-    /* Giao hôm nay: thẻ có ảnh */
-    .db-today-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
-    .db-don { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid #e3e8e2; border-left: 4px solid #2E7D32;
-              border-radius: 14px; background: #fff; cursor: pointer; font: inherit; text-align: left; color: #1f2a1f; min-width: 0; }
-    .db-don:hover { border-color: #b9d6b9; border-left-color: #2E7D32; box-shadow: 0 4px 14px rgba(0,0,0,.05); }
-    .db-don .thumb { width: 64px; height: 64px; border-radius: 10px; flex-shrink: 0; }
-    .db-don-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-    .db-don-r { display: flex; align-items: center; justify-content: space-between; gap: 4px 8px; flex-wrap: wrap; }
-    .db-don-kh { font-weight: 600; }
-    .db-don-bo { font-size: .88rem; color: #4a5a49; }
-    .db-don-dc { font-size: .8rem; color: #7a877a; display: flex; gap: 4px; align-items: flex-start; }
-    .db-don-dc .ic, .dv-dc .ic, .dv-thiep .ic { width: 14px; height: 14px; margin-top: 2px; }
-
-    /* Sắp giao: chia theo ngày */
-    .db-up { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
-    .db-day { background: #fff; border: 1px solid #e3e8e2; border-radius: 14px; padding: 6px 6px 8px; }
-    .db-day-h { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px 6px;
-                font-weight: 700; font-size: .9rem; color: #1f2a1f; }
-    .db-day-h span { font-size: .75rem; font-weight: 600; color: #7a877a; }
-    .db-line { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.3fr) 10px; gap: 10px; align-items: center; width: 100%;
-               padding: 9px 10px; border: 0; border-radius: 10px; background: none; cursor: pointer; font: inherit; font-size: .88rem; text-align: left; color: #1f2a1f; }
-    .db-line:hover { background: #f4f8f4; }
-    .db-line + .db-line { border-top: 1px solid #f0f3ef; border-radius: 0; }
-    .db-kh { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .db-bo { color: #5d6b5c; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-    /* Số liệu tháng: gọn, chữ nhỏ */
-    .db-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
-    .db-stat { display: flex; flex-direction: column; gap: 2px; padding: 11px 14px; border: 1px solid #e3e8e2; border-radius: 12px;
-               background: #fff; cursor: pointer; font: inherit; text-align: left; color: #1f2a1f; min-width: 0; }
-    .db-stat:hover:not(:disabled) { border-color: #b9d6b9; }
-    .db-stat:disabled { cursor: default; }
-    .db-stat-l { font-size: .76rem; font-weight: 600; color: #7a877a; }
-    .db-stat-n { font-size: 1.08rem; font-weight: 700; }
-    .db-stat-p { font-size: .74rem; color: #7a877a; }
-    /* Tiền tháng này (21/10/2026): máy tính 4 ô 1 hàng, điện thoại 2×2 */
-    .db-stats.db-tien { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .db-tien .db-stat-n { font-size: 1.12rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    @media (max-width: 600px) {
-      .db-stats.db-tien { grid-template-columns: 1fr 1fr; }
-      #dbMonthLabel + .db-sub { display: none; }   /* chừa chỗ cho nút "Báo cáo chi tiết" cùng hàng tiêu đề */
-    }
-    .db-link { margin-left: auto; display: inline-flex; align-items: center; gap: 2px; padding: 4px 4px 4px 8px; border: 0; border-radius: 8px;
-               background: none; font: inherit; font-size: .84rem; font-weight: 600; color: #2E7D32; cursor: pointer; white-space: nowrap; }
-    .db-link:hover { background: #EEF7EE; }
-    .db-link .ic { width: 15px; height: 15px; }
 
     /* Công cụ: 2 dòng nhỏ */
     .db-tools { display: flex; flex-direction: column; gap: 8px; }
@@ -1643,7 +1569,7 @@
 
     /* Lịch tháng: ngày có đơn đậm hơn, hôm nay có viền, ngày đang chọn tô đặc */
     .cal-day.cal-has { background: #C8E6C9; color: #1B5E20; }
-    .cal-day.cal-has:hover { background: #A5D6A7; }
+    @media (hover: hover) and (pointer: fine) { .cal-day.cal-has:hover { background: #A5D6A7; } }
     .cal-day.cal-today { border-width: 2px; }
     .cal-day.cal-selected { background: #2E7D32 !important; color: #fff !important; border-color: #2E7D32; }
     .cal-day.cal-selected .cal-count { background: #fff; color: #2E7D32; }
@@ -1663,7 +1589,7 @@
     .dg-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 8px; }
     .dv { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid #e3e8e2; border-radius: 14px; background: #fff;
           cursor: pointer; font: inherit; text-align: left; color: #1f2a1f; min-width: 0; }
-    .dv:hover { border-color: #b9d6b9; box-shadow: 0 4px 14px rgba(0,0,0,.05); }
+    @media (hover: hover) and (pointer: fine) { .dv:hover { border-color: #b9d6b9; box-shadow: 0 4px 14px rgba(0,0,0,.05); } }
     .dv .thumb { width: 60px; height: 60px; border-radius: 10px; flex-shrink: 0; }
     /* Máy tính rộng: lịch tháng thu gọn thành ô vuông bên trái, Hôm nay/Ngày mai + danh sách đơn đẩy lên bên phải (góp ý 24/09).
        Điện thoại giữ thứ tự cũ: 2 ô nhanh → lịch → danh sách. */
@@ -1753,7 +1679,7 @@
     /* Dòng lãi cùng kỳ → Báo cáo (21/10/2026: khối Doanh thu cũ chuyển hẳn sang Báo cáo) */
     .ex-lai { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 760px; margin-bottom: 16px; padding: 10px 14px;
               border: 1px solid #e3e8e2; border-radius: 12px; background: #fff; font: inherit; font-size: .88rem; color: #3d4a3c; cursor: pointer; text-align: left; }
-    .ex-lai:hover { border-color: #b9d6b9; }
+    @media (hover: hover) and (pointer: fine) { .ex-lai:hover { border-color: #b9d6b9; } }
     .ex-lai > span { flex: 1; min-width: 0; }
     .ex-lai b { color: #1f2a1f; } .ex-lai b:first-child { color: #2E7D32; } .ex-lai b.am { color: #C62828; }
     .ex-lai .ic { color: #2E7D32; flex-shrink: 0; }
@@ -1807,7 +1733,7 @@
     .bc-tin { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px 5px 9px; border: 1px solid #e3e8e2; border-radius: 999px;
               background: #fff; font: inherit; font-size: .8rem; font-weight: 700; color: #3d4a3c; cursor: pointer; white-space: nowrap; }
     .bc-tin .ic { width: 14px; height: 14px; stroke-width: 2.4; color: #7a877a; }
-    .bc-tin:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    @media (hover: hover) and (pointer: fine) { .bc-tin:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); } }
     .bc-tin-tot  { border-color: #C8E6C9; color: #1B5E20; } .bc-tin-tot .ic  { color: #2E7D32; }
     .bc-tin-canh { border-color: #FFCC80; color: #BF360C; } .bc-tin-canh .ic { color: #E65100; }
     .bc-tin-xau  { border-color: #F5C2C2; color: #B71C1C; } .bc-tin-xau .ic  { color: #D32F2F; }
@@ -1845,12 +1771,12 @@
     .bc-tt-h .bc-i { margin-left: auto; width: 24px; height: 24px; }
     .bc-tt-so { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 6px 4px 10px; border: 0; border-radius: 10px;
                 background: none; font: inherit; text-align: left; color: #1f2a1f; cursor: pointer; min-width: 0; }
-    .bc-tt-so:hover { background: #f6f9f5; }
+    @media (hover: hover) and (pointer: fine) { .bc-tt-so:hover { background: #f6f9f5; } }
     .bc-tt-so small { font-size: .76rem; font-weight: 600; color: #7a877a; }
     .bc-tt-so b { display: flex; align-items: center; gap: 8px; font-size: 1.4rem; font-weight: 700; white-space: nowrap; }
     .bc-tt-dong { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 4px; border: 0; border-top: 1px solid #f0f3ef; background: none;
                   font: inherit; font-size: .86rem; text-align: left; color: #3d4a3c; cursor: pointer; }
-    .bc-tt-dong:hover { background: #f6f9f5; }
+    @media (hover: hover) and (pointer: fine) { .bc-tt-dong:hover { background: #f6f9f5; } }
     .bc-tt-dong > span:first-child { flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 2px; }
     .bc-tt-dong b { font-weight: 700; color: #1f2a1f; white-space: nowrap; }
     .bc-tt-dong .ic { width: 15px; height: 15px; color: #9aa79a; }
@@ -1858,7 +1784,7 @@
     .bc-tt-dong.con b { font-weight: 600; color: #3d4a3c; }
     .bc-tt-dong.do, .bc-tt-dong.do b { color: #C62828; }
     .bc-tt-ghi { cursor: default; font-size: .8rem; color: #7a877a; }
-    .bc-tt-ghi:hover { background: none; }
+    @media (hover: hover) and (pointer: fine) { .bc-tt-ghi:hover { background: none; } }
     .bc-so { display: inline-flex; align-items: center; gap: 1px; padding: 1px 6px 1px 4px; border-radius: 999px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
     .bc-so .ic { width: 12px; height: 12px; stroke-width: 2.6; }
     .bc-len { background: #DFF1DF; color: #1B5E20; }
@@ -1907,7 +1833,7 @@
     /* Dòng xếp hạng */
     .bc-dong { display: grid; grid-template-columns: minmax(0, 1fr) 46px auto 52px; gap: 8px; align-items: center; width: 100%;
                padding: 6px 2px; border: 0; background: none; cursor: pointer; font: inherit; font-size: .84rem; text-align: left; color: #1f2a1f; border-radius: 6px; }
-    .bc-dong:hover { background: #f4f8f4; }
+    @media (hover: hover) and (pointer: fine) { .bc-dong:hover { background: #f4f8f4; } }
     .bc-dong + .bc-dong { border-top: 1px solid #f2f4f1; border-radius: 0; }
     .bc-ten { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .bc-hang { display: inline-block; width: 1.3em; color: #9aa79a; font-weight: 700; }
@@ -1927,7 +1853,7 @@
     .bc-thu { display: flex; gap: 4px; height: 74px; }
     .bc-thu-o { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0; border: 0; background: none;
                 cursor: pointer; font: inherit; color: #7a877a; border-radius: 6px; }
-    .bc-thu-o:hover { background: #f4f8f4; }
+    @media (hover: hover) and (pointer: fine) { .bc-thu-o:hover { background: #f4f8f4; } }
     .bc-thu-so { font-size: .68rem; font-weight: 700; min-height: 1em; }
     .bc-thu-cot { flex: 1; width: min(62%, 22px); display: flex; align-items: flex-end; }
     .bc-thu-cot span { display: block; width: 100%; background: #A5D6A7; border-radius: 3px 3px 0 0; }
@@ -1938,7 +1864,7 @@
     .bc-gio-o { display: flex; flex-direction: column; align-items: center; padding: 6px 2px; border: 1px solid #edf1ec; border-radius: 10px; background: #FAFCFA;
                 cursor: pointer; font: inherit; color: #6b786a; font-size: .72rem; font-weight: 600; }
     .bc-gio-o b { font-size: 1rem; color: #1f2a1f; }
-    .bc-gio-o:hover { border-color: #b9d6b9; }
+    @media (hover: hover) and (pointer: fine) { .bc-gio-o:hover { border-color: #b9d6b9; } }
     .bc-tra { display: grid; grid-template-columns: auto minmax(30px, 1fr) auto; gap: 8px; align-items: center; }
     .bc-tra button { border: 0; background: none; padding: 2px; font: inherit; font-size: .78rem; color: #5d6b5c; cursor: pointer; white-space: nowrap; }
     .bc-tra .bc-thanh { background: #E3E8E2; }
@@ -1985,17 +1911,18 @@
        Dùng thuộc tính `scale` / `translate` riêng (không đụng `transform`) để không đè hiệu ứng sẵn có
        (lịch nổi điện thoại đang canh giữa bằng transform). Máy bật "giảm chuyển động" → tắt hết (cuối khối). */
     /* Đóng hộp thoại: bản sao "ma" (dongCoMa) mờ đi + hạ xuống; điện thoại trượt hẳn xuống */
-    .modal-overlay.lop-ma { pointer-events: none; animation: mvRa .2s ease forwards; }
-    .modal-overlay.lop-ma .modal-box { animation: mvBoxRa .2s ease forwards; }
+    /* Đóng NHANH hơn mở (mở .28s, đóng .16s): lúc đóng là người dùng đã xong việc, đừng bắt chờ */
+    .modal-overlay.lop-ma { pointer-events: none; animation: mvRa .16s ease-out forwards; }
+    .modal-overlay.lop-ma .modal-box { animation: mvBoxRa .16s var(--ease-out) forwards; }
     @keyframes mvRa { to { opacity: 0; } }
     @keyframes mvBoxRa { to { opacity: 0; transform: translateY(10px) scale(.98); } }
     @media (max-width: 820px) {
-      .modal-overlay.lop-ma { animation-duration: .26s; }
-      .modal-overlay.lop-ma .modal-box { animation: sheetRa .26s cubic-bezier(.4,0,1,1) forwards; }
+      .modal-overlay.lop-ma { animation-duration: .22s; }
+      .modal-overlay.lop-ma .modal-box { animation: sheetRa .22s var(--ease-drawer) forwards; }
       @keyframes sheetRa { to { transform: translateY(100%); } }
     }
-    /* Chuyển tab: trang mới hiện dần, nhích lên 6px */
-    .panel.vao { animation: panelVao .24s cubic-bezier(.2,.8,.2,1); }
+    /* Chuyển tab: trang mới hiện dần, nhích lên 6px. Shop đổi tab hàng chục lần/ngày → giữ thật ngắn (.18s, trước .24s) */
+    .panel.vao { animation: panelVao .18s var(--ease-out); }
     @keyframes panelVao { from { opacity: 0; translate: 0 6px; } }
     /* Lịch nổi / gợi ý / bảng lọc: bật ra nhẹ (chỉ chạy lúc từ ẩn → hiện) */
     .date-pop { animation: popVao .15s ease-out; transform-origin: top left; }
@@ -2011,15 +1938,26 @@
     /* Số đỏ đổi số → nảy 1 nhịp */
     .so-nay { animation: soNay .4s cubic-bezier(.3,1.6,.5,1); }
     @keyframes soNay { 0% { scale: .5; } 100% { scale: 1; } }
-    /* Điện thoại / máy cảm ứng (không có rê chuột): chạm là nút lún nhẹ — biết là đã bấm trúng */
+    /* Bấm là nút lún nhẹ — biết là đã bấm trúng. Trước 06/11 chỉ có trên điện thoại; giờ cả chuột (skill
+       emil-design-eng: nút nào cũng phải "nghe thấy" cú bấm). Điện thoại lún sâu hơn (.95) vì ngón tay che mất nút. */
+    .btn-green, .btn-outline, .btn-delete, .btn-edit, .btn-discard, .fx-chip, .chip-thismonth, .st-chip, .month-arrow, .bt-item,
+    .nav-item, .bc-tin, .bc-seg button, .bc-tab button, .bc-loc-nut, .bc-tt-so, .bc-tt-dong, .bc-cot, .od-qr,
+    .qd-row .fx-chip, .pg-nut, .act, .modal-close, .qty-step button, .price-chip, .prep-chip, .date-today-btn, .gi-arrow,
+    .kh-nut, .qr-chep, .date-clear-btn, .toggle-btn {
+      transition: scale .14s var(--ease-out), background-color .15s, border-color .15s, color .15s, box-shadow .15s, opacity .15s; }
+    .btn-green:active, .btn-outline:active, .btn-delete:active, .btn-edit:active, .btn-discard:active, .fx-chip:active,
+    .chip-thismonth:active, .st-chip:active, .month-arrow:active, .bt-item:active, .nav-item:active, .bc-tin:active,
+    .bc-seg button:active, .bc-tab button:active, .bc-loc-nut:active, .od-qr:active, .pg-nut:active:not(:disabled),
+    .act:active:not(:disabled), .modal-close:active, .qty-step button:active, .price-chip:active, .prep-chip:active,
+    .date-today-btn:active, .gi-arrow:active:not(:disabled), .kh-nut:active, .qr-chep:active, .date-clear-btn:active,
+    .toggle-btn:active { scale: .97; }
+    .bc-tt-so:active, .bc-tt-dong:active, .bc-cot:active { scale: .985; }
+    .btn-green:disabled:active { scale: none; }
     @media (hover: none) {
-      .btn-green, .btn-outline, .btn-delete, .fx-chip, .chip-thismonth, .st-chip, .month-arrow, .bt-item, .nav-item,
-      .bc-tin, .bc-seg button, .bc-tab button, .bc-loc-nut, .bc-tt-so, .bc-tt-dong, .db-stat, .bc-cot, .od-qr, .qd-row .fx-chip {
-        transition: scale .12s ease, background-color .15s, border-color .15s, color .15s; }
       .btn-green:active, .btn-outline:active, .btn-delete:active, .fx-chip:active, .chip-thismonth:active, .st-chip:active,
       .month-arrow:active, .bt-item:active, .nav-item:active, .bc-tin:active, .bc-seg button:active, .bc-tab button:active,
-      .bc-loc-nut:active, .od-qr:active { scale: .95; }
-      .bc-tt-so:active, .bc-tt-dong:active, .db-stat:active, .bc-cot:active { scale: .98; }
+      .bc-loc-nut:active, .od-qr:active, .act:active:not(:disabled), .pg-nut:active:not(:disabled) { scale: .95; }
+      .bc-tt-so:active, .bc-tt-dong:active, .bc-cot:active { scale: .98; }
     }
     /* Báo cáo: ô số hiện dần, cột biểu đồ mọc từ chân lên, thanh xếp hạng chạy từ trái */
     .bc-tt { animation: bcVao .35s cubic-bezier(.2,.8,.2,1) backwards; }
@@ -2057,7 +1995,7 @@
     .mt-row { display: flex; align-items: center; gap: 6px; }
     .mt-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #e3e8e2;
                border-radius: 12px; background: #fff; cursor: pointer; font: inherit; text-align: left; color: #1f2a1f; }
-    .mt-main:hover { border-color: #b9d6b9; }
+    @media (hover: hover) and (pointer: fine) { .mt-main:hover { border-color: #b9d6b9; } }
     .mt-main .mt-name { flex: 1; min-width: 0; font-weight: 600; display: flex; flex-direction: column; }
     .mt-main .mt-name small { font-weight: 600; color: #7a877a; font-size: .76rem; }
     .mt-main .mt-price { font-weight: 700; color: #2E7D32; white-space: nowrap; }
@@ -2092,7 +2030,7 @@
     .od-du .ic { width: 15px; height: 15px; }
     .od-qr { margin: 8px 0 4px; width: 100%; display: flex; min-width: 0; text-align: center; align-items: center; justify-content: center; gap: 8px; padding: 11px;
              border-radius: 12px; border: 1.5px dashed #2E7D32; background: #F1F8F1; color: #2E7D32; font: inherit; font-weight: 700; cursor: pointer; }
-    .od-qr:hover { background: #E8F5E9; }
+    @media (hover: hover) and (pointer: fine) { .od-qr:hover { background: #E8F5E9; } }
     .dv-tien { font-size: .8rem; color: #1565C0; display: flex; gap: 4px; align-items: center; font-weight: 600; flex-wrap: wrap; }
     .dv-tien .ic { width: 14px; height: 14px; }
     .dv-tien small { color: #7a877a; font-weight: 500; }
@@ -2125,7 +2063,7 @@
     .qr-tt .od-row > span:last-child { display: flex; align-items: center; gap: 6px; }
     .qr-tt .od-row > span:first-child { flex-basis: 82px; }
     .qr-chep { border: 0; background: none; color: #2E7D32; cursor: pointer; padding: 4px; margin: -4px 0; border-radius: 8px; display: inline-flex; }
-    .qr-chep:hover { background: #E8F5E9; }
+    @media (hover: hover) and (pointer: fine) { .qr-chep:hover { background: #E8F5E9; } }
     .qr-chep .ic { width: 16px; height: 16px; }
     .qr-nut { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
     .qr-nut > button { min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; }
@@ -2160,7 +2098,7 @@
     .kk-albums { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
     .kk-alb { display: flex; flex-direction: column; gap: 0; padding: 0; border: 1px solid #e3e8e2; border-radius: 16px; background: #fff;
               overflow: hidden; cursor: pointer; font: inherit; text-align: left; color: #1f2a1f; }
-    .kk-alb:hover { border-color: #b9d6b9; box-shadow: 0 6px 18px rgba(0,0,0,.06); }
+    @media (hover: hover) and (pointer: fine) { .kk-alb:hover { border-color: #b9d6b9; box-shadow: 0 6px 18px rgba(0,0,0,.06); } }
     .kk-anh { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; aspect-ratio: 1; background: #f0f3ef; }
     .kk-anh span { background-size: cover; background-position: center; }
     .kk-anh span:first-child { grid-row: 1 / 3; }
@@ -2202,17 +2140,9 @@
     /* Ô kiểu mới (.fx-in là <label>) đặt trong .field-group cũ: chặn kiểu nhãn/ô cũ đè lên */
     .field-group label.fx-in { display: flex; font-size: inherit; font-weight: 400; color: inherit; margin-bottom: 0; }
     .field-group .fx-in input, .field-group .fx-in textarea { width: auto; border: 0; padding: 12px 0; background: none; box-shadow: none; border-radius: 0; }
-    /* Lưới số liệu: ô lẻ cuối cùng trải hết hàng, không đứng trơ một mình */
-    .db-stats > .db-stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
-    @media (min-width: 821px) { .db-stats > .db-stat:last-child:nth-child(odd) { grid-column: auto; } }
 
     @media (max-width: 820px) {
-      .db-today-grid, .db-up, .dg-list { grid-template-columns: 1fr; }
-      .db-stats { grid-template-columns: 1fr 1fr; }
-      .db-line { grid-template-columns: auto minmax(0, 1fr) 10px; }
-      .db-line .db-bo { grid-column: 2 / 3; grid-row: 2; font-size: .82rem; }
-      .db-line .db-kh { grid-column: 2 / 3; }
-      .db-line .st-dot-only { grid-column: 3; grid-row: 1 / 3; }
+      .dg-list { grid-template-columns: 1fr; }
       .db-tool .btn-outline { width: 100%; }
       .ex-so { min-width: 84px; }
       .od-actions { grid-template-columns: minmax(0, 1fr) 44px; }
@@ -2248,7 +2178,7 @@
     }
     .bst-link span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .bst-link .ic { width: 13px; height: 13px; flex-shrink: 0; }
-    .bst-link:hover { border-color: #2E7D32; color: #2E7D32; }
+    @media (hover: hover) and (pointer: fine) { .bst-link:hover { border-color: #2E7D32; color: #2E7D32; } }
     .bst-nut-phai { display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; }
 
     /* Form bộ sưu tập */
@@ -2261,7 +2191,7 @@
     .bstm-bia-nut { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; flex: 1; min-width: 0; }
     .bstm-bia-nut .fx-chip { width: 100%; justify-content: flex-start; }
     .bstm-bo { color: #C62828; }
-    .bstm-bo:hover { border-color: #EF9A9A; }
+    @media (hover: hover) and (pointer: fine) { .bstm-bo:hover { border-color: #EF9A9A; } }
     .bst-cover-tumau { margin-top: 8px; }
     .bstm-sw { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid #e3e8e2; border-radius: 12px;
                cursor: pointer; margin-bottom: 10px; }
@@ -2294,7 +2224,7 @@
     ::-webkit-scrollbar { width: 10px; height: 10px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cfd9ce; border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
-    ::-webkit-scrollbar-thumb:hover { background: #a9bba8; border: 3px solid transparent; background-clip: padding-box; }
+    @media (hover: hover) and (pointer: fine) { ::-webkit-scrollbar-thumb:hover { background: #a9bba8; border: 3px solid transparent; background-clip: padding-box; } }
     ::-webkit-scrollbar-button, ::-webkit-scrollbar-corner { display: none; background: transparent; }
     /* Lưới chọn mẫu hoa trong form Bộ sưu tập: KHÔNG cuộn riêng — 2 thanh cuộn lồng nhau (form + lưới) rất rối.
        Cả form cuộn một lần; ô "Lọc theo tên" giúp tìm nhanh khi nhiều mẫu. */
@@ -2309,7 +2239,7 @@
     .bstm-bia-nut { display: flex; flex-direction: row; flex-wrap: wrap; gap: 6px; align-items: center; }
     .bstm-nut { display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 11px; border: 1px solid #dfe5de; border-radius: 999px;
                 background: #fff; color: #3d4a3c; font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; }
-    .bstm-nut:hover { border-color: #2E7D32; color: #2E7D32; }
+    @media (hover: hover) and (pointer: fine) { .bstm-nut:hover { border-color: #2E7D32; color: #2E7D32; } }
     .bstm-nut .ic { width: 14px; height: 14px; }
     .bstm-gt-sw { cursor: pointer; }
     .bstm-gt-sw .sw { margin-left: auto; }
@@ -2354,12 +2284,12 @@
     .sp-bst.khong { background: #FFF3E0; color: #E65100; }
     .sp-sao { width: 40px; height: 40px; border-radius: 50%; border: 0; background: none; padding: 0; flex-shrink: 0;
               display: grid; place-items: center; color: #c3ccc2; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    .sp-sao:hover { background: #f4f7f3; }
+    @media (hover: hover) and (pointer: fine) { .sp-sao:hover { background: #f4f7f3; } }
     .sp-sao .ic { width: 22px; height: 22px; }
     .sp-sao.on { color: #F9A825; }
     .sp-sao.on .ic { fill: #FBC02D; }
     #productsTable .sp-tr { cursor: pointer; }
-    #productsTable .sp-tr:hover td { background: #f8fbf7; }
+    @media (hover: hover) and (pointer: fine) { #productsTable .sp-tr:hover td { background: #f8fbf7; } }
     .sp-ten { font-weight: 700; font-size: .95rem; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .sp-gia { font-size: .82rem; font-weight: 700; color: #2E7D32; margin: 2px 0 4px; }
     .sp-nick { font-style: italic; font-size: .8rem; color: #557355; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -2378,14 +2308,14 @@
     .sp-xep-nut .ic { width: 18px; height: 18px; }
     .sp-xoa-mau { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 18px; padding: 10px;
                   border: 0; border-radius: 10px; background: none; color: #C62828; font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; }
-    .sp-xoa-mau:hover { background: #FFEBEE; }
+    @media (hover: hover) and (pointer: fine) { .sp-xoa-mau:hover { background: #FFEBEE; } }
     .sp-xoa-mau .ic { width: 16px; height: 16px; }
     /* Tab Khách hàng kiểu danh bạ gọn (24/09/2026) */
     .kh-av { width: 40px; height: 40px; border-radius: 50%; display: inline-grid; place-items: center; flex-shrink: 0;
              font-weight: 700; font-size: .98rem; }
     .kh-ten-o { display: inline-flex; align-items: center; gap: 12px; }
     #customersTable .kh-tr { cursor: pointer; }
-    #customersTable .kh-tr:hover td { background: #f8fbf7; }
+    @media (hover: hover) and (pointer: fine) { #customersTable .kh-tr:hover td { background: #f8fbf7; } }
     .kh-n { font-size: .84rem; font-weight: 700; color: #2E7D32; white-space: nowrap; }
     .kh-n.kh-chua { color: #a3ada2; font-weight: 600; }
     .kh-the { display: flex; flex-direction: column; }
@@ -2401,7 +2331,7 @@
     .kh-nut { height: 44px; border-radius: 12px; border: 1px solid #e3e8e2; background: #fff; font: inherit; font-weight: 700;
               font-size: .86rem; color: #3d4d3c; display: flex; align-items: center; justify-content: center; gap: 6px;
               text-decoration: none; cursor: pointer; }
-    .kh-nut:hover { border-color: #b9d6b9; }
+    @media (hover: hover) and (pointer: fine) { .kh-nut:hover { border-color: #b9d6b9; } }
     .kh-nut.chinh { background: #2E7D32; border-color: #2E7D32; color: #fff; }
     .kh-nut .ic { width: 17px; height: 17px; }
     .kh-dc { display: flex; gap: 8px; font-size: .86rem; color: #4d5d4c; margin-top: 14px; line-height: 1.45; }
@@ -2410,7 +2340,7 @@
     .kh-don { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 4px; border: 0; border-top: 1px solid #f0f3ef;
               background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; border-radius: 0; }
     .kh-h + .kh-don { border-top: 0; }
-    .kh-don:hover { background: #f8fbf7; }
+    @media (hover: hover) and (pointer: fine) { .kh-don:hover { background: #f8fbf7; } }
     .kh-don .thumb { width: 46px; height: 46px; border-radius: 9px; flex-shrink: 0; }
     .kh-don-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
     .kh-don-ma { font-weight: 700; font-size: .86rem; color: #2E7D32; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -2442,6 +2372,122 @@
       .sp-tc { max-width: none; }
       .sp-xep-hang { padding: 8px; gap: 8px; }
     }
+
+    /* ── Bộ mặt "Vườn kem" (06/11/2026, shop chọn phương án A) + "Nội dung nổi" (06/11/2026 tối) ──
+       Menu bên nằm trên nền kem đậm #EAE2D0, phần làm việc (.content) là 1 tấm sáng #F8F5EE bo 22px nổi lên (máy tính) —
+       để mắt tách ngay đâu là menu, đâu là nội dung (trước đó menu + nội dung cùng màu kem, shop thấy lẫn). Thẻ trắng bo
+       18px đổ bóng nâu nhạt, tiêu đề chữ Nunito. CỐ Ý đặt CUỐI khối style: cùng độ ưu tiên thì quy tắc sau thắng, còn
+       trạng thái (:hover, .active, .qua-han…) vẫn thắng vì ưu tiên cao hơn — KHÔNG dùng !important.
+       Thêm loại thẻ trắng mới thì thêm tên class vào nhóm "thẻ nổi" dưới đây. */
+    body { background: #EAE2D0; color: #2b3a2c; }
+    .sidebar { background: #EAE2D0; color: #2b3a2c; }
+    .content { background: #F8F5EE; }
+    .sidebar-brand { border-bottom: 0; font-family: 'Nunito', 'Be Vietnam Pro', sans-serif; font-size: 1.45rem; color: #1f4d26; padding: 26px 22px 18px; }
+    .sidebar-brand .tb-phu, .tb-brand .tb-phu { display: block; font-family: 'Be Vietnam Pro', sans-serif; font-size: .66rem; font-weight: 600;
+      letter-spacing: .14em; text-transform: uppercase; color: #6b5d45; margin-top: 3px; }
+    .tb-brand .tb-phu { display: none; }
+    .nav-item { color: #5d6a5c; border-radius: 12px; }
+    @media (hover: hover) and (pointer: fine) { .nav-item:hover { background: rgba(255,255,255,.45); color: #1f2a1f; } }
+    .nav-item.active { background: #F8F5EE; color: #1f4d26; box-shadow: 0 1px 2px rgba(70,55,30,.06), 0 6px 18px rgba(70,55,30,.08); }
+    .nav-item.active .ic { color: #2E7D32; }
+    .view-site-btn, .logout-btn { color: #5f6a5e; background: transparent; }
+    @media (hover: hover) and (pointer: fine) { .view-site-btn:hover { color: #1f2a1f; } }
+    @media (hover: hover) and (pointer: fine) { .logout-btn:hover { background: #fff; color: #C62828; } }
+    .panel-topbar h1, .content h2 { font-family: 'Nunito', 'Be Vietnam Pro', sans-serif; color: #1f3a22; }
+    .panel-topbar h1 { letter-spacing: -.01em; }
+    @media (min-width: 821px) {
+      .content { padding-top: 28px; margin: 10px 10px 10px 0; border-radius: 22px;
+        box-shadow: 0 0 0 1px rgba(120,100,60,.07), 0 10px 34px rgba(70,55,30,.09); }
+      .panel-topbar h1 { font-size: 2rem; }
+      .modal-box { border-radius: 18px; }
+    }
+    /* Thẻ nổi: mọi khối nền trắng của các tab (danh sách dò 06/11/2026 trên test/xem-admin.html) */
+    .deliv-calendar, .bst-card, .gallery-admin-item, .ct-muc, .order-card, .m-card, .db-tool,
+    .dv, .ex-card, .ex-lai, .kk-alb, .kh-ds, .sp-ds, .sp-tc, .bc-o, .bc-tt, .data-table, .pg-bar {
+      border-radius: 18px; box-shadow: 0 1px 2px rgba(70,55,30,.05), 0 10px 28px rgba(70,55,30,.07);
+    }
+    .deliv-calendar, .ct-muc, .order-card, .m-card, .db-tool, .ex-card, .ex-lai, .kk-alb, .kh-ds, .sp-ds,
+    .sp-tc, .bc-o, .bc-tt, .pg-bar { border-color: rgba(120,100,60,.1); }
+    .dv { border-top-color: rgba(120,100,60,.1); border-right-color: rgba(120,100,60,.1); border-bottom-color: rgba(120,100,60,.1); }
+    .data-table th { background: #FBF8F2; }
+    .filter-search, .filter-select, .st-chip, .btn-clear { border-color: #e6dfd0; }
+    .btn-green { border-radius: 12px; box-shadow: 0 6px 16px rgba(46,125,50,.25); }
+    .btn-green:disabled { box-shadow: none; }
+    @media (max-width: 820px) {
+      .admin-topbar { background: #F8F5EE; color: #1f4d26; border-bottom: 1px solid #e9e1d0; }
+      .admin-topbar .hamburger { color: #1f4d26; }
+      .admin-topbar .tb-brand { font-family: 'Nunito', 'Be Vietnam Pro', sans-serif; font-size: 1.2rem; }
+      .bottom-tabs { background: #fff; border-top: 0; box-shadow: 0 -6px 20px rgba(70,55,30,.08); }
+    }
+    /* Dải nhắc việc đầu Đơn hàng (06/11/2026, thay tab Tổng quan đã bỏ) — veNhacDon(). Không có việc thì trống hẳn. */
+    .don-nhac { display: flex; flex-wrap: wrap; gap: 8px; margin: -12px 0 18px; }
+    .don-nhac:empty { display: none; }
+    .don-nhac button { border: 0; font: inherit; font-size: .86rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center;
+      gap: 6px; padding: 8px 12px 8px 10px; border-radius: 12px; background: #FFF4E0; color: #8a4b00; }
+    .don-nhac button.do { background: #FFEBEE; color: #B71C1C; }
+    .don-nhac button.xanh { background: #E7F1E4; color: #1f4d26; }
+    .don-nhac b { font-weight: 800; }
+    .don-nhac .ic { width: 15px; height: 15px; flex-shrink: 0; }
+    @media (max-width: 820px) { .don-nhac { margin-top: 0; } }
+    /* ── Danh sách đơn kiểu GỌN (06/11/2026, shop chọn bản "Đề xuất": giữ bố cục cũ, sắp lại cho gọn) ──
+       Bảng 11 cột → 7 theo thứ tự shop nhìn: Giao (ngày + GIỜ + nơi) → Khách → Mẫu → Tiền → Trạng thái. Thẻ: giờ + ngày lên đầu. */
+    .loc-chip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin: -4px 0 16px; }
+    .loc-chip .status-filter { margin: 0; gap: 6px; flex-wrap: wrap; }
+    .loc-chip .status-filter .lbl { font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; color: #8a7d62; margin-right: 2px; }
+    .loc-chip .st-chip { padding: 5px 11px; font-size: .78rem; gap: 6px; }
+    .loc-chip #orderStatusChips, .loc-chip #orderTtChips { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+    .bang-don td { padding-top: 10px; padding-bottom: 10px; vertical-align: middle; }
+    .bang-don th { font-size: .72rem; letter-spacing: .06em; }
+    .bang-don .thumb { width: 46px; height: 46px; border-radius: 12px; }
+    .dh-anh { width: 62px; }
+    .dh-khi { min-width: 150px; max-width: 220px; }
+    .dh-khi-tren { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .dh-ngay { font: 800 .95rem 'Nunito', 'Be Vietnam Pro', sans-serif; color: #1f3a22; white-space: nowrap; }
+    .dh-ngay.nay { color: #2E7D32; }
+    .dh-ngay.tre { color: #C62828; }
+    .dh-ngay.mo { color: #9a8f78; font-weight: 600; font-family: inherit; font-size: .84rem; }
+    .dh-khi-tren .dv-gio { font-size: .8rem; }
+    .dh-dc { font-size: .8rem; color: #8a7d62; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+    .dh-kh { min-width: 170px; }
+    .dh-ten { font-weight: 600; color: #2b3a2c; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; overflow-wrap: anywhere; }
+    .bang-don .dh-ten .gc-nut { padding: 3px 6px; }                 /* bảng: ghi chú chỉ còn biểu tượng, dòng khỏi cao */
+    .bang-don .dh-ten .gc-nut .gc-nhan { display: none; }
+    .dh-phu { font-size: .8rem; color: #8a7d62; margin-top: 2px; }
+    .dh-phu .ma-don { font-size: .8rem; font-weight: 600; color: #557355; }
+    .dh-mau { color: #3d4d3c; line-height: 1.35; max-width: 240px; }
+    .dh-sl { color: #2E7D32; font-weight: 700; }
+    .dh-tien { white-space: nowrap; }
+    .dh-tien > div { margin-top: 3px; }
+    /* Nhãn trạng thái: chấm màu vẽ bằng nền ở 11px → chữ chừa ≥ 21px (test kiểm) */
+    .dh-tt { display: inline-flex; align-items: center; gap: 4px; font: inherit; font-size: .8rem; font-weight: 600; padding: 5px 8px 5px 21px;
+      border-radius: 99px; border: 1px solid; cursor: pointer; white-space: nowrap;
+      background-image: radial-gradient(circle at 11px 50%, var(--st, #bdbdbd) 0 4px, transparent 4.6px); }
+    .dh-tt .ic { width: 14px; height: 14px; opacity: .6; }
+    tr.dh-tre td { background: #FFF8F7; }
+    tr.dh-huy td:not(.actions) { opacity: .55; }
+    .bang-don .actions { opacity: .55; transition: opacity .15s; white-space: nowrap; }
+    @media (hover: hover) and (pointer: fine) { .bang-don tr:hover .actions { opacity: 1; } }
+    .bang-don .actions:focus-within { opacity: 1; }
+    .dh-the { display: flex; flex-direction: column; gap: 10px; padding: 14px; }
+    .dh-the-tren { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .dh-the .dh-tt { font-size: .76rem; padding: 4px 7px 4px 21px; }
+    .dh-the-giua { display: flex; gap: 12px; align-items: center; min-width: 0; }
+    .dh-the-giua .thumb { width: 54px; height: 54px; border-radius: 12px; flex-shrink: 0; }
+    .dh-the-chu { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .dh-the .dh-ten small { font-weight: 400; color: #8a7d62; font-size: .8rem; }
+    .dh-the .dh-mau { font-size: .88rem; color: #557355; max-width: none; }
+    .dh-the-duoi { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid #F1ECE1; }
+    .dh-the-duoi .dh-tien { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; white-space: normal; }
+    .dh-the-phai { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+    .dh-ma { font-size: .74rem; color: #9a8f78; font-weight: 600; }
+    .dh-the.dh-tre { box-shadow: 0 0 0 1.5px #F5B7B1, 0 10px 28px rgba(198,40,40,.08); }
+    .dh-the.dh-huy { opacity: .6; }
+    @media (max-width: 820px) {
+      .loc-chip { flex-wrap: nowrap; overflow-x: auto; gap: 14px; margin: 0 -14px 14px; padding: 2px 14px; scrollbar-width: none; }
+      .loc-chip::-webkit-scrollbar { display: none; }
+      .loc-chip .status-filter, .loc-chip #orderStatusChips, .loc-chip #orderTtChips { flex-wrap: nowrap; }
+      .loc-chip .st-chip { white-space: nowrap; }
+    }
   </style>
 </head>
 <body>
@@ -2469,10 +2515,9 @@
 <!-- ── App ───────────────────────────────────────── -->
 <div id="appWrap" style="display:none">
   <aside class="sidebar">
-    <div class="sidebar-brand">🌸 Admin</div>
+    <div class="sidebar-brand">Ler &amp; Ther<span class="tb-phu">Blooming · quản trị</span></div>
     <nav class="sidebar-nav">
-      <button class="nav-item active" data-tab="Dashboard" onclick="switchTab(this)"><svg class="ic" aria-hidden="true"><use href="#i-dash"/></svg><span>Tổng quan</span></button>
-      <button class="nav-item" data-tab="Orders" onclick="switchTab(this)"><svg class="ic" aria-hidden="true"><use href="#i-box"/></svg><span>Đơn hàng</span><span id="newOrderBadge" class="nav-badge" style="display:none"></span></button>
+      <button class="nav-item active" data-tab="Orders" onclick="switchTab(this)"><svg class="ic" aria-hidden="true"><use href="#i-box"/></svg><span>Đơn hàng</span><span id="newOrderBadge" class="nav-badge" style="display:none"></span></button>
       <button class="nav-item" data-tab="Delivery" onclick="switchTab(this)"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg><span>Lịch giao</span><span id="delivBadge" class="nav-badge" style="display:none"></span></button>
       <button class="nav-item" data-tab="Customers" onclick="switchTab(this)"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg><span>Khách hàng</span></button>
       <button class="nav-item" data-tab="Expenses" onclick="switchTab(this)"><svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg><span>Sổ chi phí</span></button>
@@ -2496,7 +2541,7 @@
        — thấy thanh đè lên nội dung nhưng chạm không trúng. Ra ngoài khỏi cần sticky. -->
   <div class="admin-topbar">
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></button>
-    <span class="tb-brand">🌸 Admin</span>
+    <span class="tb-brand">Ler &amp; Ther<span class="tb-phu">Blooming · quản trị</span></span>
   </div>
 
   <main class="content">
@@ -2506,59 +2551,6 @@
       <code>quan_tri</code> (hướng dẫn ở đầu file <code>supabase/24_chi_quan_tri.sql</code>).
     </div>
 
-
-    <!-- Tổng quan -->
-    <div id="panelDashboard" class="panel">
-      <div class="panel-topbar"><h1>Tổng quan</h1></div>
-      <!-- Thứ tự (23/09/2026): việc cần làm NGAY lên đầu → Giao hôm nay → Sắp giao (chia theo ngày)
-           → số liệu tháng thu gọn → công cụ (sao lưu, tối ưu ảnh) nhỏ ở cuối. -->
-      <div id="dbNewAlert"></div>
-      <!-- Database còn thiếu file SQL nào (kiemSqlDaChay) — không thiếu thì trống -->
-      <div id="sqlThieu"></div>
-      <section class="db-sec db-today">
-        <div class="db-sec-head"><h2>Giao hôm nay</h2><span class="db-sub" id="dbTodayDate"></span></div>
-        <div id="dashboardToday"><div class="loading-state">Đang tải…</div></div>
-      </section>
-      <div id="prepAlert"></div>
-      <!-- 4 số tiền tháng này, CÙNG TÊN với Báo cáo (tienCuaKy). Lãi + phân tích → Báo cáo -->
-      <section class="db-sec">
-        <div class="db-sec-head"><h2 id="dbMonthLabel">Tiền tháng này</h2><span class="db-sub">theo ngày giao</span>
-          <button type="button" class="db-link" onclick="moBaoCao()">Báo cáo chi tiết<svg class="ic" aria-hidden="true"><use href="#i-right"/></svg></button></div>
-        <div id="dashboardCards" class="db-stats db-tien"></div>
-      </section>
-
-      <section class="db-sec">
-        <div class="db-sec-head"><h2>Công cụ</h2></div>
-        <div class="db-tools">
-          <!-- Sao lưu dữ liệu ra Excel (id + chữ nút giữ nguyên: test-sao-luu kiểm) -->
-          <div class="db-tool backup-box" id="backupBox">
-            <span class="db-tool-ic"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg></span>
-            <div class="db-tool-txt">
-              <strong>Sao lưu dữ liệu ra Excel</strong>
-              <p class="bk-mo-ta">Đơn, khách, chi phí, sản phẩm… trong 1 file. Nên tải mỗi tháng, cất Google Drive.</p>
-              <p class="bk-cuoi" id="backupLast"></p>
-            </div>
-            <button class="btn-outline" id="backupBtn" type="button" onclick="taiSaoLuu()">Tải file sao lưu</button>
-            <p class="bk-trang-thai" id="backupStatus" role="status" aria-live="polite"></p>
-          </div>
-          <!-- Công cụ tối ưu ảnh cũ -->
-          <div class="db-tool optimizer-box">
-            <span class="db-tool-ic"><svg class="ic" aria-hidden="true"><use href="#i-zap"/></svg></span>
-            <div class="db-tool-txt">
-              <strong>Tạo ảnh nhỏ cho ảnh cũ</strong>
-              <p class="bk-mo-ta">Ảnh đăng trước 01/10 chưa có bản nhỏ nên web khách tải chậm. Bấm 1 lần là xong, ảnh gốc vẫn giữ.</p>
-            </div>
-            <button class="btn-outline" id="optimizeBtn" onclick="optimizeOldImages()">Bắt đầu</button>
-            <div id="optimizeProgress" style="display:none;flex:1 1 100%;">
-              <div class="progress-bar" style="height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden;">
-                <div id="optProgFill" style="height:100%;width:0;background:#2E7D32;transition:width .2s;"></div>
-              </div>
-              <p id="optProgText" style="font-size:.85rem;color:#555;margin-top:6px;"></p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
 
     <!-- Lịch giao -->
     <div id="panelDelivery" class="panel" style="display:none">
@@ -2713,6 +2705,10 @@
         <h1>Đơn hàng</h1>
         <button class="btn-green an-tren-dt" onclick="openNewOrderModal()"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Thêm đơn</button>
       </div>
+      <!-- Database còn thiếu file SQL nào (baoSqlThieu) — không thiếu thì trống -->
+      <div id="sqlThieu"></div>
+      <!-- Dải nhắc việc gấp (veNhacDon): trễ hẹn · đơn mới · chưa sao lưu — thay tab Tổng quan đã bỏ (06/11/2026) -->
+      <div id="donNhac" class="don-nhac"></div>
       <div class="filter-bar">
         <input type="search" id="orderSearch" class="filter-search" placeholder="Tìm mã đơn / tên khách / SĐT / sản phẩm…" oninput="onOrderSearchInput()">
         <button type="button" id="ordTodayChip" class="chip-thismonth" onclick="orderQuickDate(0)">Giao hôm nay</button>
@@ -2727,10 +2723,13 @@
         <input type="hidden" id="orderDateTo">
         <button type="button" class="btn-clear" onclick="clearOrderFilters()">Xóa lọc</button>
       </div>
-      <!-- Lọc trạng thái: chip bấm chọn NHIỀU trạng thái, tô màu theo từng loại -->
-      <div class="status-filter"><span class="lbl">Trạng thái:</span><span id="orderStatusChips"></span></div>
-      <!-- Lọc thanh toán (21/10/2026): 3 mức + "Đã giao · chưa thu đủ". Database chưa có cột (chưa chạy SQL 31) thì ẩn -->
-      <div class="status-filter" id="ttLoc"><span class="lbl">Thanh toán:</span><span id="orderTtChips"></span></div>
+      <!-- Lọc trạng thái + thanh toán chung 1 khối chip nhỏ (06/11/2026, bản "gọn"): máy tính xuống dòng, điện thoại 1 hàng vuốt ngang -->
+      <div class="loc-chip">
+        <!-- Lọc trạng thái: chip bấm chọn NHIỀU trạng thái, tô màu theo từng loại -->
+        <div class="status-filter"><span class="lbl">Trạng thái:</span><span id="orderStatusChips"></span></div>
+        <!-- Lọc thanh toán (21/10/2026): 3 mức + "Đã giao · chưa thu đủ". Database chưa có cột (chưa chạy SQL 31) thì ẩn -->
+        <div class="status-filter" id="ttLoc"><span class="lbl">Thanh toán:</span><span id="orderTtChips"></span></div>
+      </div>
       <div id="ordersTable"><div class="loading-state">Đang tải…</div></div>
     </div>
 
@@ -2794,6 +2793,38 @@
       </div>
       <div id="bcNoiDung"><div class="loading-state">Đang tải…</div></div>
       <div id="bcGiaiPop" class="bc-giai" role="dialog" aria-label="Giải thích"></div>
+      <!-- Công cụ (06/11/2026 chuyển từ Tổng quan đã bỏ): việc làm mỗi tháng 1 lần. Dải nhắc đầu Đơn hàng dẫn tới đây. -->
+      <section class="db-sec bc-cong-cu" id="congCu">
+        <div class="db-sec-head"><h2>Công cụ</h2><span class="db-sub">sao lưu dữ liệu · ảnh web</span></div>
+        <div class="db-tools">
+          <!-- Sao lưu dữ liệu ra Excel (id + chữ nút giữ nguyên: test-sao-luu kiểm) -->
+          <div class="db-tool backup-box" id="backupBox">
+            <span class="db-tool-ic"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg></span>
+            <div class="db-tool-txt">
+              <strong>Sao lưu dữ liệu ra Excel</strong>
+              <p class="bk-mo-ta">Đơn, khách, chi phí, sản phẩm… trong 1 file. Nên tải mỗi tháng, cất Google Drive.</p>
+              <p class="bk-cuoi" id="backupLast"></p>
+            </div>
+            <button class="btn-outline" id="backupBtn" type="button" onclick="taiSaoLuu()">Tải file sao lưu</button>
+            <p class="bk-trang-thai" id="backupStatus" role="status" aria-live="polite"></p>
+          </div>
+          <!-- Công cụ tối ưu ảnh cũ -->
+          <div class="db-tool optimizer-box">
+            <span class="db-tool-ic"><svg class="ic" aria-hidden="true"><use href="#i-zap"/></svg></span>
+            <div class="db-tool-txt">
+              <strong>Tạo ảnh nhỏ cho ảnh cũ</strong>
+              <p class="bk-mo-ta">Ảnh đăng trước 01/10 chưa có bản nhỏ nên web khách tải chậm. Bấm 1 lần là xong, ảnh gốc vẫn giữ.</p>
+            </div>
+            <button class="btn-outline" id="optimizeBtn" onclick="optimizeOldImages()">Bắt đầu</button>
+            <div id="optimizeProgress" style="display:none;flex:1 1 100%;">
+              <div class="progress-bar" style="height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden;">
+                <div id="optProgFill" style="height:100%;width:0;background:#2E7D32;transition:width .2s;"></div>
+              </div>
+              <p id="optProgText" style="font-size:.85rem;color:#555;margin-top:6px;"></p>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
 
     <!-- Khách hàng -->
@@ -3048,7 +3079,6 @@
        khung cuộn — cùng lý do với .admin-topbar (iOS vẽ sai toạ độ phần tử dính trong khung cuộn).
        4 tab hay dùng nhất + "Menu" mở menu đầy đủ; tab khác đang mở thì "Menu" sáng. -->
   <nav class="bottom-tabs" aria-label="Chuyển tab nhanh">
-    <button type="button" class="bt-item" data-tab="Dashboard" onclick="switchTab(this)"><svg class="ic" aria-hidden="true"><use href="#i-dash"/></svg><span>Tổng quan</span></button>
     <button type="button" class="bt-item" data-tab="Orders" onclick="switchTab(this)"><svg class="ic" aria-hidden="true"><use href="#i-box"/></svg><span>Đơn hàng</span><b id="newOrderBadgeBt" class="bt-badge" style="display:none"></b></button>
     <button type="button" class="bt-item" data-tab="Delivery" onclick="switchTab(this)"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg><span>Lịch giao</span><b id="delivBadgeBt" class="bt-badge" style="display:none"></b></button>
     <button type="button" class="bt-item" data-tab="Expenses" onclick="switchTab(this)"><svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg><span>Chi phí</span></button>
@@ -3965,6 +3995,7 @@ function showLogin() {
   document.getElementById('appWrap').style.display = 'none'
 }
 
+const TAB_DAU = 'Orders'   // tab mở đầu tiên (trước 06/11/2026 là Tổng quan)
 function showApp() {
   // Web khách và admin cùng tên miền nên dùng chung bộ nhớ trình duyệt:
   // đánh dấu "máy của shop" để công cụ đo lường KHÔNG đếm lượt xem của shop
@@ -3976,12 +4007,15 @@ function showApp() {
   kiemQuyenQuanTri()
   // F5 mở lại đúng tab đang xem (tab lưu trong URL dạng #Expenses)
   const saved = location.hash.slice(1)
-  const startTab = (saved && document.querySelector(`.nav-item[data-tab="${saved}"]`)) ? saved : 'Dashboard'
-  // Lịch sử: luôn có Tổng quan làm mốc nền → nút Back trên điện thoại quay về đúng tab
-  // trước đó (và Tổng quan) thay vì nhảy ra trang trắng
-  history.replaceState({ adminTab: 'Dashboard' }, '', '#Dashboard')
-  if (startTab !== 'Dashboard') history.pushState({ adminTab: startTab }, '', '#' + startTab)
+  // Tab Tổng quan đã bỏ (06/11/2026): link cũ #Dashboard không còn nút → rơi về Đơn hàng
+  const startTab = (saved && document.querySelector(`.nav-item[data-tab="${saved}"]`)) ? saved : TAB_DAU
+  // Lịch sử: luôn có Đơn hàng làm mốc nền → nút Back trên điện thoại quay về đúng tab
+  // trước đó (và Đơn hàng) thay vì nhảy ra trang trắng
+  history.replaceState({ adminTab: TAB_DAU }, '', '#' + TAB_DAU)
+  if (startTab !== TAB_DAU) history.pushState({ adminTab: startTab }, '', '#' + startTab)
   applyTab(startTab)
+  baoSqlThieu()          // chạy ngầm, chỉ hiện khung vàng ở đầu Đơn hàng khi database thật sự thiếu file
+  veSaoLuuCuoi()
 }
 
 // Đăng nhập được chưa chắc là QUẢN TRỊ: database chỉ mở dữ liệu cho tài khoản trong bảng quan_tri
@@ -4042,8 +4076,7 @@ function applyTab(tab) {
   document.querySelectorAll('.panel').forEach(p => p.style.display = 'none')
   const panel = document.getElementById('panel' + tab)
   if (panel) { panel.style.display = 'block'; panel.classList.remove('vao'); void panel.offsetWidth; panel.classList.add('vao') }
-  if (tab === 'Dashboard')     loadDashboard()
-  if (tab === 'Orders')        loadOrders()
+  if (tab === 'Orders')        { loadOrders(); veNhacDon() }
   if (tab === 'Delivery')      loadDelivery()
   if (tab === 'Expenses')      loadExpenses()
   if (tab === 'Reports')       loadBaoCao()
@@ -4089,7 +4122,7 @@ function moTab(tab) { switchTab(document.querySelector(`.nav-item[data-tab="${ta
 
 function switchTab(btn) {
   const tab = btn.dataset.tab
-  const cur = (history.state && history.state.adminTab) || 'Dashboard'
+  const cur = (history.state && history.state.adminTab) || TAB_DAU
   if (tab !== cur) history.pushState({ adminTab: tab }, '', '#' + tab)
   closeSidebar()   // chọn xong tự đóng menu trên điện thoại
   applyTab(tab)
@@ -4098,7 +4131,7 @@ function switchTab(btn) {
 // Nút Back trình duyệt: về tab trước đó; trên điện thoại mở luôn menu để chọn tiếp
 window.addEventListener('popstate', e => {
   if (document.getElementById('appWrap').style.display === 'none') return  // chưa đăng nhập
-  const tab = (e.state && e.state.adminTab) || 'Dashboard'
+  const tab = (e.state && e.state.adminTab) || TAB_DAU
   applyTab(tab)
 })
 
@@ -4223,89 +4256,38 @@ function _cfDone(ok) {
   if (r) r(ok)
 }
 
-// ── Dashboard ─────────────────────────────────────
+// ── Ngày hôm nay + dải nhắc việc đầu Đơn hàng ─────
+// Tab Tổng quan đã BỎ (06/11/2026): mọi khối trên đó đều là bản sao tab khác (Lịch giao, Báo cáo, số đỏ) nên shop
+// "vào không biết để làm gì". Admin mở vào thẳng Đơn hàng; việc gấp thành 1 dải nhắc mỏng ở đầu Đơn hàng; tiền tháng →
+// Báo cáo; Công cụ (sao lưu, ảnh nhỏ) → cuối Báo cáo; khung "thiếu file SQL" → đầu Đơn hàng.
 const todayStr = () => new Date().toLocaleDateString('sv-SE')  // YYYY-MM-DD theo giờ địa phương
 
-async function loadDashboard() {
-  veSaoLuuCuoi()
-  baoSqlThieu()          // chạy ngầm, không chờ — chỉ hiện khung khi database thật sự thiếu file
-  const { data, error } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('created_at', { ascending: false })
-  if (error) { document.getElementById('dashboardToday').innerHTML = loadErrorHTML('loadDashboard'); return }
-  const all = data || []
-  const today = todayStr()
-  const active = all.filter(o => !DONE_STATUSES.includes(o.status))
-
-  const newCount   = all.filter(o => o.status === 'Mới').length
-  const todayOrders = active.filter(o => o.delivery_date === today)
-  const monthKey = today.slice(0, 7)
-  // 4 số tiền tháng này — ghi nhận theo NGÀY GIAO (đơn không hẹn ngày mới tính theo ngày tạo), cách tính ở tienCuaKy().
-  // Lãi gộp (cần Sổ chi phí) + phân tích nằm ở Báo cáo, Tổng quan chỉ lo việc cần làm (21/10/2026).
-  const T = tienCuaKy(all.filter(o => statAttrDate(o).slice(0, 7) === monthKey))
-
-  // Ngữ cảnh cho modal đối soát (bấm thẻ số liệu)
-  _statCtx = { orders: all, monthKey }
-
-  // Đơn mới chờ xác nhận: việc cần làm ngay → thanh nhắc trên cùng (không có thì ẩn hẳn)
-  document.getElementById('dbNewAlert').innerHTML = !newCount ? '' : `
-    <button type="button" class="db-new" onclick="openStatDetail('new')">
-      <span class="db-new-num">${newCount}</span>
-      <span class="db-new-txt"><strong>đơn mới chờ xác nhận</strong><small>Bấm để xem và xác nhận với khách</small></span>
-      ${ic('right')}
-    </button>`
-
-  // Sắp giao: 3 ngày tới, CHIA THEO NGÀY — mỗi dòng "mã đơn · khách · tên bó"
-  const ngayToi = [1, 2, 3].map(n => new Date(Date.now() + n * 86400000).toLocaleDateString('sv-SE'))
-  const theoNgay = ngayToi.map(ds => ({ ds, ds_: active.filter(o => o.delivery_date === ds) })).filter(g => g.ds_.length)
-  const tongSap = theoNgay.reduce((n, g) => n + g.ds_.length, 0)
-  document.getElementById('prepAlert').innerHTML = !tongSap ? '' : `
-    <section class="db-sec">
-      <div class="db-sec-head"><h2>Sắp giao</h2><span class="db-sub">${tongSap} đơn · 3 ngày tới — chuẩn bị hàng</span></div>
-      <div class="db-up">
-        ${theoNgay.map(g => `
-        <div class="db-day">
-          <div class="db-day-h">${ngayNhan(g.ds)}<span>${g.ds_.length} đơn</span></div>
-          ${theoGio(g.ds_).map(o => `
-          <button type="button" class="db-line" onclick="viewOrderDetail(${o.id})">
-            <span class="db-ma">${orderCode(o.id)}</span>
-            <span class="db-kh">${orderCustomerName(o)}</span>
-            <span class="db-bo">${esc(o.product_name)}${o.quantity > 1 ? ' ×' + o.quantity : ''}</span>
-            <span class="st-dot-only ${STATUS_CLASS[o.status] || ''}" title="${esc(o.status)}"></span>
-          </button>`).join('')}
-        </div>`).join('')}
-      </div>
-    </section>`
-
-  // Tiền tháng này: đúng 4 số, CÙNG TÊN với Báo cáo — bấm từng ô mở danh sách đơn đứng sau
-  const [yy, mm] = monthKey.split('-')
-  document.getElementById('dbMonthLabel').textContent = `Tiền tháng ${Number(mm)}/${yy}`
-  const o1 = (kind, nhan, so, mau, phu) => `
-    <button type="button" class="db-stat" onclick="openStatDetail('${kind}')">
-      <span class="db-stat-l">${nhan}</span><span class="db-stat-n" style="color:${mau}">${so}</span><span class="db-stat-p">${phu}</span>
-    </button>`
-  document.getElementById('dashboardCards').innerHTML =
-    o1('duKien', 'Dự kiến', fmtVnd(T.duKien), '#1f2a1f', `${T.con.length} đơn chưa huỷ`) +
-    o1('daGiao', 'Đã giao', fmtVnd(T.daGiao), '#2E7D32', `${T.giao.length} đơn · còn ${T.chua.length} chưa giao`) +
-    o1('daNhan', 'Đã nhận tiền', fmtVnd(T.nhan), '#1565C0', 'tiền cọc + đã trả') +
-    o1('conThu', 'Còn phải thu', fmtVnd(T.phaiThu), T.no ? '#C62828' : '#5d6b5c', T.no ? `${fmtGon(T.no)} khách đã nhận hoa` : 'thu khi giao')
-
-  // Cho viewOrderDetail/openOrderEditModal dùng được từ Dashboard
-  cacheOrders(all)       // KHÔNG gán vào `orders` — xem ghi chú ở _donCache
-  refreshNewOrderBadge()
-  document.getElementById('dbTodayDate').textContent = ngayNhan(today, false)
-  const el = document.getElementById('dashboardToday')
-  // Không có đơn → 1 dòng gọn, nhường chỗ cho phần khác
-  el.innerHTML = !todayOrders.length
-    ? `<div class="db-empty">${ic('check')}Hôm nay không có đơn cần giao</div>`
-    : `<div class="db-today-grid">${theoGio(todayOrders).map(o => `
-  <button type="button" class="db-don" onclick="viewOrderDetail(${o.id})">
-    ${orderThumbHTML(o)}
-    <span class="db-don-b">
-      <span class="db-don-r"><span class="db-ma">${orderCode(o.id)} ${gioBadge(o, true)}</span><span class="st-pill ${STATUS_CLASS[o.status] || ''}">${esc(o.status)}</span></span>
-      <span class="db-don-kh">${orderCustomerName(o)}</span>
-      <span class="db-don-bo">${esc(o.product_name)}${o.quantity > 1 ? ' ×' + o.quantity : ''}</span>
-      ${o.delivery_address ? `<span class="db-don-dc">${ic('pin')}${esc(o.delivery_address)}</span>` : ''}
-    </span>
-  </button>`).join('')}</div>`
+// Đếm bằng DATABASE (mảng `orders` chỉ là trang đang xem). Gọi khi mở tab Đơn hàng + sau mỗi lần đổi đơn
+// (refreshNewOrderBadge). Trễ hẹn = chưa giao xong mà đã qua ngày hẹn, hoặc hẹn hôm nay đã quá giờ (như Lịch giao).
+async function veNhacDon() {
+  const hop = document.getElementById('donNhac')
+  if (!hop) return
+  const hn = todayStr()
+  const [{ count: soMoi }, { data: denHan }] = await Promise.all([
+    sb.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'Mới'),
+    sb.from('orders').select('id, delivery_date, note, status').in('status', ORDER_STATUSES.filter(s => !DONE_STATUSES.includes(s))).lte('delivery_date', hn),
+  ])
+  const d = new Date(), bayGio = d.getHours() * 60 + d.getMinutes()
+  const tre = (denHan || []).filter(o => o.delivery_date && (o.delivery_date < hn || (soPhutGio(gioCua(o)) ?? 1440) <= bayGio)).length
+  const sl = saoLuuTinhTrang()
+  hop.innerHTML = [
+    tre ? `<button type="button" class="do" onclick="moTab('Delivery')">${ic('alert')}<b>${tre}</b> đơn trễ hẹn — xem Lịch giao</button>` : '',
+    soMoi ? `<button type="button" onclick="locDonMoi()">${ic('info')}<b>${soMoi}</b> đơn mới chờ xác nhận</button>` : '',
+    sl.quaHan ? `<button type="button" class="xanh" onclick="denCongCu()">${ic('download')}${sl.chua ? 'Chưa sao lưu dữ liệu lần nào' : `Đã ${sl.soNgay} ngày chưa sao lưu`} — tải file Excel</button>` : '',
+  ].join('')
+}
+function locDonMoi() {
+  orderStatusSet.clear(); orderStatusSet.add('Mới')
+  renderStatusFilterChips(); applyOrderFilters()
+}
+function denCongCu() {
+  moTab('Reports')
+  requestAnimationFrame(() => document.getElementById('congCu')?.scrollIntoView({ block: 'start' }))
 }
 
 // ── Kiểm file SQL đã chạy chưa (11/10/2026) ──
@@ -4410,7 +4392,6 @@ function ngayNhan(ds, kem = true) {
 }
 
 // ── Đối soát chỉ số: bấm thẻ số liệu → xem đơn nào được tính ──
-let _statCtx = null    // từ Dashboard: { orders, monthKey }
 
 const statMonthLabel = mk => { const [y, m] = mk.split('-'); return `tháng ${Number(m)}/${y}` }
 const statAttrDate = o => o.delivery_date || (o.created_at || '').slice(0, 10)  // ngày ghi nhận doanh thu
@@ -4451,23 +4432,6 @@ ${list.length ? statRowsHTML(list, tien) : '<div class="empty-state">Không có 
   document.getElementById('statDetailModal').style.display = 'flex'
 }
 
-function openStatDetail(kind) {
-  const ctx = _statCtx
-  if (!ctx) return
-  const thang = statMonthLabel(ctx.monthKey)
-  const T = tienCuaKy(ctx.orders.filter(o => statAttrDate(o).slice(0, 7) === ctx.monthKey))
-  const x = {
-    new: ['Đơn mới chờ xác nhận', 'Các đơn đang ở trạng thái <strong>Mới</strong> — chưa xác nhận với khách.', ctx.orders.filter(o => o.status === 'Mới')],
-    duKien: [`Dự kiến · ${thang}`, `Tổng tiền <strong>mọi đơn chưa huỷ</strong> trong ${thang}, kể cả đơn chưa giao. ${CHU_NGAY_GIAO}`, T.con],
-    daGiao: [`Đã giao · ${thang}`, `Đơn <strong>Giao thành công / Hoàn thành</strong> trong ${thang} — đây là doanh thu. ${CHU_NGAY_GIAO}`, T.giao],
-    daNhan: [`Đã nhận tiền · ${thang}`, `Tiền khách <strong>đã trả</strong>: đơn Đã thanh toán tính đủ, đơn Đã cọc tính số cọc. Cột phải là số đã nhận. ${CHU_NGAY_GIAO}`,
-      T.nhanDs, daNhanTien, 'đã nhận'],
-    conThu: [`Còn phải thu · ${thang}`, `= Dự kiến − Đã nhận: <strong>${fmtVnd(T.no)}</strong> khách đã nhận hoa mà chưa trả đủ + <strong>${fmtVnd(T.cho)}</strong> thu khi giao các đơn sắp tới. Cột phải là số còn phải thu.`,
-      T.noDs.concat(T.choDs), conPhaiThu, 'còn phải thu'],
-  }[kind]
-  if (x) moDanhSachDon(...x)
-}
-
 function closeStatDetail() { anModal('statDetailModal') }
 
 // ── Báo cáo (11/10/2026) ──────────────────────────
@@ -4475,7 +4439,7 @@ function closeStatDetail() { anModal('statDetailModal') }
 // So với kỳ liền trước hoặc cùng kỳ năm ngoái; kỳ chưa hết thì kỳ so sánh chỉ lấy đúng số ngày đã qua.
 // Doanh thu ghi nhận theo NGÀY GIAO như Tổng quan (statAttrDate + REVENUE_STATUSES); chi phí lấy Sổ chi phí.
 // Tải HẾT đơn từng trang 1.000 (không vướng giới hạn 1.000 dòng), đổi kỳ / bộ lọc thì tính lại ở máy.
-// Bấm con số / dòng / cột nào cũng mở danh sách đơn đứng sau (bcMo → statDetailModal, dùng chung Tổng quan).
+// Bấm con số / dòng / cột nào cũng mở danh sách đơn đứng sau (bcMo → statDetailModal).
 // Bố cục: máy tính lưới 3 cột; điện thoại dưới biểu đồ chỉ hiện 1 khối, đổi bằng thanh tab (bcTabDt) cho đỡ lướt.
 let _bc = null                    // { don, chi, bst: { product_id → [tên BST] } } — tải lại mỗi lần mở tab
 let _bcDS = {}                    // khoá → { title, explain, list } cho bcMo()
@@ -8194,6 +8158,14 @@ async function taiSaoLuu() {
 
 // Hiện "lần sao lưu gần nhất" + đổi màu cam khi quá 30 ngày / chưa bao giờ.
 // Ghi nhớ theo TỪNG MÁY (localStorage) — máy Ler và máy anh đếm riêng.
+// { chua: chưa sao lưu lần nào, soNgay, quaHan } — veSaoLuuCuoi (Báo cáo › Công cụ) + veNhacDon (đầu Đơn hàng) dùng chung
+function saoLuuTinhTrang() {
+  let cuoi = null
+  try { cuoi = localStorage.getItem(SAO_LUU_KHOA) } catch {}
+  if (!cuoi) return { chua: true, soNgay: null, quaHan: true }
+  const soNgay = Math.round((new Date(todayStr()) - new Date(cuoi)) / 86400000)
+  return { chua: false, soNgay, quaHan: soNgay > SAO_LUU_QUA_HAN }
+}
 function veSaoLuuCuoi() {
   const hop = document.getElementById('backupBox')
   const el = document.getElementById('backupLast')
@@ -8321,11 +8293,16 @@ function ordersFilterState() {
 
 // Dựng câu truy vấn theo bộ lọc. count:'exact' để biết TỔNG số đơn khớp mà
 // không phải tải hết về — đó là điểm chính của phân trang.
-function buildOrdersQuery(f) {
+// nhom (06/11/2026, "đơn sắp giao lên đầu"): 'lam' = đơn còn phải làm, xếp NGÀY GIAO gần → xa (trễ hẹn tự lên trước,
+// chưa hẹn ngày cuối nhóm) · 'xong' = đã giao / đã huỷ, gần đây → cũ · '' = kiểu cũ (mới tạo lên đầu). dem = chỉ đếm.
+const NHOM_LAM = ORDER_STATUSES.filter(s => !DONE_STATUSES.includes(s))
+function buildOrdersQuery(f, nhom = '', dem = false) {
   let qy = sb.from('orders')
-    .select('*, customers(name, phone), products(image)', { count: 'exact' })
+    .select(dem ? 'id' : '*, customers(name, phone), products(image)', dem ? { count: 'exact', head: true } : { count: 'exact' })
+  if (nhom === 'lam') qy = qy.in('status', NHOM_LAM).order('delivery_date', { ascending: true, nullsFirst: false }).order('created_at', { ascending: false })
+  else if (nhom === 'xong') qy = qy.in('status', DONE_STATUSES).order('delivery_date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false })
   // Đang lọc ngày giao → xếp theo NGÀY GIAO sớm → muộn (dễ chuẩn bị hàng); không lọc thì đơn mới tạo lên đầu
-  if (f.date) qy = qy.order('delivery_date', { ascending: true }).order('created_at', { ascending: false })
+  else if (f.date) qy = qy.order('delivery_date', { ascending: true }).order('created_at', { ascending: false })
   else qy = qy.order('created_at', { ascending: false })
   if (f.statuses.length) qy = qy.in('status', f.statuses)
   const tt = f.tt || []
@@ -8351,6 +8328,20 @@ function buildOrdersQuery(f) {
   return qy
 }
 
+// Database chỉ xếp được theo NGÀY giao (giờ nằm trong ghi chú) → trong trang, các đơn còn làm CÙNG ngày xếp lại theo giờ hẹn
+function xepGioTrongNgay(ds) {
+  const ra = []
+  for (let i = 0; i < ds.length;) {
+    const lam = o => !DONE_STATUSES.includes(o.status)
+    let j = i + 1
+    while (j < ds.length && ds[j].delivery_date === ds[i].delivery_date && lam(ds[j]) === lam(ds[i])) j++
+    const khuc = ds.slice(i, j)
+    ra.push(...(lam(ds[i]) && ds[i].delivery_date ? theoGio(khuc) : khuc))
+    i = j
+  }
+  return ra
+}
+
 // Tải đúng 1 trang (ordersPage). Gọi lại sau khi sửa / đổi trạng thái thì GIỮ trang đang xem;
 // chỉ khi bộ lọc khác lần trước mới về trang 1 (khỏi phải nhớ reset ở từng chỗ đổi bộ lọc).
 let _locDonCu = null, _luotTaiDon = 0
@@ -8361,15 +8352,28 @@ async function loadOrders() {
   const khoaLoc = JSON.stringify(f)
   if (khoaLoc !== _locDonCu) { ordersPage = 1; _locDonCu = khoaLoc }
   const luot = ++_luotTaiDon
-  const tu = (ordersPage - 1) * coTrang
-  const { data, error, count } = await buildOrdersQuery(f).range(tu, tu + coTrang - 1)
+  // Đơn sắp giao lên đầu (06/11/2026): danh sách = nhóm "còn phải làm" nối nhóm "đã xong / huỷ". Đếm 2 nhóm trước
+  // (2 lượt đếm chạy song song) → biết trang [tu, den) rơi vào nhóm nào → mỗi nhóm hỏi ĐÚNG đoạn của nó, vẫn 1 trang/lần.
+  const tu = (ordersPage - 1) * coTrang, den = tu + coTrang
+  const [dLam, dXong] = await Promise.all([buildOrdersQuery(f, 'lam', true), buildOrdersQuery(f, 'xong', true)])
+  if (luot !== _luotTaiDon) return
+  const A = dLam.count || 0, D = dXong.count || 0
+  let error = dLam.error || dXong.error, data = []
+  if (!error) {
+    const kq = await Promise.all([
+      tu < A ? buildOrdersQuery(f, 'lam').range(tu, Math.min(den, A) - 1) : null,
+      den > A && tu - A < D ? buildOrdersQuery(f, 'xong').range(Math.max(0, tu - A), Math.min(den - A, D) - 1) : null,
+    ])
+    error = kq.find(r => r && r.error)?.error
+    data = xepGioTrongNgay(kq.flatMap(r => (r && r.data) || []))
+  }
   if (luot !== _luotTaiDon) return   // bấm sang trang khác lúc đang chờ → bỏ kết quả cũ, kẻo vẽ nhầm trang
   el?.classList.remove('pg-dang-tai')
-  // Trang đang xem không còn đơn (vừa xoá đơn cuối của trang cuối) — server báo lỗi PGRST103
-  // hoặc trả rỗng → lùi 1 trang, đừng hiện "chưa có đơn"
-  if (ordersPage > 1 && (error ? error.code === 'PGRST103' : !(data || []).length)) { ordersPage--; return loadOrders() }
+  // Trang đang xem không còn đơn (vừa xoá đơn cuối của trang cuối) → lùi 1 trang, đừng hiện "chưa có đơn"
+  if (ordersPage > 1 && !error && !data.length) { ordersPage--; return loadOrders() }
   if (error) { if (el) el.innerHTML = loadErrorHTML('loadOrders'); return }
-  orders = data || []
+  const count = A + D
+  orders = data
   cacheOrders(orders)
   ordersTotal = count == null ? orders.length : count
   renderStatusFilterChips()
@@ -8391,6 +8395,7 @@ async function refreshNewOrderBadge() {
   const { count: nGiao } = await sb.from('orders').select('id', { count: 'exact', head: true })
     .in('delivery_date', [todayStr(), mai]).in('status', conViec)
   ganSoDem([document.getElementById('delivBadge'), document.getElementById('delivBadgeBt')], nGiao)
+  if (document.getElementById('panelOrders')?.style.display !== 'none') veNhacDon()
 }
 function ganSoDem(els, n) {
   for (const b of els) {
@@ -8410,7 +8415,7 @@ function ganSoDem(els, n) {
 function loeDon(id) {
   if (!id) return
   const tim = () => document.querySelectorAll(
-    `.content .panel:not([style*="none"]) :is(.db-line, .db-don, .dv, .order-card)[onclick="viewOrderDetail(${id})"], .content .panel:not([style*="none"]) tr.dong-don[onclick="bamDongDon(event, ${id})"]`)
+    `.content .panel:not([style*="none"]) :is(.dv, .order-card)[onclick="viewOrderDetail(${id})"], .content .panel:not([style*="none"]) tr.dong-don[onclick="bamDongDon(event, ${id})"]`)
     .forEach(el => {
       if (el.dataset.loe === String(id)) return
       el.dataset.loe = id
@@ -8424,8 +8429,7 @@ function loeDon(id) {
 // opt.trongDs: tab Đơn hàng đã tự vẽ lại tại chỗ (đổi trạng thái ngay trên bảng) thì khỏi hỏi lại server
 function reloadActiveOrderViews(opt = {}) {
   const vis = id => { const el = document.getElementById(id); return el && el.style.display !== 'none' }
-  if (vis('panelDashboard')) loadDashboard()
-  else if (vis('panelDelivery')) loadDelivery()
+  if (vis('panelDelivery')) loadDelivery()
   else if (vis('panelReports')) loadBaoCao()
   else if (!vis('panelCustomers') && !opt.trongDs) loadOrders()
   // Sổ khách cũng đổi theo đơn (số đơn · tổng đã mua từng khách, khách mới để gợi ý ở form đơn) — trước đây
@@ -8964,33 +8968,22 @@ function renderOrders() {
     el.innerHTML = `<div class="empty-state">Chưa có đơn nào${desc}. <a href="#" onclick="clearOrderFilters();return false" style="color:#2E7D32;font-weight:600;">Xem tất cả đơn</a></div>`
     return
   }
-  const fmtDayShort = d => d ? d.slice(8, 10) + '/' + d.slice(5, 7) : ''
   const shown = list                         // đã tải trang nào thì vẽ trang đó
   const soTrang = Math.ceil(ordersTotal / coTrang)
   el.innerHTML = `
 <div class="orders-count" style="font-size:.85rem;color:#557355;margin-bottom:10px;">${ordersTotal.toLocaleString('vi-VN')} đơn${soTrang > 1 ? ` · trang ${ordersPage}/${soTrang}` : ''}</div>
 <div class="orders-desktop">
-<table class="data-table">
-  <thead><tr>
-    <th></th><th>Mã đơn</th><th>Khách hàng</th><th>Sản phẩm</th><th>SL</th><th>Tổng tiền</th>
-    <th>Địa chỉ giao</th><th>Ghi chú</th><th>Ngày giao</th><th>Trạng thái</th><th></th>
-  </tr></thead>
+<table class="data-table bang-don">
+  <thead><tr><th></th><th>Giao</th><th>Khách</th><th>Mẫu hoa</th><th>Tiền</th><th>Trạng thái</th><th></th></tr></thead>
   <tbody>${shown.map(o => `
-  <tr class="dong-don" onclick="bamDongDon(event, ${o.id})">
-    <td>${orderThumbHTML(o)}</td>
-    <td><button type="button" class="ma-don" title="Xem chi tiết đơn" onclick="viewOrderDetail(${o.id})">${orderCode(o.id)}</button></td>
-    <td><strong>${orderCustomerName(o)}</strong>${o.customers?.phone || o.customer_phone ? `<br><span style="font-size:.8rem;color:#557355;">${orderCustomerPhone(o)}</span>` : ''}</td>
-    <td>${esc(o.product_name)}</td>
-    <td>${o.quantity}</td>
-    <td style="font-size:.88rem;">${orderTotalLabel(o)}${nhanThanhToan(o) ? '<br>' + nhanThanhToan(o) : ''}</td>
-    <td style="font-size:.85rem;">${esc(o.delivery_address || '—')}</td>
-    <td style="font-size:.85rem;">${nutGhiChu(o, true) || '—'}</td>
-    <td style="white-space:nowrap">${o.delivery_date ? fmtDayShort(o.delivery_date) + (o.delivery_date.slice(0, 4) === _today.slice(0, 4) ? '' : '/' + o.delivery_date.slice(0, 4)) : '—'}</td>
-    <td>
-      <select class="status-select ${STATUS_CLASS[o.status] || ''}" onchange="updateOrderStatus(${o.id}, this.value)">
-        ${ORDER_STATUSES.map(s => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
-      </select>
-    </td>
+  <tr class="dong-don ${donTre(o) ? 'dh-tre' : ''} ${o.status === 'Đã hủy' ? 'dh-huy' : ''}" onclick="bamDongDon(event, ${o.id})">
+    <td class="dh-anh">${orderThumbHTML(o)}</td>
+    <td class="dh-khi"><div class="dh-khi-tren">${khiGiaoHTML(o)}</div>${o.delivery_address ? `<div class="dh-dc" title="${esc(o.delivery_address)}">${esc(o.delivery_address)}</div>` : ''}</td>
+    <td class="dh-kh"><div class="dh-ten">${orderCustomerName(o)}${nutGhiChu(o) || ''}</div>
+      <div class="dh-phu">${o.customers?.phone || o.customer_phone ? orderCustomerPhone(o) + ' · ' : ''}<button type="button" class="ma-don" title="Xem chi tiết đơn" onclick="viewOrderDetail(${o.id})">${orderCode(o.id)}</button></div></td>
+    <td class="dh-mau">${esc(o.product_name)}${o.quantity > 1 ? ` <span class="dh-sl">×${o.quantity}</span>` : ''}</td>
+    <td class="dh-tien">${orderTotalLabel(o)}${nhanThanhToan(o) ? '<div>' + nhanThanhToan(o) + '</div>' : ''}</td>
+    <td>${nhanTrangThaiDon(o)}</td>
     <td class="actions">
       ${nutTT('pen', o.status === 'Hoàn thành' ? 'Đơn đã hoàn thành — khoá sửa' : 'Sửa', `openOrderEditModal(${o.id})`, { tat: o.status === 'Hoàn thành' })}
       ${nutTT('trash', 'Xoá', `deleteOrder(${o.id})`, { xoa: true })}
@@ -8999,26 +8992,37 @@ function renderOrders() {
 </table>
 </div>
 <div class="orders-cards">${shown.map(o => `
-  <div class="order-card" onclick="viewOrderDetail(${o.id})">
-    <div class="oc-wrap">
-      ${orderThumbHTML(o)}
-      <div class="oc-body">
-        <div class="oc-top">
-          <span class="oc-code">${orderCode(o.id)}</span>
-          <button type="button" class="oc-badge status-select ${STATUS_CLASS[o.status] || ''} oc-badge-tap"
-                  onclick="event.stopPropagation(); openQuickStatus(${o.id})"
-                  aria-label="Đổi trạng thái đơn ${orderCode(o.id)}">${o.status} ▾</button>
-        </div>
-        <div class="oc-cust">${orderCustomerName(o)} ${o.customers?.phone ? `<small>· ${orderCustomerPhone(o)}</small>` : ''}</div>
-        <div class="oc-prod">${esc(o.product_name)} ×${o.quantity}</div>
-        <div class="oc-bottom">
-          <span>${orderTotalLabel(o)} ${nhanThanhToan(o)}</span>
-          <span class="oc-meta">${nutGhiChu(o)}${o.delivery_date ? `<span>${ic('cal')}${fmtDayShort(o.delivery_date)}</span>` : ''}</span>
-        </div>
-      </div>
-    </div>
+  <div class="order-card dh-the ${donTre(o) ? 'dh-tre' : ''} ${o.status === 'Đã hủy' ? 'dh-huy' : ''}" onclick="viewOrderDetail(${o.id})">
+    <div class="dh-the-tren"><span class="dh-khi-tren">${khiGiaoHTML(o)}</span>${nhanTrangThaiDon(o)}</div>
+    <div class="dh-the-giua">${orderThumbHTML(o)}
+      <div class="dh-the-chu"><div class="dh-ten">${orderCustomerName(o)}${o.customers?.phone || o.customer_phone ? `<small>${orderCustomerPhone(o)}</small>` : ''}</div>
+        <div class="dh-mau">${esc(o.product_name)}${o.quantity > 1 ? ` <span class="dh-sl">×${o.quantity}</span>` : ''}</div></div></div>
+    <div class="dh-the-duoi"><span class="dh-tien">${orderTotalLabel(o)} ${nhanThanhToan(o)}</span>
+      <span class="dh-the-phai">${nutGhiChu(o) || ''}<span class="dh-ma">${orderCode(o.id)}</span></span></div>
   </div>`).join('')}</div>
 ${thanhTrangHTML(ordersTotal, ordersPage, 'denTrangDon(', 'doiCoTrangDon(', 'đơn')}`
+}
+
+// Ô "Giao" của đơn (bảng + thẻ, 06/11/2026): "Hôm nay" (xanh) / "Ngày mai" / "T7 08/11" + nhãn giờ gioBadge (tự cam
+// "còn 1g20", đỏ "tới giờ"). Đơn chưa giao xong mà qua ngày hẹn → chữ đỏ. Nhãn trạng thái bấm được → bảng đổi nhanh.
+function donTre(o) { return !DONE_STATUSES.includes(o.status) && !!o.delivery_date && o.delivery_date < todayStr() }
+function ngayGiaoNgan(d) {
+  const n = Math.round((new Date(d + 'T00:00') - new Date(todayStr() + 'T00:00')) / 864e5)
+  if (n === 0) return 'Hôm nay'
+  if (n === 1) return 'Ngày mai'
+  if (n === -1) return 'Hôm qua'
+  const t = new Date(d + 'T00:00')
+  return ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][t.getDay()] + ' ' + d.slice(8, 10) + '/' + d.slice(5, 7) +
+    (d.slice(0, 4) === todayStr().slice(0, 4) ? '' : '/' + d.slice(0, 4))
+}
+function khiGiaoHTML(o) {
+  if (!o.delivery_date) return '<b class="dh-ngay mo">Chưa hẹn ngày</b>'
+  const hn = o.delivery_date === todayStr()
+  return `<b class="dh-ngay ${hn && !DONE_STATUSES.includes(o.status) ? 'nay' : ''} ${donTre(o) ? 'tre' : ''}">${ngayGiaoNgan(o.delivery_date)}</b>${gioBadge(o, hn)}`
+}
+function nhanTrangThaiDon(o) {
+  return `<button type="button" class="dh-tt status-select ${STATUS_CLASS[o.status] || ''}" onclick="event.stopPropagation(); openQuickStatus(${o.id})"
+    aria-label="Đổi trạng thái đơn ${orderCode(o.id)}">${esc(o.status)}${ic('down')}</button>`
 }
 
 // Sang trang khác: hỏi server đúng trang đó (không tải dồn), làm mờ danh sách trong lúc chờ

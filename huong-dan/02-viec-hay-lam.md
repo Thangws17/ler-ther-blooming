@@ -88,14 +88,14 @@ Khi Claude báo *"cần chạy file supabase/xx_….sql"*:
 
 - Mọi file đều **chạy lại được nhiều lần** mà không hỏng gì. Không chắc đã chạy chưa thì cứ chạy lại.
 - **Đừng chạy** file trong `supabase/da-thay-the/`.
-- Admin → **Tổng quan** tự kiểm database: thiếu file nào sẽ hiện **khung vàng** ghi đúng tên file cần chạy.
+- Admin tự kiểm database mỗi lần mở: thiếu file nào sẽ hiện **khung vàng** ở đầu tab Đơn hàng ghi đúng tên file cần chạy.
 - Danh sách đầy đủ + file nào đã chạy: [supabase/README.md](../supabase/README.md).
 
 ---
 
 ## 5. Sao lưu dữ liệu (mỗi tháng 1 lần)
 
-Admin → **Tổng quan** → kéo xuống **Công cụ** → **Tải file sao lưu**. Bạn nhận về 1 file Excel gồm đơn hàng, khách, chi phí,
+Admin → **Báo cáo** → kéo xuống cuối, mục **Công cụ** → **Tải file sao lưu**. Bạn nhận về 1 file Excel gồm đơn hàng, khách, chi phí,
 nguyên liệu, mẫu hoa, bộ sưu tập, ảnh, đánh giá, nhật ký, cài đặt liên hệ. Cất file lên Google Drive.
 
 - File **không chứa ảnh** (chỉ chứa đường link tới ảnh) và **không chứa mật khẩu / mã bí mật** của email.
@@ -108,7 +108,7 @@ nguyên liệu, mẫu hoa, bộ sưu tập, ảnh, đánh giá, nhật ký, cài
 | Việc | Ở đâu |
 |---|---|
 | Lên đơn mới (khách chốt qua Facebook/Zalo) | Tab **Đơn hàng** → nút ＋ |
-| Xem hôm nay giao gì | Tab **Tổng quan** (Giao hôm nay) hoặc **Lịch giao** |
+| Xem hôm nay giao gì | Tab **Lịch giao** (hoặc Đơn hàng → chip *Giao hôm nay*) |
 | Ghi nhận khách chuyển khoản, mở mã QR | Mở đơn → nút **Mã QR** → *Đã nhận tiền* |
 | Ghi chi phí (mua hoa, giấy gói, ship…) | Tab **Sổ chi phí** → nút ＋ |
 | Xem doanh thu, lãi, mẫu bán chạy, khách tới từ đâu | Tab **Báo cáo** |

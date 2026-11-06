@@ -58,6 +58,14 @@ Những lỗi hiển thị trên iPhone đã gặp, cách làm ô ngày / ô ti�
   `translate(-50%, 160%)` — trên điện thoại nó đứng cao 74px (trên thanh tab) nên ở khổ 600–900px còn lòi lên ~13px, che
   chữ thanh tab ở MỌI tab. Giờ là `calc(100% + 140px)`. Cùng kiểu: menu bên đóng (`.sidebar` trượt -100%) vẫn đổ bóng
   thành dải xám mép trái → bóng chỉ đặt ở `.sidebar.open`.
+- **Bộ mặt "Vườn kem" + "Nội dung nổi" (06/11/2026)** nằm ở khối CSS CUỐI CÙNG trong `<style>` của admin (Ctrl+F
+  `Bộ mặt "Vườn kem"`): menu bên trên nền kem đậm `#EAE2D0`, phần làm việc `.content` là tấm sáng `#F8F5EE` — máy tính
+  thêm bo 22px + bóng + lề 10px (shop chê menu cùng màu nội dung, không biết đâu là menu); thẻ trắng bo 18px + bóng nâu
+  nhạt, tiêu đề Nunito. Thanh trên điện thoại + `theme-color` cùng màu tấm `#F8F5EE`. (Dải chào `#dbChao` đã bỏ cùng
+  Tổng quan.) Nó thắng nhờ đứng SAU (cùng độ ưu tiên), không dùng
+  `!important` — nên quy tắc trạng thái (`:hover`, `.active`, `.qua-han`) vẫn thắng nó. Thêm loại thẻ trắng mới → thêm
+  class vào nhóm "thẻ nổi" ở đó. `.dv` có viền trái màu nên chỉ đổi màu 3 cạnh còn lại (đừng `border-color` cả 4).
+  Ô modal trên điện thoại giữ bo góc riêng (bo 18px chỉ áp từ 821px).
 - **Tên class đặt lên `<body>` không được trùng class dùng cho phần tử.** Lỗi thật 23/09: `body.co-fab` trùng
   `.co-fab { display:none }` → mở tab Đơn hàng trên điện thoại là cả trang trắng. Giờ là `body.dang-co-nut-noi`
   và `.an-tren-dt`; test-khung-man-hinh kiểm từng tab.

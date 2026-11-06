@@ -68,5 +68,5 @@ File [CLAUDE.md](../CLAUDE.md) ở thư mục gốc là "sổ tay" mà Claude Co
 ## Ba nguyên tắc vàng
 
 1. **Chạy kiểm tra trước khi đưa lên mạng.** Khách đang dùng web thật. Xem mục "Chạy kiểm tra" ở [02-viec-hay-lam.md](02-viec-hay-lam.md).
-2. **Sao lưu mỗi tháng:** admin → Tổng quan → *Tải file sao lưu*, rồi cất lên Google Drive.
+2. **Sao lưu mỗi tháng:** admin → Báo cáo → kéo xuống cuối, mục **Công cụ** → *Tải file sao lưu* (quá 30 ngày chưa tải thì đầu tab Đơn hàng có nút nhắc), rồi cất lên Google Drive.
 3. **Sửa web khách thì xem lại admin, và ngược lại.** Hai bên dùng chung dữ liệu, lệch nhau là sinh lỗi.

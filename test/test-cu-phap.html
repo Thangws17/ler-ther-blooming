@@ -37,6 +37,15 @@
         else if (ml.includes('// ──')) ket.push('LOI   mục lục admin: có nguyên dòng mốc "// ──" → trang test cắt code sẽ cắt nhầm')
         else if (thieu.length) ket.push('LOI   mục lục admin: không khớp mục nào trong file → ' + thieu.join(' | '))
         else ket.push('OK    mục lục admin: ' + ten(ml.slice(p2)).length + ' mục đều khớp đúng chỗ')
+        // Hiệu ứng rê chuột (06/11/2026, skill mobile-native): trên iPhone chạm 1 cái là `:hover` DÍNH luôn (nút xanh đậm
+        // mãi tới khi chạm chỗ khác) → mọi quy tắc chỉ-:hover trong <style> phải nằm trong @media (hover: hover)…
+        // Được miễn: dòng gộp chung trạng thái khác (".x:hover, .x.on") và dòng chú thích.
+        const css = (txt.match(/<style>([\s\S]*?)<\/style>/) || ['', ''])[1]
+        const tran = css.split('\n').map((l, i) => [i, l.trim()]).filter(([, l]) =>
+          /^[^@/*{}]*:hover[^{}]*\{/.test(l) && l.slice(0, l.indexOf('{')).split(',').every(s => s.includes(':hover')))
+        if (tran.length) ket.push('LOI   admin có ' + tran.length + ' hiệu ứng :hover chưa bọc @media (hover: hover) and (pointer: fine) → ' +
+          tran.slice(0, 3).map(([, l]) => l.slice(0, 60)).join(' | '))
+        else ket.push('OK    hiệu ứng :hover admin đều đã bọc @media (hover: hover) — không dính trên iPhone')
       }
     } catch (e) {
       ket.push('LOI   ' + f + '  → ' + e.name + ': ' + e.message)

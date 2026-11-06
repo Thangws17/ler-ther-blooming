@@ -32,7 +32,7 @@ mấy trang test chạy trong trình duyệt (vẫn server 8765 đó):
 - `/test/test-web-khach.html` — mọi trang web khách × 3 khổ (360/390/1280): tràn ngang, lỗi JS, nút có tên, emoji,
   thanh tab, nút nổi, lọc/tìm/xem ảnh/menu, form đặt hoa + các lỗi nhập (gửi đơn bằng database giả), trang chi tiết
 - `/test/test-admin-giao-dien.html` — admin × 2 khổ (390/1280) với DATABASE GIẢ (`test/gia-lap-sb.js`): từng tab không
-  lỗi / không tràn, số đỏ, nút ＋ nổi, Tổng quan, Lịch giao, chi phí, bộ sưu tập, album, nguyên liệu, cảnh báo nhập dở
+  lỗi / không tràn, số đỏ, nút ＋ nổi, dải nhắc đầu Đơn hàng, Lịch giao, chi phí, bộ sưu tập, album, nguyên liệu, cảnh báo nhập dở
 - `/test/test-cu-phap.html` — biên dịch thử toàn bộ JS (web + admin) + kiểm MỤC LỤC đầu admin không lỗi thời. Chạy sau mọi lần sửa file lớn
 - `/test/test-bao-mat.html` — nhồi MÃ ĐỘC vào mọi ô dữ liệu (database giả) rồi mở mọi tab/form admin + mọi trang web:
   không mã nào chạy, không thẻ lạ / link `javascript:` / onclick bị phá chuỗi; chữ siêu dài / ô trống không làm tràn;

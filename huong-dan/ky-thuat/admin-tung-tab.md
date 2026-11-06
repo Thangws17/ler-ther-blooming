@@ -25,7 +25,7 @@ Cách từng tab tải và vẽ dữ liệu, các quy ước riêng của mỗi 
   (về tháng này + bỏ tìm/loại). Kỳ = cả tháng `expenseMonth` hoặc khoảng tự chọn `exTu`/`exDen` (`exKy()`; chọn trúng trọn 1 tháng thì
   `exSetRange` tự quy về xem tháng đó). Doanh thu/lãi tính theo kỳ (`_statCtxEx.ky`). Chip loại + ô tìm (`exLocDanhSach`) chỉ
   lọc DANH SÁCH ở máy, không đổi số tổng hợp phía trên (lọc loại mà đổi tổng thì "Lãi gộp" sai).
-- **Ghi đơn xong phải gọi `reloadActiveOrderViews()`** (21/10/2026): nó tải lại đúng màn đang mở (Tổng quan / Lịch giao /
+- **Ghi đơn xong phải gọi `reloadActiveOrderViews()`** (21/10/2026): nó tải lại đúng màn đang mở (Lịch giao /
   Báo cáo / Đơn hàng) VÀ sổ khách (số đơn, tổng đã mua; khách mới cho ô gợi ý). Trước đó ghi tiền ở Tổng quan, sửa đơn từ
   thẻ khách… xong phải F5 mới thấy số mới. Viết thêm chỗ ghi đơn mới thì gọi hàm này, đừng tự chọn tab để vẽ lại.
 - **Tab Báo cáo (`panelReports`, 11/10/2026)**: `loadBaoCao()` tải HẾT đơn từng trang 1.000 (`bcLayDon`) + chi phí + BST, rồi
@@ -37,20 +37,33 @@ Cách từng tab tải và vẽ dữ liệu, các quy ước riêng của mỗi 
   đồ chỉ 1 khối (`.an-dt`, thanh tab `bcTabDt`). Bấm số/dòng/cột nào cũng mở danh sách đơn qua `bcMo(khoa)` → `moDanhSachDon`.
   ⚠️ Tên class khung bảng tiền là `.bc-bang-tien`, KHÔNG phải `.bc-tien` — `.bc-tien` là cột tiền trong dòng xếp hạng
   (`bcDong`). Lỗi thật 21/10/2026: đặt trùng → mọi cột tiền thành lưới 3 cột, số lệch khỏi hàng. Đặt class mới thì grep trước.
-- **Tra đơn theo id phải dùng `orderById(id)`**, không dùng `orders.find`. Tab Tổng quan và Lịch giao
+- **Tra đơn theo id phải dùng `orderById(id)`**, không dùng `orders.find`. Tab Lịch giao
   nạp đơn của chúng vào `_donCache` qua `cacheOrders()` và **không được gán vào `orders`** — gán là phá
   trang đang xem của tab Đơn hàng (đã từng như vậy).
 - **Lịch sử mua hàng của khách (`viewCustomerOrders`) tự truy vấn theo `customer_id`**, không dùng mảng
   `orders`. Nhờ vậy phân trang không ảnh hưởng nó — giữ nguyên cách này.
 - **Số đỏ trên biểu tượng** (menu bên + thanh dưới) đều do `refreshNewOrderBadge()` vẽ: Đơn hàng = đơn chưa giao ("Mới" + "Đã xác nhận", `BADGE_DON_STATUSES`);
   Lịch giao = đơn giao hôm nay + mai chưa xong. Thêm số đếm mới thì dùng `ganSoDem([...], n)`.
-- **Tổng quan xếp theo việc cần làm**: đơn mới → Giao hôm nay → Sắp giao (3 ngày, chia theo ngày, `ngayNhan()`) →
-  **Tiền tháng này** (4 ô, `#dashboardCards`, nút "Báo cáo chi tiết" = `moBaoCao()`) → công cụ. Từng làm khối "Cần thu tiền"
-  liệt kê từng đơn nợ — shop bỏ (21/10/2026): ô "Còn phải thu" đã đủ, muốn xem đơn thì bấm ô hoặc lọc "Đã giao · chưa thu đủ".
-  Lãi gộp + "Thu hôm nay" đã BỎ khỏi Tổng quan (21/10/2026) — lãi ở Báo cáo. Khung sao lưu giữ id
-  `backupBox/backupLast/backupStatus/backupBtn` + chữ nút "Tải file sao lưu" (test-sao-luu kiểm).
-- **Bốn con số tiền dùng chung (21/10/2026, shop chọn bảng tiền phương án A)**: mỗi tab trả lời 1 câu — Tổng quan "hôm nay
-  làm gì", Báo cáo "tiền bạc ra sao", Sổ chi phí "đã chi gì". Cả Tổng quan lẫn Báo cáo tính bằng `tienCuaKy(ds)` (mục "Trạng
+- **Danh sách Đơn hàng kiểu GỌN + đơn sắp giao lên đầu (06/11/2026)**: shop chê 3 hướng làm lại (Bảng việc / Việc tiếp
+  theo / Bàn hoa) "quá khác bản cũ" → giữ bố cục, sắp lại. Bảng 11 cột → 7 (`.bang-don`): Giao (`khiGiaoHTML`: Hôm nay/Ngày
+  mai/T7 08/11 + `gioBadge` + địa chỉ 1 dòng) → Khách (tên + ghi chú + SĐT · mã đơn) → Mẫu (×SL) → Tiền → Trạng thái
+  (`nhanTrangThaiDon` = nhãn bấm mở `openQuickStatus`, không còn `<select>`). Thẻ (`.dh-the`): giờ + ngày lên dòng đầu.
+  Chip Trạng thái + Thanh toán chung khối `.loc-chip`. **Thứ tự**: `loadOrders` đếm 2 nhóm (`buildOrdersQuery(f, 'lam'|'xong',
+  true)`) rồi lấy đúng đoạn của trang — nhóm còn làm (`NHOM_LAM`) ngày giao gần → xa (trễ hẹn tự lên đầu, chưa hẹn ngày
+  cuối), rồi nhóm đã xong/huỷ gần → cũ; trong trang `xepGioTrongNgay()` xếp theo giờ hẹn (database không biết giờ — giờ nằm
+  trong ghi chú). `buildOrdersQuery(f)` không nhóm vẫn là kiểu cũ (mới tạo lên đầu). Database giả của `test/xem-admin.html`
+  giờ xếp được nhiều cột như thật (trước chỉ cột cuối có tác dụng → xem thử sai thứ tự).
+- **Tab Tổng quan đã BỎ (06/11/2026)** — shop: "trang tồn tại mà không có nhiệm vụ rõ ràng". Soi ra mọi khối trên đó
+  đều là bản sao tab khác (Giao hôm nay/Sắp giao = Lịch giao, Tiền tháng = Báo cáo, đơn mới = số đỏ; "2 đơn mới" lặp 3 lần).
+  Shop chọn phương án "Bỏ Tổng quan" (giữa 3 bản thử: Việc cần làm / Nhịp tuần / Bỏ). Giờ: admin mở vào **Đơn hàng**
+  (`TAB_DAU`; link cũ `#Dashboard` tự rơi về đó); việc gấp = **dải nhắc** `#donNhac` đầu Đơn hàng (`veNhacDon()`: trễ hẹn →
+  Lịch giao, đơn mới → lọc "Mới", quá 30 ngày chưa sao lưu → `denCongCu()`), đếm bằng DATABASE vì `orders` chỉ là 1 trang,
+  vẽ lại sau mỗi `refreshNewOrderBadge()`; khung "thiếu file SQL" `#sqlThieu` cũng ở đầu Đơn hàng (gọi 1 lần ở `showApp`);
+  **Công cụ** (sao lưu + ảnh nhỏ) ở CUỐI tab Báo cáo (`#congCu`). Khung sao lưu vẫn giữ id
+  `backupBox/backupLast/backupStatus/backupBtn` + chữ nút "Tải file sao lưu" (test-sao-luu kiểm). Thanh tab dưới đáy còn 4 nút.
+  Đừng dựng lại một trang "tổng quan" chép số từ tab khác — muốn thêm gì gấp thì thêm 1 nút vào dải nhắc.
+- **Bốn con số tiền dùng chung (21/10/2026, shop chọn bảng tiền phương án A)**: mỗi tab trả lời 1 câu — Đơn hàng "hôm nay
+  làm gì", Báo cáo "tiền bạc ra sao", Sổ chi phí "đã chi gì". Báo cáo (và bảng đối soát) tính bằng `tienCuaKy(ds)` (mục "Trạng
   thái THANH TOÁN"), cùng tên: **Dự kiến** (đơn chưa huỷ) · **Đã giao** (`REVENUE_STATUSES` = doanh thu) · **Đã nhận tiền**
   (`daNhanTien`: "Đã thanh toán" đủ tổng, "Đã cọc" số cọc, đơn chưa định giá = 0) · **Còn phải thu** (`conPhaiThu` = tổng −
   đã nhận; tách `noDs` đã giao chưa trả / `choDs` thu khi giao). Luôn đúng: Đã nhận + Còn phải thu = Dự kiến. Đừng tính lại
