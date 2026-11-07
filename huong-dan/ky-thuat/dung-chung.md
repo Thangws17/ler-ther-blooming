@@ -7,6 +7,11 @@
 
 - **Safari/iPhone KHÔNG xuất được WebP**: `canvas.toBlob(cb, 'image/webp')` không trả null mà lặng lẽ trả **PNG** →
   phải xét `blob.type` (`veVaXuatAnh()`). Trước 01/10 chỉ xét null nên ảnh đăng từ iPhone không được nén (có ảnh 900KB).
+  **Safari còn hiểu "chất lượng JPEG 0.8" khác Chrome** (gần như không nén): bản nhỏ 640px ra 140–255KB, ảnh gốc
+  1200px ~740KB (đo 07/11/2026, mẫu #45–#55). Từ 07/11 `veVaXuatAnh()` thấy JPEG nặng quá 0,3 byte/điểm ảnh thì xuất lại
+  ở mức thấp hơn (−0,2 rồi −0,3), giữ bản nhẹ nhất. Ảnh cũ bị nặng: nút "Tạo ảnh nhỏ cho ảnh cũ" (Báo cáo → Công cụ) làm
+  lại cả ảnh có bản nhỏ JPEG > `ANH_NHO_NANG` (120KB) — nên bấm trên MÁY TÍNH (ra WebP). Chưa kiểm được trên iPhone thật:
+  shop đăng thử 1 ảnh từ iPhone rồi xem cỡ file `nho/…` (mong ≤ ~140KB).
 - **Bẫy khi ghi file: chuỗi `\u0000` có thể bị biến thành ký tự điều khiển THẬT.** Đã xảy ra với regex lọc
   ký tự cấm trong `xlsx.js` (trình duyệt đổi NUL thật thành ký tự lạ → bộ lọc hỏng mà không báo lỗi). Viết
   xong file có `\uXXXX` thì quét lại ký tự điều khiển ẩn trước khi commit.

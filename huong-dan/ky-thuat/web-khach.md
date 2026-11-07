@@ -76,3 +76,20 @@ Trang khách xem: đọc dữ liệu, bảo mật CSP, đo lường, bộ sưu t
   trước: `#bstSection` hiện sẵn khung chờ `.sk-box` (không có bộ nào mới ẩn), `#heroPriceHint` có chữ mẫu + `visibility:hidden`,
   khung chờ trang chi tiết cao sẵn (`#detailContent > .loading`). Trước đó trang chủ xô 0,4, trang chi tiết 0,6 (chuẩn tốt < 0,1).
   Đo lại: CDP + PerformanceObserver `layout-shift` (giả lập điện thoại CPU ×4).
+- **Trang chủ hỏi contact SỚM ngay trong `<head>` (07/11/2026)** — đoạn `<script>` nhỏ trong `index.html`: lần 2 trở đi
+  xin tải luôn ảnh nền đã nhớ (`heroImageUrl`), đồng thời hỏi bảng contact; biết link ảnh là thêm
+  `<link rel="preload" as="image" fetchpriority="high">`. `loadContact()` (main.js) dùng lại kết quả qua
+  `window.__contactSom` rồi đặt về null (không hỏi lần 2). Trước đó ảnh nền chỉ bắt đầu tải khi main.js tải + chạy xong
+  rồi mới hỏi contact, lại giành mạng với ảnh mẫu hoa → 4G chậm ảnh hiện ở giây ~6,3; giờ ~2,5–3,8 giây.
+  Bẫy: (1) đoạn này phải đứng TRƯỚC thẻ `<link rel="stylesheet">` — script nằm sau file CSS phải chờ CSS tải xong mới
+  chạy (test-web-khach mục 6 kiểm thứ tự); (2) khoá công khai Supabase giờ ghi ở **3 chỗ**: `js/main.js`, `admin/index.html`
+  và `index.html` — đổi khoá thì sửa cả 3; (3) hỏi sớm hỏng / quá 15 giây → trả null, main.js tự hỏi lại như cũ.
+- **Ảnh ở màn đầu được ưu tiên (07/11/2026)**: 4 thẻ đầu trang Sản phẩm `fetchpriority="high"` (các thẻ sau `loading="lazy"`);
+  Khoảnh khắc: ~2 hàng đầu xin tải trước (cả lúc đo tỉ lệ ảnh `getImageRatio(url, uuTien)` — bước đo dùng `new Image()`
+  nên trước đây 12 ảnh cùng giành mạng, bỏ qua cả "tải khi cuộn tới"). Trang chủ: mẫu nổi bật KHÔNG được ưu tiên
+  (nhường ảnh nền) — `productCardHTML(p, uuTien)` chỉ nhận `true` thật, `data.map(productCardHTML)` truyền số thứ tự
+  vào tham số 2 nên phải so `=== true`.
+- **Dải thông báo đầu trang nhớ trong máy (07/11/2026, `lt_banner`)**: dải `#siteBanner` hiện SAU khi tải contact (~2,5 giây)
+  → đẩy cả trang xuống 73px (xô bố cục ở mọi trang khi shop bật thông báo). `primeBanner()` lúc mở trang hiện ngay chữ đã
+  nhớ, `loadBanner()` tải xong thì sửa cho đúng (đổi chữ / shop tắt → ẩn + quên). Lần ĐẦU vào web vẫn xô ở các trang
+  khác trang chủ (trang chủ đã có contact sớm). Khách bấm ✕ → `banner_dismissed` (sessionStorage) thắng mọi thứ.

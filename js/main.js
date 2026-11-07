@@ -158,11 +158,13 @@ function catStyle(cat) {
 // ─── Build product card HTML ──────────────────────────────
 // Thẻ tập trung vào sản phẩm: ảnh 4:5 chiếm phần lớn, chỉ còn tên + biệt danh (nếu caption có) + giá + nút Đặt ngay.
 // Mô tả + danh mục vẫn xem đầy đủ ở trang chi tiết.
-function productCardHTML(p) {
+// uuTien = thẻ nằm ở màn đầu (4 thẻ đầu trang Sản phẩm): ảnh xin tải TRƯỚC các ảnh bên dưới (07/11/2026).
+// Không có thì ~14 ảnh cùng giành mạng → 4G chậm, ảnh đầu tiên khách thấy mất ~6 giây mới hiện.
+function productCardHTML(p, uuTien = false) {
   _prodCache[p.id] = { image: p.image, price: p.price };   // cho header form đặt hoa
   const s = catStyle(p.category);
   const img = p.image
-    ? `<img ${srcNho(p.image, 600)} alt="${esc(p.name)}" loading="lazy">`
+    ? `<img ${srcNho(p.image, 600)} alt="${esc(p.name)}" ${uuTien === true ? 'fetchpriority="high"' : 'loading="lazy"'}>`
     : `<div class="product-img-ph" style="background:${s.bg}">${s.emoji}</div>`;
   const nameAttr = jsAttr(p.name);
   const cap = tachCaption(p.description);
@@ -474,7 +476,7 @@ function renderProducts(list, grid) {
     grid.innerHTML = `<div class="loading"><div class="l-icon">${ic('flower')}</div><p>Chưa có sản phẩm trong mục này.</p></div>`;
     return;
   }
-  grid.innerHTML = list.map(productCardHTML).join('');
+  grid.innerHTML = list.map((p, i) => productCardHTML(p, i < 4)).join('');
   wireOrderButtons();
   initScrollReveal(grid);
 }
@@ -651,10 +653,12 @@ function luuTiLe() {
     } catch (_) {}
   }, 500);
 }
-function getImageRatio(url) {
+// uuTien: ảnh ở màn đầu xin tải trước; ảnh bên dưới xin sau (07/11/2026) — trước đó 12 ảnh cùng giành mạng
+function getImageRatio(url, uuTien) {
   if (_imgRatioCache.has(url)) return Promise.resolve(_imgRatioCache.get(url));
   return new Promise(resolve => {
     const im = new Image();
+    try { im.fetchPriority = uuTien ? 'high' : 'low'; } catch (_) {}
     let xong = false, hen = 0;
     const ra = r => { if (xong) return; xong = true; clearInterval(hen); resolve(r); };
     // Kích thước ảnh nằm ở vài KB ĐẦU file → trình duyệt biết rộng/cao từ rất sớm. Đọc ngay lúc đó thay vì chờ
@@ -697,7 +701,8 @@ async function renderGalleryPage() {
     grid.innerHTML = Array.from({ length: galleryColumnCount() }, () =>
       `<div class="gallery-col">${skeletonTiles(2)}</div>`).join('');
   }
-  const ratios = await Promise.all(page.map(ph => getImageRatio(ph.url)));
+  const soDau = galleryColumnCount() * 2;   // ~2 hàng đầu = phần khách thấy ngay
+  const ratios = await Promise.all(page.map((ph, i) => getImageRatio(ph.url, i < soDau)));
   if (token !== _galRenderToken) return;   // đã bấm sang trang khác trong lúc đo
 
   // Chia ảnh vào cột đang ngắn nhất (giữ thứ tự tương đối, các cột cân nhau)
@@ -719,7 +724,7 @@ async function renderGalleryPage() {
   ${items.map(({ ph, r, i }) => `
   <div class="gallery-item" style="--ar:1/${r.toFixed(4)};--g:${r.toFixed(4)};animation-delay:${(i * 0.04).toFixed(2)}s"
        data-url="${esc(ph.url)}" data-caption="${esc(ph.caption || '')}" onclick="openLightboxFromEl(this)">
-    <img ${srcNho(ph.url, 600)} alt="${esc(ph.caption || 'Ảnh hoa ' + (start + i + 1))}" loading="lazy">
+    <img ${srcNho(ph.url, 600)} alt="${esc(ph.caption || 'Ảnh hoa ' + (start + i + 1))}" ${i < soDau ? 'fetchpriority="high"' : 'loading="lazy"'}>
   </div>`).join('')}
 </div>`).join('');
 
@@ -1021,7 +1026,11 @@ let _contactReady = null;
 async function loadContact() {
   // Promise.resolve(): câu truy vấn chỉ CHẠY khi có người chờ nó — gói lại thành 1 lời hỏi duy nhất,
   // không thì mỗi chỗ await lại gửi 1 lần (y như thư viện Supabase)
-  _contactReady = Promise.resolve(sb.from('contact').select('*').eq('id', 1).maybeSingle());
+  // Trang chủ đã hỏi SỚM trong <head> (index.html, để ảnh nền tải ngay) → dùng lại; hỏng thì hỏi như thường
+  const som = window.__contactSom;
+  window.__contactSom = null;   // chỉ dùng 1 lần — loadContact gọi lại (Thử lại) là hỏi mới
+  const hoi = () => sb.from('contact').select('*').eq('id', 1).maybeSingle();
+  _contactReady = som ? som.then(kq => kq ? { data: kq.c, error: null } : hoi()) : Promise.resolve(hoi());
   const { data } = await _contactReady;
   if (!data) return;
   contactInfo = data;
@@ -1061,8 +1070,6 @@ async function loadContact() {
   if (contactInfo.hero_image) {
     try { localStorage.setItem('heroImageUrl', contactInfo.hero_image); } catch {}
   }
-  // 2 ảnh phụ của cụm hero: ưu tiên ảnh admin chọn, bỏ trống thì lấy 2 ảnh đầu Gallery
-  applyHeroSides(contactInfo);
 
   // Google Maps embed
   const mapEl = document.getElementById('contactMap');
@@ -1436,15 +1443,6 @@ function stepQty(delta) {
   el.value = Math.min(99, Math.max(1, (parseInt(el.value, 10) || 1) + delta));
 }
 
-// Mở/đóng phần không bắt buộc của form đặt hoa (chỉ có tác dụng trên điện thoại)
-function toggleOrderMore() {
-  const box = document.getElementById('omMore');
-  if (!box) return;
-  const open = box.classList.toggle('open');
-  box.querySelector('.om-more-btn')?.setAttribute('aria-expanded', String(open));
-  if (open) box.querySelector('textarea')?.focus({ preventScroll: true });
-}
-
 function closeOrderModal() {
   // Đóng có hiệu ứng (form mờ đi + hạ xuống) — form thật đóng NGAY, bản sao diễn cảnh đóng (dongCoMa, js/dungchung.js)
   const ov = document.getElementById('orderOverlay');
@@ -1611,13 +1609,24 @@ async function chepCk(chu, ten) {
 }
 
 // ─── Banner ───────────────────────────────────────────────
-function loadBanner() {
-  try { if (sessionStorage.getItem('banner_dismissed')) return; } catch (_) {}   // máy chặn bộ nhớ → cứ hiện
-  if (!contactInfo?.banner_active || !contactInfo?.banner_text) return;
+// Dải thông báo đầu trang hiện NGAY từ trang thứ 2 trở đi (07/11/2026): trước đây dải chỉ hiện khi tải xong
+// contact (~2,5 giây trên 4G chậm) → đẩy cả trang xuống 73px ngay lúc khách đang đọc (xô bố cục, đo được ở mọi
+// trang khi shop bật thông báo). Giờ máy nhớ chữ thông báo lần trước (primeBanner lúc mở trang), contact tải về
+// thì sửa lại cho đúng (đổi chữ / tắt). Lần đầu vào web vẫn phải chờ — riêng trang chủ đã hỏi contact sớm từ <head>.
+const BANNER_NHO = 'lt_banner';
+function veBanner(chu) {
   const el = document.getElementById('siteBanner');
   if (!el) return;
-  document.getElementById('bannerText').textContent = contactInfo.banner_text;
-  el.style.display = 'block';
+  try { if (sessionStorage.getItem('banner_dismissed')) chu = ''; } catch (_) {}   // máy chặn bộ nhớ → cứ hiện
+  if (chu) document.getElementById('bannerText').textContent = chu;
+  el.style.display = chu ? 'block' : 'none';
+}
+function primeBanner() { veBanner(docNho(BANNER_NHO)); }
+function loadBanner() {
+  if (!contactInfo) return;   // không tải được contact (mất mạng) → giữ nguyên như đang hiện
+  const chu = contactInfo.banner_active && contactInfo.banner_text ? String(contactInfo.banner_text) : '';
+  try { chu ? localStorage.setItem(BANNER_NHO, chu) : localStorage.removeItem(BANNER_NHO); } catch (_) {}
+  veBanner(chu);
 }
 
 function closeBanner() {
@@ -1846,23 +1855,6 @@ function docNho(khoa) { try { return localStorage.getItem(khoa) } catch (_) { re
 function primeHero() {
   if (!document.getElementById('heroBg')) return;
   _setHeroImg('heroBg', docNho('heroImageUrl'));
-  _setHeroImg('heroSide1', docNho('heroSide1Url'));
-  _setHeroImg('heroSide2', docNho('heroSide2Url'));
-}
-
-// 2 ảnh phụ của cụm hero = 2 ảnh ĐẦU Gallery (kéo thả sắp xếp Gallery trong admin để đổi)
-// 2 ảnh phụ cụm hero: ưu tiên ảnh admin đã chọn (contact.hero_side1/2);
-// ô nào bỏ trống thì lấy ảnh đầu Gallery (giữ tương thích như trước)
-async function applyHeroSides(c) {
-  if (!document.getElementById('heroSide1')) return;
-  let s1 = c && c.hero_side1, s2 = c && c.hero_side2;
-  if (!s1 || !s2) {
-    const { data } = await sb.from('gallery').select('url').order('order_index').limit(2);
-    s1 = s1 || data?.[0]?.url;
-    s2 = s2 || data?.[1]?.url;
-  }
-  if (s1) { _setHeroImg('heroSide1', s1); try { localStorage.setItem('heroSide1Url', s1); } catch {} }
-  if (s2) { _setHeroImg('heroSide2', s2); try { localStorage.setItem('heroSide2Url', s2); } catch {} }
 }
 
 // Nút ↑ quay lại đầu trang — chỉ hiện khi đã cuộn xuống đủ xa
@@ -1910,13 +1902,13 @@ function chayRieng(fn) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  [initNav, injectZaloIcons, primeHero, initBackToTop, initViewportFix].forEach(chayRieng);
+  [initNav, injectZaloIcons, primeHero, primeBanner, initBackToTop, initViewportFix].forEach(chayRieng);
   // Năm © tự cập nhật (khỏi lỗi thời)
   document.querySelectorAll('.footer-bottom').forEach(el => {
     el.textContent = el.textContent.replace(/©\s*\d{4}/, '© ' + new Date().getFullYear());
   });
   // Tải song song cho nhanh: contact chạy nền, nội dung chính không phải chờ
-  // (ảnh phụ hero do loadContact gọi applyHeroSides xử lý). loadContact chạy TRƯỚC loadProductDetail
+  // loadContact chạy TRƯỚC loadProductDetail
   // để trang chi tiết dùng chung lời hỏi contact (_contactReady).
   const contactReady = chayRieng(loadContact);
   [loadHeroPriceHint, loadBoSuuTap, loadFeatured, loadProducts, loadGallery, veThanhTabKhach,

@@ -186,7 +186,20 @@ function nutCoEmoji(goc) {
           return q
         }
       }
-      const kiemLai = async () => { w.eval('_sqlDaKiem = false'); await w.baoSqlThieu() }
+      const kiemLai = async () => { w.eval('_sqlDaKiem = false; try { localStorage.removeItem(SQL_DU_KHOA) } catch {}'); await w.baoSqlThieu() }
+      await kiemLai()   // kiểm 1 lượt với database giả ĐỦ cột (lượt lúc mở trang chạy trước khi gắn database giả)
+      // Đủ hết thì máy nhớ 7 ngày (SQL_DU_KHOA, 07/11/2026) → lần mở sau KHÔNG hỏi lại database
+      test('Database đủ → máy nhớ "đã đủ" (lần mở sau khỏi kiểm)', () => {
+        const nho = JSON.parse(w.localStorage.getItem(w.eval('SQL_DU_KHOA')) || 'null')
+        bang(nho && nho.dau, w.eval('SQL_DAU_HIEU').map(x => x[0]).join(','))
+      })
+      {
+        let soLuot = 0
+        sbA.from = ten => { soLuot++; return fromGoc(ten) }
+        w.eval('_sqlDaKiem = false'); await w.baoSqlThieu()
+        sbA.from = fromGoc
+        test('Đã nhớ "đủ" → mở lại admin không tốn lượt hỏi nào để kiểm SQL', () => bang(soLuot, 0))
+      }
       giaLoi('nguon', { code: '42703', message: 'column orders.nguon does not exist' })
       await kiemLai()
       test('Thiếu cột orders.nguon → khung vàng nhắc ĐÚNG 1 file 33_nguon_khach.sql', () => {

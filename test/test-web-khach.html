@@ -547,6 +547,53 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
     f.remove()
   }
 
+  // ── 6. Tải nhanh (07/11/2026): trang chủ hỏi contact sớm từ <head>, ảnh ở màn đầu được ưu tiên, dải thông báo nhớ ──
+  nhom('6. Tải nhanh — hỏi sớm, ưu tiên ảnh màn đầu, dải thông báo không xô trang')
+  {
+    const T = await moTrang('', 390)
+    const { w, d } = T
+    test('[trang chủ] đoạn hỏi sớm nằm TRƯỚC file CSS (đứng sau là phải chờ CSS tải xong mới chạy)', () => {
+      const dau = [...d.head.children].map(x => x.tagName === 'SCRIPT' && !x.src && /__contactSom/.test(x.textContent) ? 'som' : x.rel === 'stylesheet' ? 'css' : '').filter(Boolean)
+      bang(dau.slice(0, 2), ['som', 'css'])
+    })
+    test('[trang chủ] main.js dùng lại lời hỏi sớm (không hỏi contact lần 2) và đã có dữ liệu', () => {
+      bang([w.__contactSom, !!w.eval('contactInfo')], [null, true])
+    })
+    test('[trang chủ] ảnh nền được xin tải sớm, ưu tiên cao', () => {
+      const l = [...d.querySelectorAll('link[rel="preload"][as="image"]')]
+      if (!l.length) throw new Error('không có thẻ preload ảnh')
+      bang(l.every(x => x.getAttribute('fetchpriority') === 'high'), true)
+      const nen = T.id('heroBg').style.backgroundImage
+      if (!l.some(x => nen.includes(x.href))) throw new Error('ảnh xin sớm khác ảnh nền: ' + nen)
+    })
+    test('[trang chủ] mẫu nổi bật KHÔNG giành ưu tiên với ảnh nền (vẫn tải khi cuộn tới)', () =>
+      bang([...d.querySelectorAll('#featuredGrid img')].filter(x => x.getAttribute('fetchpriority') === 'high').length, 0))
+    // Dải thông báo: nhớ chữ lần trước → lần mở sau hiện ngay; shop tắt → lần sau tự tắt
+    w.eval('window.__ttCu = contactInfo')   // contactInfo khai bằng let → không phải w.contactInfo
+    const datTT = them => w.eval('contactInfo = Object.assign({}, window.__ttCu, ' + JSON.stringify(them) + ')')
+    try { w.sessionStorage.removeItem('banner_dismissed') } catch {}
+    datTT({ banner_active: true, banner_text: 'Thử <b>nhớ</b> thông báo' })
+    w.loadBanner()
+    test('Dải thông báo: bật → máy nhớ chữ (để lần mở sau hiện ngay, khỏi xô trang)', () =>
+      bang([w.localStorage.getItem('lt_banner'), T.id('siteBanner').style.display, T.id('bannerText').textContent], ['Thử <b>nhớ</b> thông báo', 'block', 'Thử <b>nhớ</b> thông báo']))
+    T.id('siteBanner').style.display = 'none'; w.primeBanner()
+    test('Dải thông báo: mở trang → hiện NGAY chữ đã nhớ, không chờ database', () => bang(T.id('siteBanner').style.display, 'block'))
+    datTT({ banner_active: false }); w.loadBanner()
+    test('Dải thông báo: shop tắt → ẩn + quên chữ cũ', () => bang([T.id('siteBanner').style.display, w.localStorage.getItem('lt_banner')], ['none', null]))
+    w.sessionStorage.setItem('banner_dismissed', '1'); w.localStorage.setItem('lt_banner', 'X'); w.primeBanner()
+    test('Dải thông báo: khách đã bấm ✕ trong phiên này → không hiện lại', () => bang(T.id('siteBanner').style.display, 'none'))
+    w.sessionStorage.removeItem('banner_dismissed'); w.eval('contactInfo = window.__ttCu'); w.loadBanner()
+    T.f.remove()
+
+    const S = await moTrang('san-pham', 390)
+    test('[sản phẩm] 4 ảnh đầu ưu tiên cao, các ảnh sau tải khi cuộn tới', () => {
+      const im = [...S.d.querySelectorAll('#productsGrid .product-card img')]
+      if (im.length < 5) throw new Error('chỉ có ' + im.length + ' ảnh')
+      bang(im.map(x => x.getAttribute('fetchpriority') === 'high' ? 'cao' : x.loading).slice(0, 5), ['cao', 'cao', 'cao', 'cao', 'lazy'])
+    })
+    S.f.remove()
+  }
+
   const tk = document.getElementById('tongket')
   tk.className = soFail ? 'fail-box' : 'ok-box'
   tk.textContent = soFail ? '✕ ' + soFail + ' ca FAIL / ' + (soOk + soFail) + ' ca' : '✓ Tất cả ' + soOk + ' ca đều PASS'

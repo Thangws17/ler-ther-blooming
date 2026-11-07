@@ -44,6 +44,8 @@ Cách từng tab tải và vẽ dữ liệu, các quy ước riêng của mỗi 
   `orders`. Nhờ vậy phân trang không ảnh hưởng nó — giữ nguyên cách này.
 - **Số đỏ trên biểu tượng** (menu bên + thanh dưới) đều do `refreshNewOrderBadge()` vẽ: Đơn hàng = đơn chưa giao ("Mới" + "Đã xác nhận", `BADGE_DON_STATUSES`);
   Lịch giao = đơn giao hôm nay + mai chưa xong. Thêm số đếm mới thì dùng `ganSoDem([...], n)`.
+  2 lượt đếm chạy song song (07/11/2026). Mở admin vào Đơn hàng thì `showApp()` KHÔNG gọi hàm này — `loadOrders()` tự gọi
+  sau khi tải (trước đó số đỏ + dải nhắc bị hỏi 2–3 lần lúc mở).
 - **Danh sách Đơn hàng kiểu GỌN + đơn sắp giao lên đầu (06/11/2026)**: shop chê 3 hướng làm lại (Bảng việc / Việc tiếp
   theo / Bàn hoa) "quá khác bản cũ" → giữ bố cục, sắp lại. Bảng 11 cột → 7 (`.bang-don`): Giao (`khiGiaoHTML`: Hôm nay/Ngày
   mai/T7 08/11 + `gioBadge` + địa chỉ 1 dòng) → Khách (tên + ghi chú + SĐT · mã đơn) → Mẫu (×SL) → Tiền → Trạng thái

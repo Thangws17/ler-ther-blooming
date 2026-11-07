@@ -111,11 +111,6 @@
     /* Ô ngắn (trạng thái, ngày, tiền, SL) không cần kéo hết chiều ngang —
        để rộng bằng ô địa chỉ trông rất trống trải và khó liếc nhanh.
        Đặt trên .field-group để cả input lẫn select đều theo. */
-    .fg-sm > input, .fg-sm > select { max-width: 220px; }
-    .fg-sm > .date-pick-wrap { max-width: 180px; }   /* ô ngày giờ là nút + popover, không còn input[type=date] */
-    /* Máy tính: nằm cạnh nhau như thường. Điện thoại: chiếm trọn hàng
-       (khai báo trong khối ≤820px) để ô gợi ý khách đủ chỗ hiển thị. */
-    .fg-wide { }
 
     /* Ô Số lượng kiểu −/+ — GIỐNG HỆT web khách để hai bên đồng bộ.
        Đa số đơn 1-2 bó nên bấm nhanh hơn gõ, và ô hẹp lại đỡ chiếm chỗ. */
@@ -238,13 +233,6 @@
       .pg-so { order: -1; flex: 1 1 100%; justify-content: center; }
       .pg-co select { font-size: 16px; }   /* <16px thì iPhone tự phóng to trang khi bấm */
     }
-    .btn-edit {
-      background: #E8F5E9; color: #2E7D32; border: none;
-      padding: 6px 14px; border-radius: 6px; cursor: pointer;
-      font-size: .82rem; font-weight: 600; transition: background .2s;
-    }
-    @media (hover: hover) and (pointer: fine) { .btn-edit:hover { background: #C8E6C9; } }
-    .btn-edit:disabled { background: #f0f0f0; color: #aaa; cursor: not-allowed; }
     .btn-delete {
       background: #FBE9E7; color: #E64A19; border: none;
       padding: 6px 14px; border-radius: 6px; cursor: pointer;
@@ -290,7 +278,7 @@
     /* Bảng cuộn ngang trên màn hình nhỏ, tránh vỡ layout */
     [id$="Table"], #dashboardToday { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     @media (max-width: 720px) {
-      .btn-edit, .btn-delete { padding: 5px 10px; font-size: .78rem; }
+      .btn-delete { padding: 5px 10px; font-size: .78rem; }
       .btn-green, .btn-outline { padding: 9px 16px; font-size: .88rem; }
     }
     .toggle-btn { padding: 5px 12px; border-radius: 50px; border: none; cursor: pointer; font-size: .78rem; font-weight: 600; background: #eee; color: #999; transition: color .2s, background-color .2s, border-color .2s, box-shadow .2s, opacity .2s, filter .2s; }
@@ -342,12 +330,6 @@
     .st-chip.s-hoanthanh.on { background: #E8F5E9; color: #2E7D32; border-color: #2E7D32; }
     .st-chip.s-huy.on       { background: #FFEBEE; color: #C62828; border-color: #C62828; }
 
-    /* ── Cảnh báo chuẩn bị hàng ───────────────── */
-    .prep-alert { background: #FFF8E1; border: 1.5px solid #FFCC80; border-left: 5px solid #FB8C00; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; }
-    .prep-alert-head { font-size: 1.02rem; font-weight: 600; color: #E65100; margin-bottom: 12px; }
-    .prep-alert-list { display: flex; flex-wrap: wrap; gap: 8px; }
-    .prep-chip { background: #fff; border: 1px solid #FFCC80; border-radius: 50px; padding: 6px 14px; font-size: .85rem; color: #5d4037; cursor: pointer; transition: color .15s, background-color .15s, border-color .15s, box-shadow .15s, opacity .15s, filter .15s; }
-    @media (hover: hover) and (pointer: fine) { .prep-chip:hover { background: #FB8C00; color: #fff; border-color: #FB8C00; } }
 
     .stat-explain { background: #F1F8F1; border: 1px solid #DCEBDC; border-radius: 10px; padding: 10px 14px; font-size: .85rem; color: #4E6B4E; margin-bottom: 14px; line-height: 1.5; }
     .stat-row { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border: 1px solid #eef3ee; border-radius: 10px; margin-bottom: 8px; cursor: pointer; background: #fff; transition: background .12s, border-color .12s; }
@@ -361,8 +343,6 @@
     .sr-date.sr-fallback { background: #FFF3E0; color: #E65100; }
     .stat-total-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding: 12px 14px; background: #2E7D32; color: #fff; border-radius: 10px; font-weight: 600; }
     .stat-total-bar strong { font-size: 1.1rem; }
-    .profit-line { display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; border-bottom: 1px dashed #DCEBDC; font-size: .95rem; }
-    .profit-line strong { font-size: 1.05rem; }
     /* Khung sao lưu: xanh khi đã sao lưu gần đây, cam khi quá 30 ngày / chưa bao giờ */
     .backup-box { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; justify-content: space-between; margin-top: 32px; padding: 20px 22px; background: #E8F5E9; border: 1.5px solid #A5D6A7; border-radius: 14px; }
     .backup-box.qua-han { background: #FBE9E7; border-color: #FFAB91; }
@@ -548,31 +528,10 @@
 
     /* ── Lịch giao ────────────────────────────── */
     .deliv-group { margin-bottom: 26px; }
-    .deliv-head { font-size: 1rem; color: #2E7D32; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
     .deliv-count { font-size: .78rem; font-weight: 600; color: #557355; background: #E8F5E9; padding: 2px 10px; border-radius: 50px; }
-    .deliv-row { display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #f0f4f0; border-radius: 10px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer; transition: color .15s, background-color .15s, border-color .15s, box-shadow .15s, opacity .15s, filter .15s; }
-    @media (hover: hover) and (pointer: fine) { .deliv-row:hover { border-color: #C8E6C9; box-shadow: 0 2px 10px rgba(0,0,0,.05); } }
-    .deliv-code { font-weight: 700; color: #2E7D32; min-width: 78px; }
-    .deliv-name { font-weight: 600; min-width: 120px; }
-    .deliv-area { color: #555; font-size: .85rem; min-width: 90px; }
-    .deliv-prod { color: #555; font-size: .88rem; flex: 1; }
-    @media (max-width: 720px) { .deliv-row { flex-wrap: wrap; gap: 6px 12px; } .deliv-prod { flex: 1 1 100%; } }
 
     /* ── Quản lý danh mục Gallery ─────────────── */
     .cat-manager { background: #fff; border: 1px solid #e8f0e8; border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; }
-    .cat-manager-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin-bottom: 14px; }
-    /* Gấp khối danh mục: bình thường chỉ còn 1 dòng, cần sửa mới mở.
-       Khối này trước đây nuốt gần hết màn hình đầu, đẩy ảnh xuống dưới. */
-    .cat-fold {
-      display: flex; align-items: center; gap: 10px; width: 100%;
-      background: none; border: none; padding: 4px 0; cursor: pointer;
-      font-family: inherit; font-size: .98rem; font-weight: 700; color: #2E7D32; text-align: left;
-    }
-    .cat-fold-count { font-weight: 600; color: #557355; font-size: .84rem; }
-    .cat-fold-caret { margin-left: auto; color: #557355; transition: transform .2s; }
-    .cat-manager.open .cat-fold-caret { transform: rotate(180deg); }
-    .cat-fold-body { display: none; padding-top: 14px; }
-    .cat-manager.open .cat-fold-body { display: block; }
     .cat-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
     /* ── Bộ sưu tập (BST) ── */
     .bst-list { display: grid; gap: 12px; }
@@ -606,24 +565,13 @@
     .sw input:focus-visible + .sw-nen { outline: 2px solid #2E7D32; outline-offset: 2px; }
 
     /* Ảnh bìa trong modal BST */
-    .bst-cover-hang { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
     .bst-cover-xem { width: 92px; height: 116px; border-radius: 10px; object-fit: cover; flex: 0 0 auto; }
-    .bst-cover-cot { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 190px; }
-    .bst-cover-nut { display: flex; gap: 7px; flex-wrap: wrap; }
-    .bst-cover-nut button { background: #fff; border: 1.5px solid #C8E6C9; color: #2E7D32; border-radius: 8px; padding: 7px 12px; font: 600 .82rem inherit; font-family: inherit; }
-    @media (hover: hover) and (pointer: fine) { .bst-cover-nut button:hover { background: #E8F5E9; } }
-    .bst-cover-nut button.bo { border-color: #FFCDD2; color: #C62828; }
-    @media (hover: hover) and (pointer: fine) { .bst-cover-nut button.bo:hover { background: #FFEBEE; } }
-    .bst-cover-link { display: flex; gap: 6px; }
-    .bst-cover-link input { flex: 1; min-width: 0; padding: 7px 10px; border: 1.5px solid #ddd; border-radius: 8px; font-size: .84rem; }
     .bst-cover-tumau { display: flex; gap: 6px; overflow-x: auto; padding: 6px 0; }
     .bst-cover-tumau img { width: 52px; height: 52px; border-radius: 7px; object-fit: cover; cursor: pointer; border: 2.5px solid transparent; flex: 0 0 auto; }
     @media (hover: hover) and (pointer: fine) { .bst-cover-tumau img:hover { border-color: #2E7D32; } }
     .bst-cover-nhac { font-size: .82rem; color: #557355; }
 
     /* Lưới tick chọn mẫu hoa cho BST */
-    .bst-pick-dau { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 7px; }
-    .bst-pick-dem { font-size: .82rem; color: #2E7D32; font-weight: 600; }
     .bst-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; max-height: 320px; overflow-y: auto; padding: 8px; border: 1.5px solid #e8f0e8; border-radius: 10px; background: #fafcfa; }
     .bst-o { position: relative; display: block; border-radius: 9px; overflow: hidden; cursor: pointer; border: 2.5px solid transparent; background: #fff; }
     .bst-o.on { border-color: #2E7D32; }
@@ -656,9 +604,6 @@
     .cat-row .cat-count { margin-right: auto; }
     .cat-row .cat-emoji:focus, .cat-row .cat-name:focus { border-color: #2E7D32; outline: none; }
     .cat-count { font-size: .78rem; color: #557355; background: #E8F5E9; border-radius: 50px; padding: 3px 10px; white-space: nowrap; }
-    .cat-move { background: #eef3ee; border: none; border-radius: 6px; width: 28px; height: 30px; cursor: pointer; color: #2E7D32; font-weight: 700; font-size: .85rem; }
-    @media (hover: hover) and (pointer: fine) { .cat-move:hover { background: #C8E6C9; } }
-    .cat-move:disabled { opacity: .35; cursor: not-allowed; }
     /* flex-wrap + min-width:0 để ô nhập co lại được, không đẩy modal rộng quá màn hình */
     .cat-add-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .cat-add-row input, .cat-add-row select { min-width: 0; }
@@ -673,14 +618,6 @@
     @media (max-width: 600px) { .cat-row .cat-count { display: none; } }
 
     /* ── Upload zone ──────────────────────────── */
-    .upload-zone {
-      border: 2px dashed #C8E6C9; border-radius: 12px;
-      padding: 40px; text-align: center; cursor: pointer;
-      transition: color .2s, background-color .2s, border-color .2s, box-shadow .2s, opacity .2s, filter .2s; margin-bottom: 24px; background: #fff;
-    }
-    @media (hover: hover) and (pointer: fine) { .upload-zone:hover { border-color: #2E7D32; background: #f0faf0; } }
-    .upload-icon { font-size: 2.5rem; margin-bottom: 10px; }
-    .upload-text { font-weight: 600; color: #2E7D32; font-size: 1rem; }
     .upload-hint { color: #557355; font-size: .85rem; margin-top: 4px; }
     .img-upload-area {
       border: 1.5px dashed #C8E6C9; border-radius: 8px;
@@ -705,7 +642,6 @@
     .progress-text { font-size: .85rem; color: #557355; }
 
     /* ── Gallery admin grid ───────────────────── */
-    .gal-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
     .gal-cat-badge { position: absolute; top: 6px; left: 6px; background: rgba(46,125,50,.88); color: #fff; font-size: .68rem; font-weight: 600; padding: 2px 9px; border-radius: 999px; pointer-events: none; max-width: calc(100% - 12px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .gallery-drag { position: relative; }
     .gallery-admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 8px; }
@@ -714,8 +650,6 @@
     /* Kéo-thả sắp xếp */
     .gallery-drag { position: relative; cursor: grab; }
     .gallery-drag:active { cursor: grabbing; }
-    .drag-grip { position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,.55); color: #fff; font-size: .7rem; font-weight: 600; padding: 2px 8px; border-radius: 50px; pointer-events: none; opacity: 0; transition: opacity .15s; }
-    @media (hover: hover) and (pointer: fine) { .gallery-admin-item:hover .drag-grip { opacity: 1; } }
     .gallery-admin-item.dragging { opacity: .35; }
     .gallery-admin-item.drag-over { outline: 2px dashed #2E7D32; outline-offset: 2px; }
 
@@ -776,7 +710,6 @@
     .contact-form { display: grid; gap: 16px; }
     .ct-muc { background: #fff; border-radius: 12px; padding: 24px 28px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
     .ct-muc h2 { font-size: 1.02rem; margin: 0 0 14px; color: #2E5E2D; }
-    .ct-muc .ct-mota { font-size: .84rem; color: #5b7a5a; margin: -6px 0 14px; line-height: 1.6; }
     .ct-muc .form-grid { margin-bottom: 0; }
     .ct-muc .hero-slots { grid-template-columns: 1fr; }
     .ct-muc .check-row { padding-top: 0; }
@@ -1113,9 +1046,6 @@
       .mc-actions { display: flex; gap: 8px; margin-top: 10px; }
       .mc-actions button { flex: 1; padding: 10px 8px; font-size: .88rem; }
       .mc-actions .toggle-btn { flex: 1; border-radius: 8px; }
-      .prod-card { display: flex; gap: 12px; }
-      .prod-card .thumb { width: 62px; height: 62px; flex-shrink: 0; }
-      .prod-card .prod-info { flex: 1; min-width: 0; }
 
 
       /* Modal → bottom sheet: trượt từ dưới lên + tay nắm */
@@ -1169,9 +1099,7 @@
       .field-group { margin-bottom: 13px; }
       .field-group label { margin-bottom: 4px; }
       /* Ô ngắn đã nằm trong cột hẹp rồi, bỏ trần rộng để nó lấp đầy cột */
-      .fg-sm > input, .fg-sm > select, .fg-sm > .date-pick-wrap { max-width: none; }
       .qty-step { width: 100%; max-width: 150px; }
-      .fg-wide { grid-column: 1 / -1; }   /* tên khách + SĐT: cần trọn hàng trên điện thoại */
       /* Điện thoại: cho xuống 2 dòng và hiện đủ 6 mức giá — màn hẹp, xếp
          một hàng thì phải trượt ngang, dễ bỏ sót mức phía sau */
       .price-chips { flex-wrap: wrap; overflow-x: visible; }
@@ -1229,8 +1157,8 @@
           stroke-linecap: round; stroke-linejoin: round; vertical-align: -3px; }
 
     /* Nút có biểu tượng + chữ: xếp thẳng hàng */
-    .btn-green, .btn-outline, .btn-edit, .btn-delete, .btn-clear, .filter-select,
-    .date-clear-btn, .bst-cover-nut button, .hero-slot button {
+    .btn-green, .btn-outline, .btn-delete, .btn-clear, .filter-select,
+    .date-clear-btn, .hero-slot button {
       display: inline-flex; align-items: center; justify-content: center; gap: 7px;
     }
     .btn-green .ic, .btn-outline .ic, .btn-delete .ic, .filter-select .ic { width: 17px; height: 17px; }
@@ -1314,18 +1242,14 @@
       display: flex; align-items: center; justify-content: center; gap: 8px;
     }
     @media (hover: hover) and (pointer: fine) { .img-upload-area:hover { border-color: #2E7D32; background: #f7fbf7; } }
-    .upload-icon { display: flex; justify-content: center; color: #8a978a; }
-    .upload-icon .ic { width: 34px; height: 34px; stroke-width: 1.5; }
     .modal-close { display: inline-flex; align-items: center; justify-content: center; color: #8a978a; }
     .modal-close .ic { width: 20px; height: 20px; }
     .confirm-icon .ic { width: 26px; height: 26px; color: #E64A19; }
     .thumb .ic, .prod-ph .ic, .bst-bia-trong .ic, .bst-o-trong .ic { width: 22px; height: 22px; color: #9aa79a; }
     .empty-state .ic { width: 20px; height: 20px; color: #9aa79a; }
     .empty-state .btn-outline .ic { width: 16px; height: 16px; color: currentColor; }
-    .prep-alert-head .ic, .bst-rot .ic { width: 17px; height: 17px; margin-right: 6px; color: #E65100; }
     .bst-chip .ic { width: 13px; height: 13px; margin-right: 3px; vertical-align: -2px; }
     .suggest-add .ic { width: 15px; height: 15px; margin-right: 4px; }
-    .cat-fold .ic { width: 17px; height: 17px; color: #8a978a; }
     .field-group > .ic, label + .ic { color: #E65100; }
 
     /* ══ Form kiểu mới (Thêm đơn, Thêm chi phí) ═════════════════════ */
@@ -1391,7 +1315,6 @@
     .fx-more .ic { color: #7a877a; transition: transform .2s; }
     .fx-more.open .ic { transform: rotate(45deg); }
     .fx-more small { margin-left: auto; color: #9aa79a; font-weight: 600; font-size: .78rem; }
-    .fx-more.co-du-lieu small { color: #2E7D32; }
     .fx-body { display: none; padding: 10px 0 4px; }
     .fx-more.open + .fx-body { display: block; }
     .fx-body .fx-in { margin-bottom: 0; }
@@ -1940,15 +1863,15 @@
     @keyframes soNay { 0% { scale: .5; } 100% { scale: 1; } }
     /* Bấm là nút lún nhẹ — biết là đã bấm trúng. Trước 06/11 chỉ có trên điện thoại; giờ cả chuột (skill
        emil-design-eng: nút nào cũng phải "nghe thấy" cú bấm). Điện thoại lún sâu hơn (.95) vì ngón tay che mất nút. */
-    .btn-green, .btn-outline, .btn-delete, .btn-edit, .btn-discard, .fx-chip, .chip-thismonth, .st-chip, .month-arrow, .bt-item,
+    .btn-green, .btn-outline, .btn-delete, .btn-discard, .fx-chip, .chip-thismonth, .st-chip, .month-arrow, .bt-item,
     .nav-item, .bc-tin, .bc-seg button, .bc-tab button, .bc-loc-nut, .bc-tt-so, .bc-tt-dong, .bc-cot, .od-qr,
-    .qd-row .fx-chip, .pg-nut, .act, .modal-close, .qty-step button, .price-chip, .prep-chip, .date-today-btn, .gi-arrow,
+    .qd-row .fx-chip, .pg-nut, .act, .modal-close, .qty-step button, .price-chip, .date-today-btn, .gi-arrow,
     .kh-nut, .qr-chep, .date-clear-btn, .toggle-btn {
       transition: scale .14s var(--ease-out), background-color .15s, border-color .15s, color .15s, box-shadow .15s, opacity .15s; }
-    .btn-green:active, .btn-outline:active, .btn-delete:active, .btn-edit:active, .btn-discard:active, .fx-chip:active,
+    .btn-green:active, .btn-outline:active, .btn-delete:active, .btn-discard:active, .fx-chip:active,
     .chip-thismonth:active, .st-chip:active, .month-arrow:active, .bt-item:active, .nav-item:active, .bc-tin:active,
     .bc-seg button:active, .bc-tab button:active, .bc-loc-nut:active, .od-qr:active, .pg-nut:active:not(:disabled),
-    .act:active:not(:disabled), .modal-close:active, .qty-step button:active, .price-chip:active, .prep-chip:active,
+    .act:active:not(:disabled), .modal-close:active, .qty-step button:active, .price-chip:active,
     .date-today-btn:active, .gi-arrow:active:not(:disabled), .kh-nut:active, .qr-chep:active, .date-clear-btn:active,
     .toggle-btn:active { scale: .97; }
     .bc-tt-so:active, .bc-tt-dong:active, .bc-cot:active { scale: .985; }
@@ -2026,8 +1949,6 @@
     .od-qr.od-du-nut { border-style: solid; background: #fff; }   /* phải kèm .od-qr: rule .od-qr nằm sau sẽ đè mất */
     .od-nho { color: #7a877a; font-weight: 500; }
     .od-conthu { color: #1565C0; }
-    .od-du { color: #2E7D32; display: inline-flex; align-items: center; gap: 4px; }
-    .od-du .ic { width: 15px; height: 15px; }
     .od-qr { margin: 8px 0 4px; width: 100%; display: flex; min-width: 0; text-align: center; align-items: center; justify-content: center; gap: 8px; padding: 11px;
              border-radius: 12px; border: 1.5px dashed #2E7D32; background: #F1F8F1; color: #2E7D32; font: inherit; font-weight: 700; cursor: pointer; }
     @media (hover: hover) and (pointer: fine) { .od-qr:hover { background: #E8F5E9; } }
@@ -2190,13 +2111,7 @@
     .bstm-bia .bst-bia-trong.bst-cover-xem { display: flex; align-items: center; justify-content: center; color: #9aa79a; background: #f0f3ef; }
     .bstm-bia-nut { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; flex: 1; min-width: 0; }
     .bstm-bia-nut .fx-chip { width: 100%; justify-content: flex-start; }
-    .bstm-bo { color: #C62828; }
-    @media (hover: hover) and (pointer: fine) { .bstm-bo:hover { border-color: #EF9A9A; } }
     .bst-cover-tumau { margin-top: 8px; }
-    .bstm-sw { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid #e3e8e2; border-radius: 12px;
-               cursor: pointer; margin-bottom: 10px; }
-    .bstm-sw-t { flex: 1; display: flex; flex-direction: column; }
-    .bstm-sw-t small { font-size: .78rem; color: #7a877a; }
     .bstm-ngay { margin-top: 2px; }
     .bstm-dem { margin-left: auto; text-transform: none; letter-spacing: 0; color: #2E7D32; font-size: .8rem; }
     .bstm-pick-tool { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
@@ -2813,7 +2728,7 @@
             <span class="db-tool-ic"><svg class="ic" aria-hidden="true"><use href="#i-zap"/></svg></span>
             <div class="db-tool-txt">
               <strong>Tạo ảnh nhỏ cho ảnh cũ</strong>
-              <p class="bk-mo-ta">Ảnh đăng trước 01/10 chưa có bản nhỏ nên web khách tải chậm. Bấm 1 lần là xong, ảnh gốc vẫn giữ.</p>
+              <p class="bk-mo-ta">Ảnh đăng trước 01/10 chưa có bản nhỏ, ảnh đăng từ iPhone trước 07/11 thì nặng gấp đôi — web khách tải chậm. Nên bấm trên máy tính, 1 lần là xong, ảnh gốc vẫn giữ.</p>
             </div>
             <button class="btn-outline" id="optimizeBtn" onclick="optimizeOldImages()">Bắt đầu</button>
             <div id="optimizeProgress" style="display:none;flex:1 1 100%;">
@@ -4003,12 +3918,13 @@ function showApp() {
   document.getElementById('loginWrap').style.display = 'none'
   document.getElementById('appWrap').style.display = 'flex'
   loadProducts()   // nạp sẵn để modal Sửa đơn gợi ý giá niêm yết
-  refreshNewOrderBadge()
   kiemQuyenQuanTri()
   // F5 mở lại đúng tab đang xem (tab lưu trong URL dạng #Expenses)
   const saved = location.hash.slice(1)
   // Tab Tổng quan đã bỏ (06/11/2026): link cũ #Dashboard không còn nút → rơi về Đơn hàng
   const startTab = (saved && document.querySelector(`.nav-item[data-tab="${saved}"]`)) ? saved : TAB_DAU
+  // Số đỏ ở mọi tab. Mở vào Đơn hàng thì loadOrders() tự cập nhật sau khi tải — khỏi hỏi 2 lần (07/11/2026)
+  if (startTab !== 'Orders') refreshNewOrderBadge()
   // Lịch sử: luôn có Đơn hàng làm mốc nền → nút Back trên điện thoại quay về đúng tab
   // trước đó (và Đơn hàng) thay vì nhảy ra trang trắng
   history.replaceState({ adminTab: TAB_DAU }, '', '#' + TAB_DAU)
@@ -4343,12 +4259,21 @@ async function kiemSqlDaChay() {
 }
 
 let _sqlDaKiem = false     // mỗi lần mở trang chỉ kiểm 1 lần (database không tự đổi giữa chừng)
+// Đã đủ hết thì máy nhớ 7 ngày (07/11/2026): trước đó mỗi lần mở admin tốn ~9 lượt hỏi database chỉ để biết "đủ".
+// Khoá nhớ gồm danh sách file → thêm dòng mới vào SQL_DAU_HIEU là tự kiểm lại ngay.
+const SQL_DU_KHOA = 'lt_sqlDu'
 async function baoSqlThieu() {
   if (_sqlDaKiem) return
   _sqlDaKiem = true
   const hop = document.getElementById('sqlThieu')
+  const dau = SQL_DAU_HIEU.map(x => x[0]).join(',')
+  try {
+    const nho = JSON.parse(localStorage.getItem(SQL_DU_KHOA) || 'null')
+    if (nho && nho.dau === dau && Date.now() - nho.luc < 7 * 864e5) { if (hop) hop.innerHTML = ''; return }
+  } catch {}
   let ds = null
   try { ds = await kiemSqlDaChay() } catch { ds = null }
+  if (ds && !ds.length) { try { localStorage.setItem(SQL_DU_KHOA, JSON.stringify({ dau, luc: Date.now() })) } catch {} }
   if (!hop || !ds || !ds.length) { if (hop) hop.innerHTML = ''; return }
   hop.innerHTML = `<div class="sql-thieu" role="status">
     <b>Database còn thiếu ${ds.length} file cài đặt</b> — vài chức năng bên dưới sẽ chưa chạy đúng.
@@ -4393,7 +4318,6 @@ function ngayNhan(ds, kem = true) {
 
 // ── Đối soát chỉ số: bấm thẻ số liệu → xem đơn nào được tính ──
 
-const statMonthLabel = mk => { const [y, m] = mk.split('-'); return `tháng ${Number(m)}/${y}` }
 const statAttrDate = o => o.delivery_date || (o.created_at || '').slice(0, 10)  // ngày ghi nhận doanh thu
 const statDMY = ds => (ds || '').split('-').reverse().slice(0, 2).join('/')
 const CHU_NGAY_GIAO = 'Tính theo <strong>ngày giao</strong> (chưa hẹn ngày thì theo ngày tạo), không tính đơn huỷ.'
@@ -6576,12 +6500,6 @@ function galleryCatCount(name) {
   return galleryItems.filter(ph => ph.category === name).length
 }
 
-// Gấp/mở khối danh mục. Chưa có danh mục nào thì tự mở sẵn, vì lúc đó
-// việc cần làm ĐẦU TIÊN chính là tạo danh mục — gấp lại là giấu mất lối đi.
-function toggleCatManager() {
-  document.getElementById('catManager')?.classList.toggle('open')
-}
-
 function renderGalleryCatManager() {
   const el = document.getElementById('galleryCatList')
   if (!el) return
@@ -7545,7 +7463,17 @@ async function veVaXuatAnh(bitmap, w, h, quality) {
   canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h)
   bitmap.close()
   let blob = await new Promise(res => canvas.toBlob(res, 'image/webp', quality))
-  if (!blob || blob.type !== 'image/webp') blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality))
+  if (!blob || blob.type !== 'image/webp') {
+    blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality))
+    // Safari/iPhone hiểu "chất lượng 0.8" khác Chrome — gần như KHÔNG nén: bản nhỏ 640px ra 140–255KB (gấp đôi
+    // ảnh đăng từ máy tính), ảnh gốc 1200px ~740KB (đo 07/11/2026, các mẫu #45–#55). Ảnh nặng quá 0,3 byte/điểm
+    // ảnh (JPEG thường ~0,15–0,27) → thử lại ở mức thấp hơn, giữ bản nhẹ nhất. Chrome đã ra WebP nên không vào đây.
+    for (const q of [quality - 0.2, quality - 0.3]) {
+      if (!blob || blob.size <= w * h * 0.3) break
+      const nhe = await new Promise(res => canvas.toBlob(res, 'image/jpeg', q))
+      if (nhe && nhe.size < blob.size) blob = nhe
+    }
+  }
   return blob
 }
 
@@ -8190,6 +8118,9 @@ function veSaoLuuCuoi() {
 // Ảnh chưa từng nén (vd chụp từ iPhone, xem veVaXuatAnh) thì nén luôn; ảnh đã nén thì giữ nguyên
 // chất lượng. File cũ để nguyên trong kho → link cũ (ảnh gắn đơn hàng…) vẫn xem được.
 // Chạy lại chỉ làm ảnh còn thiếu; 1 link dùng ở nhiều chỗ chỉ tải lên 1 lần.
+// Từ 07/11/2026 làm lại cả ảnh ĐÃ có bản nhỏ nhưng bản nhỏ là JPEG nặng > ANH_NHO_NANG (đăng từ iPhone trước khi sửa
+// veVaXuatAnh: 140–255KB/ảnh, gấp đôi ảnh đăng từ máy tính). Bấm trên máy tính → ra WebP nhẹ hơn nữa.
+const ANH_NHO_NANG = 120 * 1024
 async function optimizeOldImages() {
   if (!(await askConfirm({ title: 'Tạo ảnh nhỏ cho ảnh cũ?', message: 'Mỗi ảnh mẫu hoa, Khoảnh khắc, bìa bộ sưu tập sẽ có thêm 1 bản nhỏ để web khách tải nhanh hơn. Mất vài phút — đừng đóng tab cho tới khi xong.', okLabel: 'Bắt đầu', icon: '⚡' }))) return
   const btn  = document.getElementById('optimizeBtn')
@@ -8217,7 +8148,17 @@ async function optimizeOldImages() {
     const { data, error } = await q.select('id')
     if (error || !data?.length) throw error || new Error('không đổi được dòng nào')
   }
-  const canLam = u => !!u && u.includes('/storage/v1/object/public/images/') && !u.includes('/images/expenses/') && !coAnhNhoTuLam(u)
+  const trongKho = u => !!u && u.includes('/storage/v1/object/public/images/') && !u.includes('/images/expenses/')
+  // Bản nhỏ JPEG nào nặng quá → làm lại (hỏi kích thước bằng HEAD, không tải ảnh về)
+  const tatCa = [...(sp.data || []).flatMap(p => [p.image, ...(p.images || [])]), ...(kk.data || []).map(g => g.url), ...(bst.data || []).map(c => c.cover_url)]
+  const nangQua = new Set()
+  await Promise.all([...new Set(tatCa)].filter(u => trongKho(u) && coAnhNhoTuLam(u) && /\.jpe?g$/i.test(u)).map(async u => {
+    try {
+      const r = await fetch(anhNho(u, ANH_NHO_RONG), { method: 'HEAD' })
+      if (Number(r.headers.get('content-length')) > ANH_NHO_NANG) nangQua.add(u)
+    } catch {}
+  }))
+  const canLam = u => trongKho(u) && (!coAnhNhoTuLam(u) || nangQua.has(u))
   const viec = new Map()   // link cũ → { folder, doi: [hàm ghi link mới] }
   const them = (url, folder, doi) => {
     if (!canLam(url)) return
@@ -8386,14 +8327,14 @@ const BADGE_DON_STATUSES = ORDER_STATUSES.slice(0, 2)   // ['Mới', 'Đã xác 
 async function refreshNewOrderBadge() {
   const badge = document.getElementById('newOrderBadge')
   if (!badge) return
-  const { count } = await sb.from('orders').select('id', { count: 'exact', head: true }).in('status', BADGE_DON_STATUSES)
-  const bt = document.getElementById('newOrderBadgeBt')
-  ganSoDem([badge, bt], count)
-  // Lịch giao: đơn cần giao HÔM NAY + NGÀY MAI mà chưa giao xong
+  // Lịch giao: đơn cần giao HÔM NAY + NGÀY MAI mà chưa giao xong. 2 lượt đếm chạy song song.
   const mai = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE')
   const conViec = ORDER_STATUSES.filter(st => !DONE_STATUSES.includes(st))
-  const { count: nGiao } = await sb.from('orders').select('id', { count: 'exact', head: true })
-    .in('delivery_date', [todayStr(), mai]).in('status', conViec)
+  const [{ count }, { count: nGiao }] = await Promise.all([
+    sb.from('orders').select('id', { count: 'exact', head: true }).in('status', BADGE_DON_STATUSES),
+    sb.from('orders').select('id', { count: 'exact', head: true }).in('delivery_date', [todayStr(), mai]).in('status', conViec),
+  ])
+  ganSoDem([badge, document.getElementById('newOrderBadgeBt')], count)
   ganSoDem([document.getElementById('delivBadge'), document.getElementById('delivBadgeBt')], nGiao)
   if (document.getElementById('panelOrders')?.style.display !== 'none') veNhacDon()
 }

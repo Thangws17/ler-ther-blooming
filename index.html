@@ -21,6 +21,36 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://oijcwborkebjpavzyisl.supabase.co">
+  <!-- Ảnh nền trang chủ tải SỚM (07/11/2026). Trước đây ảnh chỉ bắt đầu tải khi js/main.js tải + chạy xong rồi hỏi
+       bảng contact (~2,5 giây trên 4G chậm), lại phải giành mạng với ảnh mẫu hoa → hiện ra ở giây thứ 7.
+       Đoạn này chạy NGAY khi trang mở: lần 2 trở đi xin tải luôn ảnh đã nhớ trong máy; đồng thời hỏi contact sớm,
+       biết link ảnh là xin tải ngay, ưu tiên cao. main.js (loadContact) dùng lại kết quả này, không hỏi lần 2.
+       Phải đứng TRƯỚC thẻ <link rel="stylesheet"> — script nằm sau file CSS phải chờ CSS tải xong mới được chạy. -->
+  <script>
+  (function () {
+    var GOC = 'https://oijcwborkebjpavzyisl.supabase.co', nho = null;
+    function taiTruoc(u) {
+      if (!u || u.indexOf(GOC + '/') !== 0) return;
+      var l = document.createElement('link');
+      l.rel = 'preload'; l.as = 'image'; l.href = u; l.setAttribute('fetchpriority', 'high');
+      document.head.appendChild(l);
+    }
+    try { nho = localStorage.getItem('heroImageUrl'); } catch (e) {}   // máy chặn bộ nhớ → đọc là ném lỗi
+    taiTruoc(nho);
+    if (!window.fetch || !window.Promise) return;
+    var hoi = fetch(GOC + '/rest/v1/contact?select=*&id=eq.1&apikey=sb_publishable_vDRAF-LBS3nOpw1GHBchvw_xYuMfdqP')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (ds) {
+        if (!Array.isArray(ds)) return null;
+        var c = ds[0] || null;
+        if (c && c.hero_image !== nho) taiTruoc(c.hero_image);
+        return { c: c };
+      });
+    // null = hỏi sớm hỏng / quá 15 giây → main.js tự hỏi lại như cũ
+    window.__contactSom = Promise.race([hoi, new Promise(function (ok) { setTimeout(ok, 15000, null); })])
+      .catch(function () { return null; });
+  })();
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=Lora:ital,wght@1,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>

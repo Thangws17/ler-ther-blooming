@@ -18,6 +18,9 @@ Bảng, hàm SQL, luật bảo mật, cách viết/chạy file SQL, sao lưu. Đ
 - **File SQL đánh số theo thứ tự chạy** (`01_` → `33_`; mục lục + "đã chạy chưa" ở `supabase/README.md`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`) **và** bảng `SQL_DAU_HIEU`.
   **File SQL mới có thêm bảng/cột → thêm 1 dòng vào `SQL_DAU_HIEU` (admin, mục "Kiểm file SQL đã chạy chưa")**:
   Admin (lúc mở, khung ở đầu Đơn hàng) tự đọc thử đúng cột đó, database báo "không có cột" là hiện khung vàng nhắc chạy file (11/10/2026).
+  Đủ hết thì máy NHỚ 7 ngày (`lt_sqlDu`, 07/11/2026 — trước đó mỗi lần mở admin tốn ~9 lượt hỏi chỉ để biết "đủ"); khoá
+  nhớ gồm danh sách file trong `SQL_DAU_HIEU` nên thêm dòng mới là máy tự kiểm lại ngay. Muốn kiểm lại tức thì: xoá
+  `lt_sqlDu` trong bộ nhớ trình duyệt (hoặc đợi 7 ngày).
   Và thêm 1 dòng vào bảng trong `supabase/README.md`.
 - **Trạng thái đơn bị database khoá chỉ nhận 6 giá trị** (`supabase/19_order_status_check.sql`), phải
   khớp y hệt `ORDER_STATUSES` trong admin. Thêm/đổi tên trạng thái: sửa SQL **trước**, rồi mới sửa JS —

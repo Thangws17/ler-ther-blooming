@@ -116,6 +116,9 @@ Chi tiết từng mục (lỗi thật đã xảy ra + cách làm đúng) nằm �
 - Web khách trên điện thoại có thanh tab dưới đáy
 - Form đặt hoa web khách không còn `<input type="date">`
 - Chống xô lệch bố cục (CLS, đo 11/10/2026)
+- Trang chủ hỏi contact SỚM ngay trong `<head>` (07/11/2026) — khoá công khai giờ ở 3 chỗ
+- Ảnh ở màn đầu được ưu tiên (07/11/2026)
+- Dải thông báo đầu trang nhớ trong máy (07/11/2026, `lt_banner`)
 
 **[Admin — khung màn hình, iPhone, ô nhập, form](huong-dan/ky-thuat/admin-khung-man-hinh.md)**
 - Admin có CSP bằng thẻ `<meta>`
