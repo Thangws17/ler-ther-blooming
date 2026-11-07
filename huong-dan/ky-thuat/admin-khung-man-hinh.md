@@ -58,6 +58,9 @@ Những lỗi hiển thị trên iPhone đã gặp, cách làm ô ngày / ô ti�
   bo tròn `.bt-vien` chứa 5 nút — Đơn hàng · Lịch giao · Sản phẩm · Chi phí · Menu; chỉ biểu tượng, chữ ẩn bằng mắt (giữ
   `<span>` cho trình đọc màn hình + test). Thanh cao hơn trước (~74px) → nút ＋ nổi, nút lên đầu trang, thanh chọn nhiều ảnh
   `.bulk-bar` đã dời lên (88px). Thêm nút nổi mới thì đặt đáy ≥ 88px + `env(safe-area-inset-bottom)`.
+  Viên nền trượt `.bt-nen` (đầu `.bt-vien`): `syncBottomTabs()` đặt `--n` / `--i` (mục đang sáng, kể cả "Menu"), chuyển động chỉ
+  bật sau lần vẽ đầu (class `.bt-san`). Trang xem thử `test/xem-admin.html` TẮT mọi chuyển động (để chụp) — kiểm viên trượt
+  bằng admin thật hoặc đọc `--i`, đừng chờ hiệu ứng ở đó.
 - **Thứ "ẩn bằng cách trượt ra ngoài màn" phải trượt HẲN ra** (06/11/2026): thanh chọn nhiều ảnh `.bulk-bar` ẩn bằng
   `translate(-50%, 160%)` — trên điện thoại nó đứng cao 74px (trên thanh tab) nên ở khổ 600–900px còn lòi lên ~13px, che
   chữ thanh tab ở MỌI tab. Giờ là `calc(100% + 140px)`. Cùng kiểu: menu bên đóng (`.sidebar` trượt -100%) vẫn đổ bóng

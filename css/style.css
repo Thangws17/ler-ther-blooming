@@ -103,6 +103,10 @@ html, body { overflow-x: clip; }
    Thanh menu trên + thanh tab dưới giữ yên, chỉ phần nội dung chuyển. */
 @view-transition { navigation: auto; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; }
+/* Thanh tab dưới: KHÔNG mờ chéo bản cũ ↔ bản mới (2 bản chỉ khác chỗ viên nền) — hiện ngay bản mới, viên tự trượt trong đó.
+   Mờ chéo thì thấy 2 viên cùng lúc (viên cũ mờ dần + viên mới đang trượt). */
+::view-transition-old(thanh-tab) { display: none; }
+::view-transition-new(thanh-tab) { animation: none; }
 /* Nút "Đang gửi…" (khoá) → vòng xoay nhỏ trước chữ (theoDoiNutCho, js/dungchung.js) */
 .dang-chay:disabled::before { content: ''; display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
                               border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: xoay .7s linear infinite; }
@@ -270,7 +274,11 @@ html, body { overflow-x: clip; }
   .w-tabs a { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; height: 46px; border-radius: 999px;
     color: #7d8a78; transition: background-color .2s ease, color .2s ease; }
   .w-tabs a span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .w-tabs a.on { background: var(--green-pale); color: var(--green); }
+  .w-tabs a.on { color: var(--green); }
+  /* Viên nền trượt dưới mục đang xem (main.js veThanhTabKhach: --n số mục, --i mục đang xem; bấm tab → trang mới trượt viên
+     từ chỗ cũ sang, 07/11/2026). Đứng đầu trong thanh nên nằm DƯỚI các nút. */
+  .w-tabs-nen { position: absolute; top: 6px; bottom: 6px; left: 6px; border-radius: 999px; background: var(--green-pale);
+    width: calc((100% - 12px - (var(--n) - 1) * 4px) / var(--n)); translate: calc(var(--i) * (100% + 4px)) 0; }
   .w-tabs .ic { width: 25px; height: 25px; }
   body.dang-go .w-tabs { display: none; }
   /* bàn phím đang mở → ẩn thanh tab */
@@ -764,6 +772,9 @@ html.chao .trust3 > div:nth-child(3) { animation-delay: .46s; }
 /* Masonry mềm: cột flex, JS chia ảnh. Trang ĐỦ ảnh → các cột co giãn nhẹ
    để kết thúc cùng một đáy (fit); trang cuối thiếu ảnh → để tự nhiên. */
 .gallery-grid { display:flex; gap:18px; align-items:stretch; }
+/* Đang tải (còn khung chờ): giữ chỗ cao bằng màn hình → dải "Thích những bó hoa này?" bên dưới nằm sẵn ngoài màn, ảnh thật
+   hiện ra không đẩy nó đi (đo 07/11/2026 4G chậm: xô bố cục 0,14 — khung chờ ~450px, ảnh thật cao gấp 3) */
+#galleryGrid:has(.sk-tile) { min-height: 100svh; }
 .gallery-col { flex:1; min-width:0; display:flex; flex-direction:column; gap:18px; }
 /* Trang đủ ảnh: mỗi ảnh giữ khung theo tỷ lệ thật + giãn nhẹ cho cột bằng nhau */
 .gallery-col.fit .gallery-item { aspect-ratio:var(--ar); flex-grow:var(--g); min-height:0; }

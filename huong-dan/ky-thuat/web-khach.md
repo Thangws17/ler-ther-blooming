@@ -74,12 +74,24 @@ Trang khách xem: đọc dữ liệu, bảo mật CSP, đo lường, bộ sưu t
   chỉ ẩn bằng mắt (`clip-path: inset(50%)`) cho trình đọc màn hình + test "nút có tên" — đừng xoá `<span>`. Admin cùng kiểu.
   Nút ☰ điện thoại chỉ còn mục KHÔNG có ở thanh tab (Câu chuyện + "Chính sách" do `initNav()` chèn, class `.chi-dt`); trang
   chi tiết không có thanh tab (`body` không có `.co-w-tabs`) nên ☰ ở đó vẫn đủ mục.
+  **Viên nền trượt** (07/11/2026 tối, shop xin): `.w-tabs-nen` đứng đầu thanh (nằm dưới các nút), vị trí = `--i` / số mục `--n`
+  (style trên `<nav>`). Mỗi tab là 1 lần tải trang → bấm tab thì ghi `sessionStorage.lt_tab_tu`, trang mới vẽ viên ở chỗ cũ rồi
+  `animate()` trượt sang (0,38 giây). Chuyển trang `@view-transition`: bản cũ của thanh tab (`thanh-tab`) ẨN, không mờ chéo —
+  mờ chéo là thấy 2 viên cùng lúc.
 - **Form đặt hoa web khách không còn `<input type="date">`**: chip Ngày mai / Ngày kia + lịch tự vẽ (`veLichGiao`),
   giá trị vẫn ở `#orderDate` (hidden). Trang chủ chỉ còn 1 ảnh to (`#heroBg`); 2 ô ảnh phụ trong admin đã ẩn.
 - **Chống xô lệch bố cục (CLS, đo 11/10/2026)**: khối ở màn đầu trang KHÔNG được ẩn sẵn (`display:none`) rồi JS mới bật — giữ chỗ
   trước: `#bstSection` hiện sẵn khung chờ `.sk-box` (không có bộ nào mới ẩn), `#heroPriceHint` có chữ mẫu + `visibility:hidden`,
   khung chờ trang chi tiết cao sẵn (`#detailContent > .loading`). Trước đó trang chủ xô 0,4, trang chi tiết 0,6 (chuẩn tốt < 0,1).
   Đo lại: CDP + PerformanceObserver `layout-shift` (giả lập điện thoại CPU ×4).
+- **Mọi trang khách (trừ 404) hỏi contact SỚM ngay trong `<head>` (07/11/2026 tối)** — 6 trang còn lại có bản rút gọn của đoạn trang
+  chủ (chỉ hỏi contact, không có ảnh nền): dải thông báo (khuyến mãi) có dữ liệu trước khi trang vẽ xong → hết đẩy trang
+  xuống 73px khi khách vào LẦN ĐẦU (đo 4G chậm: Sản phẩm 0,11 → 0,03, Khoảnh khắc 0,23 → 0,02). **Khoá công khai giờ ở 9 chỗ**:
+  `js/main.js`, `admin/index.html`, 7 trang khách — đổi khoá thì `grep -rln sb_publishable_ .` sửa hết; test-web-khach mục 1
+  kiểm từng trang: đoạn hỏi sớm đứng trước file CSS + khoá trùng main.js. Khoảnh khắc: `#galleryGrid:has(.sk-tile)` cao bằng
+  màn hình lúc đang tải (khung chờ thấp hơn ảnh thật → đẩy dải kêu gọi). Ảnh bìa Bộ sưu tập trang chủ `fetchpriority="low"`
+  (nhường ảnh nền). Ảnh mẫu hoa vẫn chậm chủ yếu vì bản nhỏ JPEG 120–255KB từ iPhone → admin bấm "Tạo ảnh nhỏ cho ảnh cũ"
+  TRÊN MÁY TÍNH (Chrome xuất WebP).
 - **Trang chủ hỏi contact SỚM ngay trong `<head>` (07/11/2026)** — đoạn `<script>` nhỏ trong `index.html`: lần 2 trở đi
   xin tải luôn ảnh nền đã nhớ (`heroImageUrl`), đồng thời hỏi bảng contact; biết link ảnh là thêm
   `<link rel="preload" as="image" fetchpriority="high">`. `loadContact()` (main.js) dùng lại kết quả qua

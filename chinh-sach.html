@@ -21,6 +21,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://oijcwborkebjpavzyisl.supabase.co">
+  <!-- Hỏi bảng contact SỚM ngay khi trang mở (07/11/2026, như trang chủ): dải thông báo (khuyến mãi) hiện kịp trước khi trang
+       vẽ xong → không đẩy cả trang xuống 73px lúc khách vào lần đầu (đo 4G chậm: xô bố cục 0,08 ở trang Sản phẩm / Khoảnh khắc).
+       main.js (loadContact) dùng lại qua window.__contactSom. Phải đứng TRƯỚC file CSS. Khoá công khai: xem web-khach.md. -->
+  <script>
+  (function () {
+    if (!window.fetch || !window.Promise) return;
+    var hoi = fetch('https://oijcwborkebjpavzyisl.supabase.co/rest/v1/contact?select=*&id=eq.1&apikey=sb_publishable_vDRAF-LBS3nOpw1GHBchvw_xYuMfdqP')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (ds) { return Array.isArray(ds) ? { c: ds[0] || null } : null; });
+    window.__contactSom = Promise.race([hoi, new Promise(function (ok) { setTimeout(ok, 15000, null); })])
+      .catch(function () { return null; });
+  })();
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=Lora:ital,wght@1,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>

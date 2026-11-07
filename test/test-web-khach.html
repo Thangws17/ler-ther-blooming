@@ -87,6 +87,7 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
 ;(async function main() {
   // ── 1. Mọi trang × 3 khổ: tràn ngang, lỗi JS, nút, thanh tab ──
   let idMau = null
+  const KHOA_MAIN = ((await (await fetch('/js/main.js', { cache: 'no-store' })).text()).match(/sb_publishable_[\w-]+/) || [])[0]
   const TRANG = [['', 'index'], ['san-pham', 'san-pham'], ['khoanh-khac', 'khoanh-khac'], ['lien-he', 'lien-he'],
                  ['cau-chuyen', 'cau-chuyen'], ['chinh-sach', 'chinh-sach']]
   for (const rong of [360, 390, 1280]) {
@@ -112,6 +113,12 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
         test(`[${ten}] thẻ viewport có viewport-fit=cover`, () =>
           bang(/viewport-fit=cover/.test(d.querySelector('meta[name="viewport"]').content), true))
         test(`[${ten}] logo là chữ, không còn bông hoa 🌸`, () => bang(/🌸/.test(d.querySelector('.navbar .logo').textContent), false))
+        // 07/11/2026: mọi trang hỏi contact SỚM trong <head> (dải thông báo kịp hiện trước khi vẽ → không xô trang 73px)
+        test(`[${ten}] hỏi contact sớm: đoạn script đứng TRƯỚC file CSS, cùng khoá công khai với main.js`, () => {
+          const dau = [...d.head.children].map(x => x.tagName === 'SCRIPT' && !x.src && /__contactSom/.test(x.textContent) ? 'som' : x.rel === 'stylesheet' ? 'css' : '').filter(Boolean)
+          bang(dau.slice(0, 2), ['som', 'css'])
+          bang(((([...d.head.querySelectorAll('script:not([src])')].map(x => x.textContent).join(' ')).match(/sb_publishable_[\w-]+/)) || [])[0], KHOA_MAIN)
+        })
         test(`[${ten}] có hàng rào CSP + không nạp thư viện ngoài nào (chỉ js/ của shop)`, () => {
           bang(!!d.querySelector('meta[http-equiv="Content-Security-Policy"]'), true)
           bang([...d.querySelectorAll('script[src]')].map(x => x.getAttribute('src')).filter(x => !/^js\//.test(x)), [])

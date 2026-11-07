@@ -117,7 +117,7 @@ Chi tiết từng mục (lỗi thật đã xảy ra + cách làm đúng) nằm �
 - Web khách trên điện thoại có thanh tab dưới đáy
 - Form đặt hoa web khách không còn `<input type="date">`
 - Chống xô lệch bố cục (CLS, đo 11/10/2026)
-- Trang chủ hỏi contact SỚM ngay trong `<head>` (07/11/2026) — khoá công khai giờ ở 3 chỗ
+- Mọi trang khách hỏi contact SỚM ngay trong `<head>` (07/11/2026) — khoá công khai giờ ở 9 chỗ (test kiểm khớp)
 - Ảnh ở màn đầu được ưu tiên (07/11/2026)
 - Màu "Vườn kem" như admin (07/11/2026, phương án A "Làm gọn")
 - Mọi `:hover` của web khách bọc `@media (hover: hover) and (pointer: fine)` (07/11/2026)
@@ -161,6 +161,7 @@ Chi tiết từng mục (lỗi thật đã xảy ra + cách làm đúng) nằm �
 - Nút "Ghi chú" trên thẻ Lịch giao + bảng/thẻ Đơn hàng (12/10/2026)
 - Bốn con số tiền dùng chung (21/10/2026, shop chọn bảng tiền phương án A)
 - Lọc thanh toán ở Đơn hàng (21/10/2026)
+- Lọc trạng thái + thanh toán trên điện thoại = nút "Lọc" + bảng trượt (07/11/2026)
 
 **[Dùng chung web + admin, và luật viết code](huong-dan/ky-thuat/dung-chung.md)**
 - CSS xếp theo PHẦN GIAO DIỆN, không theo đợt sửa (07/11/2026)

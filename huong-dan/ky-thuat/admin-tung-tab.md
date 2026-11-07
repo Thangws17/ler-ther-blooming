@@ -73,6 +73,13 @@ Cách từng tab tải và vẽ dữ liệu, các quy ước riêng của mỗi 
   `tien(o)` = số ở cột phải (đã nhận / còn thu), bỏ trống = tổng đơn. Báo cáo: thẻ Bán được · Thu tiền · Lời (`.bc-tt`), viên
   ↑↓ so kỳ trước; "Chi phí ›" → Sổ chi phí đúng kỳ (`bcSangChiPhi`). Sổ chi phí: bỏ khối Doanh thu, còn 1 dòng lãi `.ex-lai`
   → `exSangBaoCao()` mở Báo cáo đúng kỳ đang xem. Mở tab bằng tên: `moTab('Reports')`.
+- **Lọc trạng thái + thanh toán trên điện thoại = nút "Lọc" + bảng trượt (07/11/2026, shop chọn phương án 3)**: ≤ 820px khối
+  `.loc-chip` ẩn; hàng nút lọc có nút `.loc-nut` (đếm số lọc đang bật `#locDem`) mở hộp `#locModal` (dùng khung modal chung →
+  điện thoại là bảng trượt từ đáy, `closeAllModals` tự đóng). Chip trong bảng (`#locSheetSt` / `#locSheetTt`) là CÙNG chuỗi HTML với
+  khối máy tính — `renderStatusFilterChips()` ghi vào cả 2 chỗ, rồi `veLocDang()` vẽ hàng chip đang bật `#locDang` (bấm = bỏ lọc đó).
+  Thêm mức lọc mới thì chỉ sửa trong `renderStatusFilterChips` / `TT_LOC`. Nút + chip CO GIÃN lấp đầy hàng (`flex: 1 1 auto`, shop:
+  "linh hoạt"). Lỗi cũ đã bỏ: 2 khối `.status-filter` tự cuộn chung 1 hàng → mỗi khối bị ép nửa màn, chip `.on` viền 2px cao hơn → lệch.
+  Test: test-khung-man-hinh nhóm 2.
 - **Lọc thanh toán ở Đơn hàng (21/10/2026)**: hàng `#ttLoc` dưới hàng trạng thái — 3 mức `thanh_toan` (chọn nhiều) +
   `'no'` = "Đã giao · chưa thu đủ" (`status in REVENUE_STATUSES` + `thanh_toan in (Chưa, Đã cọc)`; chọn nó thì bỏ 3 mức kia
   và ngược lại). Lọc ở SERVER (`buildOrdersQuery`, `f.tt`), như mọi bộ lọc đơn. Database chưa có cột (chưa chạy SQL 31) →

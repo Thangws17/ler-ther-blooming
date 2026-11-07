@@ -271,7 +271,7 @@ async function loadBoSuuTap() {
     const n = bstMauIds(c.id).length;
     return `
 <a class="bst-card" href="san-pham?bst=${encodeURIComponent(c.slug || '')}">
-  ${bia ? `<img ${srcNho(bia, 600)} alt="${esc(c.name)}" loading="lazy">`
+  ${bia ? `<img ${srcNho(bia, 600)} alt="${esc(c.name)}" loading="lazy" fetchpriority="low">`
         : `<div class="bst-ph">${em}</div>`}
   <span class="bst-veil"></span>
   <span class="bst-txt">
@@ -1852,9 +1852,23 @@ function veThanhTabKhach() {
   const dang = ten(location.pathname);
   const muc = [['./', 'index', 'dash', 'Trang chủ'], ['san-pham', 'san-pham', 'bag', 'Sản phẩm'],
                ['khoanh-khac', 'khoanh-khac', 'img', 'Khoảnh khắc'], ['lien-he', 'lien-he', 'phone', 'Liên hệ']];
-  document.body.insertAdjacentHTML('beforeend', `<nav class="w-tabs" aria-label="Chuyển trang nhanh">${
+  // Viên nền trượt (07/11/2026, shop xin): 1 khối .w-tabs-nen nằm dưới các nút, đứng ở mục đang xem (--i). Mỗi trang là 1 lần
+  // tải trang mới → bấm tab thì NHỚ vị trí cũ (sessionStorage lt_tab_tu), trang mới vẽ viên ở chỗ cũ rồi trượt sang chỗ mới.
+  const idx = muc.findIndex(m => m[1] === dang);
+  document.body.insertAdjacentHTML('beforeend', `<nav class="w-tabs" aria-label="Chuyển trang nhanh" style="--n:${muc.length};--i:${Math.max(idx, 0)}">${
+    idx >= 0 ? '<span class="w-tabs-nen" aria-hidden="true"></span>' : ''}${
     muc.map(([href, key, i, nhan]) => `<a href="${href}" class="${key === dang ? 'on' : ''}">${ic(i)}<span>${nhan}</span></a>`).join('')}</nav>`);
   document.body.classList.add('co-w-tabs');
+  const nav = document.querySelector('.w-tabs'), nen = nav.querySelector('.w-tabs-nen');
+  let tu = null;
+  try { tu = sessionStorage.getItem('lt_tab_tu'); sessionStorage.removeItem('lt_tab_tu'); } catch (_) {}
+  if (nen && tu !== null && +tu !== idx && +tu >= 0 && !giamChuyenDong() && nen.animate) {
+    nen.animate([{ translate: `calc(${+tu} * (100% + 4px)) 0` }, { translate: `calc(${idx} * (100% + 4px)) 0` }],
+      { duration: 380, easing: 'cubic-bezier(.23, 1, .32, 1)' });
+  }
+  nav.addEventListener('click', e => {
+    if (e.target.closest('a') && idx >= 0) { try { sessionStorage.setItem('lt_tab_tu', idx); } catch (_) {} }
+  });
   const laO = el => el && el.matches && el.matches('input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), textarea, select');
   document.addEventListener('focusin', e => { if (laO(e.target)) document.body.classList.add('dang-go'); });
   document.addEventListener('focusout', () => setTimeout(() => {

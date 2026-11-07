@@ -192,6 +192,20 @@ const dt = document.getElementById('dt')
       bang(css(d.querySelector('#panelOrders .panel-topbar .btn-green')).display, 'none'))
     test('Nút "Thêm sản phẩm" ở đầu tab cũng ẩn trên điện thoại (dùng nút ＋ nổi)', () =>
       bang(css(d.querySelector('#panelProducts .panel-topbar .btn-green')).display, 'none'))
+    // 07/11/2026: lọc trạng thái + thanh toán trên điện thoại = nút "Lọc" + bảng trượt (trước 2 khối chip tự cuộn, lệch nhau)
+    test('Đơn hàng điện thoại: khối chip ẩn, có nút "Lọc"', () =>
+      bang([css(d.querySelector('#panelOrders .loc-chip')).display, css(d.querySelector('.loc-nut')).display !== 'none'], ['none', true]))
+    d.querySelector('.loc-nut').click()
+    test('Bấm "Lọc" → mở bảng "Lọc đơn" có đủ 6 trạng thái', () => {
+      bang(css(d.getElementById('locModal')).display, 'flex')
+      bang(d.querySelectorAll('#locSheetSt .st-chip:not(.st-bo)').length, 6)
+    })
+    d.querySelector('#locSheetSt .st-chip').click()
+    test('Bấm 1 chip trong bảng → nút "Lọc" đếm 1, hàng chip đang bật có 1 chip (bấm để bỏ)', () =>
+      bang([d.getElementById('locDem').textContent, d.querySelectorAll('#locDang .st-chip').length], ['1', 1]))
+    d.querySelector('#locDang .st-chip').click()
+    test('Bấm chip ở hàng đang bật → bỏ lọc đó (đếm về trống)', () => bang(d.getElementById('locDem').textContent, ''))
+    w.dongLocDon()
     w.syncBottomTabs('Orders')
   }
 
