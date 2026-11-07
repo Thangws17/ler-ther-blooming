@@ -54,6 +54,10 @@ Những lỗi hiển thị trên iPhone đã gặp, cách làm ô ngày / ô ti�
   **Test UI phải BẤM NÚT THẬT (`.click()`)**, đừng gọi thẳng hàm — test cũ gọi `fdStepMonth()` nên không bắt được.
 - **Thanh tab dưới đáy `.bottom-tabs` (điện thoại) cùng luật với `.admin-topbar`**: là anh em của `.content`,
   KHÔNG nằm trong khung cuộn, không fixed/sticky. Tab nào có nút ＋ nổi thì khai ở `FAB_THEO_TAB`.
+  **Từ 07/11/2026 (đồng bộ web khách, kiểu app Facebook)**: `.bottom-tabs` vẫn là dải đáy khung (nền kem), bên trong là viên
+  bo tròn `.bt-vien` chứa 5 nút — Đơn hàng · Lịch giao · Sản phẩm · Chi phí · Menu; chỉ biểu tượng, chữ ẩn bằng mắt (giữ
+  `<span>` cho trình đọc màn hình + test). Thanh cao hơn trước (~74px) → nút ＋ nổi, nút lên đầu trang, thanh chọn nhiều ảnh
+  `.bulk-bar` đã dời lên (88px). Thêm nút nổi mới thì đặt đáy ≥ 88px + `env(safe-area-inset-bottom)`.
 - **Thứ "ẩn bằng cách trượt ra ngoài màn" phải trượt HẲN ra** (06/11/2026): thanh chọn nhiều ảnh `.bulk-bar` ẩn bằng
   `translate(-50%, 160%)` — trên điện thoại nó đứng cao 74px (trên thanh tab) nên ở khổ 600–900px còn lòi lên ~13px, che
   chữ thanh tab ở MỌI tab. Giờ là `calc(100% + 140px)`. Cùng kiểu: menu bên đóng (`.sidebar` trượt -100%) vẫn đổ bóng

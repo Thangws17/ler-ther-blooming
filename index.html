@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <!-- Hàng rào CSP (08/10/2026): trình duyệt CHỈ nạp / gửi dữ liệu tới chính web + Supabase + Google Fonts + mã QR
        (img.vietqr.io) + bản đồ Google + Google Analytics / Clarity. Lỡ có mã lạ lọt vào trang cũng không gửi được dữ liệu
        đi nơi khác, không nạp được script lạ. Thêm dịch vụ ngoài mới (ảnh tên miền khác, widget chat…) thì PHẢI thêm tên miền
@@ -37,6 +37,13 @@
     }
     try { nho = localStorage.getItem('heroImageUrl'); } catch (e) {}   // máy chặn bộ nhớ → đọc là ném lỗi
     taiTruoc(nho);
+    // Trang chủ "chào khách" (07/11/2026): lần ĐẦU mở trang chủ trong 1 lượt xem → html.chao (chữ hiện lần lượt, ảnh nền thu
+    // nhẹ về — CSS phần 5). Quay lại trang chủ thì hiện ngay. Đặt ở đây (trước file CSS) để có class trước khi trang vẽ.
+    try {
+      if (!sessionStorage.getItem('lt_chao') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('chao'); sessionStorage.setItem('lt_chao', '1');
+      }
+    } catch (e) {}
     if (!window.fetch || !window.Promise) return;
     var hoi = fetch(GOC + '/rest/v1/contact?select=*&id=eq.1&apikey=sb_publishable_vDRAF-LBS3nOpw1GHBchvw_xYuMfdqP')
       .then(function (r) { return r.ok ? r.json() : null; })
@@ -60,7 +67,6 @@
 <nav class="navbar">
   <div class="container">
     <a href="./" class="logo">
-      <span class="logo-icon">🌸</span>
       <span>Ler &amp; Ther <span class="logo-accent">Blooming</span></span>
     </a>
     <button class="menu-toggle" id="menuToggle" aria-label="Menu"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></button>
@@ -108,7 +114,7 @@
 
 <!-- ── Bộ sưu tập ─────────────────────────────────────
      Ẩn sẵn; JS bật lên khi có bộ sưu tập đang hiện (js/main.js → loadBoSuuTap) -->
-<section id="bstSection" style="background:#fff;">
+<section id="bstSection">
   <div class="container">
     <div class="section-header">
       <span class="sec-kicker">Theo mùa · theo dịp</span>
@@ -123,7 +129,7 @@
 </section>
 
 <!-- ── Sản phẩm nổi bật ──────────────────────────────── -->
-<section style="background:#fff;">
+<section>
   <div class="container">
     <div class="section-header reveal">
       <span class="sec-kicker">Được yêu thích</span>
@@ -138,34 +144,6 @@
     </div>
     <div style="text-align:center;margin-top:40px;">
       <a href="san-pham" class="btn btn-primary">Xem tất cả sản phẩm →</a>
-    </div>
-  </div>
-</section>
-
-<!-- ── Why Us ─────────────────────────────────────────── -->
-<section class="whyus">
-  <div class="container">
-    <div class="section-header reveal">
-      <span class="sec-kicker">Vì sao chọn shop</span>
-      <h2>Tại sao chọn chúng tôi?</h2>
-      <p>Chúng tôi không chỉ bán hoa — chúng tôi gửi đi cảm xúc</p>
-    </div>
-    <div class="whyus-grid">
-      <div class="whyus-card reveal">
-        <div class="whyus-icon"><svg class="ic" aria-hidden="true"><use href="#i-leaf"/></svg></div>
-        <h3>Hoa tươi mỗi ngày</h3>
-        <p>Hoa được nhập về hàng ngày từ vườn, luôn tươi và rực rỡ nhất khi đến tay bạn.</p>
-      </div>
-      <div class="whyus-card reveal" style="--reveal-delay:.08s">
-        <div class="whyus-icon"><svg class="ic" aria-hidden="true"><use href="#i-palette"/></svg></div>
-        <h3>Cắm hoa nghệ thuật</h3>
-        <p>Mỗi bó hoa là một tác phẩm được chăm chút từ màu sắc, hình dáng đến dải ruy băng.</p>
-      </div>
-      <div class="whyus-card reveal" style="--reveal-delay:.16s">
-        <div class="whyus-icon"><svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg></div>
-        <h3>Giao hàng tận nơi</h3>
-        <p>Nhận đặt hoa qua Zalo, giao tận địa chỉ bạn yêu cầu, nhanh chóng và cẩn thận.</p>
-      </div>
     </div>
   </div>
 </section>
@@ -205,7 +183,6 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <a href="./" class="logo">
-          <span class="logo-icon">🌸</span>
           <span>Ler &amp; Ther <span class="logo-accent">Blooming</span></span>
         </a>
         <p>Shop hoa tươi với tâm huyết — mỗi bông hoa là một lời yêu thương được gửi đi.</p>

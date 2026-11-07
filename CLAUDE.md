@@ -119,6 +119,11 @@ Chi tiết từng mục (lỗi thật đã xảy ra + cách làm đúng) nằm �
 - Chống xô lệch bố cục (CLS, đo 11/10/2026)
 - Trang chủ hỏi contact SỚM ngay trong `<head>` (07/11/2026) — khoá công khai giờ ở 3 chỗ
 - Ảnh ở màn đầu được ưu tiên (07/11/2026)
+- Màu "Vườn kem" như admin (07/11/2026, phương án A "Làm gọn")
+- Mọi `:hover` của web khách bọc `@media (hover: hover) and (pointer: fine)` (07/11/2026)
+- Thẻ viewport có `viewport-fit=cover` (07/11/2026, 8 trang)
+- Ảnh trượt trang chi tiết = khung cuộn ngang bắt dính (07/11/2026)
+- Trang chủ "chào khách" lần đầu (07/11/2026)
 - Dải thông báo đầu trang nhớ trong máy (07/11/2026, `lt_banner`)
 
 **[Admin — khung màn hình, iPhone, ô nhập, form](huong-dan/ky-thuat/admin-khung-man-hinh.md)**
@@ -165,13 +170,14 @@ Chi tiết từng mục (lỗi thật đã xảy ra + cách làm đúng) nằm �
 - Viết hàm tiện ích bằng `function`, đừng `const ten = () => …`
 - `data/*.json`, `admin/config.yml`, `images/uploads/`, `demo-*.html` đã bị xoá
 - `js/dungchung.js` giữ hàm dùng chung
-- Biểu tượng: MỘT bộ duy nhất trong `js/dungchung.js` (`BIEU_TUONG` + `ic('ten')`)
+- Biểu tượng: MỘT bộ duy nhất trong `js/dungchung.js` (`BIEU_TUONG` + `ic('ten')`) — HAI TÔNG từ 07/11/2026, vẽ bằng mảng tô
 - Người nhận + giờ giao nằm trong GHI CHÚ đơn, không có cột riêng
 - Font (24/09/2026, phương án B "dịu mắt")
 - Mô tả mẫu hoa viết theo khuôn "tạp chí"
 - "Thông tin chung" cho mọi mẫu (SQL 28, 02/10/2026)
 - Bộ gõ tiếng Việt (Unikey/EVKey) TỰ GỬI chuỗi phím giả để sửa dấu
 - Chuyển động (rà soát 11/10/2026)
+- Web khách theo luật chuyển động của skill Emil (07/11/2026)
 - Tự động, không cần sửa từng chỗ
 - File `.md` bị GitHub Pages (Jekyll) biến thành trang web công khai
 - Script Python in tiếng Việt ra cửa sổ lệnh Windows bị lỗi `UnicodeEncodeError`

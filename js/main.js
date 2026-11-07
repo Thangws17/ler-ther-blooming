@@ -80,6 +80,8 @@ function initNav() {
   const toggle = document.getElementById('menuToggle');
   const links  = document.getElementById('navLinks');
   if (!toggle || !links) return;
+  // ☰ trên điện thoại chỉ còn mục KHÔNG có ở thanh tab dưới (07/11/2026) → thêm "Chính sách" (máy tính ẩn — menu trên đủ 5 mục)
+  if (!links.querySelector('a[href="chinh-sach"]')) links.insertAdjacentHTML('beforeend', '<li class="chi-dt"><a href="chinh-sach">Chính sách</a></li>');
 
   // Đóng: thu lên + mờ đi 0,18 giây (class .dong) rồi mới ẩn. Bấm mở lại giữa chừng thì huỷ việc ẩn.
   let henDong = null;
@@ -115,6 +117,8 @@ function initNav() {
   // Ảnh đã có sẵn trong trang lúc chạy tới đây (tải xong trước khi kịp nghe) → đánh dấu luôn
   document.querySelectorAll('img').forEach(i => { if (i.complete) i.classList.add('da-tai'); });
 })();
+// iPhone (Safari) chỉ hiện kiểu "đang nhấn" (:active — nút lún 97%) khi trang CÓ nghe sự kiện chạm. Rỗng, không chặn cuộn.
+document.addEventListener('touchstart', () => {}, { passive: true });
 
 // ─── Scroll reveal ───────────────────────────────────────
 let _revealObserver;
@@ -128,11 +132,11 @@ function initScrollReveal(root = document) {
       let k = 0;
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
-        const el = entry.target, tre = Math.min(k++, 5) * 0.08;
+        const el = entry.target, tre = Math.min(k++, 5) * 0.05;
         el.style.setProperty('--reveal-delay', tre + 's');
         el.classList.add('in-view');
         _revealObserver.unobserve(el);
-        setTimeout(() => el.style.setProperty('--reveal-delay', '0s'), (tre + 0.8) * 1000);
+        setTimeout(() => el.style.setProperty('--reveal-delay', '0s'), (tre + 0.6) * 1000);
       });
     }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
   }
@@ -1536,7 +1540,32 @@ async function submitOrder(event) {
 }
 
 // Màn "Đã nhận đơn" (tách riêng 08/10/2026 để trang demo vẽ được mà không phải gửi đơn thật)
+// Đặt xong (07/11/2026, shop chọn): cánh hồng / đào / trắng rơi nhẹ ~3 giây trên màn "Đã nhận đơn" — khoảnh khắc mỗi khách
+// chỉ gặp 1 lần nên được "làm màu". Không chặn bấm (pointer-events: none), tự gỡ, tắt khi máy bật giảm chuyển động.
+function canhHoaRoi() {
+  if (giamChuyenDong() || !document.body.animate) return;
+  const MAU = ['#F8BBD0', '#F48FB1', '#FFCDD2', '#FFE0B2', '#FFF3E0', '#C8E6C9', '#F3E5F5'];
+  const lop = document.createElement('div');
+  lop.className = 'canh-hoa-roi'; lop.setAttribute('aria-hidden', 'true');
+  const W = innerWidth, H = innerHeight;
+  for (let i = 0; i < 26; i++) {
+    const c = document.createElement('i'), co = 9 + Math.random() * 9;
+    c.style.cssText = `width:${co}px;height:${co * 1.25}px;left:${Math.random() * W}px;background:${MAU[i % MAU.length]}`;
+    lop.appendChild(c);
+    const lac = (Math.random() - .5) * 140, xoay = (Math.random() - .5) * 720;
+    c.animate([
+      { transform: 'translate(0,0) rotate(0deg)', opacity: 0 },
+      { opacity: 1, offset: .08 },
+      { transform: `translate(${lac * .6}px,${H * .45}px) rotate(${xoay * .5}deg)`, offset: .5 },
+      { transform: `translate(${lac}px,${H + 40}px) rotate(${xoay}deg)`, opacity: .9 },
+    ], { duration: 2200 + Math.random() * 1600, delay: Math.random() * 500, easing: 'cubic-bezier(.3,.1,.5,1)', fill: 'both' });
+  }
+  document.body.appendChild(lop);
+  setTimeout(() => lop.remove(), 4600);
+}
+
 function veDatXong(maMoi, phone, email) {
+  setTimeout(canhHoaRoi, 250);
   const zalo = zaloURL(contactInfo?.zalo || contactInfo?.phone);
   document.getElementById('orderModalBody').innerHTML = `
 <div class="order-success">
@@ -1653,25 +1682,32 @@ async function loadTestimonials() {
 }
 
 // ─── Product Detail Carousel ─────────────────────────────
-let _carImgs = [], _carIdx = 0, _carTimer = null;
-
-function _carGoTo(i) {
-  _carIdx = (i + _carImgs.length) % _carImgs.length;
+// 07/11/2026: khung ảnh là khung CUỘN NGANG bắt dính từng ảnh (CSS phần 8) → khách vuốt tay như album điện thoại. Mũi tên /
+// ảnh nhỏ chỉ cuộn khung tới ảnh đó; ảnh nhỏ sáng theo vị trí cuộn. BỎ tự chuyển 5 giây (ảnh tự nhảy lúc khách đang ngắm).
+// Trước đó: dịch bằng transform → không vuốt được, chỉ bấm 2 mũi tên nhỏ.
+function _carIdx() {
   const track = document.getElementById('carouselTrack');
-  if (track) track.style.transform = `translateX(-${_carIdx * 100}%)`;
-  document.querySelectorAll('.carousel-thumb').forEach((t, idx) =>
-    t.classList.toggle('active', idx === _carIdx)
-  );
-  clearInterval(_carTimer);
-  _carTimer = setInterval(() => _carGoTo(_carIdx + 1), 5000);
+  return track && track.clientWidth ? Math.round(track.scrollLeft / track.clientWidth) : 0;
 }
-
-function _carMove(dir) { _carGoTo(_carIdx + dir); }
-
-function _startCarousel(imgs) {
-  _carImgs = imgs; _carIdx = 0;
-  clearInterval(_carTimer);
-  _carTimer = setInterval(() => _carGoTo(_carIdx + 1), 5000);
+function _carGoTo(i) {
+  const track = document.getElementById('carouselTrack');
+  if (!track) return;
+  const n = track.children.length;
+  track.scrollTo({ left: ((i + n) % n) * track.clientWidth, behavior: giamChuyenDong() ? 'auto' : 'smooth' });
+}
+function _carMove(dir) { _carGoTo(_carIdx() + dir); }
+function _carTheoDoi() {
+  const track = document.getElementById('carouselTrack');
+  if (!track) return;
+  let hen = 0;
+  track.addEventListener('scroll', () => {
+    if (hen) return;
+    hen = requestAnimationFrame(() => {
+      hen = 0;
+      const i = _carIdx();
+      document.querySelectorAll('.carousel-thumb').forEach((t, idx) => t.classList.toggle('active', idx === i));
+    });
+  }, { passive: true });
 }
 
 function buildDetailImage(imgs, name, s) {
@@ -1775,7 +1811,7 @@ async function loadProductDetail() {
 </div>`;
 
   wireOrderButtons();
-  if (imgs.length > 1) _startCarousel(imgs);
+  if (imgs.length > 1) _carTheoDoi();
   loadRelated(p.id);
 }
 
@@ -1848,6 +1884,9 @@ function _setHeroImg(id, url) {
   const safe = String(url).replace(/['"()]/g, '');
   el.style.backgroundImage = `url('${safe}')`;
   requestAnimationFrame(() => el.classList.add('loaded'));
+  const thu = new Image();
+  thu.onload = thu.onerror = () => requestAnimationFrame(() => el.classList.add('da-tai'));
+  thu.src = safe;
 }
 // Máy chặn bộ nhớ trình duyệt (chặn cookie, vài trình duyệt trong app) → localStorage NÉM LỖI khi đọc.
 // Trước 08/10/2026 lỗi đó ở đây làm cả trang không tải dữ liệu (các phần sau trong DOMContentLoaded không chạy).

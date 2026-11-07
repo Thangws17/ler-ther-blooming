@@ -108,6 +108,10 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
       })
       test(`[${ten}] không lỗi JS`, () => bang(T.loi, []))
       if (rong === 390) {
+        // 07/11/2026: viewport-fit=cover (khoảng chừa vạch home / tai thỏ env(safe-area-inset-*) mới có tác dụng) + logo chữ, bỏ bông hoa
+        test(`[${ten}] thẻ viewport có viewport-fit=cover`, () =>
+          bang(/viewport-fit=cover/.test(d.querySelector('meta[name="viewport"]').content), true))
+        test(`[${ten}] logo là chữ, không còn bông hoa 🌸`, () => bang(/🌸/.test(d.querySelector('.navbar .logo').textContent), false))
         test(`[${ten}] có hàng rào CSP + không nạp thư viện ngoài nào (chỉ js/ của shop)`, () => {
           bang(!!d.querySelector('meta[http-equiv="Content-Security-Policy"]'), true)
           bang([...d.querySelectorAll('script[src]')].map(x => x.getAttribute('src')).filter(x => !/^js\//.test(x)), [])
@@ -145,6 +149,7 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
       if (ten === 'index' && rong === 390) {
         test('[trang chủ] ảnh đầu trang đã có ảnh', () => { if (!/url\(/.test(T.id('heroBg').style.backgroundImage)) throw new Error('chưa có ảnh') })
         test('[trang chủ] 3 ô cam kết', () => bang(d.querySelectorAll('.trust3 > div').length, 3))
+        test('[trang chủ] đã bỏ mục "Tại sao chọn chúng tôi" (lặp 3 cam kết — 07/11/2026)', () => bang(d.querySelector('.whyus'), null))
         test('[trang chủ] bộ sưu tập là hàng trượt ngang', () => bang(getComputedStyle(T.id('bstGrid')).display, 'flex'))
         test('[trang chủ] mẫu nổi bật 2 cột', () => bang(soCot(T.id('featuredGrid')), 2))
         test('[trang chủ] thẻ bộ sưu tập KHUẤT bên phải vẫn hiện sẵn (không "trồi lên" khi lướt tới — lỗi iPhone 24/09)', () => {
@@ -219,6 +224,12 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
         test('[sản phẩm] bấm menu ☰ → mở menu, nút đổi sang ✕', () => {
           bang(T.id('navLinks').classList.contains('open'), true)
           bang(!!menu.querySelector('use[href="#i-x"]'), true)
+        })
+        test('[sản phẩm] ☰ điện thoại chỉ còn mục KHÔNG có ở thanh tab dưới: Câu chuyện + Chính sách (07/11/2026)', () =>
+          bang([...T.id('navLinks').querySelectorAll('li')].filter(l => getComputedStyle(l).display !== 'none').map(l => l.textContent.trim()),
+            ['Câu chuyện', 'Chính sách']))
+        test('[sản phẩm] ô tìm chữ ≥ 16px trên điện thoại (nhỏ hơn là iPhone tự phóng to trang)', () => {
+          const c = parseFloat(getComputedStyle(T.id('productSearch')).fontSize); if (c < 16) throw new Error(c + 'px')
         })
         menu.click()
 

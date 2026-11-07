@@ -70,6 +70,10 @@ Trang khách xem: đọc dữ liệu, bảo mật CSP, đo lường, bộ sưu t
   `.omx-than` (web) để được hưởng.
 - **Web khách trên điện thoại có thanh tab dưới đáy** (`veThanhTabKhach()` trong main.js chèn cho mọi trang, trừ trang
   chi tiết — đáy trang đó là thanh "Zalo + Đặt mẫu này"). Nút nổi (Zalo, lên đầu trang) phải đứng TRÊN thanh này.
+  **Từ 07/11/2026 là viên bo tròn nổi giữa đáy, chỉ biểu tượng** (kiểu app Facebook, shop chọn): chữ trong `<span>` vẫn còn,
+  chỉ ẩn bằng mắt (`clip-path: inset(50%)`) cho trình đọc màn hình + test "nút có tên" — đừng xoá `<span>`. Admin cùng kiểu.
+  Nút ☰ điện thoại chỉ còn mục KHÔNG có ở thanh tab (Câu chuyện + "Chính sách" do `initNav()` chèn, class `.chi-dt`); trang
+  chi tiết không có thanh tab (`body` không có `.co-w-tabs`) nên ☰ ở đó vẫn đủ mục.
 - **Form đặt hoa web khách không còn `<input type="date">`**: chip Ngày mai / Ngày kia + lịch tự vẽ (`veLichGiao`),
   giá trị vẫn ở `#orderDate` (hidden). Trang chủ chỉ còn 1 ảnh to (`#heroBg`); 2 ô ảnh phụ trong admin đã ẩn.
 - **Chống xô lệch bố cục (CLS, đo 11/10/2026)**: khối ở màn đầu trang KHÔNG được ẩn sẵn (`display:none`) rồi JS mới bật — giữ chỗ
@@ -89,6 +93,29 @@ Trang khách xem: đọc dữ liệu, bảo mật CSP, đo lường, bộ sưu t
   nên trước đây 12 ảnh cùng giành mạng, bỏ qua cả "tải khi cuộn tới"). Trang chủ: mẫu nổi bật KHÔNG được ưu tiên
   (nhường ảnh nền) — `productCardHTML(p, uuTien)` chỉ nhận `true` thật, `data.map(productCardHTML)` truyền số thứ tự
   vào tham số 2 nên phải so `=== true`.
+- **Màu "Vườn kem" như admin (07/11/2026, phương án A "Làm gọn")**: token ở `:root` đầu `css/style.css` (`--bg` kem
+  `#F8F5EE`, `--kem-dam`, `--heading` xanh rêu `#1f3a22`, `--text-mid` `#557355`, `--shadow` bóng nâu nhạt). Thẻ trắng nổi
+  = nhóm "Thẻ nổi" ở phần 13. Tiêu đề xanh rêu chỉ đặt cho tiêu đề trên nền SÁNG (danh sách ở phần 1) — đặt chung `h1, h2`
+  là chìm chữ trắng ở ảnh đầu trang + dải "Có dịp đặc biệt?". Không còn `style="background:#fff"` viết tay ở các `<section>`
+  (cả trang một màu kem). Logo là chữ 2 tầng (`.logo > span` xếp dọc, `.logo-accent` = BLOOMING nhỏ), không còn bông hoa.
+- **Mọi `:hover` của web khách bọc `@media (hover: hover) and (pointer: fine)` (07/11/2026)** — như admin. Chạm trên điện
+  thoại là `:hover` DÍNH (nút ± số lượng xanh đặc mãi, mũi tên ảnh phóng to không về…). Viết hover mới cũng phải bọc. Bấm
+  là nút lún `scale: .97` trên mọi máy (khối cuối phần 13); iPhone chỉ hiện `:active` khi trang có nghe `touchstart`
+  (main.js có 1 trình nghe rỗng, passive — đừng xoá). `html` bỏ mảng xám lóe khi chạm (`-webkit-tap-highlight-color`).
+- **Thẻ viewport có `viewport-fit=cover` (07/11/2026, 8 trang)** — thiếu nó thì mọi `env(safe-area-inset-*)` = 0, các chỗ
+  "chừa vạch home iPhone" (thanh tab, nút "Đặt mẫu này", form) KHÔNG có tác dụng. Có nó thì trang vẽ tràn tai thỏ khi xoay
+  ngang → `.container` lấy lề `max(20px, env(safe-area-inset-left/right))`. Ô nhập trên điện thoại phải ≥ 16px (ô tìm Sản
+  phẩm từng 15,2px → iPhone tự phóng to cả trang).
+- **Ảnh trượt trang chi tiết = khung cuộn ngang bắt dính (07/11/2026)**: `#carouselTrack` `overflow-x: auto` +
+  `scroll-snap-type: x mandatory` → khách vuốt tay; mũi tên / ảnh nhỏ gọi `_carGoTo(i)` = `scrollTo`, ảnh nhỏ sáng theo vị
+  trí cuộn (`_carTheoDoi`), vị trí hiện tại = `_carIdx()` (hàm, không còn là biến). BỎ tự chuyển 5 giây. Đừng quay lại
+  dịch bằng `transform` (không vuốt được — lỗi thật trước 07/11).
+- **Trang chủ "chào khách" lần đầu (07/11/2026)**: đoạn script đầu `index.html` (đã có sẵn — hỏi contact sớm) đặt
+  `html.chao` khi `sessionStorage.lt_chao` chưa có + máy không bật giảm chuyển động. CSS phần 5: chữ / nút / 3 cam kết hiện lần
+  lượt; ảnh nền vẽ lại bằng `.hero-card::before` (`background: inherit` mượn ảnh của khung, khung tự `background-size: 0 0`)
+  rồi hiện dần + thu 108% → 100% khi `_setHeroImg()` gắn `.da-tai` (ảnh tải xong). Ảnh nền VẪN ghi ở `#heroBg.style`
+  (test + thẻ preload so khớp chỗ đó) — đừng dời sang phần tử khác. Đặt xong đơn: `veDatXong()` gọi `canhHoaRoi()` (26 cánh
+  hoa `animate()`, tự gỡ sau ~4,6 giây); dấu tích hé dần bằng `clip-path` (biểu tượng vẽ bằng mảng tô, không chạy nét được).
 - **Dải thông báo đầu trang nhớ trong máy (07/11/2026, `lt_banner`)**: dải `#siteBanner` hiện SAU khi tải contact (~2,5 giây)
   → đẩy cả trang xuống 73px (xô bố cục ở mọi trang khi shop bật thông báo). `primeBanner()` lúc mở trang hiện ngay chữ đã
   nhớ, `loadBanner()` tải xong thì sửa cho đúng (đổi chữ / shop tắt → ẩn + quên). Lần ĐẦU vào web vẫn xô ở các trang

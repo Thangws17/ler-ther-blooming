@@ -36,6 +36,13 @@ Mỗi dòng là một lựa chọn **shop đã cân nhắc và chốt**, kèm l�
 | Quyết định | Ngày |
 |---|---|
 | Phong cách **tối giản**; biểu tượng nét mảnh, **không dùng emoji trong nút / menu** (emoji shop đặt cho BST/album là nội dung, vẫn giữ) | 23/09/2026 |
+| Biểu tượng đổi sang **Hai tông** (Phosphor duotone) cho cả web lẫn admin; dấu thao tác (＋ − ✕ ✓, mũi tên, ☰) giữ nét trơn vì lớp nền vuông trên nút xanh "trông kì". Đã so: nét mảnh cũ / Tròn mềm / Đặc / Hai tông | 07/11/2026 |
+| Web khách **màu "Vườn kem" như admin** (nền kem, thẻ trắng nổi, tiêu đề xanh rêu). Bố cục **phương án A "Làm gọn"**: giữ bố cục cũ, chỉ bỏ trùng; đã xem B "Mở là thấy hoa" (danh sách mẫu ngay trang chủ, lọc giá) nhưng chưa cần đổi | 07/11/2026 |
+| Bỏ mục **"Tại sao chọn chúng tôi"** ở trang chủ (lặp 3 cam kết dưới ảnh đầu trang) | 07/11/2026 |
+| **Logo chữ 2 tầng** như admin, bỏ bông hoa 🌸 ở thanh menu + chân trang (favicon vẫn hoa). Có logo thật thì tính tiếp | 07/11/2026 |
+| **Thanh tab dưới kiểu app Facebook**: viên bo tròn nổi giữa đáy, chỉ biểu tượng, mục đang xem có nền nhạt — cả web khách lẫn admin. Admin 5 mục: Đơn hàng · Lịch giao · Sản phẩm · Chi phí · Menu. ☰ web điện thoại chỉ còn Câu chuyện + Chính sách | 07/11/2026 |
+| Chuyển động theo skill Emil: hiện dần nhanh + ngắn, nút lún 97% mọi máy, form đặt hoa điện thoại trượt cả tấm từ đáy. "Wao" lấy 3: ảnh hiện từ nhoè sang nét, trang chủ chào khách lần đầu, cánh hoa rơi khi đặt xong — **bỏ ảnh bay sang trang chi tiết** | 07/11/2026 |
+| Ảnh trang chi tiết **vuốt tay được, không tự chuyển** (trước tự nhảy 5 giây). Shop bảo "sửa luôn" nhưng chưa chọn giữa "bỏ hẳn" và "dừng khi chạm" → tạm bỏ hẳn | 07/11/2026 |
 | Không dùng ô chọn ngày/tháng mặc định của trình duyệt, không dùng hộp `alert` / `prompt`, mà dùng lịch tự vẽ, bảng trượt từ dưới lên | từ 09/2026 |
 | Web **thuần Việt**: trang ảnh tên "Khoảnh khắc" (không "Gallery"), không viết "danh mục" | 23/09/2026 |
 | Font phương án **B "dịu mắt"**: Nunito (tiêu đề) + Be Vietnam Pro (nội dung); admin dùng Be Vietnam Pro | 24/09/2026 |

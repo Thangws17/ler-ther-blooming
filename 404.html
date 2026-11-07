@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <!-- Hàng rào CSP (08/10/2026): trình duyệt CHỈ nạp / gửi dữ liệu tới chính web + Supabase + Google Fonts + mã QR
        (img.vietqr.io) + bản đồ Google + Google Analytics / Clarity. Lỡ có mã lạ lọt vào trang cũng không gửi được dữ liệu
        đi nơi khác, không nạp được script lạ. Thêm dịch vụ ngoài mới (ảnh tên miền khác, widget chat…) thì PHẢI thêm tên miền
@@ -21,7 +21,7 @@
   <style>
     :root {
       --green:#2E7D32; --green-pale:#E8F5E9; --orange:#FF7043;
-      --bg:#F1F8E9; --text:#1A2E1A; --text-mid:#4A6849; --text-light:#7A9879;
+      --bg:#F8F5EE; --text:#2b3a2c; --text-mid:#557355; --text-light:#7b8a76;   /* Vườn kem như admin (07/11/2026) */
     }
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
     body {
@@ -32,12 +32,14 @@
     }
     a { text-decoration:none; color:inherit; }
 
+    /* Logo chữ 2 tầng như admin, không bông hoa (07/11/2026) */
     .logo {
-      display:inline-flex; align-items:center; gap:9px;
-      font-family:'Nunito',sans-serif; font-weight:800; font-size:1.15rem;
-      color:var(--text); margin-bottom:38px;
+      display:inline-flex; flex-direction:column; align-items:center; line-height:1.05;
+      font-family:'Nunito',sans-serif; font-weight:800; font-size:1.3rem;
+      color:#1f3a22; margin-bottom:38px;
     }
-    .logo-accent { color:var(--green); }
+    .logo-accent { font-family:'Be Vietnam Pro','Open Sans',sans-serif; font-size:.6rem; font-weight:700; letter-spacing:.2em;
+      text-transform:uppercase; color:var(--text-mid); margin-top:3px; }
 
     .petal { font-size:3.6rem; line-height:1; margin-bottom:14px; animation:sway 4s ease-in-out infinite; }
     @keyframes sway { 0%,100%{transform:rotate(-7deg)} 50%{transform:rotate(7deg)} }
@@ -80,8 +82,7 @@
 <body>
 
   <a class="logo" href="#" data-to="">
-    <span>🌸</span>
-    <span>Ler &amp; Ther <span class="logo-accent">Blooming</span></span>
+    <span>Ler &amp; Ther</span><span class="logo-accent">Blooming</span>
   </a>
 
   <div class="petal">🥀</div>

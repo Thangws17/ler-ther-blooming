@@ -36,6 +36,12 @@
   `<script>` thường (không module), phải nạp TRƯỚC `js/main.js`.
 - **Biểu tượng: MỘT bộ duy nhất trong `js/dungchung.js` (`BIEU_TUONG` + `ic('ten')`)**, dùng cho cả admin lẫn
   web khách; file đó tự chèn bộ `<symbol>` vào đầu `<body>`. HTML tĩnh viết `<svg class="ic"><use href="#i-ten"/></svg>`.
+  **Từ 07/11/2026 là bộ HAI TÔNG** (Phosphor Icons "duotone", MIT — shop chọn sau khi so 4 kiểu): khung 256×256, vẽ bằng
+  **mảng tô** (`<g fill="currentColor" stroke="none">`), lớp nền nhạt `opacity: var(--ic-nen, .2)`. Hệ quả: `.ic { fill / stroke /
+  stroke-width }` KHÔNG còn tác dụng — đổi màu bằng `color`, tô kín lớp nền (vd ngôi sao "đang bật" ở tab Sản phẩm) bằng
+  `--ic-nen: 1`; hiệu ứng "nét chạy" (stroke-dasharray) không dùng được, dùng `clip-path`. Dấu thao tác (plus minus x check
+  menu dots grip up down left right out ext download upload refresh) dùng kiểu "regular" (không lớp nền) — lớp nền vuông của
+  chúng trên nút xanh trông như ô lạ. `dash` giờ là ngôi nhà (Trang chủ). Cách thêm biểu tượng ghi ngay trên `BIEU_TUONG`.
   **Không thêm emoji vào nút/menu nữa** (23/09/2026 đã đổi hết sang biểu tượng nét mảnh). Emoji shop tự đặt cho
   Bộ sưu tập / nhóm ảnh là NỘI DUNG — giữ ở thẻ bìa, bỏ ở nút lọc. Logo 🌸 / favicon là thương hiệu — giữ.
   Chèn `${ic(...)}` thì chuỗi bao ngoài phải là template (dấu `), chuỗi nháy đơn sẽ lỗi cú pháp cả admin.
@@ -83,6 +89,11 @@
   (đè transform là thẻ .reveal kẹt lệch, lịch nổi điện thoại lệch tâm). Đừng đặt `transition` lên thẻ sản phẩm/BST/ảnh (đè hiệu ứng
   hiện dần). Web khách chuyển trang bằng `@view-transition` (thanh trên + thanh tab giữ yên). Cả 2 bên có khối
   `prefers-reduced-motion` tắt mọi hiệu ứng ở CUỐI file CSS — hiệu ứng JS (`animate()`) thì tự kiểm `giamChuyenDong()`.
+- **Web khách theo luật chuyển động của skill Emil (07/11/2026, xem mục admin ngay dưới)**: `--t` ghi rõ thuộc tính (không `all`), `--ease-out` / `--ease-tam` ở `:root`,
+  hiện dần khi cuộn 0,5 giây / 14px (trước 0,7 / 36px), so le 0,05 giây/thẻ; form đặt hoa điện thoại trượt NGUYÊN TẤM từ đáy
+  (`tamLen` / `tamXuong`, đặt SAU 2 luật mở / đóng chung để thắng); menu ☰ đóng kiểu "nhanh đầu"; ảnh thẻ hiện từ nhoè → nét
+  (`filter` + `scale` riêng, ở `.anh-mo … img`). File CSS nạp sau mà đặt lại `transition` / `animation` thì phải nhắc lại luật
+  giảm chuyển động (khối chung ở phần 1 chỉ rút thời gian về ~0, trạng thái đầu như nhoè / `clip-path` thì tắt riêng cuối phần 13).
 - **Rà theo skill Emil Kowalski (06/11/2026, admin)**: (1) mọi quy tắc `:hover` trong `<style>` admin bọc
   `@media (hover: hover) and (pointer: fine) { … }` — iPhone chạm 1 cái là `:hover` DÍNH (nút xanh đậm mãi). Viết hover
   mới cũng phải bọc, test-cu-phap báo đỏ nếu quên. (2) Không dùng `transition: all` — ghi rõ thuộc tính. (3) Nhịp chung
