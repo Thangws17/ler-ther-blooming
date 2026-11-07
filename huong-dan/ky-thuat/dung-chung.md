@@ -5,6 +5,18 @@
 
 `js/dungchung.js`, biểu tượng, font, chuyển động, mô tả mẫu hoa, người nhận/giờ giao, bộ gõ tiếng Việt, các bẫy khi viết code.
 
+- **CSS xếp theo PHẦN GIAO DIỆN, không theo đợt sửa (07/11/2026)** — cả `admin/index.html` (20 phần + tiện ích) lẫn
+  `css/style.css` (13 phần), mỗi file có MỤC LỤC CSS ở đầu, tìm bằng Ctrl+F `══ <số>`. Trước đó mỗi đợt sửa dán 1 khối mới
+  xuống cuối để đè kiểu cũ → 1 kiểu khai rải 2–5 nơi (admin 73 luật trùng, web 50). Khi sắp lại đã đối chiếu kiểu hiển
+  thị (getComputedStyle mọi thuộc tính, mọi phần tử) của 43 màn admin + trạng thái bấm mở × 5 khổ và 13 màn web × 5 khổ:
+  0 chỗ khác. **Sửa kiểu nào thì sửa thẳng trong phần của nó** (kể cả bản điện thoại — `@media` đặt ngay trong phần).
+  Bẫy thứ tự: phần đứng sau thắng phần đứng trước khi cùng độ ưu tiên — vì thế Lịch → Hộp thoại → Form (ô gợi ý / form
+  `.fx` phải đè khung hộp thoại), Bộ sưu tập trước Sản phẩm (danh sách BST trong form Sản phẩm đè kiểu BST chung), phần
+  "Áp cho NHIỀU phần" (Vườn kem, `.reveal`, chạm lún) ở cuối. Còn 28 luật admin / 21 luật web khai 2 nơi trong CÙNG
+  phần vì có luật khác xen giữa phải đè đúng thứ tự — đừng gộp tay mà không kiểm.
+- **Không viết `style="…"` tĩnh trong admin nữa (07/11/2026)** — 100 chỗ đã thành class (lớp tiện ích ở phần cuối CSS:
+  `.chu-phu`, `.nhan-phu`, `.link-xanh`, `.gian-ra`, `.hang-ngang`…; còn lại theo đúng tab). Chỉ giữ `style="display:none"`
+  (JS bật/tắt bằng `el.style.display` — đổi thành class là hỏng ẩn/hiện) và kích thước tính theo số liệu (`width:${…}%`).
 - **Safari/iPhone KHÔNG xuất được WebP**: `canvas.toBlob(cb, 'image/webp')` không trả null mà lặng lẽ trả **PNG** →
   phải xét `blob.type` (`veVaXuatAnh()`). Trước 01/10 chỉ xét null nên ảnh đăng từ iPhone không được nén (có ảnh 900KB).
   **Safari còn hiểu "chất lượng JPEG 0.8" khác Chrome** (gần như không nén): bản nhỏ 640px ra 140–255KB, ảnh gốc

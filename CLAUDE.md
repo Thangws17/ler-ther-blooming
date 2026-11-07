@@ -53,7 +53,8 @@ Kết quả của `sb.from(...)` là câu hỏi CHƯA gửi — mỗi lần `awa
 **Web khách — `js/main.js` dùng chung cho MỌI trang.** Không có router. Mỗi hàm `loadX()` tự thoát sớm nếu trang hiện tại không có element mốc của nó (`const grid = document.getElementById('productsGrid'); if (!grid) return`). Hàm `DOMContentLoaded` ở cuối file gọi *tất cả* các loader song song; trang nào không liên quan thì loader tự no-op. Thêm trang mới = thêm HTML + một `loadX()` theo đúng khuôn này, không tạo file JS riêng.
 
 **Admin — `admin/index.html` là một file monolith ~10.000 dòng** (HTML + CSS + JS trong cùng file, cố ý giữ vậy;
-**MỤC LỤC ở đầu file** — tìm mục bằng Ctrl+F `// ── Tên mục`; test-cu-phap kiểm mục lục không lỗi thời). Điều hướng qua `applyTab(tab)`: ẩn/hiện `.panel`, rồi gọi đúng `loadX()` của tab đó. `switchTab()` đẩy `history.pushState` + `#hash` nên nút Back của trình duyệt và F5 đều giữ đúng tab. `applyTab` cũng gọi `closeAllModals()` — modal của tab cũ phải dọn ở đó, đừng để rò sang tab mới.
+**MỤC LỤC ở đầu file** — tìm mục bằng Ctrl+F `// ── Tên mục`; test-cu-phap kiểm mục lục không lỗi thời; CSS có mục lục
+riêng, xếp theo phần giao diện — Ctrl+F `══ <số>`). Điều hướng qua `applyTab(tab)`: ẩn/hiện `.panel`, rồi gọi đúng `loadX()` của tab đó. `switchTab()` đẩy `history.pushState` + `#hash` nên nút Back của trình duyệt và F5 đều giữ đúng tab. `applyTab` cũng gọi `closeAllModals()` — modal của tab cũ phải dọn ở đó, đừng để rò sang tab mới.
 
 **Bảo mật database (kiểm 25/09/2026):** Supabase từng MỞ ĐĂNG KÝ (`/auth/v1/settings` → `disable_signup:false`; kiểm lại
 07/10/2026: đã TẮT, `true`). Dù vậy vẫn coi "đã đăng nhập" (`authenticated`) KHÔNG có nghĩa là shop. `supabase/24_chi_quan_tri.sql` thêm lớp luật
@@ -157,6 +158,8 @@ Chi tiết từng mục (lỗi thật đã xảy ra + cách làm đúng) nằm �
 - Lọc thanh toán ở Đơn hàng (21/10/2026)
 
 **[Dùng chung web + admin, và luật viết code](huong-dan/ky-thuat/dung-chung.md)**
+- CSS xếp theo PHẦN GIAO DIỆN, không theo đợt sửa (07/11/2026)
+- Không viết `style="…"` tĩnh trong admin nữa (07/11/2026)
 - Safari/iPhone KHÔNG xuất được WebP
 - Bẫy khi ghi file: chuỗi `\u0000` có thể bị biến thành ký tự điều khiển THẬT
 - Viết hàm tiện ích bằng `function`, đừng `const ten = () => …`
