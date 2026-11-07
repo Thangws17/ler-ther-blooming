@@ -288,7 +288,11 @@
       .bt-vien { position: relative; }
       .bt-nen { position: absolute; top: 6px; bottom: 6px; left: 6px; border-radius: 999px; background: #E6EFDF; pointer-events: none;
         width: calc((100% - 12px - (var(--n, 5) - 1) * 4px) / var(--n, 5)); translate: calc(var(--i, 0) * (100% + 4px)) 0; }
-      .bt-vien.bt-san .bt-nen { transition: translate .38s var(--ease-out); }
+      .bt-vien.bt-san .bt-nen { transition: translate .28s var(--ease-out); }   /* web khách .38s; admin bấm nhiều → nhanh hơn */
+      /* Bấm "Menu" (mở menu bên): viên chạy sang nút Menu, đóng menu thì về lại tab đang xem (openSidebar / closeSidebar) */
+      .bt-vien.mo-menu .bt-item.active { color: #6b786b; }
+      .bt-vien.mo-menu .bt-more { color: #2E7D32; }
+      .content { overflow-x: hidden; }   /* nội dung trượt ngang vào không làm hiện thanh cuộn ngang thoáng qua */
       .bt-badge {
         position: absolute; top: 2px; left: calc(50% + 4px); min-width: 18px; height: 18px; padding: 0 5px;
         border-radius: 9px; background: #E53935; color: #fff; font-size: .66rem; font-weight: 700; line-height: 18px; text-align: center;
@@ -308,6 +312,13 @@
     }
     /* Chuyển tab: trang mới hiện dần, nhích lên 6px. Shop đổi tab hàng chục lần/ngày → giữ thật ngắn (.18s, trước .24s) */
     .panel.vao { animation: panelVao .18s var(--ease-out); }
+    /* Điện thoại: nội dung trượt THEO HƯỚNG viên của thanh tab dưới (07/11/2026, shop xin) — sang mục bên phải thì nội dung vào
+       từ phải, sang trái thì vào từ trái (applyTab so vị trí viên trước / sau) */
+    /* Shop đổi tab hàng chục lần/ngày → ngắn + nhanh (07/11: 0,2 giây, 24px — bản đầu 0,26 giây, 44px) */
+    .panel.vao-phai { animation: panelPhai .2s var(--ease-out); }
+    .panel.vao-trai { animation: panelTrai .2s var(--ease-out); }
+    @keyframes panelPhai { from { opacity: 0; translate: 24px 0; } }
+    @keyframes panelTrai { from { opacity: 0; translate: -24px 0; } }
     @keyframes panelVao { from { opacity: 0; translate: 0 6px; } }
     /* Lớp mờ sau menu bên (điện thoại) */
     .sidebar-overlay.show { animation: mvFade .25s ease; }
@@ -3965,21 +3976,24 @@
           </div>
         </div>
 
-        <button type="button" class="fx-more" id="exCalcToggle" aria-expanded="false" onclick="fxToggle(this)"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg><span>Tính theo số lượng × đơn giá</span><small>tự ra số tiền</small></button>
-        <div class="fx-body">
-          <div class="fx-row">
-            <div class="fx-col">
-              <div class="fx-lb">Số lượng</div>
-              <label class="fx-in"><input type="number" id="exQty" min="0" step="any" placeholder="VD: 50" oninput="exUpdateAmount()"></label>
-            </div>
-            <div class="fx-col">
-              <div class="fx-lb">Đơn giá</div>
-              <label class="fx-in"><input type="text" id="exUnitPrice" inputmode="numeric" autocomplete="off"
-                     placeholder="VD: 5.000" oninput="onMoneyInput(this); exUpdateAmount()"><span class="fx-suf">đ</span></label>
+        <!-- Số lượng × đơn giá HIỆN SẴN (07/11/2026, shop: "đã là chi phí thì có số lượng và đơn giá" — trước nằm trong mục gấp phải bấm mở).
+             Số lượng mặc định 1, nút −/+ như form đơn (vẫn gõ được khi mua nhiều: 50 cành…). Gõ đơn giá → số tiền đầu form tự điền. -->
+        <div class="fx-row ex-sl-gia">
+          <div class="fx-col-auto">
+            <div class="fx-lb">Số lượng</div>
+            <div class="qty-step">
+              <button type="button" onclick="stepQtyAdmin('exQty', -1, 9999)" aria-label="Bớt 1"><svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg></button>
+              <input type="number" id="exQty" min="0" step="any" value="1" inputmode="decimal" aria-label="Số lượng" oninput="exUpdateAmount()">
+              <button type="button" onclick="stepQtyAdmin('exQty', 1, 9999)" aria-label="Thêm 1"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button>
             </div>
           </div>
-          <div class="fx-calc" id="exCalcNote">Gõ 2 ô trên, số tiền ở đầu form tự điền.</div>
+          <div class="fx-col">
+            <div class="fx-lb">Đơn giá</div>
+            <label class="fx-in"><input type="text" id="exUnitPrice" inputmode="numeric" autocomplete="off"
+                   placeholder="VD: 5.000" oninput="onMoneyInput(this); exUpdateAmount()"><span class="fx-suf">đ</span></label>
+          </div>
         </div>
+        <div class="fx-calc" id="exCalcNote">Gõ đơn giá, số tiền ở đầu form tự điền.</div>
         <button type="button" class="fx-more" aria-expanded="false" onclick="fxToggle(this)"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg><span>Ghi chú</span><small>tuỳ chọn</small></button>
         <div class="fx-body"><label class="fx-in"><textarea id="exNote" rows="2" placeholder="VD: mua ở chợ hoa Hồ Thị Kỷ"></textarea></label></div>
         <button type="button" class="fx-more" aria-expanded="false" onclick="fxToggle(this)"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg><span>Ảnh hoá đơn</span><small>tuỳ chọn</small></button>
@@ -4135,13 +4149,25 @@ function toggleSidebar() {
   document.querySelector('.sidebar').classList.toggle('open')
   document.getElementById('sidebarOverlay').classList.toggle('show')
 }
+// Vị trí viên nền của thanh tab dưới (điện thoại) — để biết nội dung trượt vào từ phía nào
+function viTriVien() { const v = document.querySelector('.bt-vien'); return v ? +(v.style.getPropertyValue('--i') || 0) : 0 }
+let _btTu = null   // vị trí viên ngay TRƯỚC khi đổi tab (switchTab ghi trước khi đóng menu — lúc đó viên đang ở nút Menu)
 function openSidebar() {
   document.querySelector('.sidebar').classList.add('open')
   document.getElementById('sidebarOverlay').classList.add('show')
+  // Viên chạy sang nút "Menu" (07/11/2026 — trước bấm Menu thì thanh tab đứng yên, như chưa bấm trúng)
+  const v = document.querySelector('.bt-vien')
+  if (v && !v.classList.contains('mo-menu')) {
+    v.dataset.iTab = viTriVien()
+    v.style.setProperty('--i', [...v.querySelectorAll('.bt-item')].findIndex(b => b.classList.contains('bt-more')))
+    v.classList.add('mo-menu')
+  }
 }
 function closeSidebar() {
   document.querySelector('.sidebar').classList.remove('open')
   document.getElementById('sidebarOverlay').classList.remove('show')
+  const v = document.querySelector('.bt-vien')
+  if (v && v.classList.contains('mo-menu')) { v.classList.remove('mo-menu'); v.style.setProperty('--i', v.dataset.iTab || 0) }
 }
 
 // Đóng sạch mọi lớp phủ đang mở (modal / chọn ảnh / hộp thoại / xem ảnh)
@@ -4173,10 +4199,13 @@ function applyTab(tab) {
   document.getElementById('galBulkBar')?.classList.remove('show')
   document.querySelector('.content')?.scrollTo(0, 0)   // tab mới bắt đầu từ đầu trang
   document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab))
+  const tu = _btTu ?? viTriVien(); _btTu = null
   syncBottomTabs(tab)
+  const toi = viTriVien()
+  const vao = matchMedia('(max-width: 820px)').matches && toi !== tu ? (toi > tu ? 'vao-phai' : 'vao-trai') : 'vao'
   document.querySelectorAll('.panel').forEach(p => p.style.display = 'none')
   const panel = document.getElementById('panel' + tab)
-  if (panel) { panel.style.display = 'block'; panel.classList.remove('vao'); void panel.offsetWidth; panel.classList.add('vao') }
+  if (panel) { panel.style.display = 'block'; panel.classList.remove('vao', 'vao-phai', 'vao-trai'); void panel.offsetWidth; panel.classList.add(vao) }
   if (tab === 'Orders')        { loadOrders(); veNhacDon() }
   if (tab === 'Delivery')      loadDelivery()
   if (tab === 'Expenses')      loadExpenses()
@@ -4233,6 +4262,7 @@ function switchTab(btn) {
   const tab = btn.dataset.tab
   const cur = (history.state && history.state.adminTab) || TAB_DAU
   if (tab !== cur) history.pushState({ adminTab: tab }, '', '#' + tab)
+  _btTu = viTriVien()   // trước khi đóng menu: viên đang ở đâu thì nội dung "đi" từ đó
   closeSidebar()   // chọn xong tự đóng menu trên điện thoại
   applyTab(tab)
 }
@@ -5463,9 +5493,7 @@ function pickMaterial(id) {
   if (mt.last_price != null) moneySet('exUnitPrice', mt.last_price)
   exUpdateAmount()
   hideExItemSuggest()
-  // Có giá lần trước → mở sẵn phần "SL × đơn giá", chỉ việc gõ số lượng
-  fxToggle(document.getElementById('exCalcToggle'), true)
-  document.getElementById('exQty').focus()
+  // Có giá lần trước → số tiền tự ra (SL mặc định 1); mua nhiều thì bấm + hoặc gõ số lượng
 }
 
 // Thêm nhanh nguyên liệu mới ngay từ ô gõ (khi tìm không thấy)
@@ -5479,7 +5507,7 @@ async function addMaterialFromInput() {
   materials.push(data)
   materials.sort((a, b) => a.name.localeCompare(b.name, 'vi'))
   showToast(`Đã thêm "${name}" vào nguyên liệu!`)
-  document.getElementById('exQty').focus()
+  document.getElementById('exUnitPrice').focus()
 }
 
 // Sau khi lưu chi phí: tự đồng bộ nguyên liệu (thêm mới nếu chưa có, cập nhật giá gần nhất)
@@ -5890,7 +5918,7 @@ function exCalcNote() {
   const p = moneyNum('exUnitPrice')
   if (!isNaN(q) && p != null)
     note.innerHTML = `${q} × ${fmtVnd(p)} = <b class="so-xanh">${fmtVnd(Math.round(q * p))}</b>`
-  else note.textContent = 'Gõ 2 ô trên, số tiền ở đầu form tự điền.'
+  else note.textContent = 'Gõ đơn giá, số tiền ở đầu form tự điền.'
 }
 
 // Mặt hàng hay mua (đếm trong các dòng chi phí đang tải) → chip bấm 1 chạm
@@ -5948,7 +5976,7 @@ function openExpenseModal(id = null) {
     document.getElementById('exDate').value = e.expense_date
     segSet('exCategory', e.category)
     document.getElementById('exItem').value = e.item || ''
-    document.getElementById('exQty').value = e.quantity ?? ''
+    document.getElementById('exQty').value = e.quantity ?? 1
     moneySet('exUnitPrice', e.unit_price)
     moneySet('exAmount', e.amount)
     document.getElementById('exNote').value = e.note || ''
@@ -9198,10 +9226,11 @@ async function taiTrangDon() {
 
 // Nút −/+ ô Số lượng (giống hệt bên web khách). Bắn sự kiện 'input' để Tổng tạm tính
 // tính lại, và tự đánh dấu "đang nhập dở" vì sự kiện do JS bắn không được guard tính.
-function stepQtyAdmin(id, delta) {
+// max: form đơn 99 bó; form chi phí 9999 (mua sỉ vài trăm cành). Số lẻ (2,5 kg) bấm −/+ thì nhảy theo 1 đơn vị.
+function stepQtyAdmin(id, delta, max = 99) {
   const el = document.getElementById(id)
   if (!el) return
-  el.value = Math.min(99, Math.max(1, (parseInt(el.value, 10) || 1) + delta))
+  el.value = Math.min(max, Math.max(1, (parseFloat(el.value) || 1) + delta))
   el.dispatchEvent(new Event('input', { bubbles: true }))
   const ov = el.closest('.modal-overlay')
   if (ov) ov.dataset.dirty = '1'

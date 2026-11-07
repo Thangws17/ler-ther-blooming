@@ -77,7 +77,11 @@ Trang khách xem: đọc dữ liệu, bảo mật CSP, đo lường, bộ sưu t
   **Viên nền trượt** (07/11/2026 tối, shop xin): `.w-tabs-nen` đứng đầu thanh (nằm dưới các nút), vị trí = `--i` / số mục `--n`
   (style trên `<nav>`). Mỗi tab là 1 lần tải trang → bấm tab thì ghi `sessionStorage.lt_tab_tu`, trang mới vẽ viên ở chỗ cũ rồi
   `animate()` trượt sang (0,38 giây). Chuyển trang `@view-transition`: bản cũ của thanh tab (`thanh-tab`) ẨN, không mờ chéo —
-  mờ chéo là thấy 2 viên cùng lúc.
+  mờ chéo là thấy 2 viên cùng lúc. Bấm tab ghi `sessionStorage.lt_tab_chuyen = {tu, toi, den, t}`; đoạn `pagereveal` trong `<head>`
+  MỖI trang (phải chạy trước khi trang vẽ — đừng dời vào main.js) gắn kiểu chuyển `sang-phai` / `sang-trai` → CSS phần 1
+  `:active-view-transition-type()` cho nội dung trượt cùng hướng viên. Chỉ tin khi mới ghi (< 4 giây) + đúng trang đích.
+  Bẫy khi thử ở máy: server trả trang KHÔNG kèm `charset` (serve.py bản cũ còn chạy từ trước) → Chrome báo "ViewTransition
+  opt-in disabled", không chuyển cảnh; GitHub Pages và serve.py hiện tại đều có charset.
 - **Form đặt hoa web khách không còn `<input type="date">`**: chip Ngày mai / Ngày kia + lịch tự vẽ (`veLichGiao`),
   giá trị vẫn ở `#orderDate` (hidden). Trang chủ chỉ còn 1 ảnh to (`#heroBg`); 2 ô ảnh phụ trong admin đã ẩn.
 - **Chống xô lệch bố cục (CLS, đo 11/10/2026)**: khối ở màn đầu trang KHÔNG được ẩn sẵn (`display:none`) rồi JS mới bật — giữ chỗ

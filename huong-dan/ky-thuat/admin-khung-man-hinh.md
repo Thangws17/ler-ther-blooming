@@ -60,7 +60,9 @@ Những lỗi hiển thị trên iPhone đã gặp, cách làm ô ngày / ô ti�
   `.bulk-bar` đã dời lên (88px). Thêm nút nổi mới thì đặt đáy ≥ 88px + `env(safe-area-inset-bottom)`.
   Viên nền trượt `.bt-nen` (đầu `.bt-vien`): `syncBottomTabs()` đặt `--n` / `--i` (mục đang sáng, kể cả "Menu"), chuyển động chỉ
   bật sau lần vẽ đầu (class `.bt-san`). Trang xem thử `test/xem-admin.html` TẮT mọi chuyển động (để chụp) — kiểm viên trượt
-  bằng admin thật hoặc đọc `--i`, đừng chờ hiệu ứng ở đó.
+  bằng admin thật hoặc đọc `--i`, đừng chờ hiệu ứng ở đó. Bấm "Menu": `openSidebar()` cho viên chạy sang nút Menu (`.mo-menu`,
+  nhớ vị trí cũ ở `data-i-tab`), `closeSidebar()` trả về. Đổi tab trên điện thoại: `applyTab` so vị trí viên trước / sau
+  (`_btTu` do `switchTab` ghi TRƯỚC khi đóng menu) → `.panel.vao-phai` / `.vao-trai` (nội dung trượt vào cùng hướng viên).
 - **Thứ "ẩn bằng cách trượt ra ngoài màn" phải trượt HẲN ra** (06/11/2026): thanh chọn nhiều ảnh `.bulk-bar` ẩn bằng
   `translate(-50%, 160%)` — trên điện thoại nó đứng cao 74px (trên thanh tab) nên ở khổ 600–900px còn lòi lên ~13px, che
   chữ thanh tab ở MỌI tab. Giờ là `calc(100% + 140px)`. Cùng kiểu: menu bên đóng (`.sidebar` trượt -100%) vẫn đổ bóng
@@ -82,6 +84,9 @@ Những lỗi hiển thị trên iPhone đã gặp, cách làm ô ngày / ô ti�
   KHÔNG đặt lại ô hidden → mở form phải tự `segSet` về mặc định. Chip do JS xử lý không bắn `input` nên tự gọi
   `danhDauDangNhap(el)` để cảnh báo "đang nhập dở" còn chạy. Ô đơn giá / phí ship của form thêm đơn giờ là ô tiền
   có dấu chấm (`moneyNum`), không còn `type="number"`.
+  **Form chi phí (07/11/2026, shop xin)**: Số lượng × Đơn giá HIỆN SẴN (bỏ mục gấp "Tính theo SL × đơn giá" `#exCalcToggle`),
+  `#exQty` mặc định 1 trong ô `.qty-step` −/+ như form đơn (`stepQtyAdmin(id, delta, max)` — chi phí max 9999, vẫn gõ được số
+  lớn / số lẻ). Gõ đơn giá là số tiền đầu form tự điền (SL × giá); sửa dòng cũ không có SL thì hiện 1.
 - **Nút thao tác trong danh sách admin dùng `nutTT(ten, nhan, onclick, {xoa, tat})`**: máy tính chỉ hiện biểu
   tượng (rê chuột ra tên), thẻ điện thoại `.mc-actions` hiện cả chữ. Đừng viết lại nút "✏️ Sửa / 🗑 Xóa" kiểu cũ.
 - **Dải trượt ngang + chuột**: hàng chip trên máy tính phải xuống dòng (CSS `(hover: hover) and (pointer: fine)`), hàng thẻ

@@ -43,6 +43,8 @@ Mỗi dòng là một lựa chọn **shop đã cân nhắc và chốt**, kèm l�
 | **Thanh tab dưới kiểu app Facebook**: viên bo tròn nổi giữa đáy, chỉ biểu tượng, mục đang xem có nền nhạt — cả web khách lẫn admin. Admin 5 mục: Đơn hàng · Lịch giao · Sản phẩm · Chi phí · Menu. ☰ web điện thoại chỉ còn Câu chuyện + Chính sách. Có **viên nền trượt** sang mục mới khi chuyển (shop xin, tối 07/11) | 07/11/2026 |
 | Chuyển động theo skill Emil: hiện dần nhanh + ngắn, nút lún 97% mọi máy, form đặt hoa điện thoại trượt cả tấm từ đáy. "Wao" lấy 3: ảnh hiện từ nhoè sang nét, trang chủ chào khách lần đầu, cánh hoa rơi khi đặt xong — **bỏ ảnh bay sang trang chi tiết** | 07/11/2026 |
 | Admin Đơn hàng trên điện thoại: lọc trạng thái + thanh toán bằng **nút "Lọc" + bảng trượt** (phương án 3), nút và chip **co giãn lấp đầy hàng**. Đã so: 1 hàng vuốt / 2 hàng có nhãn / nút Lọc | 07/11/2026 |
+| Chuyển mục ở thanh tab dưới: **nội dung trượt cùng hướng viên** (sang phải vào từ phải, sang trái vào từ trái) — web + admin; bấm Menu viên cũng chạy sang. Shop hỏi "có nhiều hiệu ứng quá không" → giữ đủ, chỉ rút ngắn thứ gặp liên tục: ảnh nhoè→nét (0,9→0,55 giây) và đổi tab admin (nội dung 0,2 giây / 24px, viên 0,28 giây) | 07/11/2026 |
+| Form **Chi phí**: Số lượng × Đơn giá **hiện sẵn**, số lượng mặc định 1 với nút −/+ (bỏ mục gấp phải bấm mở) | 07/11/2026 |
 | Ảnh trang chi tiết **vuốt tay được, không tự chuyển** (trước tự nhảy 5 giây). Shop bảo "sửa luôn" nhưng chưa chọn giữa "bỏ hẳn" và "dừng khi chạm" → tạm bỏ hẳn | 07/11/2026 |
 | Không dùng ô chọn ngày/tháng mặc định của trình duyệt, không dùng hộp `alert` / `prompt`, mà dùng lịch tự vẽ, bảng trượt từ dưới lên | từ 09/2026 |
 | Web **thuần Việt**: trang ảnh tên "Khoảnh khắc" (không "Gallery"), không viết "danh mục" | 23/09/2026 |

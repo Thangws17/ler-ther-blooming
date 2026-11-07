@@ -1860,14 +1860,18 @@ function veThanhTabKhach() {
     muc.map(([href, key, i, nhan]) => `<a href="${href}" class="${key === dang ? 'on' : ''}">${ic(i)}<span>${nhan}</span></a>`).join('')}</nav>`);
   document.body.classList.add('co-w-tabs');
   const nav = document.querySelector('.w-tabs'), nen = nav.querySelector('.w-tabs-nen');
-  let tu = null;
-  try { tu = sessionStorage.getItem('lt_tab_tu'); sessionStorage.removeItem('lt_tab_tu'); } catch (_) {}
-  if (nen && tu !== null && +tu !== idx && +tu >= 0 && !giamChuyenDong() && nen.animate) {
-    nen.animate([{ translate: `calc(${+tu} * (100% + 4px)) 0` }, { translate: `calc(${idx} * (100% + 4px)) 0` }],
+  // lt_tab_chuyen = { tu, toi, den, t }: ghi lúc bấm tab. Đọc ở 2 chỗ: đây (viên trượt) + đoạn "pagereveal" trong <head> mỗi trang
+  // (nội dung trượt theo hướng). Chỉ tin khi mới ghi (< 4 giây) và đúng trang đích — bấm Back, mở link khác thì bỏ qua.
+  let c = null;
+  try { c = JSON.parse(sessionStorage.getItem('lt_tab_chuyen') || 'null'); } catch (_) {}
+  if (nen && c && c.den === dang && Date.now() - c.t < 4000 && c.tu >= 0 && c.tu !== idx && !giamChuyenDong() && nen.animate) {
+    nen.animate([{ translate: `calc(${c.tu} * (100% + 4px)) 0` }, { translate: `calc(${idx} * (100% + 4px)) 0` }],
       { duration: 380, easing: 'cubic-bezier(.23, 1, .32, 1)' });
   }
   nav.addEventListener('click', e => {
-    if (e.target.closest('a') && idx >= 0) { try { sessionStorage.setItem('lt_tab_tu', idx); } catch (_) {} }
+    const a = e.target.closest('a'); if (!a || idx < 0) return;
+    const toi = [...nav.querySelectorAll('a')].indexOf(a);
+    try { sessionStorage.setItem('lt_tab_chuyen', JSON.stringify({ tu: idx, toi, den: ten(a.getAttribute('href')), t: Date.now() })); } catch (_) {}
   });
   const laO = el => el && el.matches && el.matches('input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), textarea, select');
   document.addEventListener('focusin', e => { if (laO(e.target)) document.body.classList.add('dang-go'); });

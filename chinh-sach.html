@@ -34,6 +34,19 @@
       .catch(function () { return null; });
   })();
   </script>
+  <!-- Chuyển giữa các mục của thanh tab dưới (07/11/2026, shop xin): nội dung trượt THEO HƯỚNG viên — sang mục bên phải thì vào
+       từ phải, sang trái thì vào từ trái. main.js ghi lt_tab_chuyen lúc bấm tab; ở đây (phải chạy TRƯỚC khi trang vẽ) gắn kiểu
+       chuyển cho @view-transition, CSS phần 1 vẽ. Trình duyệt chưa hỗ trợ thì vẫn mờ chéo như cũ. -->
+  <script>
+  addEventListener('pagereveal', function (e) {
+    if (!e.viewTransition || !e.viewTransition.types) return;
+    try {
+      var c = JSON.parse(sessionStorage.getItem('lt_tab_chuyen') || 'null');
+      var dang = location.pathname.split('/').pop().replace(/\.html$/, '') || 'index';
+      if (c && c.den === dang && Date.now() - c.t < 4000 && c.toi !== c.tu) e.viewTransition.types.add(c.toi > c.tu ? 'sang-phai' : 'sang-trai');
+    } catch (_) {}
+  });
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=Lora:ital,wght@1,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>

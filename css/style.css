@@ -107,6 +107,16 @@ html, body { overflow-x: clip; }
    Mờ chéo thì thấy 2 viên cùng lúc (viên cũ mờ dần + viên mới đang trượt). */
 ::view-transition-old(thanh-tab) { display: none; }
 ::view-transition-new(thanh-tab) { animation: none; }
+/* Chuyển giữa các mục thanh tab dưới (07/11/2026, shop xin): nội dung trượt THEO HƯỚNG viên. Kiểu "sang-phai" / "sang-trai" do đoạn
+   pagereveal trong <head> mỗi trang gắn. Thanh menu trên + thanh tab có tên riêng nên đứng yên, chỉ phần giữa trượt. */
+html:active-view-transition-type(sang-phai)::view-transition-old(root) { animation: vtRaTrai .22s var(--ease-out) both; }
+html:active-view-transition-type(sang-phai)::view-transition-new(root) { animation: vtVaoPhai .3s var(--ease-out) both; }
+html:active-view-transition-type(sang-trai)::view-transition-old(root) { animation: vtRaPhai .22s var(--ease-out) both; }
+html:active-view-transition-type(sang-trai)::view-transition-new(root) { animation: vtVaoTrai .3s var(--ease-out) both; }
+@keyframes vtRaTrai { to { opacity: 0; transform: translateX(-44px); } }
+@keyframes vtRaPhai { to { opacity: 0; transform: translateX(44px); } }
+@keyframes vtVaoPhai { from { opacity: 0; transform: translateX(44px); } }
+@keyframes vtVaoTrai { from { opacity: 0; transform: translateX(-44px); } }
 /* Nút "Đang gửi…" (khoá) → vòng xoay nhỏ trước chữ (theoDoiNutCho, js/dungchung.js) */
 .dang-chay:disabled::before { content: ''; display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
                               border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: xoay .7s linear infinite; }
@@ -1275,8 +1285,8 @@ html.chao .trust3 > div:nth-child(3) { animation-delay: .46s; }
    07/11/2026 (shop chọn): hiện từ NHOÈ + phóng 6% → nét, về đúng cỡ (như ống kính lấy nét). Dùng filter + "scale" riêng,
    không đụng transform. Ảnh đã có sẵn trong máy thì hiện ngay. */
 .anh-mo .product-img img, .anh-mo .bst-card img, .anh-mo .gallery-item img {
-  opacity: 0; filter: blur(14px); scale: 1.06;
-  transition: opacity .45s ease, filter .7s var(--ease-out), scale .9s var(--ease-out), transform .4s ease;
+  opacity: 0; filter: blur(8px); scale: 1.03;   /* rút nhẹ 07/11 (gặp ở MỌI ảnh): trước nhoè 14px, 0,9 giây */
+  transition: opacity .35s ease, filter .45s var(--ease-out), scale .55s var(--ease-out), transform .4s ease;
 }
 .anh-mo .product-img img.da-tai, .anh-mo .bst-card img.da-tai, .anh-mo .gallery-item img.da-tai { opacity: 1; filter: none; scale: 1; }
 /* Giảm chuyển động: tắt các hiệu ứng mới (khối chung ở phần 1 chỉ rút ngắn thời gian — trạng thái đầu thì tắt ở đây) */

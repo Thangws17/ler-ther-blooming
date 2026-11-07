@@ -508,16 +508,22 @@ const dt = document.getElementById('dt')
   })
   d.querySelector('#expenseModal [data-seg="exCategory"] [data-v="Hoa"]').click()
   test('Bấm ô loại "Hoa" → lưu đúng "Hoa" vào ô ẩn', () => bang(id('exCategory').value, 'Hoa'))
-  id('exCalcToggle').click()
-  test('Bấm "Tính theo số lượng × đơn giá" → mục mở ra', () =>
-    bang(id('exCalcToggle').classList.contains('open'), true))
-  id('exQty').value = '20'; go(id('exUnitPrice'), '12000'); w.exUpdateAmount()
-  test('SL 20 × 12.000 → số tiền to ở đầu form = 240.000', () => bang(id('exAmount').value, '240.000'))
+  // 07/11/2026: Số lượng × đơn giá HIỆN SẴN (bỏ mục gấp "Tính theo SL × đơn giá"), số lượng mặc định 1, nút −/+
+  test('Số lượng + đơn giá hiện sẵn (không còn mục gấp phải bấm mở), số lượng mặc định 1', () => {
+    bang([id('exCalcToggle'), id('exQty').offsetParent !== null, id('exUnitPrice').offsetParent !== null, id('exQty').value], [null, true, true, '1'])
+  })
+  const nutSl = [...id('exQty').closest('.qty-step').querySelectorAll('button')]
+  go(id('exUnitPrice'), '12000'); id('exUnitPrice').dispatchEvent(new w.Event('input', { bubbles: true }))   // gõ thật thì có sự kiện input
+  test('SL mặc định 1, gõ đơn giá 12.000 → số tiền đầu form = 12.000 ngay', () => bang(id('exAmount').value, '12.000'))
+  nutSl[1].click(); nutSl[1].click()
+  test('Bấm + 2 lần → SL 3, số tiền = 36.000', () => bang([id('exQty').value, id('exAmount').value], ['3', '36.000']))
+  nutSl[0].click(); nutSl[0].click(); nutSl[0].click()
+  test('Bấm − quá tay → dừng ở 1 (không về 0 / âm)', () => bang([id('exQty').value, id('exAmount').value], ['1', '12.000']))
+  id('exQty').value = '20'; w.exUpdateAmount()
+  test('Vẫn gõ được SL lớn: 20 × 12.000 → số tiền to ở đầu form = 240.000', () => bang(id('exAmount').value, '240.000'))
   test('Dòng giải thích hiện đúng phép tính', () => {
     if (!/240\.000/.test(id('exCalcNote').textContent)) throw new Error(id('exCalcNote').textContent)
   })
-  id('exCalcToggle').click()
-  test('Bấm lần nữa → mục gấp lại', () => bang(id('exCalcToggle').classList.contains('open'), false))
   id('expenseModal').dataset.dirty = ''
   w.closeExpenseModal()
 
@@ -530,9 +536,10 @@ const dt = document.getElementById('dt')
     bang(id('exAmount').value, '60.000'))
   test('Sửa dòng cũ: loại "Phụ kiện" được tô', () =>
     bang(d.querySelector('#expenseModal [data-seg="exCategory"] .on')?.dataset.v, 'Phụ kiện'))
-  test('Sửa dòng cũ: mục SL × đơn giá và Ghi chú tự mở, mục Ảnh (trống) vẫn gấp', () => {
+  test('Sửa dòng cũ: SL 10 + đơn giá 5.000 hiện sẵn; mục Ghi chú tự mở, mục Ảnh (trống) vẫn gấp', () => {
+    bang([id('exQty').value, id('exUnitPrice').value], ['10', '5.000'])
     const mo = [...d.querySelectorAll('#expenseModal .fx-more')].map(b => b.classList.contains('open'))
-    bang(mo, [true, true, false])
+    bang(mo, [true, false])
   })
   test('Chip "mặt hàng hay mua" lấy từ các dòng chi phí', () =>
     bang([...d.querySelectorAll('#exQuickItems .fx-chip')].map(b => b.textContent), ['Ruy băng']))
