@@ -340,6 +340,12 @@
     .sidebar-brand .tb-phu, .tb-brand .tb-phu { display: block; font-family: 'Be Vietnam Pro', sans-serif; font-size: .66rem; font-weight: 600;
       letter-spacing: .14em; text-transform: uppercase; color: #6b5d45; margin-top: 3px; }
     .tb-brand .tb-phu { display: none; }
+    /* Logo là NÚT về Đơn hàng (veTrangChinh, 08/11/2026): bỏ khung mặc định của nút, bấm thì mờ nhẹ, rê chuột đổi màu */
+    .sidebar-brand, .tb-brand { background: none; border: 0; cursor: pointer; text-align: left; transition: color .15s, opacity .15s; }
+    .sidebar-brand { display: block; width: 100%; }
+    .tb-brand { padding: 2px 0; color: inherit; }
+    .sidebar-brand:active, .tb-brand:active { opacity: .6; }
+    @media (hover: hover) and (pointer: fine) { .sidebar-brand:hover { color: #2E7D32; } }
     .nav-item { color: #5d6a5c; border-radius: 12px; }
     @media (hover: hover) and (pointer: fine) { .nav-item:hover { background: rgba(255,255,255,.45); color: #1f2a1f; } }
     .nav-item.active { background: #F8F5EE; color: #1f4d26; box-shadow: 0 1px 2px rgba(70,55,30,.06), 0 6px 18px rgba(70,55,30,.08); }
@@ -2699,7 +2705,7 @@
 <!-- ── App ───────────────────────────────────────── -->
 <div id="appWrap" style="display:none">
   <aside class="sidebar">
-    <div class="sidebar-brand">Ler &amp; Ther<span class="tb-phu">Blooming · quản trị</span></div>
+    <button type="button" class="sidebar-brand" onclick="veTrangChinh()" title="Về Đơn hàng" aria-label="Ler &amp; Ther — về Đơn hàng">Ler &amp; Ther<span class="tb-phu">Blooming · quản trị</span></button>
     <nav class="sidebar-nav">
       <button class="nav-item active" data-tab="Orders" onclick="switchTab(this)"><svg class="ic" aria-hidden="true"><use href="#i-box"/></svg><span>Đơn hàng</span><span id="newOrderBadge" class="nav-badge" style="display:none"></span></button>
       <button class="nav-item" data-tab="Delivery" onclick="switchTab(this)"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg><span>Lịch giao</span><span id="delivBadge" class="nav-badge" style="display:none"></span></button>
@@ -2725,7 +2731,7 @@
        — thấy thanh đè lên nội dung nhưng chạm không trúng. Ra ngoài khỏi cần sticky. -->
   <div class="admin-topbar">
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></button>
-    <span class="tb-brand">Ler &amp; Ther<span class="tb-phu">Blooming · quản trị</span></span>
+    <button type="button" class="tb-brand" onclick="veTrangChinh()" title="Về Đơn hàng" aria-label="Ler &amp; Ther — về Đơn hàng">Ler &amp; Ther<span class="tb-phu">Blooming · quản trị</span></button>
   </div>
 
   <main class="content">
@@ -8740,12 +8746,22 @@ function onOrderSearchInput() {
 }
 
 function clearOrderFilters() {
+  boLocDon()
+  applyOrderFilters()
+}
+function boLocDon() {
   document.getElementById('orderSearch').value = ''
   ordSetRange('', '')
   orderStatusSet.clear()
   orderTtSet.clear()
   renderStatusFilterChips()
-  applyOrderFilters()
+}
+// Bấm logo (08/11/2026, shop xin): về Đơn hàng như vừa mở admin — bỏ lọc, trang 1, cuộn lên đầu, lấy dữ liệu mới.
+// KHÔNG tải lại cả trang: tải lại phải nạp lại toàn bộ admin (chậm, nhất là trên điện thoại) mà kết quả y như vậy.
+function veTrangChinh() {
+  boLocDon()
+  ordersPage = 1
+  moTab(TAB_DAU)
 }
 
 // ── Lọc theo ngày giao: 1 ngày HOẶC một khoảng (từ ngày → đến ngày) ──

@@ -55,6 +55,8 @@ Cách từng tab tải và vẽ dữ liệu, các quy ước riêng của mỗi 
   cuối), rồi nhóm đã xong/huỷ gần → cũ; trong trang `xepGioTrongNgay()` xếp theo giờ hẹn (database không biết giờ — giờ nằm
   trong ghi chú). `buildOrdersQuery(f)` không nhóm vẫn là kiểu cũ (mới tạo lên đầu). Database giả của `test/xem-admin.html`
   giờ xếp được nhiều cột như thật (trước chỉ cột cuối có tác dụng → xem thử sai thứ tự).
+- **Bấm logo = về Đơn hàng (`veTrangChinh()`, 08/11/2026)** — như vừa mở admin: bỏ lọc, trang 1, cuộn lên đầu, lấy dữ liệu mới, KHÔNG
+  tải lại cả trang. Logo có 2 nút: `.sidebar-brand` (máy tính + menu bên) và `.tb-brand` (thanh trên điện thoại).
 - **Tab Tổng quan đã BỎ (06/11/2026)** — shop: "trang tồn tại mà không có nhiệm vụ rõ ràng". Soi ra mọi khối trên đó
   đều là bản sao tab khác (Giao hôm nay/Sắp giao = Lịch giao, Tiền tháng = Báo cáo, đơn mới = số đỏ; "2 đơn mới" lặp 3 lần).
   Shop chọn phương án "Bỏ Tổng quan" (giữa 3 bản thử: Việc cần làm / Nhịp tuần / Bỏ). Giờ: admin mở vào **Đơn hàng**

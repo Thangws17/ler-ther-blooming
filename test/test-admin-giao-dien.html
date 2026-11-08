@@ -710,6 +710,15 @@ function nutCoEmoji(goc) {
         bang(A.nhatKy.slice(dauKy2).some(x => x.ten === 'orders' && x.lenh === 'update' && x.v.nguon === 'Facebook'), true))
       w.closeOrderEditModal()
       try { w.localStorage.removeItem('lt_nguonCuoi') } catch (e) {}
+      // Bấm logo = về Đơn hàng như vừa mở admin (08/11/2026)
+      w.applyTab('Expenses'); await cho(300)
+      id('orderSearch').value = 'abc'; w.eval("orderStatusSet.add('Mới'); orderTtSet.add('Đã cọc')")
+      test('Logo là nút bấm được, có tên (máy tính + điện thoại)', () =>
+        bang(['.sidebar-brand', '.tb-brand'].map(s => { const b = d.querySelector(s); return b.tagName + ':' + /về Đơn hàng/.test(b.getAttribute('aria-label')) }), ['BUTTON:true', 'BUTTON:true']))
+      d.querySelector('.sidebar-brand').click(); await cho(300)
+      test('Bấm logo → về tab Đơn hàng, bỏ hết lọc', () =>
+        bang([getComputedStyle(id('panelOrders')).display, id('orderSearch').value, w.eval('orderStatusSet.size + orderTtSet.size')], ['block', '', 0]))
+      test('Bấm logo → trang hiển thị vẫn đủ đơn, không tải lại trang', () => bang(d.querySelectorAll('#ordersTable .dh-the, #ordersTable tr.dong-don').length > 0, true))
       // Loé sáng đơn vừa đổi + vòng xoay nút "Đang lưu…" (11/10/2026)
       w.applyTab('Orders'); await cho(300)
       w.loeDon(152); await cho(500)
