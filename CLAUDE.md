@@ -182,6 +182,8 @@ Chi tiết từng mục (lỗi thật đã xảy ra + cách làm đúng) nằm �
 - Tự động, không cần sửa từng chỗ
 - File `.md` bị GitHub Pages (Jekyll) biến thành trang web công khai
 - Script Python in tiếng Việt ra cửa sổ lệnh Windows bị lỗi `UnicodeEncodeError`
+- Báo lỗi nhập liệu NGAY TẠI Ô (`baoLoiO`), không dùng thông báo nổi (08/11/2026)
+- Thanh tab dưới (web + admin) dùng `bamNhanh` + admin đổi tab "vẽ trước, nạp sau" (08/11/2026)
 
 **[Kiểm thử (test) và xem thử bằng dữ liệu giả](huong-dan/ky-thuat/kiem-thu.md)**
 - Xem admin với dữ liệu giả

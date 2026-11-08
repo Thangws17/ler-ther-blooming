@@ -260,13 +260,16 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
         })
         T.id('orderName').value = 'Test'; T.id('orderPhone').value = '123'; T.id('orderAddress').value = 'Q.1'
         T.id('orderSubmitBtn').click(); await cho(120)
-        test('[đặt hoa] SĐT sai → KHÔNG gửi, báo lỗi', () => {
+        // 08/11/2026: báo NGAY DƯỚI Ô (viền đỏ + chữ đỏ, baoLoiO) — không còn thông báo nổi đè lên form
+        test('[đặt hoa] SĐT sai → KHÔNG gửi, báo ngay dưới ô SĐT', () => {
           bang(nhatKy.filter(x => x.lenh === 'rpc').length, 0)
-          if (!/Số điện thoại chưa đúng/.test(T.id('miniToast')?.textContent || '')) throw new Error('không báo')
+          const o = T.id('orderPhone').closest('.omx-in'), tin = o.nextElementSibling
+          bang([o.classList.contains('co-loi'), !!tin && tin.classList.contains('loi-o'), /Số điện thoại chưa đúng/.test(tin?.textContent || '')], [true, true, true])
+          bang(T.id('miniToast')?.style.display === 'block', false)
         })
-        test('[đặt hoa] thông báo hiện ở TRÊN (không đè nút Gửi đơn)', () => {
-          const t = T.id('miniToast').getBoundingClientRect(), g = T.id('orderSubmitBtn').getBoundingClientRect()
-          if (t.bottom > g.top && t.top < g.bottom) throw new Error('thông báo đè lên nút Gửi đơn')
+        test('[đặt hoa] gõ lại SĐT → hết báo lỗi', () => {
+          const el = T.id('orderPhone'); el.value = '09'; el.dispatchEvent(new w.Event('input', { bubbles: true }))
+          bang([el.closest('.omx-in').classList.contains('co-loi'), !!d.querySelector('#orderOverlay .loi-o')], [false, false])
         })
         T.id('orderPhone').value = '0912345678'; T.id('orderEmail').value = 'sai-email'
         T.id('orderSubmitBtn').click(); await cho(300)

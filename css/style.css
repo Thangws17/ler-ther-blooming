@@ -89,8 +89,11 @@ html, body { overflow-x: clip; }
 /* Thanh cuộn mảnh, cùng tông (góp ý 24/09: thanh cuộn xám dày + mũi tên của Windows "thô, lạc tông")
    Firefox + Chrome mới: scrollbar-width/color. Safari + Chrome cũ: ::-webkit-scrollbar.
    Điện thoại vốn dùng thanh cuộn nổi tự ẩn → không ảnh hưởng. */
-/* Chỉ Firefox dùng kiểu chuẩn: Chrome/Edge mới gặp kiểu chuẩn là BỎ QUA ::-webkit-scrollbar → vẫn hiện mũi tên ▲▼ */
-@supports not selector(::-webkit-scrollbar) { * { scrollbar-width: thin; scrollbar-color: #cfd9ce transparent; } }
+/* 08/11/2026: dùng kiểu CHUẨN cho mọi trình duyệt hỗ trợ (Chrome/Edge 121+, Firefox). Đo trên Chrome máy tính: thanh cuộn tự
+   vẽ (::-webkit-scrollbar) bắt trình duyệt VẼ LẠI ở mỗi khung hình khi lăn chuột (40 lần / 60 nấc lăn, kiểu chuẩn: 3 lần) → cuộn
+   giật, shop thấy chóng mặt. Kiểu chuẩn "thin" vẫn mảnh, cùng màu. Có kiểu chuẩn thì Chrome tự bỏ qua ::-webkit-scrollbar bên dưới;
+   ::-webkit-scrollbar chỉ còn cho Safari (Mac vốn dùng thanh cuộn nổi tự ẩn). */
+* { scrollbar-width: thin; scrollbar-color: #cfd9ce transparent; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cfd9ce; border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
@@ -283,6 +286,8 @@ html:active-view-transition-type(sang-trai)::view-transition-new(root) { animati
     box-shadow: 0 10px 30px rgba(70,55,30,.16), 0 1px 3px rgba(70,55,30,.08); }
   .w-tabs a { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; height: 46px; border-radius: 999px;
     color: #7d8a78; transition: background-color .2s ease, color .2s ease; }
+  /* Giữ tay lâu trên tab: iPhone KHÔNG bật khung xem trước link / bôi chữ (skill mobile-native §8) — tab là nút, không phải link đọc */
+  .w-tabs a { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   .w-tabs a span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .w-tabs a.on { color: var(--green); }
   /* Viên nền trượt dưới mục đang xem (main.js veThanhTabKhach: --n số mục, --i mục đang xem; bấm tab → trang mới trượt viên
@@ -718,8 +723,9 @@ html.chao .trust3 > div:nth-child(3) { animation-delay: .46s; }
   background:rgba(255,255,255,.88); border:none; border-radius:50%;
   width:40px; height:40px; font-size:1.5rem; cursor:pointer; z-index:2;
   display:flex; align-items:center; justify-content:center;
-  box-shadow:0 2px 8px rgba(0,0,0,.15); transition:var(--t);
+  box-shadow:0 2px 8px rgba(0,0,0,.15); transition:var(--t); color:var(--text);
 }
+.carousel-arrow .ic { width:20px; height:20px; stroke-width:2.2; }
 @media (hover: hover) and (pointer: fine) { .carousel-arrow:hover { background:#fff; } }
 .carousel-prev { left:10px; }
 .carousel-next { right:10px; }
@@ -833,6 +839,7 @@ html.chao .trust3 > div:nth-child(3) { animation-delay: .46s; }
   display:flex; align-items:center; justify-content:center;
   transition:background .15s ease;
 }
+.lightbox-nav .ic { width:28px; height:28px; stroke-width:2; }
 @media (hover: hover) and (pointer: fine) { .lightbox-nav:hover { background:rgba(255,255,255,.32); } }
 .lightbox-prev { left:18px; }
 .lightbox-next { right:18px; }
@@ -864,7 +871,9 @@ html.chao .trust3 > div:nth-child(3) { animation-delay: .46s; }
   border: 2px solid var(--border); background: var(--white);
   font-family: 'Nunito', sans-serif; font-weight: 700; font-size: .9rem;
   color: var(--text-mid); cursor: pointer; transition: var(--t);
+  display: inline-flex; align-items: center; gap: 6px;
 }
+.page-btn .ic { width: 16px; height: 16px; stroke-width: 2.2; }
 @media (hover: hover) and (pointer: fine) { .page-btn:hover:not(:disabled) { border-color: var(--green); color: var(--green); } }
 .page-btn:disabled { opacity: .38; cursor: not-allowed; }
 .page-info { font-family: 'Nunito', sans-serif; font-weight: 700; color: var(--text); font-size: .95rem; }
@@ -1282,11 +1291,12 @@ html.chao .trust3 > div:nth-child(3) { animation-delay: .46s; }
 .page-btn:active:not(:disabled), .back-top:active, .zalo-float:active, .order-close:active, .banner-close:active,
 .ol-d:active:not(:disabled), .ol-h button:active:not(:disabled), .carousel-arrow:active, .os-ck-tt button:active { scale: .97; }
 /* Ảnh thẻ hiện dần khi tải xong — chỉ khi JS đã bật .anh-mo (JS hỏng thì ảnh vẫn hiện). Giữ transform cũ (phóng to khi rê).
-   07/11/2026 (shop chọn): hiện từ NHOÈ + phóng 6% → nét, về đúng cỡ (như ống kính lấy nét). Dùng filter + "scale" riêng,
-   không đụng transform. Ảnh đã có sẵn trong máy thì hiện ngay. */
+   07/11/2026 (shop chọn): hiện từ NHOÈ + phóng 6% → nét. 08/11/2026 BỎ NHOÈ (filter: blur): shop thấy lăn chuột giật — làm nhoè
+   là hiệu ứng nặng nhất, lại chạy ở MỌI ảnh vừa cuộn tới. Còn: mờ → rõ + thu từ 103% về đúng cỡ ("scale" riêng, không đụng
+   transform). Ảnh đã có sẵn trong máy thì hiện ngay. */
 .anh-mo .product-img img, .anh-mo .bst-card img, .anh-mo .gallery-item img {
-  opacity: 0; filter: blur(8px); scale: 1.03;   /* rút nhẹ 07/11 (gặp ở MỌI ảnh): trước nhoè 14px, 0,9 giây */
-  transition: opacity .35s ease, filter .45s var(--ease-out), scale .55s var(--ease-out), transform .4s ease;
+  opacity: 0; scale: 1.03;
+  transition: opacity .35s ease, scale .55s var(--ease-out), transform .4s ease;
 }
 .anh-mo .product-img img.da-tai, .anh-mo .bst-card img.da-tai, .anh-mo .gallery-item img.da-tai { opacity: 1; filter: none; scale: 1; }
 /* Giảm chuyển động: tắt các hiệu ứng mới (khối chung ở phần 1 chỉ rút ngắn thời gian — trạng thái đầu thì tắt ở đây) */

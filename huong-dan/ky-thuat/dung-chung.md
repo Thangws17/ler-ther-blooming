@@ -112,3 +112,28 @@
   phía trước đã chạy xong, lệnh sau thì không → file sửa dở. Đặt `PYTHONIOENCODING=utf-8` hoặc `sys.stdout.reconfigure(encoding='utf-8')`
   trước khi in (serve.py và test/chay-tat-ca.py đã làm sẵn). Sửa file có `\u0300…` bằng script: viết vào file `.py` riêng, đừng
   heredoc trong bash (lớp thoát ký tự chồng nhau, 11/10/2026 từng ghi nhầm ký tự thật).
+- **Báo lỗi nhập liệu NGAY TẠI Ô, không dùng thông báo nổi (08/11/2026, shop xin)** — `baoLoiO(o, 'chữ báo', {focus, cuon})`
+  ở `js/dungchung.js` (web + admin): viền đỏ, rung 1 nhịp, chữ đỏ dưới ô, chỉ cuộn khi ô đang khuất; ô ngày ẩn → báo ở nút
+  `id + 'Btn'`. Gõ / chọn lại là tự hết (`fdSync` gỡ cho ô ngày). Ô `required` trống → sự kiện `invalid` tự báo kiểu này (chặn
+  luôn bong bóng mặc định của trình duyệt), KHÔNG cần sửa từng form. `showToast` / `showMiniToast` chỉ còn cho KẾT QUẢ việc
+  (đã lưu, lỗi mạng, chống spam) — thêm chỗ kiểm ô mới thì dùng `baoLoiO`, đừng `showToast(..., 'error')`. Thông báo nổi bấm
+  xuyên được (`pointer-events: none`). Màn đăng nhập admin ẩn (`.cho-phien`) tới khi biết máy đã đăng nhập sẵn chưa — trước đó
+  trình duyệt tự điền/tự bấm Đăng nhập lúc ô còn trống → báo lỗi đè lên màn quản trị.
+- **Thanh tab dưới (web + admin) dùng `bamNhanh(khung, 'nút')` (08/11/2026)** — iPhone đang trôi theo đà vuốt thì cú chạm đầu
+  chỉ để dừng trôi → phải bấm 2 lần. `bamNhanh` tự bấm lúc nhấc ngón (không trượt quá 12px), rồi nuốt click thật theo sau.
+  Admin: người bấm tab → `applyTab(tab, { hoan: true })` đổi giao diện ngay, nạp + vẽ danh sách sau 1 khung hình; test gọi
+  `applyTab(tab)` vẫn nạp ngay. ĐỪNG thêm lại `void panel.offsetWidth` (bắt tính lại bố cục cả trang lúc bấm, 0,1–0,4 giây trên
+  điện thoại chậm). Web khách: viên chạy ngay trên trang cũ (`daTruot` trong `lt_tab_chuyen` → trang mới khỏi trượt lần 2) và
+  tải sẵn 3 trang tab còn lại lúc rảnh.
+- **Không dùng ký tự làm biểu tượng (08/11/2026)** — ‹ › ← → ▲ ▼ ✓ ✕ trong nút / nhãn đã đổi hết sang `ic('left'|'right'|'up'|
+  'down'|'check'|'x')`; tam giác mặc định của `<details>` và mũi tên mặc định của `<select>` (admin) cũng thay bằng mũi tên nét
+  mảnh. Thêm nút mới thì dùng `ic()`, nhớ đặt cỡ `.ten-nut .ic { width; height }` (admin `.ic` mặc định 18px, web 1.1em).
+  Chữ đọc (vd "Tháng 10 → 11" trong câu) thì giữ ký tự được.
+- **Thanh cuộn: dùng kiểu CHUẨN `scrollbar-width: thin` + `scrollbar-color` (08/11/2026)** — kiểu tự vẽ `::-webkit-scrollbar`
+  bắt Chrome máy tính VẼ LẠI mỗi khung hình khi lăn chuột (đo: 40 lần / 60 nấc lăn; kiểu chuẩn: 3) → shop thấy cuộn giật, chóng
+  mặt. `::-webkit-scrollbar` chỉ còn cho Safari. Đừng thêm lại kiểu tự vẽ cho Chrome. Web khách: ảnh hiện dần KHÔNG dùng
+  `filter: blur` nữa (nặng nhất khi cuộn qua nhiều ảnh) — chỉ mờ → rõ + thu nhẹ.
+- **Ô chọn Loại (`.fx-cat`, form Chi phí + bảng sửa Nguyên liệu) có viên nền trượt (08/11/2026)** — khối `.fx-cat-nen` nằm dưới 4
+  ô (ô nền trong suốt), `segSet(id, v, truot)` đặt `--i`. Mở form = đứng yên (`.dung`), bấm (`segChon`) mới trượt. Thêm ô Loại
+  thứ 5 thì sửa công thức chiều rộng (đang chia 4) trong CSS. Bảng sửa nguyên liệu: lịch sử "Các lần nhập" kiểu dòng thời gian
+  theo tháng, mũi tên so ĐƠN GIÁ với lần nhập cũ hơn gần nhất có đơn giá (không hiện %).

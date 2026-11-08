@@ -127,8 +127,11 @@
     /* Thanh cuộn mảnh, cùng tông (góp ý 24/09: thanh cuộn xám dày + mũi tên của Windows "thô, lạc tông")
        Firefox + Chrome mới: scrollbar-width/color. Safari + Chrome cũ: ::-webkit-scrollbar.
        Điện thoại vốn dùng thanh cuộn nổi tự ẩn → không ảnh hưởng. */
-    /* Chỉ Firefox dùng kiểu chuẩn: Chrome/Edge mới gặp kiểu chuẩn là BỎ QUA ::-webkit-scrollbar → vẫn hiện mũi tên ▲▼ */
-    @supports not selector(::-webkit-scrollbar) { * { scrollbar-width: thin; scrollbar-color: #cfd9ce transparent; } }
+    /* 08/11/2026: dùng kiểu CHUẨN cho mọi trình duyệt hỗ trợ (Chrome/Edge 121+, Firefox). Đo trên Chrome máy tính: thanh cuộn tự
+       vẽ (::-webkit-scrollbar) bắt trình duyệt VẼ LẠI ở mỗi khung hình khi lăn chuột (40 lần / 60 nấc lăn, kiểu chuẩn: 3 lần) → cuộn
+       giật, shop thấy chóng mặt. Kiểu chuẩn "thin" vẫn mảnh, cùng màu. Có kiểu chuẩn thì Chrome tự bỏ qua ::-webkit-scrollbar bên dưới;
+       ::-webkit-scrollbar chỉ còn cho Safari (Mac vốn dùng thanh cuộn nổi tự ẩn). */
+    * { scrollbar-width: thin; scrollbar-color: #cfd9ce transparent; }
     ::-webkit-scrollbar { width: 10px; height: 10px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cfd9ce; border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
@@ -157,6 +160,9 @@
     .login-brand { font-size: 1.5rem; font-weight: 700; color: #2E7D32; margin-bottom: 8px; }
     .login-card h2 { font-size: 1.1rem; color: #555; font-weight: 500; margin-bottom: 28px; }
     #loginBtn { width: 100%; padding: 12px; }
+    /* Đang hỏi "máy này đăng nhập sẵn chưa" (init) → ẨN form: trước 08/11/2026 form hiện thoáng qua, trình duyệt kịp tự điền /
+       tự bấm Đăng nhập khi ô còn trống → báo "chưa điền" đè lên màn quản trị dù đã vào được */
+    #loginWrap.cho-phien { visibility: hidden; }
 
 
     /* ══ 3 · Khung trang: menu bên, thanh trên (điện thoại), thanh tab dưới, nút nổi, tấm nội dung ════ */
@@ -373,6 +379,7 @@
       font-size: .82rem; font-weight: 600; transition: background .2s;
     }
     @media (hover: hover) and (pointer: fine) { .btn-delete:hover { background: #FFCCBC; } }
+    .btn-delete-sm .ic { width: 14px; height: 14px; stroke-width: 2.2; display: block; }
     .btn-delete-sm {
       background: rgba(230,74,25,.12); color: #E64A19; border: none;
       padding: 4px 10px; border-radius: 6px; cursor: pointer;
@@ -384,7 +391,8 @@
       .btn-delete { padding: 5px 10px; font-size: .78rem; }
       .btn-green, .btn-outline { padding: 9px 16px; font-size: .88rem; }
     }
-    .toggle-btn { padding: 5px 12px; border-radius: 50px; border: none; cursor: pointer; font-size: .78rem; font-weight: 600; background: #eee; color: #999; transition: color .2s, background-color .2s, border-color .2s, box-shadow .2s, opacity .2s, filter .2s; }
+    .toggle-btn .ic { width: 13px; height: 13px; stroke-width: 2.4; }
+    .toggle-btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 5px 12px; border-radius: 50px; border: none; cursor: pointer; font-size: .78rem; font-weight: 600; background: #eee; color: #999; transition: color .2s, background-color .2s, border-color .2s, box-shadow .2s, opacity .2s, filter .2s; }
     .toggle-btn.on { background: #C8E6C9; color: #2E7D32; }
     .btn-discard { background: #E53935; color: #fff; border: none; }
     @media (hover: hover) and (pointer: fine) { .btn-discard:hover { background: #C62828; } }
@@ -454,6 +462,8 @@
     }
     @media (hover: hover) and (pointer: fine) { .pg-nut:hover:not(:disabled):not(.on) { background: #E8F5E9; } }
     .pg-nut.on { background: #2E7D32; color: #fff; cursor: default; }
+    .pg-nut { display: inline-flex; align-items: center; justify-content: center; }
+    .pg-nut .ic { width: 16px; height: 16px; stroke-width: 2.2; }
     .pg-nut:disabled { color: #C9D3C8; cursor: default; }
     .pg-ba { min-width: 20px; text-align: center; color: #9AAB99; }
     .pg-dang-tai { opacity: .55; pointer-events: none; transition: opacity .15s; }
@@ -486,6 +496,7 @@
     /* Điều hướng tháng (Sổ chi phí) */
     .month-nav { display: inline-flex; align-items: center; gap: 6px; }
     .month-arrow { width: 34px; height: 36px; border-radius: 8px; border: 1.5px solid #ddd; background: #fff; color: #2E7D32; font-size: 1.15rem; font-weight: 700; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: color .15s, background-color .15s, border-color .15s, box-shadow .15s, opacity .15s, filter .15s; }
+    .month-arrow .ic { width: 16px; height: 16px; stroke-width: 2.2; }
     @media (hover: hover) and (pointer: fine) { .month-arrow:hover { border-color: #2E7D32; background: #E8F5E9; } }
     .month-display { padding: 8px 16px; border: 1.5px solid #ddd; border-radius: 8px; font-size: .9rem; font-weight: 600; color: #2E7D32; background: #fff; min-width: 128px; text-align: center; display: inline-block; }
     .chip-thismonth { padding: 8px 16px; border-radius: 50px; border: 1.5px solid #2E7D32; background: #fff; color: #2E7D32; font-weight: 600; font-size: .85rem; cursor: pointer; transition: color .15s, background-color .15s, border-color .15s, box-shadow .15s, opacity .15s, filter .15s; }
@@ -513,7 +524,8 @@
     }
     @media (hover: hover) and (pointer: fine) { .qs-item:hover { filter: brightness(.96); } }
     .qs-item.qs-current { box-shadow: 0 0 0 2px currentColor inset; }
-    .qs-tick { font-weight: 700; }
+    .qs-tick { display: inline-flex; }
+    .qs-tick .ic { width: 16px; height: 16px; stroke-width: 2.4; }
     /* Chip lọc trạng thái đơn — chọn được nhiều, sáng màu khi được chọn */
     .status-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 18px; }
     .status-filter .lbl { font-size: .8rem; color: #557355; font-weight: 600; margin-right: 2px; }
@@ -534,6 +546,7 @@
       line-height: 1.4; display: inline-flex; align-items: center; gap: 7px;
     }
     @media (hover: hover) and (pointer: fine) { .st-chip:hover { border-color: #bdbdbd; color: #555; } }
+    .st-chip .ic { width: 14px; height: 14px; stroke-width: 2.4; margin-right: -2px; }   /* dấu chọn ✓ (ic('check')) */
     .st-chip.on { border-width: 2px; padding: 7px 15px; }
     .st-all.on { background: #2E7D32; border-color: #2E7D32; color: #fff; }
     .st-chip.s-moi.on       { background: #FFF3E0; color: #E65100; border-color: #E65100; }
@@ -720,7 +733,9 @@
     .modal-header h2 { font-size: 1.2rem; }
     .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
     @media (hover: hover) and (pointer: fine) { .modal-close:hover { background: #f0f0f0; } }
-    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 0 24px 20px; flex-shrink: 0; background: #fff; }
+    /* Vạch mảnh ngăn nội dung cuộn với hàng nút (08/11/2026 — trước nội dung chạy sát nút Lưu, nhìn như nút nổi đè lên ảnh/chữ) */
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 24px 20px; flex-shrink: 0; background: #fff;
+                    border-top: 1px solid #eef1ed; }
     .confirm-overlay {
       position: fixed; inset: 0; z-index: 3000;
       background: rgba(20,40,20,.45); backdrop-filter: blur(2px);
@@ -745,8 +760,10 @@
     @media (max-width: 480px) {
       .confirm-actions { flex-direction: column-reverse; }
     }
+    /* Thông báo nổi CHỈ còn cho kết quả việc (đã lưu / lỗi mạng…) — thiếu ô, gõ sai thì báo ngay tại ô (baoLoiO, js/dungchung.js).
+       Bấm xuyên qua được (pointer-events: none): không bao giờ chặn tay bấm vào nút nằm dưới nó. */
     .toast {
-      position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+      position: fixed; bottom: 28px; right: 28px; z-index: 9999; pointer-events: none;
       padding: 13px 22px; border-radius: 10px; font-weight: 600; font-size: .92rem;
       box-shadow: 0 8px 24px rgba(0,0,0,.15); animation: slideUp .3s ease;
     }
@@ -781,7 +798,10 @@
          để nút Lưu/Hủy không nằm sát mép hay bị thanh công cụ chạm vào */
       .modal-footer { padding: 12px 18px calc(16px + env(safe-area-inset-bottom, 0px)); gap: 10px; }
       .modal-footer button { flex: 1; padding: 13px 12px; }
-      .toast { bottom: calc(24px + env(safe-area-inset-bottom, 0px)); right: 16px; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+      /* Điện thoại: viên nhỏ gọn giữa màn, ngay trên thanh tab dưới (08/11/2026 — trước là dải to góc phải, che cả hàng nội dung) */
+      .toast { left: 16px; right: 16px; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); width: fit-content; max-width: calc(100% - 32px);
+               margin: 0 auto; padding: 9px 16px; border-radius: 14px; font-size: .84rem; line-height: 1.45; text-align: center; }
+      .toast.toast-top { margin: 0; padding: 9px 16px; }
       /* Modal → bottom sheet: trượt từ dưới lên + tay nắm */
       .modal-box { animation: sheetUp .3s var(--ease-drawer); max-width: 100%; border-radius: 16px 16px 0 0; max-height: calc(var(--vvh, 92vh) - 10px); }
     }
@@ -974,6 +994,8 @@
       .filter-search, .filter-select, .cl-note textarea, .status-select {
         font-size: 16px !important;
       }
+      /* …trừ nhãn trạng thái chỉ để XEM trong bảng danh sách đơn (span, không gõ được) — 16px làm nhãn to hơn cả tên khách */
+      .sr-nhan span.status-select { font-size: .74rem !important; }
     }
     /* Ô nhập: viền mảnh, bo tròn, nhãn chữ thường (bỏ IN HOA) */
     .field-group label { text-transform: none; letter-spacing: 0; font-size: .84rem; font-weight: 600; color: #4a5a49; }
@@ -1057,14 +1079,24 @@
     .fx-body .fx-in { margin-bottom: 0; }
     /* Mẫu hoa đã chọn */
     .fx .prod-picked { border: 1px solid #2E7D32; background: #f7fbf7; border-radius: 12px; margin-bottom: 8px; }
-    /* Chi phí: số tiền to ở đầu form */
-    .fx-amt { text-align: center; padding: 14px 0 6px; }
+    /* Chi phí: số tiền ở đầu form — gọn lại 08/11/2026 (shop: khối quá to cả máy tính lẫn điện thoại): chữ 2,3rem → 1,6rem,
+       "đồng" đứng cạnh số thay vì xuống dòng riêng */
+    .fx-amt { display: flex; align-items: baseline; justify-content: center; gap: 6px; padding: 4px 0 2px; border-radius: 12px; }
     .fx-amt input {
-      width: 100%; border: 0; outline: 0; background: none; text-align: center;
-      font: inherit; font-size: 2.3rem !important; font-weight: 700; color: #1f2a1f; padding: 4px 0;
+      width: 9ch; min-width: 0; border: 0; outline: 0; background: none; text-align: right;
+      font: inherit; font-size: 1.6rem !important; font-weight: 700; color: #1f2a1f; padding: 2px 0;
+      font-variant-numeric: tabular-nums;
     }
+    /* Trình duyệt mới: ô tự co giãn theo số đang gõ → cụm "số + đồng" luôn đứng giữa (máy cũ giữ 9 ký tự, số canh phải) */
+    @supports (field-sizing: content) { .fx-amt input { field-sizing: content; width: auto; min-width: 1ch; max-width: 14ch; text-align: center; } }
     .fx-amt input::placeholder { color: #cfd6ce; }
-    .fx-amt small { display: block; color: #7a877a; font-weight: 600; font-size: .8rem; }
+    .fx-amt small { color: #7a877a; font-weight: 600; font-size: .85rem; }
+    /* Chưa điền số tiền: số mờ + chữ "đồng" chuyển đỏ, gạch đỏ dưới số — không vẽ khung đỏ to quanh cả khối */
+    .fx-amt.co-loi.co-loi.co-loi.co-loi { box-shadow: none; }
+    .fx-amt.co-loi input { box-shadow: inset 0 -2px 0 #E57373; }
+    .fx-amt.co-loi input::placeholder { color: #E8A5A5; }
+    .fx-amt.co-loi small { color: #C62828; }
+    .fx-amt + .loi-o { justify-content: center; }
     .fx-cat { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0 12px; }
     .fx-cat button {
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
@@ -1072,7 +1104,19 @@
       color: #5d6b5c; font: inherit; font-size: .78rem; font-weight: 600; cursor: pointer; line-height: 1.2; text-align: center;
     }
     .fx-cat button .ic { width: 22px; height: 22px; }
-    .fx-cat button.on { border-color: #2E7D32; background: #E8F5E9; color: #2E7D32; }
+    .fx-cat button.on { border-color: transparent; color: #2E7D32; }
+    /* Viên nền TRƯỢT sang ô vừa chọn (08/11/2026, shop xin — như thanh tab dưới đáy). 1 khối .fx-cat-nen nằm DƯỚI 4 ô (ô nền
+       trong suốt), segSet đặt --i = ô đang chọn; lưới 4 cột đều nhau nên tính được vị trí bằng CSS, cả lúc form còn ẩn.
+       Mở form / đặt sẵn giá trị thì đứng yên (.dung), chỉ trượt khi người bấm (segChon). */
+    .fx-cat { position: relative; }
+    .fx-cat button { position: relative; z-index: 1; background: transparent; }
+    .fx-cat-nen { position: absolute; top: 0; bottom: 0; left: 0; z-index: 0; pointer-events: none;
+      width: calc((100% - 3 * 8px) / 4); translate: calc(var(--i, 0) * (100% + 8px)) 0;
+      border: 1px solid #2E7D32; border-radius: 12px; background: #E8F5E9;
+      transition: translate .32s var(--ease-out), opacity .15s; }
+    .fx-cat.trong .fx-cat-nen { opacity: 0; }
+    .fx-cat.dung .fx-cat-nen { transition: none; }
+    @media (prefers-reduced-motion: reduce) { .fx-cat-nen { transition: none; } }
     .fx-calc { font-size: .8rem; color: #7a877a; margin: 0 2px 6px; }
     /* Chân form: tổng tiền bên trái, nút chính bên phải */
     .fx-foot { align-items: center; }
@@ -1111,6 +1155,18 @@
     .anh-xoa-duoc img { width: 120px; height: 120px; object-fit: cover; border-radius: 10px; display: block; }
     .anh-xoa-duoc img.nho { width: 110px; height: 110px; }
 
+
+    /* Ô chọn (select): bỏ mũi tên mặc định của trình duyệt (Windows ▾, iPhone ⌃⌄ — mỗi máy một kiểu, lệch bộ biểu tượng) →
+       1 mũi tên nét mảnh như ic('down'). Đặt CUỐI phần 8 + có :not() để thắng các kiểu ".field-group select { background: … }".
+       Ô trạng thái đơn giữ chấm màu bên trái (2 lớp nền). 08/11/2026 */
+    select:not([multiple]) {
+      -webkit-appearance: none; appearance: none; padding-right: 34px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237a877a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 15px;
+    }
+    select.status-select:not([multiple]) {
+      background-image: radial-gradient(circle at 13px 50%, var(--st, #bdbdbd) 0 4px, transparent 4.6px), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237a877a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-position: 0 0, right 12px center; background-size: auto, 15px;
+    }
 
     /* ══ 9 · Đang tải / trống / khung chờ / loé sáng ═══════════════════════════════ */
     .loading-state, .empty-state { text-align: center; padding: 60px 20px; color: #557355; font-size: .95rem; }
@@ -1578,9 +1634,30 @@
     .ex-ket-loc strong { color: #C62828; }
     .mt-name { flex: 1; min-width: 0; font-weight: 600; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .mt-price { color: #2E7D32; font-weight: 600; font-size: .85rem; white-space: nowrap; }
-    .mt-history { background: #f8faf8; border: 1px solid #eef3ee; border-radius: 8px; padding: 8px 12px; margin: -2px 0 8px; font-size: .83rem; color: #555; }
-    .mt-history .h-row { padding: 3px 0; border-bottom: 1px dashed #e8f0e8; display: flex; justify-content: space-between; gap: 10px; }
-    .mt-history .h-row:last-child { border-bottom: none; }
+    /* Bảng sửa nguyên liệu — các lần nhập kiểu DÒNG THỜI GIAN theo tháng (08/11/2026, shop chọn mẫu 3): đầu tháng ghi số lần +
+       tổng tiền tháng đó, mỗi lần nhập 1 thẻ nhỏ trên đường dọc; mũi tên đỏ lên / xanh xuống = đơn giá đắt hơn / rẻ hơn lần trước */
+    .mt-history { font-size: .86rem; color: #3d4a3c; font-variant-numeric: tabular-nums; }
+    .nl-thang { display: flex; justify-content: space-between; align-items: baseline; margin: 14px 2px 6px; font-size: .72rem; font-weight: 700;
+                letter-spacing: .04em; text-transform: uppercase; color: #8a978a; }
+    .nl-thang:first-child { margin-top: 0; }
+    .nl-thang span { text-transform: none; letter-spacing: 0; font-weight: 600; }
+    .nl-tl { position: relative; padding-left: 18px; }
+    .nl-tl::before { content: ''; position: absolute; left: 5px; top: 6px; bottom: 6px; width: 2px; border-radius: 2px; background: #E1EBDB; }
+    .nl-lan { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; padding: 9px 12px;
+              margin-bottom: 6px; background: #fff; border: 1px solid #eef1ed; border-radius: 12px; }
+    .nl-lan::before { content: ''; position: absolute; left: -17px; top: 15px; width: 10px; height: 10px; border-radius: 50%; background: #fff; border: 2px solid #A5C79B; }
+    .nl-lan.moi::before { background: #2E7D32; border-color: #2E7D32; }
+    .nl-lan .l1 { display: flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
+    .nl-lan .l1 small { color: #8a978a; font-weight: 500; }
+    .nl-lan .l2 { font-size: .76rem; color: #7a877a; }
+    .nl-lan .tt { grid-row: span 2; text-align: right; font-weight: 700; color: #3d4a3c; }
+    .gia-xu { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; flex: none; }
+    .gia-xu .ic { width: 12px; height: 12px; stroke-width: 2.8; }
+    .gia-len { background: #FDECEA; color: #C62828; }
+    .gia-xuong { background: #E8F5E9; color: #2E7D32; }
+    .nl-meo { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin: -2px 0 10px; font-size: .74rem; color: #8a978a; }
+    .nl-meo .gia-xu { width: 15px; height: 15px; }
+    .nl-meo .gia-xu .ic { width: 10px; height: 10px; }
     @media (max-width: 820px) {
       /* thẻ có ảnh bên trái (chi phí, giao hôm nay) */
       .exp-card { display: flex; gap: 12px; }
@@ -1644,21 +1721,33 @@
     #materialEditModal { z-index: 1150; }
     #materialEditModal .modal-footer.hai-dau { display: flex; justify-content: space-between; gap: 10px; }
     #saveMaterialBtn { flex: 1; max-width: 260px; }
-    #meHistory.mt-history { margin: 0; max-height: 220px; overflow-y: auto; }
-    .mt-ghi { font-size: .78rem; color: #557355; margin-top: 4px; }
-    .gia-len { color: #C62828; font-size: .75rem; }
-    .gia-xuong { color: #2E7D32; font-size: .75rem; }
+    .mt-ghi { font-size: .78rem; color: #7a877a; margin-top: 6px; }
+    /* Gọn lại (08/11/2026): bỏ khoảng trống thừa giữa các mục, ô Loại thấp hơn, nút Xoá có chữ */
+    #materialEditModal .modal-body { padding-top: 14px; }
+    #materialEditModal .form-grid { gap: 0; }
+    #materialEditModal .field-group { margin-bottom: 16px; }
+    #materialEditModal .fx-cat { margin: 0; }
+    #materialEditModal .fx-cat button { flex-direction: row; gap: 6px; min-height: 0; height: 44px; font-size: .84rem; }
+    #materialEditModal .fx-cat button .ic { width: 17px; height: 17px; }
+    @media (max-width: 480px) {
+      #materialEditModal .fx-cat button { flex-direction: column; gap: 3px; height: 54px; padding: 0 2px; font-size: .74rem; }
+    }
+    #materialEditModal .modal-footer .act-xoa { flex: 0 0 auto; width: auto; padding: 0 14px; gap: 6px; color: #8a5a5a; font-weight: 600; font-size: .86rem; }
+    #materialEditModal .modal-footer .act-xoa .act-txt { display: inline; }
 
 
     /* ══ 14 · Tab Báo cáo (+ Công cụ: sao lưu, ảnh nhỏ; đối soát chỉ số) ════════════ */
     .stat-explain { background: #F1F8F1; border: 1px solid #DCEBDC; border-radius: 10px; padding: 10px 14px; font-size: .85rem; color: #4E6B4E; margin-bottom: 14px; line-height: 1.5; }
-    .stat-row { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border: 1px solid #eef3ee; border-radius: 10px; margin-bottom: 8px; cursor: pointer; background: #fff; transition: background .12s, border-color .12s; }
+    /* Thẻ đơn gọn 2 tầng (08/11/2026 — trước 3 nhãn xếp chồng bên phải, mỗi thẻ cao gấp đôi): mã · khách / mẫu | tiền,
+       hàng dưới: ngày giao · trạng thái · thanh toán */
+    .stat-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; column-gap: 12px; row-gap: 6px; padding: 10px 12px; border: 1px solid #eef3ee; border-radius: 10px; margin-bottom: 8px; cursor: pointer; background: #fff; transition: background .12s, border-color .12s; }
     @media (hover: hover) and (pointer: fine) { .stat-row:hover { background: #F7FBF7; border-color: #CDE3CD; } }
     .stat-row-main { flex: 1; min-width: 0; }
     .stat-row-main .sr-code { font-weight: 700; color: #2E7D32; }
     .stat-row-main .sr-sub { font-size: .82rem; color: #557355; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .stat-row-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
-    .stat-row-side .sr-total { font-weight: 700; }
+    .stat-row-main .sr-ten { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .stat-row .sr-total { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .sr-nhan { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
     .sr-date { font-size: .74rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: #E8F1E8; color: #4E6B4E; }
     .sr-date.sr-fallback { background: #FFF3E0; color: #E65100; }
     .stat-total-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding: 12px 14px; background: #2E7D32; color: #fff; border-radius: 10px; font-weight: 600; }
@@ -1762,6 +1851,7 @@
     .bc-giai-dau b { font-size: .92rem; color: #1f2a1f; }
     .bc-giai-x { width: 28px; height: 28px; border: 0; border-radius: 50%; background: #F0F3EF; color: #5d6b5c; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
     .bc-giai-x .ic { width: 15px; height: 15px; }
+    .bc-gt .ic { width: 12px; height: 12px; stroke-width: 2.6; vertical-align: -1px; }
     .bc-gt { display: inline-block; padding: 0 7px; border-radius: 999px; font-weight: 700; font-size: .78rem; }
     .bc-gt-tot { background: #E8F5E9; color: #1B5E20; }
     .bc-gt-on { background: #E0F2F1; color: #00695C; }
@@ -1842,7 +1932,12 @@
               font-size: .75rem; font-weight: 600; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .12s; }
     .bc-meo.hien { opacity: 1; }
     .bc-bang { margin-top: 6px; font-size: .84rem; }
-    .bc-bang summary { cursor: pointer; font-weight: 600; color: #2E7D32; padding: 2px; font-size: .8rem; }
+    /* Bỏ tam giác mặc định của trình duyệt (mỗi máy vẽ 1 kiểu) → mũi tên cùng bộ biểu tượng, mở ra thì xoay xuống */
+    .bc-bang summary { cursor: pointer; font-weight: 600; color: #2E7D32; padding: 2px; font-size: .8rem;
+                       list-style: none; display: inline-flex; align-items: center; gap: 4px; }
+    .bc-bang summary::-webkit-details-marker { display: none; }
+    .bc-bang summary .ic { width: 14px; height: 14px; stroke-width: 2.2; transition: rotate .2s var(--ease-out); }
+    .bc-bang[open] summary .ic { rotate: 90deg; }
     .bc-bang-cuon { overflow-x: auto; margin-top: 6px; max-height: 260px; overflow-y: auto; }
     .bc-bang table { width: 100%; border-collapse: collapse; white-space: nowrap; }
     .bc-bang th, .bc-bang td { padding: 5px 8px; text-align: right; border-bottom: 1px solid #f0f3ef; }
@@ -1945,7 +2040,7 @@
     @media (max-width: 820px) {
       .db-tool .btn-outline { width: 100%; }
     }
-    .stat-row-side .status-select { cursor: pointer; font-size: .72rem; padding-top: 3px; padding-bottom: 3px; padding-right: 9px; }
+    .sr-nhan .status-select { cursor: pointer; font-size: .72rem; padding-top: 3px; padding-bottom: 3px; padding-right: 9px; }
     #statDetailModal { z-index: 950; }
     #optimizeProgress { flex: 1 1 100%; }
     #optimizeProgress .progress-bar { height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
@@ -2298,6 +2393,7 @@
     .sp-ten { font-weight: 700; font-size: .95rem; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .sp-gia { font-size: .82rem; font-weight: 700; color: #2E7D32; margin: 2px 0 4px; }
     .sp-nick { font-style: italic; font-size: .8rem; color: #557355; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sp-xep-bao .ic { width: 14px; height: 14px; vertical-align: -2px; }
     .sp-xep-bao { max-width: 720px; margin-bottom: 12px; padding: 10px 14px; border-radius: 12px; background: #FFFDE7; border: 1px solid #FFF59D;
                   font-size: .86rem; line-height: 1.5; color: #5d5a2e; }
     .sp-xep { max-width: 720px; background: #fff; border: 1px solid #e6ece5; border-radius: 14px; overflow: hidden; }
@@ -2581,7 +2677,7 @@
 <body>
 
 <!-- ── Login ─────────────────────────────────────── -->
-<div id="loginWrap">
+<div id="loginWrap" class="cho-phien">
   <div class="login-card">
     <div class="login-brand">🌸 Ler & Ther Blooming</div>
     <h2>Đăng nhập quản trị</h2>
@@ -2645,10 +2741,10 @@
       <div class="panel-topbar"><h1>Lịch giao hàng</h1></div>
       <div class="filter-bar">
         <div class="month-nav">
-          <button type="button" class="month-arrow" onclick="delivStepMonth(-1)" title="Tháng trước">‹</button>
+          <button type="button" class="month-arrow" onclick="delivStepMonth(-1)" title="Tháng trước" aria-label="Tháng trước"><svg class="ic" aria-hidden="true"><use href="#i-left"/></svg></button>
           <input type="hidden" id="delivMonth">
           <span id="delivMonthDisplay" class="month-display">—</span>
-          <button type="button" class="month-arrow" onclick="delivStepMonth(1)" title="Tháng sau">›</button>
+          <button type="button" class="month-arrow" onclick="delivStepMonth(1)" title="Tháng sau" aria-label="Tháng sau"><svg class="ic" aria-hidden="true"><use href="#i-right"/></svg></button>
         </div>
         <button type="button" id="delivThisMonthBtn" class="chip-thismonth" onclick="delivSetThisMonth()">Tháng này</button>
         <span id="delivSelectedLabel" class="month-label"></span>
@@ -2838,14 +2934,14 @@
       </div>
       <div class="filter-bar">
         <div class="month-nav">
-          <button type="button" class="month-arrow" onclick="expenseStepMonth(-1)" title="Tháng trước">‹</button>
+          <button type="button" class="month-arrow" onclick="expenseStepMonth(-1)" title="Tháng trước" aria-label="Tháng trước"><svg class="ic" aria-hidden="true"><use href="#i-left"/></svg></button>
           <input type="hidden" id="expenseMonth">
           <!-- Bấm chính ô tháng để mở lịch: chọn 1 ngày / khoảng ngày / cả tháng khác -->
           <div class="date-pick-wrap">
             <button type="button" id="expenseMonthDisplay" class="month-display" onclick="lnMo('chi')" title="Chọn ngày / khoảng ngày">—</button>
             <div id="exLocNgayPop" class="date-pop" style="display:none"></div>
           </div>
-          <button type="button" class="month-arrow" onclick="expenseStepMonth(1)" title="Tháng sau">›</button>
+          <button type="button" class="month-arrow" onclick="expenseStepMonth(1)" title="Tháng sau" aria-label="Tháng sau"><svg class="ic" aria-hidden="true"><use href="#i-right"/></svg></button>
         </div>
         <button type="button" id="expenseThisMonthBtn" class="chip-thismonth" onclick="expenseSetThisMonth()">Tháng này</button>
         <button type="button" class="btn-clear" onclick="exXoaLoc()">Xóa lọc</button>
@@ -2869,12 +2965,12 @@
       <!-- Thanh lọc: ‹ kỳ › (bấm chữ kỳ = lịch) · chip nhanh · Lọc thêm (so với, nguồn khách, bộ sưu tập) -->
       <div class="bc-loc">
         <div class="month-nav bc-nav">
-          <button type="button" class="month-arrow" onclick="bcBuoc(-1)" title="Kỳ trước" aria-label="Kỳ trước">‹</button>
+          <button type="button" class="month-arrow" onclick="bcBuoc(-1)" title="Kỳ trước" aria-label="Kỳ trước"><svg class="ic" aria-hidden="true"><use href="#i-left"/></svg></button>
           <div class="date-pick-wrap">
             <button type="button" id="bcKyNut" class="month-display" onclick="lnMo('bc')" title="Chọn ngày / khoảng ngày">—</button>
             <div id="bcLocNgayPop" class="date-pop" style="display:none"></div>
           </div>
-          <button type="button" class="month-arrow" onclick="bcBuoc(1)" title="Kỳ sau" aria-label="Kỳ sau">›</button>
+          <button type="button" class="month-arrow" onclick="bcBuoc(1)" title="Kỳ sau" aria-label="Kỳ sau"><svg class="ic" aria-hidden="true"><use href="#i-right"/></svg></button>
         </div>
         <div class="date-pick-wrap">
           <button type="button" id="bcLocNut" class="bc-loc-nut" onclick="bcLocMo()">Lọc</button>
@@ -3901,7 +3997,7 @@
           </div>
           <div class="field-group full">
             <label>Loại</label>
-            <div class="fx-cat" data-seg="meCat">
+            <div class="fx-cat" data-seg="meCat"><span class="fx-cat-nen" aria-hidden="true"></span>
               <button type="button" data-v="Hoa" onclick="segChon(this)"><svg class="ic" aria-hidden="true"><use href="#i-flower"/></svg>Hoa</button>
               <button type="button" data-v="Phụ kiện" onclick="segChon(this)"><svg class="ic" aria-hidden="true"><use href="#i-gift"/></svg>Phụ kiện</button>
               <button type="button" data-v="Vận chuyển" onclick="segChon(this)"><svg class="ic" aria-hidden="true"><use href="#i-truck"/></svg>Vận chuyển</button>
@@ -3915,7 +4011,10 @@
                    oninput="onMoneyInput(this)"><span class="fx-suf">đ</span></label>
           </div>
           <div class="field-group full">
-            <label>Lịch sử giá các lần nhập</label>
+            <label>Các lần nhập</label>
+            <p class="nl-meo">Đơn giá so với lần nhập trước đó:
+              <span class="gia-xu gia-len"><svg class="ic" aria-hidden="true"><use href="#i-up"/></svg></span>đắt hơn ·
+              <span class="gia-xu gia-xuong"><svg class="ic" aria-hidden="true"><use href="#i-down"/></svg></span>rẻ hơn</p>
             <div id="meHistory" class="mt-history">
               <div class="chu-phu">Đang tải…</div>
             </div>
@@ -3923,7 +4022,7 @@
         </div>
       </div>
       <div class="modal-footer hai-dau">
-        <button type="button" class="act act-xoa" title="Xoá nguyên liệu" aria-label="Xoá nguyên liệu" onclick="deleteMaterialFromEdit()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></button>
+        <button type="button" class="act act-xoa" title="Xoá nguyên liệu" aria-label="Xoá nguyên liệu" onclick="deleteMaterialFromEdit()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg><span class="act-txt">Xoá</span></button>
         <button type="submit" class="btn-green" id="saveMaterialBtn">Lưu</button>
       </div>
     </form>
@@ -3948,7 +4047,7 @@
           <small>đồng</small>
         </div>
         <div class="fx-lb">Loại chi phí</div>
-        <div class="fx-cat" data-seg="exCategory">
+        <div class="fx-cat" data-seg="exCategory"><span class="fx-cat-nen" aria-hidden="true"></span>
           <button type="button" data-v="Hoa" onclick="segChon(this)"><svg class="ic" aria-hidden="true"><use href="#i-flower"/></svg>Hoa</button>
           <button type="button" data-v="Phụ kiện" onclick="segChon(this)"><svg class="ic" aria-hidden="true"><use href="#i-gift"/></svg>Phụ kiện</button>
           <button type="button" data-v="Vận chuyển" onclick="segChon(this)"><svg class="ic" aria-hidden="true"><use href="#i-truck"/></svg>Vận chuyển</button>
@@ -4077,12 +4176,18 @@ function nutTT(ten, nhan, onclick, { xoa = false, tat = false } = {}) {
 
 // ── Auth ─────────────────────────────────────────
 async function init() {
-  const { data: { session } } = await sb.auth.getSession()
+  // Hỏi phiên lâu quá (mạng chập chờn lúc làm mới phiên) → hiện form đăng nhập luôn, đừng để màn trắng; hỏi xong thì vào như thường
+  const henHien = setTimeout(() => { if (document.getElementById('appWrap').style.display !== 'flex') showLogin() }, 4000)
+  let session = null
+  try { ({ data: { session } } = await sb.auth.getSession()) } catch {}
+  clearTimeout(henHien)
   session ? showApp() : showLogin()
 }
 
 async function handleLogin(e) {
   e.preventDefault()
+  if (document.getElementById('appWrap').style.display === 'flex') return   // đã vào rồi (trình duyệt tự bấm lần nữa) → thôi
+  document.getElementById('loginError').style.display = 'none'
   const btn = document.getElementById('loginBtn')
   btn.textContent = 'Đang đăng nhập…'
   btn.disabled = true
@@ -4105,6 +4210,7 @@ async function handleLogout() {
 }
 
 function showLogin() {
+  document.getElementById('loginWrap').classList.remove('cho-phien')
   document.getElementById('loginWrap').style.display = 'flex'
   document.getElementById('appWrap').style.display = 'none'
 }
@@ -4114,7 +4220,10 @@ function showApp() {
   // Web khách và admin cùng tên miền nên dùng chung bộ nhớ trình duyệt:
   // đánh dấu "máy của shop" để công cụ đo lường KHÔNG đếm lượt xem của shop
   try { localStorage.setItem('lt_mayCuaShop', '1') } catch {}
-  document.getElementById('loginWrap').style.display = 'none'
+  const lw = document.getElementById('loginWrap')
+  lw.style.display = 'none'; lw.classList.remove('cho-phien')
+  xoaLoiTrong(lw); document.getElementById('loginError').style.display = 'none'
+  const t = document.getElementById('toast'); if (t) { clearTimeout(t._timer); t.style.display = 'none' }   // lời báo của màn đăng nhập không theo vào trong
   document.getElementById('appWrap').style.display = 'flex'
   loadProducts()   // nạp sẵn để modal Sửa đơn gợi ý giá niêm yết
   kiemQuyenQuanTri()
@@ -4192,7 +4301,12 @@ function anModal(x) {
 }
 
 // Đổi giao diện sang tab (không đụng lịch sử) — dùng chung cho click và nút Back
-function applyTab(tab) {
+// { hoan: true } (người bấm tab — switchTab / nút Back): đổi giao diện NGAY, nạp dữ liệu + vẽ danh sách SAU khi màn đã kịp vẽ
+// 1 khung (08/11/2026). Đo trên điện thoại chậm: vẽ danh sách tốn 0,1–0,4 giây — trước đó viên thanh tab đứng im, tưởng
+// chưa bấm trúng nên bấm lại. Test gọi applyTab(tab) không kèm gì → vẫn nạp ngay như cũ.
+let _tabDang = null
+function applyTab(tab, { hoan = false } = {}) {
+  _tabDang = tab
   closeAllModals()   // dọn lớp phủ của tab cũ trước khi hiện tab mới
   // Thanh chọn ảnh hàng loạt là lớp nổi riêng, không nằm trong closeAllModals
   gallerySel.clear()
@@ -4205,7 +4319,13 @@ function applyTab(tab) {
   const vao = matchMedia('(max-width: 820px)').matches && toi !== tu ? (toi > tu ? 'vao-phai' : 'vao-trai') : 'vao'
   document.querySelectorAll('.panel').forEach(p => p.style.display = 'none')
   const panel = document.getElementById('panel' + tab)
-  if (panel) { panel.style.display = 'block'; panel.classList.remove('vao', 'vao-phai', 'vao-trai'); void panel.offsetWidth; panel.classList.add(vao) }
+  // Tấm vừa từ ẩn (display:none) sang hiện thì hiệu ứng vào TỰ chạy lại — không cần "void offsetWidth" như trước
+  // (dòng đó bắt trình duyệt tính lại bố cục cả trang ngay lúc bấm: 0,1–0,4 giây trên điện thoại chậm)
+  if (panel) { panel.style.display = 'block'; panel.classList.remove('vao', 'vao-phai', 'vao-trai'); panel.classList.add(vao) }
+  if (hoan) requestAnimationFrame(() => setTimeout(() => { if (_tabDang === tab) napTab(tab) }, 0))
+  else napTab(tab)
+}
+function napTab(tab) {
   if (tab === 'Orders')        { loadOrders(); veNhacDon() }
   if (tab === 'Delivery')      loadDelivery()
   if (tab === 'Expenses')      loadExpenses()
@@ -4264,14 +4384,14 @@ function switchTab(btn) {
   if (tab !== cur) history.pushState({ adminTab: tab }, '', '#' + tab)
   _btTu = viTriVien()   // trước khi đóng menu: viên đang ở đâu thì nội dung "đi" từ đó
   closeSidebar()   // chọn xong tự đóng menu trên điện thoại
-  applyTab(tab)
+  applyTab(tab, { hoan: true })
 }
 
 // Nút Back trình duyệt: về tab trước đó; trên điện thoại mở luôn menu để chọn tiếp
 window.addEventListener('popstate', e => {
   if (document.getElementById('appWrap').style.display === 'none') return  // chưa đăng nhập
   const tab = (e.state && e.state.adminTab) || TAB_DAU
-  applyTab(tab)
+  applyTab(tab, { hoan: true })
 })
 
 // ── Chống mất dữ liệu: hỏi trước khi đóng modal đang nhập dở ──
@@ -4299,24 +4419,14 @@ function initModalGuards() {
   document.addEventListener('input', mark, true)
   document.addEventListener('change', mark, true)
 
-  // Ô bắt buộc còn trống mà nằm ngoài tầm nhìn → trình duyệt chặn Lưu trong im lặng.
-  // Kéo ô đó vào giữa màn hình + báo rõ để không tưởng "nút Lưu bị hỏng".
-  document.addEventListener('invalid', e => {
-    const el = e.target
-    showToast('Còn ô bắt buộc chưa điền — mình đưa bạn tới ô đó nhé', 'error')
-    setTimeout(() => {
-      try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }) } catch {}
-      // scrollIntoView kéo MỌI khung cha, kể cả trang → trên iOS nó đẩy luôn
-      // lớp phủ fixed lên làm cụt đầu form. Trả độ cuộn trang về 0 ngay sau đó.
-      resetPageScroll()
-    }, 30)
-  }, true)
+  // Ô bắt buộc còn trống khi bấm Lưu → js/dungchung.js (ganBaoLoiTuDong) tự viền đỏ + rung ô + chữ đỏ dưới ô, cuộn tới nếu
+  // ô đang khuất. Trước 08/11/2026 ở đây nổi thông báo đỏ che form — và nổi cả lúc trình duyệt tự điền mật khẩu đăng nhập.
 
   // Mỗi lần modal MỞ lại (display khác none) → xoá cờ đã-sửa để bắt đầu sạch
   GUARDED_MODALS.forEach(id => {
     const ov = document.getElementById(id)
     if (!ov) return
-    new MutationObserver(() => { if (ov.style.display !== 'none') ov.dataset.dirty = '' })
+    new MutationObserver(() => { if (ov.style.display !== 'none') { ov.dataset.dirty = ''; xoaLoiTrong(ov) } })
       .observe(ov, { attributes: true, attributeFilter: ['style'] })
   })
 
@@ -4555,14 +4665,14 @@ function statRowsHTML(list, tien) {
   return list.map(o => `
 <div class="stat-row" onclick="viewOrderDetail(${o.id})">
   <div class="stat-row-main">
-    <div><span class="sr-code">${orderCode(o.id)}</span> · ${orderCustomerName(o)}</div>
+    <div class="sr-ten"><span class="sr-code">${orderCode(o.id)}</span> · ${orderCustomerName(o)}</div>
     <div class="sr-sub">${esc(o.product_name)} × ${o.quantity}</div>
   </div>
-  <div class="stat-row-side">
+  <span class="sr-total">${tien ? fmtVnd(tien(o)) : o.total != null ? fmtVnd(o.total) : '—'}</span>
+  <div class="sr-nhan">
     ${statDateChip(o)}
     <span class="status-select ${STATUS_CLASS[o.status] || ''}" >${o.status}</span>
     ${tien ? nhanThanhToan(o) : ''}
-    <span class="sr-total">${tien ? fmtVnd(tien(o)) : o.total != null ? fmtVnd(o.total) : '—'}</span>
   </div>
 </div>`).join('')
 }
@@ -4947,7 +5057,7 @@ const BC_GIAI = {
       <span class="bc-gt bc-gt-xau">Đang lỗ</span> chi phí cao hơn doanh thu.</p>
     <p><b>Bảng tiền</b> trả lời 3 câu: <b>Bán được</b> bao nhiêu · <b>Thu tiền</b> được bao nhiêu · <b>Lời</b> bao nhiêu. Cách tính ở nút (i) của thẻ "Bán được".</p>
     <p><b>So sánh</b> với kỳ liền trước (đổi sang cùng kỳ năm ngoái ở nút Lọc). Kỳ chưa hết thì chỉ so đúng số ngày đã qua.
-      Viên <span class="bc-gt bc-gt-tot">↑</span> tăng · <span class="bc-gt bc-gt-xau">↓</span> giảm.</p>
+      Viên <span class="bc-gt bc-gt-tot">${ic('up')}</span> tăng · <span class="bc-gt bc-gt-xau">${ic('down')}</span> giảm.</p>
     <p>Bấm vào số, viên hay dòng nào cũng xem được các đơn đứng sau.</p>`],
   tien: ['Cách tính bảng tiền', `
     <p>${CHU_NGAY_GIAO}</p>
@@ -5049,7 +5159,7 @@ function bcBieuDo(K) {
       <div class="bc-meo" id="bcMeo" aria-hidden="true"></div>
       <div class="bc-cot-hang${nhieu ? ' day' : ''}">${cot}</div>
     </div>
-    <details class="bc-bang"><summary>Xem dạng bảng</summary>
+    <details class="bc-bang"><summary>${ic('right')}Xem dạng bảng</summary>
       <div class="bc-bang-cuon"><table><thead><tr><th>${kieu === 'thang' || so[0].tu !== so[0].den ? 'Tháng' : 'Ngày'}</th><th>Đơn</th><th>Doanh thu</th>${kieu === 'thang' && !loc ? '<th>Lãi</th>' : ''}</tr></thead><tbody>${bang}</tbody></table></div>
     </details>
   </section>`
@@ -5358,7 +5468,7 @@ function closeChangelogModal() { anModal('changelogModal') }
 async function saveChangelog(e) {
   e.preventDefault()
   if (!document.getElementById('clDate').value) {
-    showToast('Chưa chọn ngày uplive', 'error'); openFormDate('clDate'); return
+    baoLoiO('clDate', 'Chưa chọn ngày uplive'); return
   }
   const btn = document.getElementById('saveChangelogBtn')
   btn.textContent = 'Đang lưu…'; btn.disabled = true
@@ -5590,22 +5700,26 @@ async function loadMaterialHistory(name) {
     box.innerHTML = '<div class="chu-phu">Chưa có lần nhập nào trong Sổ chi phí.</div>'
     return
   }
-  box.innerHTML = data.map((e, i) => {
-    // So giá với lần nhập TRƯỚC ĐÓ (dòng kế tiếp trong danh sách desc) để thấy tăng/giảm
-    const prev = data[i + 1]
-    let trend = ''
-    if (e.unit_price != null && prev?.unit_price != null && e.unit_price !== prev.unit_price) {
-      trend = e.unit_price > prev.unit_price
-        ? ' <span class="gia-len">▲</span>'
-        : ' <span class="gia-xuong">▼</span>'
-    }
-    return `
-<div class="h-row">
-  <span>${e.expense_date.split('-').reverse().join('/')}</span>
-  <span>${e.quantity != null ? e.quantity + ' × ' : ''}${e.unit_price != null ? '<strong>' + fmtVnd(e.unit_price) + '</strong>' + trend : '—'}</span>
-  <span>${fmtVnd(e.amount)}</span>
-</div>`
-  }).join('')
+  // Gom theo tháng (danh sách đã xếp mới → cũ). Mũi tên: so ĐƠN GIÁ với lần nhập CŨ HƠN gần nhất có đơn giá
+  // (lần chỉ ghi thành tiền, vd Grab, thì bỏ qua) — giá bằng nhau thì không có mũi tên.
+  const ngay = s => s.split('-').reverse().join('/')
+  const thang = new Map()
+  data.forEach((e, i) => {
+    const k = e.expense_date.slice(0, 7)
+    if (!thang.has(k)) thang.set(k, { tong: 0, ds: [] })
+    const t = thang.get(k)
+    t.tong += Number(e.amount) || 0
+    const truoc = e.unit_price != null ? data.slice(i + 1).find(x => x.unit_price != null) : null
+    const xu = !truoc || truoc.unit_price === e.unit_price ? ''
+      : `<span class="gia-xu ${e.unit_price > truoc.unit_price ? 'gia-len' : 'gia-xuong'}" title="${e.unit_price > truoc.unit_price ? 'Đắt' : 'Rẻ'} hơn lần ${ngay(truoc.expense_date)} (${fmtVnd(truoc.unit_price)})">${ic(e.unit_price > truoc.unit_price ? 'up' : 'down')}</span>`
+    t.ds.push(`<div class="nl-lan${i ? '' : ' moi'}">
+  <span class="l1">${e.unit_price != null ? `${fmtVnd(e.unit_price)} <small>× ${e.quantity ?? 1}</small>` : '<small>Không ghi đơn giá</small>'}${xu}</span>
+  <span class="tt">${fmtVnd(e.amount)}</span>
+  <span class="l2">${ngay(e.expense_date)}</span>
+</div>`)
+  })
+  box.innerHTML = [...thang].map(([k, t]) =>
+    `<div class="nl-thang">Tháng ${+k.slice(5)}/${k.slice(0, 4)}<span>${t.ds.length} lần · ${fmtVnd(t.tong)}</span></div><div class="nl-tl">${t.ds.join('')}</div>`).join('')
 }
 
 async function saveMaterialEdit(e) {
@@ -5617,7 +5731,7 @@ async function saveMaterialEdit(e) {
   const name = document.getElementById('meName').value.trim()
   if (materials.some(x => x.id !== id && x.name.toLowerCase() === name.toLowerCase())) {
     btn.textContent = 'Lưu'; btn.disabled = false
-    showToast('Đã có nguyên liệu trùng tên', 'error'); return
+    baoLoiO('meName', 'Đã có nguyên liệu trùng tên'); return
   }
   const patch = {
     name,
@@ -5644,7 +5758,7 @@ async function deleteMaterialFromEdit() {
 async function addMaterial() {
   const nameEl = document.getElementById('mtSearch')
   const name = nameEl.value.trim()
-  if (!name) { showToast('Gõ tên nguyên liệu vào ô trên', 'error'); nameEl.focus(); return }
+  if (!name) { baoLoiO(nameEl, 'Gõ tên nguyên liệu vào ô này'); return }
   const trung = materials.find(mt => mt.name.toLowerCase() === name.toLowerCase())
   if (trung) { openMaterialEditModal(trung.id); return }
   const { data, error } = await sb.from('materials').insert({ name, category: 'Khác', last_price: null }).select().single()
@@ -5948,7 +6062,7 @@ function setExpenseImagePreview(url) {
     ? `<div class="anh-xoa-duoc">
          <img ${srcNho(url, 300)} alt="">
          <button type="button" class="btn-delete-sm" title="Bỏ ảnh"
-           onclick="setExpenseImagePreview('')">✕</button>
+           onclick="setExpenseImagePreview('')" aria-label="Bỏ ảnh">${ic('x')}</button>
        </div>`
     : ''
 }
@@ -6002,10 +6116,10 @@ function closeExpenseModalOutside(e) { if (e.target.id === 'expenseModal') close
 async function saveExpense(e) {
   e.preventDefault()
   if (!document.getElementById('exDate').value) {
-    showToast('Chưa chọn ngày chi', 'error'); openFormDate('exDate'); return
+    baoLoiO('exDate', 'Chưa chọn ngày chi', { focus: false }); return
   }
   if (moneyNum('exAmount') == null) {
-    showToast('Chưa điền thành tiền', 'error'); document.getElementById('exAmount').focus(); return
+    baoLoiO('exAmount', 'Chưa điền thành tiền'); return
   }
   const btn = document.getElementById('saveExpenseBtn')
   btn.textContent = 'Đang lưu…'; btn.disabled = true
@@ -6225,7 +6339,7 @@ function spBatXep() {
 function spVeXep(el) {
   const n = products.length
   el.innerHTML = `
-<div class="sp-xep-bao">Bấm ▲ ▼ để đổi chỗ, <b>Lên đầu</b> để đưa mẫu lên trên cùng. Thứ tự này = <b>thứ tự khách thấy</b> trên web. Đổi là tự lưu, xong bấm <b>Xong</b>.</div>
+<div class="sp-xep-bao">Bấm ${ic('up')} ${ic('down')} để đổi chỗ, <b>Lên đầu</b> để đưa mẫu lên trên cùng. Thứ tự này = <b>thứ tự khách thấy</b> trên web. Đổi là tự lưu, xong bấm <b>Xong</b>.</div>
 <div class="sp-xep">${products.map((p, i) => `
   <div class="sp-xep-hang">
     <span class="sp-xep-so">${i + 1}</span>
@@ -6749,9 +6863,9 @@ async function addGalleryCat() {
   const emojiEl = document.getElementById('newCatEmoji')
   const name = nameEl.value.trim()
   const emoji = emojiEl.value.trim() || '📷'
-  if (!name) { showToast('Nhập tên nhóm ảnh', 'error'); return }
+  if (!name) { baoLoiO(nameEl, 'Nhập tên album'); return }
   if (galleryCats.some(c => c.name.toLowerCase() === name.toLowerCase())) {
-    showToast('Nhóm ảnh này đã có rồi', 'error'); return
+    baoLoiO(nameEl, 'Album này đã có rồi'); return
   }
   const maxOrder = galleryCats.reduce((m, c) => Math.max(m, c.order_index || 0), 0)
   const { error } = await sb.from('gallery_categories').insert({ name, emoji, order_index: maxOrder + 1 })
@@ -7334,10 +7448,10 @@ async function saveContact(e) {
   data.ga4_id = String(data.ga4_id || '').trim().toUpperCase()
   data.clarity_id = String(data.clarity_id || '').trim()
   if (data.ga4_id && !MA_GA4.test(data.ga4_id)) {
-    showToast('Mã Google Analytics phải có dạng G-XXXXXXXXXX', 'error'); document.getElementById('ctGa4').focus(); return
+    baoLoiO('ctGa4', 'Mã Google Analytics phải có dạng G-XXXXXXXXXX'); return
   }
   if (data.clarity_id && !MA_CLARITY.test(data.clarity_id)) {
-    showToast('Mã Clarity chỉ gồm chữ thường và số (khoảng 10 ký tự)', 'error'); document.getElementById('ctClarity').focus(); return
+    baoLoiO('ctClarity', 'Mã Clarity chỉ gồm chữ thường và số (khoảng 10 ký tự)'); return
   }
   data.ga4_id = data.ga4_id || null
   data.clarity_id = data.clarity_id || null
@@ -7346,8 +7460,7 @@ async function saveContact(e) {
   data.ck_chu_tk = noAccent(data.ck_chu_tk).toUpperCase().replace(/[^A-Z0-9 .]/g, '').replace(/\s+/g, ' ').trim() || null   // khớp luật contact_ck_dinh_dang (SQL 31)
   data.ck_ngan_hang = data.ck_ngan_hang || null
   if (!!data.ck_ngan_hang !== !!data.ck_so_tk) {
-    showToast('Tài khoản chuyển khoản cần đủ cả ngân hàng lẫn số tài khoản', 'error')
-    document.getElementById(data.ck_ngan_hang ? 'ctSoTk' : 'ctNganHang').focus(); return
+    baoLoiO(data.ck_ngan_hang ? 'ctSoTk' : 'ctNganHang', data.ck_ngan_hang ? 'Cần thêm số tài khoản' : 'Cần chọn ngân hàng'); return
   }
   // Chưa chạy SQL 20 → bỏ 2 cột này ra, để các ô Liên hệ khác vẫn lưu được
   if (_contactCot) {
@@ -7396,7 +7509,7 @@ function renderTestimonials() {
     <td><strong>${esc(t.name)}</strong></td>
     <td class="tm-noi-dung">${esc(t.content.slice(0, 80))}${t.content.length > 80 ? '…' : ''}</td>
     <td class="tm-canh">${esc(t.context || '—')}</td>
-    <td><button class="toggle-btn ${t.active ? 'on' : ''}" onclick="toggleTestimonial(${t.id},${t.active})">${t.active ? '✓ Có' : '— Không'}</button></td>
+    <td><button class="toggle-btn ${t.active ? 'on' : ''}" onclick="toggleTestimonial(${t.id},${t.active})">${t.active ? ic('check') + 'Có' : 'Không'}</button></td>
     <td class="actions">
       ${nutTT('pen', 'Sửa', `openTestimonialModal(${t.id})`)}
       ${nutTT('trash', 'Xoá', `deleteTestimonial(${t.id})`, { xoa: true })}
@@ -7408,7 +7521,7 @@ function renderTestimonials() {
   <div class="m-card">
     <div class="mc-row">
       <span class="mc-title">${esc(t.name)}</span>
-      <button class="toggle-btn ${t.active ? 'on' : ''}" onclick="toggleTestimonial(${t.id},${t.active})">${t.active ? '✓ Hiện' : '— Ẩn'}</button>
+      <button class="toggle-btn ${t.active ? 'on' : ''}" onclick="toggleTestimonial(${t.id},${t.active})">${t.active ? ic('check') + 'Hiện' : 'Ẩn'}</button>
     </div>
     ${t.context ? `<div class="mc-sub">${esc(t.context)}</div>` : ''}
     <div class="mc-sub tm-mc-noi-dung">"${esc(t.content)}"</div>
@@ -7525,7 +7638,7 @@ function thanhTrangHTML(tong, trang, goTrang, goCo, unit) {
   return `<div class="pg-bar">
   <div class="pg-dem">Từ ${so(tu)} đến ${so(den)} trên tổng ${so(tong)} ${unit}</div>
   <label class="pg-co">Hiển thị <select onchange="${goCo}+this.value, this)">${CO_TRANG.map(c => `<option${c === coTrang ? ' selected' : ''}>${c}</option>`).join('')}</select> ${unit}/trang</label>
-  <nav class="pg-so" aria-label="Chuyển trang">${nut(trang - 1, '‹', trang <= 1, 'Trang trước')}${soTrangHien(n, trang).map(p => p === '…' ? '<span class="pg-ba">…</span>' : nut(p, p)).join('')}${nut(trang + 1, '›', trang >= n, 'Trang sau')}</nav>
+  <nav class="pg-so" aria-label="Chuyển trang">${nut(trang - 1, ic('left'), trang <= 1, 'Trang trước')}${soTrangHien(n, trang).map(p => p === '…' ? '<span class="pg-ba">…</span>' : nut(p, p)).join('')}${nut(trang + 1, ic('right'), trang >= n, 'Trang sau')}</nav>
 </div>`
 }
 // Sang trang khác: vẽ lại xong thì kéo đầu danh sách vào tầm mắt (bấm số ở đáy mà đứng yên thì chỉ thấy dòng cuối)
@@ -7597,7 +7710,7 @@ function renderStatusFilterChips() {
   const el = document.getElementById('orderStatusChips')
   if (!el) return
   const stHtml = nutBoLoc(orderStatusSet.size, 'clearStatusFilter', 'Bỏ lọc trạng thái') + ORDER_STATUSES.map((s, i) =>
-    `<button type="button" class="st-chip ${STATUS_CLASS[s]} ${orderStatusSet.has(s) ? 'on' : ''}" onclick="toggleStatusFilter(${i})">${orderStatusSet.has(s) ? '✓ ' : ''}${s}</button>`
+    `<button type="button" class="st-chip ${STATUS_CLASS[s]} ${orderStatusSet.has(s) ? 'on' : ''}" onclick="toggleStatusFilter(${i})">${orderStatusSet.has(s) ? ic('check') : ''}${s}</button>`
   ).join('')
   el.innerHTML = stHtml
   const sheetSt = document.getElementById('locSheetSt'); if (sheetSt) sheetSt.innerHTML = stHtml
@@ -7606,7 +7719,7 @@ function renderStatusFilterChips() {
   const coTt = coCotTt() !== false
   document.getElementById('ttLoc').style.display = coTt ? '' : 'none'
   const ttHtml = nutBoLoc(orderTtSet.size, 'boLocTt', 'Bỏ lọc thanh toán') + TT_LOC.map(([v, chu, cls], i) =>
-    `<button type="button" class="st-chip ${cls} ${orderTtSet.has(v) ? 'on' : ''}" onclick="chonLocTt(${i})">${orderTtSet.has(v) ? '✓ ' : ''}${chu}</button>`
+    `<button type="button" class="st-chip ${cls} ${orderTtSet.has(v) ? 'on' : ''}" onclick="chonLocTt(${i})">${orderTtSet.has(v) ? ic('check') : ''}${chu}</button>`
   ).join('')
   tt.innerHTML = ttHtml
   const sheetTt = document.getElementById('locSheetTt'); if (sheetTt) sheetTt.innerHTML = ttHtml
@@ -7669,12 +7782,7 @@ const DONE_STATUSES = ['Giao thành công', 'Hoàn thành', 'Đã hủy']
 
 // Báo lỗi kèm đưa thẳng tới ô sai, khỏi phải tự dò trong form dài
 function phoneError(inputId) {
-  showToast('Số điện thoại chưa đúng — cần 10 số, bắt đầu bằng 0', 'error')
-  const el = document.getElementById(inputId)
-  if (el) {
-    try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }) } catch {}
-    setTimeout(() => { try { el.focus({ preventScroll: true }) } catch { el.focus() } }, 120)
-  }
+  baoLoiO(inputId, 'Số điện thoại chưa đúng — cần 10 số, bắt đầu bằng 0')
 }
 
 // ── Nén ảnh trước khi upload (giảm 5-10 lần dung lượng, web tải nhanh hơn) ──
@@ -8074,13 +8182,13 @@ async function saveBst(e) {
   e.preventDefault()
   const btn = document.getElementById('bstSaveBtn')
   const name = document.getElementById('bstName').value.trim()
-  if (!name) { showToast('Chưa đặt tên bộ sưu tập', 'error'); return }
+  if (!name) { baoLoiO('bstName', 'Chưa đặt tên bộ sưu tập'); return }
   if (bstList.some(c => c.id !== _bstId && c.name.trim().toLowerCase() === name.toLowerCase())) {
-    showToast('Đã có bộ sưu tập trùng tên', 'error'); return
+    baoLoiO('bstName', 'Đã có bộ sưu tập trùng tên'); return
   }
   const start = document.getElementById('bstStart').value || null
   const end   = document.getElementById('bstEnd').value || null
-  if (start && end && start > end) { showToast('Ngày bắt đầu phải trước ngày kết thúc', 'error'); return }
+  if (start && end && start > end) { baoLoiO('bstEnd', 'Ngày kết thúc không được trước ngày bắt đầu', { focus: false }); return }
 
   btn.textContent = 'Đang lưu…'; btn.disabled = true
   const xong = () => { btn.textContent = 'Lưu'; btn.disabled = false }
@@ -8716,6 +8824,7 @@ function fdSync(id) {
   const btn = document.getElementById(id + 'Btn')
   const el = document.getElementById(id)
   if (!btn || !el) return
+  if (el.value) xoaLoiO(el)   // chọn ngày xong → hết báo "chưa chọn ngày" (ô ẩn không bắn sự kiện input)
   const txt = btn.querySelector('.db-txt')
   const nhan = fdLabel(el.value)
   txt.textContent = nhan || 'Chọn ngày'
@@ -8751,13 +8860,22 @@ function qdSync(id) {
 }
 
 // Nhóm chip chọn 1 (trạng thái đơn, loại chi phí): [data-seg="idÔẩn"] chứa các nút [data-v]
-function segSet(id, v) {
+function segSet(id, v, truot = false) {
   const el = document.getElementById(id)
   if (el) el.value = v
-  document.querySelectorAll(`[data-seg="${id}"] [data-v]`).forEach(b => b.classList.toggle('on', b.dataset.v === v))
+  document.querySelectorAll(`[data-seg="${id}"]`).forEach(nhom => {
+    const ds = [...nhom.querySelectorAll('[data-v]')]
+    ds.forEach(b => b.classList.toggle('on', b.dataset.v === v))
+    // Ô chọn Loại (.fx-cat): viên nền trượt tới ô đang chọn — mở form thì đứng sẵn đúng chỗ, bấm mới trượt
+    if (!nhom.querySelector('.fx-cat-nen')) return
+    const i = ds.findIndex(b => b.dataset.v === v)
+    if (!truot) { nhom.classList.add('dung'); requestAnimationFrame(() => requestAnimationFrame(() => nhom.classList.remove('dung'))) }
+    nhom.classList.toggle('trong', i < 0)
+    if (i >= 0) nhom.style.setProperty('--i', i)
+  })
 }
 function segChon(btn) {
-  segSet(btn.closest('[data-seg]').dataset.seg, btn.dataset.v)
+  segSet(btn.closest('[data-seg]').dataset.seg, btn.dataset.v, true)
   danhDauDangNhap(btn)
 }
 
@@ -8863,9 +8981,9 @@ function fdRender(id) {
   const boTrongDuoc = document.getElementById(id).dataset.optional === '1'
   document.getElementById(id + 'Pop').innerHTML = `
 <div class="date-pop-head">
-  <button type="button" class="month-arrow" onclick="fdStepMonth('${id}',-1)">‹</button>
+  <button type="button" class="month-arrow" onclick="fdStepMonth('${id}',-1)" aria-label="Tháng trước">${ic('left')}</button>
   <span class="date-pop-title">Tháng ${m}/${y}</span>
-  <button type="button" class="month-arrow" onclick="fdStepMonth('${id}',1)">›</button>
+  <button type="button" class="month-arrow" onclick="fdStepMonth('${id}',1)" aria-label="Tháng sau">${ic('right')}</button>
 </div>
 <div class="cal-grid">${cells}</div>
 <button type="button" class="date-today-btn" onclick="fdPick('${id}','${today}')">Hôm nay</button>
@@ -9046,9 +9164,9 @@ function lnVe(k, sang) {
   const pop = document.getElementById(c.pop)
   pop.innerHTML = `
 <div class="date-pop-head">
-  <button type="button" class="month-arrow" onclick="lnBuoc('${k}',-1)">‹</button>
+  <button type="button" class="month-arrow" onclick="lnBuoc('${k}',-1)" aria-label="Tháng trước">${ic('left')}</button>
   <span class="date-pop-title">Tháng ${m}/${y}</span>
-  <button type="button" class="month-arrow" onclick="lnBuoc('${k}',1)">›</button>
+  <button type="button" class="month-arrow" onclick="lnBuoc('${k}',1)" aria-label="Tháng sau">${ic('right')}</button>
 </div>
 <div class="cal-grid ln-luoi${sang ? ' ln-sang' : ''}">${cells}</div>
 <div class="ord-goi-y">${goiY}</div>
@@ -9249,7 +9367,7 @@ function openQuickStatus(id) {
   document.getElementById('qsList').innerHTML = ORDER_STATUSES.map((s, i) => `
     <button type="button" class="qs-item status-select ${STATUS_CLASS[s] || ''} ${s === o.status ? 'qs-current' : ''}"
             onclick="pickQuickStatus(${i})">
-      <span>${esc(s)}</span>${s === o.status ? '<span class="qs-tick">✓</span>' : ''}
+      <span>${esc(s)}</span>${s === o.status ? '<span class="qs-tick">' + ic('check') + '</span>' : ''}
     </button>`).join('')
   document.getElementById('quickStatusModal').style.display = 'flex'
 }
@@ -9369,7 +9487,7 @@ function setOrderImagePreview(prefix, url) {
     ? `<div class="anh-xoa-duoc">
          <img ${srcNho(url, 300)} alt="" class="nho">
          <button type="button" class="btn-delete-sm" title="Bỏ ảnh"
-           onclick="setOrderImagePreview('${prefix}', '')">✕</button>
+           onclick="setOrderImagePreview('${prefix}', '')" aria-label="Bỏ ảnh">${ic('x')}</button>
        </div>`
     : ''
 }
@@ -9743,7 +9861,7 @@ function ttDienForm(k, o, coCot) {
 function ttKiemForm(k) {
   if (document.getElementById(k + 'TtThan').style.display === 'none') return true
   if (document.getElementById(k + 'Tt').value === 'Đã cọc' && !moneyNum(k + 'Coc')) {
-    showToast('Nhập số tiền khách đã cọc nhé', 'error'); document.getElementById(k + 'Coc').focus(); return false
+    baoLoiO(k + 'Coc', 'Nhập số tiền khách đã cọc nhé'); return false
   }
   return true
 }
@@ -10690,6 +10808,7 @@ init()
 initModalGuards()
 initPageScrollGuard()
 initBackToTop()
+bamNhanh(document.querySelector('.bt-vien'), '.bt-item')   // thanh tab dưới: 1 chạm là ăn, kể cả lúc danh sách còn trôi (js/dungchung.js)
 initViewportFix()
 </script>
 </body>

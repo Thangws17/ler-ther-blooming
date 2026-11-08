@@ -754,9 +754,9 @@ function renderGalleryPagination(total) {
   if (totalPages <= 1) { el.innerHTML = ''; return; }
   el.innerHTML = `
 <div class="pagination">
-  <button class="page-btn" onclick="setGalleryPage(${galleryPage - 1})" ${galleryPage === 0 ? 'disabled' : ''}>← Trước</button>
+  <button class="page-btn" onclick="setGalleryPage(${galleryPage - 1})" ${galleryPage === 0 ? 'disabled' : ''}>${ic('left')}Trước</button>
   <span class="page-info">${galleryPage + 1} / ${totalPages}</span>
-  <button class="page-btn" onclick="setGalleryPage(${galleryPage + 1})" ${galleryPage >= totalPages - 1 ? 'disabled' : ''}>Tiếp →</button>
+  <button class="page-btn" onclick="setGalleryPage(${galleryPage + 1})" ${galleryPage >= totalPages - 1 ? 'disabled' : ''}>Tiếp${ic('right')}</button>
 </div>`;
 }
 
@@ -810,8 +810,9 @@ function openGalleryLightbox(startIdx) {
     b.setAttribute('aria-label', label);
     return b;
   };
-  const btnPrev  = mkBtn('lightbox-nav lightbox-prev', '‹', 'Ảnh trước');
-  const btnNext  = mkBtn('lightbox-nav lightbox-next', '›', 'Ảnh sau');
+  const btnPrev  = mkBtn('lightbox-nav lightbox-prev', '', 'Ảnh trước');
+  const btnNext  = mkBtn('lightbox-nav lightbox-next', '', 'Ảnh sau');
+  btnPrev.innerHTML = ic('left'); btnNext.innerHTML = ic('right');   // bộ biểu tượng chung, không dùng ký tự ‹ › (08/11/2026)
   const btnClose = mkBtn('lightbox-close', '', 'Đóng');
   btnClose.innerHTML = ic('x');
   const btnOrder = mkBtn('btn btn-primary lightbox-order', 'Đặt mẫu này', 'Đặt hoa theo mẫu này');
@@ -1195,8 +1196,8 @@ function showMiniToast(msg) {
       'position:fixed;bottom:90px;left:50%;transform:translateX(-50%)',
       'background:rgba(30,30,30,.92);color:#fff;padding:10px 22px',
       'border-radius:50px;font-size:.85rem;font-weight:600',
-      // KHÔNG dùng nowrap: lời nhắn dài sẽ tràn khỏi màn hình điện thoại nhỏ
-      'z-index:9999;max-width:calc(100vw - 32px);text-align:center;line-height:1.5',
+      // KHÔNG dùng nowrap: lời nhắn dài sẽ tràn khỏi màn hình điện thoại nhỏ. Bấm xuyên qua được — không chặn nút nằm dưới
+      'z-index:9999;pointer-events:none;max-width:calc(100vw - 32px);text-align:center;line-height:1.5',
       'box-shadow:0 4px 16px rgba(0,0,0,.25)',
     ].join(';');
     document.body.appendChild(t);
@@ -1220,14 +1221,15 @@ function showMiniToast(msg) {
 
 
 // Báo lỗi xong phải đưa khách TỚI ĐÚNG ô sai — form dài, bắt tự đi tìm là bỏ đơn
-function focusOrderField(id) {
+// Ô sai → báo NGAY TẠI Ô (viền đỏ, rung nhẹ, chữ đỏ dưới ô — baoLoiO ở js/dungchung.js, cùng kiểu admin). Trước 08/11/2026
+// là thông báo nổi đè lên form trên điện thoại.
+function focusOrderField(id, loi) {
   const el = document.getElementById(id);
   if (!el) return;
   // Ô nằm trong mục đang gấp (vd email) → mở mục ra trước, không thì focus vào ô ẩn chẳng thấy gì
   const than = el.closest('.omx-than');
   if (than && than.previousElementSibling) than.previousElementSibling.classList.add('open');
-  try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch {}
-  setTimeout(() => { try { el.focus({ preventScroll: true }); } catch { el.focus(); } }, 120);
+  baoLoiO(el, loi || 'Ô này cần điền');
 }
 
 // ─── Khoá cuộn nền khi mở lớp phủ ─────────────────────────
@@ -1489,8 +1491,7 @@ async function submitOrder(event) {
   if (!isValidPhone(phone)) {
     btn.disabled = false;
     btn.textContent = 'Gửi đơn';
-    showMiniToast('Số điện thoại chưa đúng, bạn xem lại giúp nhé');
-    focusOrderField('orderPhone');
+    focusOrderField('orderPhone', 'Số điện thoại chưa đúng — cần 10 số, bắt đầu bằng 0');
     return;
   }
 
@@ -1498,8 +1499,7 @@ async function submitOrder(event) {
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     btn.disabled = false;
     btn.textContent = 'Gửi đơn';
-    showMiniToast('Email chưa đúng định dạng, bạn xem lại giúp nhé');
-    focusOrderField('orderEmail');
+    focusOrderField('orderEmail', 'Email chưa đúng — VD: ten@gmail.com');
     return;
   }
 
@@ -1724,9 +1724,9 @@ function buildDetailImage(imgs, name, s) {
   return `
 <div class="detail-carousel">
   <div class="carousel-main">
-    <button type="button" class="carousel-arrow carousel-prev" onclick="_carMove(-1)" aria-label="Ảnh trước">‹</button>
+    <button type="button" class="carousel-arrow carousel-prev" onclick="_carMove(-1)" aria-label="Ảnh trước">${ic('left')}</button>
     <div class="carousel-track" id="carouselTrack">${slides}</div>
-    <button type="button" class="carousel-arrow carousel-next" onclick="_carMove(1)" aria-label="Ảnh sau">›</button>
+    <button type="button" class="carousel-arrow carousel-next" onclick="_carMove(1)" aria-label="Ảnh sau">${ic('right')}</button>
   </div>
   <div class="carousel-thumbs">${thumbs}</div>
 </div>`;
@@ -1781,7 +1781,7 @@ async function loadProductDetail() {
 <div class="detail-wrap">
   ${imgSection}
   <div class="detail-info">
-    <a href="san-pham" class="detail-back">← Quay lại sản phẩm</a>
+    <a href="san-pham" class="detail-back">${ic('left')}Quay lại sản phẩm</a>
     ${bstCuaMau(p.id).length
       ? `<div class="detail-bst">${bstCuaMau(p.id).map(c =>
           `<a href="san-pham?bst=${encodeURIComponent(c.slug || '')}">${esc(c.name)}</a>`).join('')}</div>`
@@ -1864,15 +1864,38 @@ function veThanhTabKhach() {
   // (nội dung trượt theo hướng). Chỉ tin khi mới ghi (< 4 giây) và đúng trang đích — bấm Back, mở link khác thì bỏ qua.
   let c = null;
   try { c = JSON.parse(sessionStorage.getItem('lt_tab_chuyen') || 'null'); } catch (_) {}
-  if (nen && c && c.den === dang && Date.now() - c.t < 4000 && c.tu >= 0 && c.tu !== idx && !giamChuyenDong() && nen.animate) {
+  // c.daTruot: trang CŨ đã cho viên chạy sang ngay lúc chạm (xem dưới) → trang mới đứng sẵn đúng chỗ, khỏi trượt lần 2
+  if (nen && c && !c.daTruot && c.den === dang && Date.now() - c.t < 4000 && c.tu >= 0 && c.tu !== idx && !giamChuyenDong() && nen.animate) {
     nen.animate([{ translate: `calc(${c.tu} * (100% + 4px)) 0` }, { translate: `calc(${idx} * (100% + 4px)) 0` }],
       { duration: 380, easing: 'cubic-bezier(.23, 1, .32, 1)' });
   }
+  // Chạm tab (08/11/2026): viên chạy sang + đổi màu NGAY trên trang hiện tại, không đợi trang mới tải xong — mạng chậm thì
+  // trước đây màn hình đứng im tới lúc trang mới hiện, tưởng chưa bấm trúng nên bấm lại.
+  const cacNut = [...nav.querySelectorAll('a')];
+  function veVien(i, truot) {
+    cacNut.forEach((x, j) => x.classList.toggle('on', j === i));
+    if (!nen) return;
+    const tu = getComputedStyle(nen).translate;
+    nav.style.setProperty('--i', i);
+    if (truot && nen.animate && !giamChuyenDong()) {
+      nen.animate([{ translate: tu }, { translate: `calc(${i} * (100% + 4px)) 0` }], { duration: 300, easing: 'cubic-bezier(.23, 1, .32, 1)' });
+    }
+  }
   nav.addEventListener('click', e => {
     const a = e.target.closest('a'); if (!a || idx < 0) return;
-    const toi = [...nav.querySelectorAll('a')].indexOf(a);
-    try { sessionStorage.setItem('lt_tab_chuyen', JSON.stringify({ tu: idx, toi, den: ten(a.getAttribute('href')), t: Date.now() })); } catch (_) {}
+    const toi = cacNut.indexOf(a);
+    const daTruot = toi !== idx && !!nen;
+    if (daTruot) veVien(toi, true);
+    try { sessionStorage.setItem('lt_tab_chuyen', JSON.stringify({ tu: idx, toi, den: ten(a.getAttribute('href')), t: Date.now(), daTruot })); } catch (_) {}
   });
+  bamNhanh(nav, 'a');   // 1 chạm là ăn, kể cả lúc trang còn đang trôi theo đà vuốt (js/dungchung.js)
+  // Bấm Back quay lại trang này (trình duyệt giữ nguyên trang cũ trong bộ nhớ) → viên đang đứng ở tab vừa bấm, trả về đúng chỗ
+  addEventListener('pageshow', e => { if (e.persisted && idx >= 0) veVien(idx, false); });
+  // Lúc rảnh: tải sẵn 3 trang còn lại của thanh tab (mỗi trang ~12KB) → bấm tab là trang có sẵn trong máy, khỏi chờ mạng
+  const taiSan = () => cacNut.forEach((x, j) => {
+    if (j !== idx) fetch(x.href, { credentials: 'same-origin' }).catch(() => {});
+  });
+  setTimeout(() => (window.requestIdleCallback ? requestIdleCallback(taiSan, { timeout: 3000 }) : taiSan()), 2500);
   const laO = el => el && el.matches && el.matches('input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), textarea, select');
   document.addEventListener('focusin', e => { if (laO(e.target)) document.body.classList.add('dang-go'); });
   document.addEventListener('focusout', () => setTimeout(() => {

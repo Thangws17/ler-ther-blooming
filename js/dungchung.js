@@ -625,3 +625,137 @@ function theoDoiNutCho() {
 }
 if (document.body) theoDoiNutCho()
 else document.addEventListener('DOMContentLoaded', theoDoiNutCho)
+
+// ── Báo lỗi NGAY TẠI Ô (08/11/2026, shop xin) ──
+// Trước: thiếu ô / gõ sai → thông báo đỏ nổi lên che nội dung (điện thoại màn nhỏ che gần hết form), lại còn hiện cả lúc
+// trình duyệt TỰ ĐIỀN mật khẩu đăng nhập. Giờ: ô sai viền đỏ + rung nhẹ 1 nhịp + 1 dòng chữ đỏ ngay dưới ô; cuộn tới ô
+// chỉ khi ô đang khuất. Gõ / chọn lại là tự hết. Dùng chung web khách + admin:
+//   baoLoiO('exAmount', 'Chưa điền thành tiền')            — ô thường, ô tiền, ô SĐT…
+//   baoLoiO('exDate', 'Chưa chọn ngày chi')                 — ô ngày ẩn (type=hidden) → báo ở nút lịch id + 'Btn'
+//   { focus: false } không đặt con trỏ vào ô (khỏi bật bàn phím), { cuon: false } không cuộn.
+// Ô `required` để trống khi bấm Lưu: trình duyệt bắn 'invalid' → tự báo kiểu này (cuối mục), KHÔNG cần sửa từng form.
+function khungCuaO(el) {
+  if (el.type === 'hidden') return document.getElementById(el.id + 'Btn') || el.parentElement || el
+  return el.closest('.fx-in, .omx-in, .fx-amt') || el
+}
+let _loiODau = 0   // 1 lần bấm Lưu có thể báo nhiều ô — chỉ ô ĐẦU được cuộn tới + đặt con trỏ
+function baoLoiO(el, loi, { focus = true, cuon = true } = {}) {
+  if (typeof el === 'string') el = document.getElementById(el)
+  if (!el) return
+  chenKieuLoiO()
+  if (el._loiO) xoaLoiO(el)
+  const khung = khungCuaO(el)
+  const moc = khung.closest('.date-pick-wrap') || khung   // chữ báo nằm dưới cả cụm (ô + lịch / gợi ý bật ra)
+  const tin = document.createElement('div')
+  tin.className = 'loi-o'
+  tin.setAttribute('role', 'alert')
+  tin.innerHTML = ic('alert') + '<span>' + esc(loi) + '</span>'
+  moc.after(tin)
+  khung.classList.add('co-loi')
+  if (!giamChuyenDong() && khung.animate) {   // rung 1 nhịp (dùng translate — transform của phần tử là của hiệu ứng khác)
+    khung.animate([{ translate: '0 0' }, { translate: '-6px 0' }, { translate: '5px 0' }, { translate: '-3px 0' }, { translate: '0 0' }],
+      { duration: 320, easing: 'ease-out' })
+  }
+  el.setAttribute('aria-invalid', 'true')
+  el._loiO = { khung, tin }
+  const dau = Date.now() - _loiODau > 80
+  _loiODau = Date.now()
+  if (!dau) return
+  // Chờ 1 nhịp: chỗ khác có thể đang MỞ mục gấp chứa ô này (web khách: mục email) — mở xong mới đo được vị trí
+  setTimeout(() => {
+    const r = khung.getBoundingClientRect()
+    const cao = (window.visualViewport && visualViewport.height) || innerHeight
+    const khuat = r.top < 70 || r.bottom + 30 > cao
+    if (cuon && khuat) {
+      try { khung.scrollIntoView({ block: 'center', behavior: giamChuyenDong() ? 'auto' : 'smooth' }) } catch (e) {}
+      // admin: scrollIntoView kéo cả trang → iPhone đẩy lớp phủ lên, cụt đầu form. Trả độ cuộn trang về 0 (resetPageScroll của admin)
+      if (typeof resetPageScroll === 'function') resetPageScroll()
+    }
+    const goDuoc = el.type !== 'hidden' && !el.readOnly && !el.disabled && el.getClientRects().length
+    if (focus && goDuoc) { try { el.focus({ preventScroll: true }) } catch (e) { el.focus() } }
+  }, 30)
+}
+function xoaLoiO(el) {
+  if (typeof el === 'string') el = document.getElementById(el)
+  if (!el || !el._loiO) return
+  el._loiO.khung.classList.remove('co-loi')
+  el._loiO.tin.remove()
+  el.removeAttribute('aria-invalid')
+  el._loiO = null
+}
+// Mở lại form → xoá mọi lời báo cũ còn sót trong đó
+function xoaLoiTrong(goc) {
+  if (!goc) return
+  goc.querySelectorAll('[aria-invalid="true"]').forEach(xoaLoiO)
+  goc.querySelectorAll('.loi-o').forEach(t => t.remove())
+  goc.querySelectorAll('.co-loi').forEach(k => k.classList.remove('co-loi'))
+}
+function chuLoiO(el) {
+  const v = el.validity || {}
+  if (el.dataset && el.dataset.loi) return el.dataset.loi
+  if (v.valueMissing) return el.type === 'email' ? 'Cần điền email' : el.type === 'password' ? 'Cần điền mật khẩu' : 'Ô này cần điền'
+  if (v.typeMismatch && el.type === 'email') return 'Email chưa đúng — VD: ten@gmail.com'
+  return el.validationMessage || 'Ô này chưa đúng'
+}
+function chenKieuLoiO() {
+  if (document.getElementById('kieuLoiO')) return
+  document.head.insertAdjacentHTML('beforeend', `<style id="kieuLoiO">
+/* Lặp tên class 3 lần cho đủ "nặng" để thắng viền xanh lúc đang gõ (.field-group input:focus, .fx-in:focus-within…) — khỏi !important */
+.co-loi.co-loi.co-loi, .co-loi.co-loi.co-loi:focus, .co-loi.co-loi.co-loi:focus-within, .co-loi.co-loi.co-loi:focus-visible {
+  border-color: #C62828; box-shadow: 0 0 0 3px rgba(198,40,40,.12); }
+.loi-o { display: flex; align-items: flex-start; gap: 6px; flex-basis: 100%; width: 100%; box-sizing: border-box; margin: 2px 0 8px; padding: 0 2px; color: #C62828;
+  font-size: .8rem; font-weight: 600; line-height: 1.4; text-align: left; animation: loiOVao .18s cubic-bezier(.23, 1, .32, 1); }
+.loi-o .ic { flex: none; width: 15px; height: 15px; margin-top: 1px; }
+@keyframes loiOVao { from { opacity: 0; translate: 0 -3px; } }
+@media (prefers-reduced-motion: reduce) { .loi-o { animation: none; } }
+</style>`)
+}
+function ganBaoLoiTuDong() {
+  if (window._baoLoiTuDong) return
+  window._baoLoiTuDong = true
+  // Ô bắt buộc trống / sai định dạng khi bấm Gửi/Lưu → báo tại ô, CHẶN bong bóng mặc định của trình duyệt
+  // Bấm Gửi/Lưu lần nữa: ô nào ĐÃ hợp lệ (vd chọn từ gợi ý, tự điền — không bắn sự kiện gõ) thì gỡ lời báo cũ.
+  // Ô vẫn sai sẽ được báo lại ngay sau đó (sự kiện 'invalid' / hàm kiểm của từng form).
+  const donLoiCu = f => f && f.querySelectorAll('[aria-invalid="true"]').forEach(o => { if (!o.validity || o.validity.valid) xoaLoiO(o) })
+  document.addEventListener('invalid', e => {
+    const el = e.target
+    if (!el || !el.closest) return
+    e.preventDefault()
+    if (Date.now() - _loiODau > 80) donLoiCu(el.form)
+    baoLoiO(el, chuLoiO(el))
+  }, true)
+  document.addEventListener('submit', e => donLoiCu(e.target), true)
+  const het = e => { if (e.target && e.target._loiO) xoaLoiO(e.target) }
+  document.addEventListener('input', het, true)
+  document.addEventListener('change', het, true)
+}
+ganBaoLoiTuDong()
+
+// ── Bấm nhanh cho thanh tab dưới đáy (08/11/2026) ──
+// iPhone: đang vuốt danh sách (còn trôi theo đà) mà chạm thanh tab → cú chạm đầu chỉ để DỪNG trôi, không thành "bấm" → phải
+// bấm lần 2. Ở đây tự bắt lúc nhấc ngón tay: ngón không trượt (≤ 12px) và vẫn trên đúng nút đó → bấm luôn (gọi nút.click()),
+// rồi nuốt cú click trình duyệt có thể bắn theo sau (khỏi chạy 2 lần). Chuột / bàn phím vẫn đi đường click bình thường.
+function bamNhanh(khung, chon) {
+  if (!khung || !window.PointerEvent || khung._bamNhanh) return
+  khung._bamNhanh = true
+  let goc = null, nuotDen = 0
+  khung.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' || !e.isPrimary) { goc = null; return }
+    const nut = e.target.closest && e.target.closest(chon)
+    goc = nut && !nut.disabled ? { nut, x: e.clientX, y: e.clientY, id: e.pointerId } : null
+  }, { passive: true })
+  khung.addEventListener('pointercancel', () => { goc = null })
+  khung.addEventListener('pointerup', e => {
+    const g = goc; goc = null
+    if (!g || e.pointerId !== g.id || Math.hypot(e.clientX - g.x, e.clientY - g.y) > 12) return
+    const duoi = document.elementFromPoint(e.clientX, e.clientY)
+    if (!duoi || duoi.closest(chon) !== g.nut) return
+    nuotDen = Date.now() + 800
+    g.nut.click()
+  })
+  khung.addEventListener('click', e => {
+    if (!e.isTrusted || Date.now() > nuotDen) return   // click tự gọi ở trên (isTrusted = false) thì cho chạy
+    nuotDen = 0
+    e.preventDefault(); e.stopImmediatePropagation()
+  }, true)
+}
