@@ -246,8 +246,8 @@ const soCot = el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(B
         const modal = d.querySelector('.order-modal')
         test('[đặt hoa] bấm nút ＋ trên thẻ → mở form', () => bang(T.id('orderOverlay').classList.contains('open'), true))
         test('[đặt hoa] form không tràn ngang', () => { const t = modal.scrollWidth - modal.clientWidth; if (t > 1) throw new Error('tràn ' + t + 'px') })
-        test('[đặt hoa] giờ giao là bánh xe giờ | phút, đủ 8h–21h và phút 00 → 55 (bước 5)', () =>
-          bang([T.id('omGio').querySelectorAll('.bxg-cot[data-k="h"] [data-i]').length, T.id('omGio').querySelectorAll('.bxg-cot[data-k="p"] [data-i]').length], [14, 12]))
+        test('[đặt hoa] giờ giao là bánh xe giờ | phút, đủ 0h–23h và phút 00 → 55 (bước 5)', () =>
+          bang([T.id('omGio').querySelectorAll('.bxg-cot[data-k="h"] [data-i]').length, T.id('omGio').querySelectorAll('.bxg-cot[data-k="p"] [data-i]').length], [24, 12]))
         test('[đặt hoa] nút Gửi đơn ghim ở đáy, nằm trong màn hình', () => {
           const r = d.querySelector('.omx-ft').getBoundingClientRect()
           if (r.bottom > w.innerHeight + 1) throw new Error('đáy chân form ' + Math.round(r.bottom) + ' > ' + w.innerHeight)

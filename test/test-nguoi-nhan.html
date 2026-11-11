@@ -79,7 +79,8 @@ function doiKhung(f) {
   test('Đơn cũ (ghi chú tự do) → cả chuỗi là ghi chú, không bị nuốt mất', () =>
     bang(tachGhiChuDon('Người nhận thích màu hồng'), { nguoiNhan: '', sdtNhan: '', gio: '', ghiChu: 'Người nhận thích màu hồng' }))
   test('Ghi chú rỗng / null không lỗi', () => bang(tachGhiChuDon(null), { nguoiNhan: '', sdtNhan: '', gio: '', ghiChu: '' }))
-  test('Chip giờ giao: 8h → 21h, mỗi giờ 1 chip', () => bang(GIO_GIAO.length, 14))
+  test('Giờ giao: đủ 24 giờ 0h → 23h', () => bang([GIO_GIAO.length, GIO_GIAO[0], GIO_GIAO[23]], [24, '0h', '23h']))
+  test('Giờ sớm/khuya đọc đúng: 0h, 6h30, 23h55', () => bang([soPhutGio('0h'), soPhutGio('6h30'), soPhutGio('23h55'), gioTuSoPhut(0)], [0, 390, 1435, '0h']))
   test('Mã đơn giống admin: #LT-0153', () => bang(maDon(153), '#LT-0153'))
   // Giờ + phút (26/09): phút 00 ghi gọn "15h" — y như đơn cũ, và SQL 25 (gio_giao_cua) đọc cùng mẫu
   test('Phút: bước 5 phút, 00 → 55 (12 số)', () => bang(PHUT_GIAO, ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55']))
@@ -129,7 +130,7 @@ function doiKhung(f) {
       const v = id('orderDate').value
       bang(id('omNgayKhac').textContent.trim(), v.slice(8, 10) + '/' + v.slice(5, 7))
     })
-    // Bánh xe giờ | phút (banhXeGio): số thứ tự giờ 8h=0 … 21h=13, phút 00=0 15=1 30=2 45=3
+    // Bánh xe giờ | phút (banhXeGio): số thứ tự giờ = đúng số giờ (0h=0 … 23h=23), phút 00=0 15=1 30=2 45=3
     const bam = (goc, k, i) => goc.querySelector(`.bxg-cot[data-k="${k}"] [data-i="${i}"]`).click()
     const omG = id('omGio')
     test('Mở form: chưa hẹn giờ, bánh xe mờ, không có nút "Bỏ giờ"', () => {
@@ -142,14 +143,14 @@ function doiKhung(f) {
       const r = omG.querySelector('.bxg-banh').getBoundingClientRect()
       if (r.height > 110 || r.width > 160) throw new Error(Math.round(r.width) + '×' + Math.round(r.height))
     })
-    bam(omG, 'h', 7)
+    bam(omG, 'h', 15)
     test('Bấm số 15 → 15h (phút mặc định 00), hiện "15h00"', () =>
       bang([id('orderTime').value, omG.querySelector('.bxg-so').textContent, omG.querySelector('.bxg-banh').classList.contains('trong')], ['15h', '15h00', false]))
     omG.querySelector('.bxg-bo').click()
     test('Bấm "Bỏ giờ" → không hẹn giờ', () => bang(id('orderTime').value, ''))
-    bam(omG, 'h', 6); bam(omG, 'p', 6)
+    bam(omG, 'h', 14); bam(omG, 'p', 6)
     test('Bấm 14 rồi 30 → 14h30', () => bang(id('orderTime').value, '14h30'))
-    bam(omG, 'h', 8)
+    bam(omG, 'h', 16)
     test('Đổi giờ sang 16 → GIỮ phút 30 → 16h30', () => bang(id('orderTime').value, '16h30'))
     const cotH = omG.querySelector('.bxg-cot[data-k="h"]')
     cotH.dispatchEvent(new w.WheelEvent('wheel', { deltaY: 100, bubbles: true, cancelable: true }))
@@ -221,8 +222,8 @@ function doiKhung(f) {
       bang([a.getComputedStyle(oeG.querySelector('.bxg-banh')).borderTopWidth, a.getComputedStyle(oeG.querySelector('.bxg-ben')).display], ['0px', 'flex']))
     test('Sửa đơn: bánh xe tô đúng 16 · 00', () => bang([...oeG.querySelectorAll('.bxg-cot .on')].map(x => x.textContent), ['16', '00']))
     // khung test nằm ngoài màn hình → trình duyệt vẽ chậm, ResizeObserver tới trễ: chờ tối đa 1 giây
-    for (let i = 0; i < 20 && oeG.querySelector('.bxg-cot[data-k="h"]').scrollTop !== 8 * 36; i++) await cho(50)
-    test('Sửa đơn: bánh xe QUAY tới đúng 16h (không đứng ở 8h)', () => bang(oeG.querySelector('.bxg-cot[data-k="h"]').scrollTop, 8 * 36))
+    for (let i = 0; i < 20 && oeG.querySelector('.bxg-cot[data-k="h"]').scrollTop !== 16 * 36; i++) await cho(50)
+    test('Sửa đơn: bánh xe QUAY tới đúng 16h (không đứng ở 0h)', () => bang(oeG.querySelector('.bxg-cot[data-k="h"]').scrollTop, 16 * 36))
     test('Sửa đơn: mục "Người nhận" có dữ liệu nên tự mở', () => {
       const nut = [...ad.querySelectorAll('#orderEditModal .fx-more')].find(b => b.textContent.includes('Người nhận'))
       bang(nut.classList.contains('open'), true)
@@ -232,12 +233,12 @@ function doiKhung(f) {
     const cotOe = oeG.querySelector('.bxg-cot[data-k="h"]')
     cotOe.scrollTop = 0                      // cuộn KHÔNG do tay người
     cotOe.dispatchEvent(new a.Event('scroll'))   // khung test ẩn: trình duyệt có lúc không tự bắn sự kiện cuộn
-    for (let i = 0; i < 20 && cotOe.scrollTop !== 8 * 36; i++) await cho(50)
-    test('Cột tự cuộn về 8h mà không ai chạm → giờ đơn GIỮ 16h, bánh xe tự quay lại', () =>
-      bang([aid('oeGio').value, cotOe.scrollTop, !!aid('orderEditModal').dataset.dirty], ['16h', 8 * 36, false]))
+    for (let i = 0; i < 20 && cotOe.scrollTop !== 16 * 36; i++) await cho(50)
+    test('Cột tự cuộn về 0h mà không ai chạm → giờ đơn GIỮ 16h, bánh xe tự quay lại', () =>
+      bang([aid('oeGio').value, cotOe.scrollTop, !!aid('orderEditModal').dataset.dirty], ['16h', 16 * 36, false]))
     test('Sửa đơn cũ "16h": hiện 16h00 + giờ nhắc 14h', () =>
       bang([oeG.querySelector('.bxg-so').textContent, oeG.querySelector('.bxg-phu').textContent.trim()], ['16h00', 'Mail nhắc lúc 14h']))
-    bamA(oeG, 'h', 10)
+    bamA(oeG, 'h', 18)
     test('Đổi sang 18 → ghi chú đổi đúng dòng giờ', () =>
       bang(a.ghiChuTuForm('oe'), 'Người nhận: Lan · 0987654321\nGiờ giao: 18h\nKèm thiệp'))
     aid('orderEditModal').dataset.dirty = ''
@@ -268,7 +269,7 @@ function doiKhung(f) {
       bang([aid('noGio').value, aid('noRecvName').value, aid('noRecvPhone').value], ['', '', '']))
     const noG = ad.querySelector('[data-gio-for="noGio"]')
     test('Thêm đơn: bánh xe về "Chưa hẹn giờ" (không giữ giờ của đơn vừa sửa)', () => bang(noG.querySelector('.bxg-so').textContent, 'Chưa hẹn giờ'))
-    bamA(noG, 'h', 2); bamA(noG, 'p', 3)
+    bamA(noG, 'h', 10); bamA(noG, 'p', 3)
     aid('noRecvName').value = 'Bà nội'
     test('Thêm đơn: ghép ghi chú giống hệt web khách', () => bang(a.ghiChuTuForm('no'), 'Người nhận: Bà nội\nGiờ giao: 10h15'))
     aid('orderNewModal').dataset.dirty = ''; a.closeNewOrderModal()

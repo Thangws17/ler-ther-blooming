@@ -199,7 +199,9 @@ else document.addEventListener('DOMContentLoaded', chenBoBieuTuong)
 //   <ghi chú khách gõ>
 // Web khách GHÉP khi gửi đơn; admin TÁCH ra để hiện riêng và để form sửa đơn điền lại.
 // Đổi chữ "Người nhận:" / "Giờ giao:" thì đơn cũ không tách được nữa — đừng đổi.
-const GIO_GIAO = ['8h', '9h', '10h', '11h', '12h', '13h', '14h', '15h', '16h', '17h', '18h', '19h', '20h', '21h']
+// Đủ 24 giờ 0h → 23h (11/11/2026 — trước là 8h–21h, shop có đơn giao sớm/khuya không chọn được).
+// Số thứ tự trên bánh xe = đúng số giờ (0h = 0 … 23h = 23). Chưa hẹn giờ thì bánh xe vẫn đứng mờ ở 14h.
+const GIO_GIAO = Array.from({ length: 24 }, (_, i) => i + 'h')
 // Giờ + phút (26/09/2026): chọn GIỜ ở GIO_GIAO rồi chọn PHÚT ở PHUT_GIAO. Ghi "15h30"; phút 00 ghi gọn "15h"
 // (y như đơn cũ). SQL đọc lại đúng mẫu này để mail nhắc trước 2 tiếng — gio_giao_cua() trong
 // supabase/25_nhac_truoc_gio_giao.sql: đổi mẫu ở đây thì phải đổi cả regex bên đó.
@@ -268,7 +270,7 @@ function banhXeGio(goc, { lay, dat, nhacTruoc = 0, gon = false }) {
     }
     goc.querySelector('.bxg-so').textContent = m == null ? 'Chưa hẹn giờ' : Math.floor(m / 60) + 'h' + String(m % 60).padStart(2, '0')
     goc.querySelector('.bxg-phu').innerHTML = m == null ? 'Cuộn hoặc bấm số để chọn'
-      : nhacTruoc ? `${ic('mail')}Mail nhắc lúc ${gioTuSoPhut(Math.max(0, m - nhacTruoc))}` : ''
+      : nhacTruoc ? `${ic('mail')}Mail nhắc lúc ${gioTuSoPhut((m - nhacTruoc + 1440) % 1440)}${m < nhacTruoc ? ' hôm trước' : ''}` : ''   // giao 1h → nhắc 23h hôm trước (SQL 25 cũng tính qua ngày)
     goc.querySelector('.bxg-bo').style.display = m == null ? 'none' : ''
   }
   // Người dùng chọn số thứ i ở cột k — cột kia giữ nguyên chỗ đang đứng

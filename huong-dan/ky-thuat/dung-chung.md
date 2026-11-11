@@ -50,10 +50,10 @@
   — web khách + form Thêm/Sửa đơn admin + chi tiết đơn + Lịch giao đều dùng 2 hàm này. **Đừng đổi chữ "Người nhận:" /
   "Giờ giao:"** — đơn cũ sẽ không tách được. Giờ chọn bằng **bánh xe cuộn** giờ | phút (`banhXeGio()` trong
   dungchung.js — chủ shop chọn "Kiểu A" 26/09, hiện 3 hàng cho gọn), dùng CHUNG admin + web khách (web gọi với `gon: true`: không viền, không chữ bên cạnh); kiểu CSS cũng nằm trong
-  dungchung.js (`chenKieuBanhXe`). Giờ `GIO_GIAO` (8h–21h), phút `PHUT_GIAO` (00 → 55, bước 5 phút), không dùng ô giờ của iOS. Giá trị
+  dungchung.js (`chenKieuBanhXe`). Giờ `GIO_GIAO` (0h–23h từ 11/11/2026; số thứ tự = số giờ), phút `PHUT_GIAO` (00 → 55, bước 5 phút), không dùng ô giờ của iOS. Giá trị
   `"15h30"`, phút 00 ghi gọn `"15h"` (`ghepGio`/`tachGio`/`soPhutGio`). Code tự đổi ô hidden giờ → gọi lại `veGioChips(id)`
   (admin) để bánh xe quay theo. Lăn chuột 1 nấc = 1 số (tự bắt `wheel`); chỉ tính là chọn khi có tay/chuột
-  chạm cột trong 2 giây (`tayLuc`) — trình duyệt có lúc tự "hít" cột về 8h khi form vừa hiện, từng đổi ngầm giờ đơn.
+  chạm cột trong 2 giây (`tayLuc`) — trình duyệt có lúc tự "hít" cột về số đầu khi form vừa hiện, từng đổi ngầm giờ đơn.
 - **Font (24/09/2026, phương án B "dịu mắt")**: web = Nunito cho tiêu đề/nút (tối đa nét 700, không dùng 800/900 nữa)
   + **Be Vietnam Pro** cho nội dung (thay Open Sans); admin = Be Vietnam Pro toàn bộ (trước là font mặc định của máy),
   nét đậm nhất 700, `b/strong` 600. Biệt danh mẫu hoa vẫn Lora nghiêng. Be Vietnam Pro rộng hơn Segoe → bảng Đơn hàng

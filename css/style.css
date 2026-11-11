@@ -300,7 +300,6 @@ html:active-view-transition-type(sang-trai)::view-transition-new(root) { animati
   /* …và cả nút nổi Zalo / lên đầu trang: iPhone dời phần tử position:fixed theo bàn phím từng nhịp
      → 2 nút này nhảy lên xuống, nhìn như màn hình nháy (08/10/2026) */
   body.dang-go .zalo-float, body.dang-go .back-top { visibility: hidden; }
-  /* Giờ giao: lưới 2 hàng × 7 ô — thấy đủ 8h–21h, không phải vuốt ngang */
   body.co-w-tabs .footer { padding-bottom: 96px; }
   body.co-w-tabs .zalo-float { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); right: 14px; }
   body.co-w-tabs .back-top { bottom: calc(150px + env(safe-area-inset-bottom, 0px)); right: 14px; }

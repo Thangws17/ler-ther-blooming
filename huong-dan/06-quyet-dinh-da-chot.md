@@ -51,7 +51,7 @@ Mỗi dòng là một lựa chọn **shop đã cân nhắc và chốt**, kèm l�
 | Font phương án **B "dịu mắt"**: Nunito (tiêu đề) + Be Vietnam Pro (nội dung); admin dùng Be Vietnam Pro | 24/09/2026 |
 | Trang chủ: **1 ảnh to** đầu trang; web khách có **thanh tab dưới đáy** trên điện thoại | 23/09/2026 |
 | Bộ sưu tập trang chủ: **1 hàng ngang tự trôi chậm** (20px/giây), rê chuột chỉ chậm lại chứ **không dừng**; mép mờ 2 bên giữ 30px (đã thử 12px, shop bỏ) | 05–08/10/2026 |
-| Giờ giao chọn bằng **bánh xe cuộn giờ \| phút** (kiểu A), 8h–21h, phút bước 5. Theo giờ, **không theo buổi** | 23–26/09/2026 |
+| Giờ giao chọn bằng **bánh xe cuộn giờ \| phút** (kiểu A), đủ 24 giờ 0h–23h (11/11/2026, trước là 8h–21h), phút bước 5. Theo giờ, **không theo buổi** | 23–26/09/2026 |
 | Khoảnh khắc trong admin theo **album** (phương án B) | 23/09/2026 |
 | Tab Sản phẩm admin: **danh sách gọn** (phương án A). Form sửa mẫu **kiểu C** (xếp giống trang chi tiết web) | 24/09 + 02/10/2026 |
 | Tab Khách hàng: **danh bạ gọn** (phương án A) | 24/09/2026 |
