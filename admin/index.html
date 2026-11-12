@@ -354,7 +354,10 @@
     @media (hover: hover) and (pointer: fine) { .view-site-btn:hover { color: #1f2a1f; } }
     @media (hover: hover) and (pointer: fine) { .logout-btn:hover { background: #fff; color: #C62828; } }
     @media (min-width: 821px) {
-      .content { padding-top: 28px; margin: 10px 10px 10px 0; border-radius: 22px;
+      /* Thanh cuộn KHÔNG được chạm góc bo (12/11/2026): Chrome không cắt thanh cuộn theo border-radius của CHÍNH khung cuộn
+         → mũi tên / đầu thanh lòi ra ngoài góc tròn. Viền TRONG SUỐT đẩy thanh cuộn lùi vào trong (nền vẫn phủ dưới viền), viền
+         thấy được chuyển sang box-shadow. Dò lại: demo/do-thanh-cuon.html (nội bộ). */
+      .content { padding: 20px 28px 24px; border: 8px solid transparent; margin: 10px 10px 10px 0; border-radius: 22px;
         box-shadow: 0 0 0 1px rgba(120,100,60,.07), 0 10px 34px rgba(70,55,30,.09); }
       .panel-topbar h1 { font-size: 2rem; }
     }
@@ -735,6 +738,7 @@
     }
     .modal-box > form { display: flex; flex-direction: column; flex: 1; min-height: 0; }
     .modal-body { overflow-y: auto; flex: 1; min-height: 0; overscroll-behavior: contain; padding: 20px 24px; }
+    .modal-body:last-child { border-bottom: 12px solid transparent; }   /* không có hàng nút ở đáy: thanh cuộn khỏi chạm góc bo dưới */
     .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; flex-shrink: 0; }
     .modal-header h2 { font-size: 1.2rem; }
     .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
@@ -918,7 +922,8 @@
     }
     @media (hover: hover) and (pointer: fine) { .date-today-btn:hover { background: #2E7D32; color: #fff; } }
     /* Gợi ý nguyên liệu (autocomplete) + danh sách nguyên liệu */
-    .suggest-pop { width: 100%; max-height: 250px; overflow-y: auto; padding: 6px; }
+    .suggest-pop { width: 100%; max-height: 250px; overflow-y: auto; padding: 0; border: 6px solid transparent;
+                   box-shadow: 0 0 0 1px #e0e8e0, 0 10px 32px rgba(0,0,0,.16); }   /* viền thật → bóng: thanh cuộn khỏi chạm góc bo */
     .suggest-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; font-size: .9rem; }
     @media (hover: hover) and (pointer: fine) { .suggest-row:hover { background: #E8F5E9; } }
     .suggest-row .s-cat { color: #557355; font-size: .78rem; }
@@ -1336,8 +1341,8 @@
       .gc-nut.gc-dai .gc-xem { display: none; }
     }
     #gcPop { position: fixed; z-index: 3000; width: min(300px, calc(100vw - 24px)); max-height: 50vh; overflow: auto;
-             background: #FFFDF5; border: 1px solid #F1DFA4; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.14);
-             padding: 10px 13px 12px; font-size: .88rem; color: #3b3320; line-height: 1.5; }
+             background: #FFFDF5; border: 6px solid transparent; border-radius: 12px; box-shadow: 0 0 0 1px #F1DFA4, 0 10px 30px rgba(0,0,0,.14);
+             padding: 4px 7px 6px; font-size: .88rem; color: #3b3320; line-height: 1.5; }
     #gcPop .gc-tieu { display: flex; align-items: center; gap: 5px; font-size: .74rem; font-weight: 700; color: #7A5B00;
                       text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
     #gcPop .gc-tieu .ic { width: 14px; height: 14px; }
@@ -1661,6 +1666,19 @@
     .gia-xu .ic { width: 12px; height: 12px; stroke-width: 2.8; }
     .gia-len { background: #FDECEA; color: #C62828; }
     .gia-xuong { background: #E8F5E9; color: #2E7D32; }
+    .nl-tong { margin: 0 2px 10px; font-size: .8rem; color: #5d6b5c; }
+    .nl-tong b { color: #1f2a1f; }
+    /* Tên gần giống trong Sổ chi phí (12/11/2026) — hộp vàng nhạt trên lịch sử, mỗi tên 1 dòng + nút Gộp */
+    .nl-gan { margin: 0 0 14px; padding: 12px; border: 1px solid #F3E2B3; border-radius: 12px; background: #FFFAEB; }
+    .nl-gan-h { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: .86rem; color: #7a5a00; }
+    .nl-gan-h .ic { width: 16px; height: 16px; flex: none; }
+    .nl-gan p { margin: 4px 0 8px; font-size: .78rem; color: #6d6450; line-height: 1.45; }
+    .nl-gan-dong { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #fff; border: 1px solid #F1E6C8; border-radius: 10px; }
+    .nl-gan-dong + .nl-gan-dong { margin-top: 6px; }
+    .nl-gan-ten { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .nl-gan-ten b { overflow-wrap: anywhere; }
+    .nl-gan-ten small { font-size: .74rem; color: #8a7f66; }
+    .nl-gop { flex: none; padding: 6px 14px; font-size: .82rem; }
     .nl-meo { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin: -2px 0 10px; font-size: .74rem; color: #8a978a; }
     .nl-meo .gia-xu { width: 15px; height: 15px; }
     .nl-meo .gia-xu .ic { width: 10px; height: 10px; }
@@ -1715,6 +1733,7 @@
     @media (hover: hover) and (pointer: fine) { .mt-main:hover { border-color: #b9d6b9; } }
     .mt-main .mt-name { flex: 1; min-width: 0; font-weight: 600; display: flex; flex-direction: column; }
     .mt-main .mt-name small { font-weight: 600; color: #7a877a; font-size: .76rem; }
+    .mt-main .mt-name small .mt-trung { color: #B26A00; }
     .mt-main .mt-price { font-weight: 700; color: #2E7D32; white-space: nowrap; }
     .mt-them { display: flex; align-items: center; gap: 8px; width: 100%; padding: 11px 12px; border: 1px dashed #2E7D32; border-radius: 12px;
                background: #F1F8F1; color: #2E7D32; font: inherit; font-weight: 700; cursor: pointer; text-align: left; }
@@ -2079,7 +2098,7 @@
     @media (hover: hover) and (pointer: fine) { .bst-cover-tumau img:hover { border-color: #2E7D32; } }
     .bst-cover-nhac { font-size: .82rem; color: #557355; }
     /* Lưới tick chọn mẫu hoa cho BST */
-    .bst-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; max-height: 320px; overflow-y: auto; padding: 8px; border: 1.5px solid #e8f0e8; border-radius: 10px; background: #fafcfa; }
+    .bst-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; max-height: 320px; overflow-y: auto; padding: 2px; border: 6px solid transparent; box-shadow: 0 0 0 1.5px #e8f0e8; border-radius: 10px; background: #fafcfa; }
     .bst-o {
       position: relative; display: block; border-radius: 9px; overflow: hidden; cursor: pointer;
       border: 2.5px solid transparent; background: #fff; border-width: 2px;
@@ -2310,7 +2329,8 @@
     /* Bảng trượt chọn bộ sưu tập — phủ trong khung form */
     .spc-sheet-nen { position: absolute; inset: 0; z-index: 5; background: rgba(0,0,0,.35); display: none; align-items: flex-end; }
     .spc-sheet-nen.mo { display: flex; }
-    .spc-sheet { background: #fff; width: 100%; max-height: 86%; overflow-y: auto; border-radius: 18px 18px 0 0; padding: 8px 20px 18px;
+    .spc-sheet { background: #fff; width: 100%; max-height: 86%; overflow-y: auto; border-radius: 18px 18px 0 0; padding: 0 20px 18px;
+                 border-top: 12px solid transparent;   /* thanh cuộn khỏi chạm góc bo trên */
                  animation: spcLen .25s cubic-bezier(.2,.8,.3,1); }
     @keyframes spcLen { from { transform: translateY(40%); opacity: .5; } to { transform: none; opacity: 1; } }
     .spc-sheet-keo { width: 40px; height: 4px; border-radius: 2px; background: #dfe5de; margin: 0 auto 10px; }
@@ -2586,7 +2606,7 @@
     .contact-form { display: grid; gap: 16px; }
     .ct-muc { background: #fff; border-radius: 12px; padding: 24px 28px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
     .ct-muc h2 { font-size: 1.02rem; margin: 0 0 14px; color: #2E5E2D; }
-    .ct-muc .form-grid { margin-bottom: 0; }
+    .ct-muc .form-grid { margin-bottom: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .ct-muc .hero-slots { grid-template-columns: 1fr; }
     .ct-muc .check-row { padding-top: 0; }
     @media (max-width: 720px) {
@@ -2608,6 +2628,32 @@
     .ct-muc-phu { font-weight: 400; font-size: .84rem; color: #557355; }
     .ct-muc-mota { font-size: .84rem; color: #5b7a5a; margin: 0 0 10px; line-height: 1.6; }
     .ct-can-sql { font-size: .84rem; color: #BF360C; background: #FBE9E7; border-radius: 8px; padding: 8px 10px; margin: 0 0 10px; }
+    /* 6 phần thành 6 ô chọn (12/11/2026, kiểu A): máy tính 1 hàng, điện thoại 3 × 2 (biểu tượng trên chữ, thấy hết khỏi trượt) */
+    .ct-tabs { display: flex; gap: 6px; margin: 0 0 14px; padding: 5px; background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,.05); }
+    .ct-tabs button { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; height: 44px; padding: 0 10px;
+      border: 0; border-radius: 12px; background: none; font: inherit; font-size: .88rem; font-weight: 600; color: #5d6b5c; cursor: pointer; white-space: nowrap; }
+    .ct-tabs button .ic { width: 20px; height: 20px; }
+    .ct-tabs button.on { background: #E6EFDF; color: #1f4d22; }
+    @media (hover: hover) and (pointer: fine) { .ct-tabs button:not(.on):hover { background: #f3f6f1; } }
+    .ct-cham { display: none; position: absolute; top: 7px; right: 8px; width: 8px; height: 8px; border-radius: 50%; background: #E65100; }
+    .ct-tabs button.doi .ct-cham { display: block; }
+    .ct-dau { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; }
+    .ct-muc .ct-dau h2 { margin: 0; }
+    .ct-dau-ic { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 34px; height: 34px; border-radius: 10px; background: #E6EFDF; color: #2E7D32; }
+    .ct-dau-ic .ic { width: 19px; height: 19px; }
+    /* Ô nhập có biểu tượng bên trái (logo mạng xã hội là hình đặc, không thuộc bộ biểu tượng chung) */
+    .ct-muc .fx-in { margin-bottom: 0; }
+    .ct-muc .fx-in.fx-cao { align-items: flex-start; }
+    .ct-muc .fx-in.fx-cao > .ic { margin-top: 14px; }
+    .field-group .fx-in select { flex: 1; min-width: 0; width: auto; border: 0; padding: 12px 0; background: none; box-shadow: none; border-radius: 0; }
+    .ic-mxh { width: 17px; height: 17px; flex-shrink: 0; fill: currentColor; color: #9aa79a; margin: 0 1px; }
+    .ct-muc .check-row.ct-bat { grid-column: 1 / -1; padding: 12px 14px; border: 1px solid #e3e8e2; border-radius: 12px; background: #fafcf9; }
+    @media (max-width: 720px) {
+      .ct-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+      .ct-muc .form-grid { grid-template-columns: minmax(0, 1fr); }   /* điện thoại: 1 ô 1 hàng, đọc hết chữ */
+      .ct-tabs button { flex-direction: column; gap: 3px; height: 58px; padding: 0 4px; font-size: .76rem; }
+      .ct-tabs button .ic { width: 22px; height: 22px; }
+    }
 
 
     /* ══ 19 · Tab Đánh giá ══════════════════════════════════════════════════════════ */
@@ -3052,47 +3098,57 @@
     <!-- Liên hệ -->
     <div id="panelContact" class="panel" style="display:none">
       <div class="panel-topbar"><h1>Thông tin liên hệ</h1></div>
-      <form id="contactForm" class="contact-form" onsubmit="saveContact(event)">
+      <!-- 6 phần, mỗi lần hiện 1 phần (12/11/2026, shop chọn kiểu A — trang dài 6 phần "căng mắt đọc tên"). ctChonPhan(i);
+           sửa mà chưa Lưu → ô phần đó có chấm cam. Vẫn 1 form: Lưu 1 lần là lưu cả 6 phần. -->
+      <div id="ctTabs" class="ct-tabs" role="tablist" aria-label="Các phần thông tin">
+        <button type="button" role="tab" class="on" aria-selected="true" onclick="ctChonPhan(0)"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span>Liên hệ</span><i class="ct-cham" title="Có thay đổi chưa lưu"></i></button>
+        <button type="button" role="tab" aria-selected="false" onclick="ctChonPhan(1)"><svg class="ic" aria-hidden="true"><use href="#i-img"/></svg><span>Ảnh web</span><i class="ct-cham" title="Có thay đổi chưa lưu"></i></button>
+        <button type="button" role="tab" aria-selected="false" onclick="ctChonPhan(2)"><svg class="ic" aria-hidden="true"><use href="#i-msg"/></svg><span>Banner</span><i class="ct-cham" title="Có thay đổi chưa lưu"></i></button>
+        <button type="button" role="tab" aria-selected="false" onclick="ctChonPhan(3)"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg><span>Chính sách</span><i class="ct-cham" title="Có thay đổi chưa lưu"></i></button>
+        <button type="button" role="tab" aria-selected="false" onclick="ctChonPhan(4)"><svg class="ic" aria-hidden="true"><use href="#i-qr"/></svg><span>Chuyển khoản</span><i class="ct-cham" title="Có thay đổi chưa lưu"></i></button>
+        <button type="button" role="tab" aria-selected="false" onclick="ctChonPhan(5)"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg><span>Đo lường</span><i class="ct-cham" title="Có thay đổi chưa lưu"></i></button>
+      </div>
+      <form id="contactForm" class="contact-form" onsubmit="saveContact(event)" oninput="ctDanhDauDoi(event)" onchange="ctDanhDauDoi(event)">
         <section class="ct-muc">
-        <h2>Liên hệ &amp; mạng xã hội</h2>
+        <div class="ct-dau"><span class="ct-dau-ic"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg></span><h2>Liên hệ &amp; mạng xã hội</h2></div>
         <div class="form-grid">
           <div class="field-group">
-            <label>Số điện thoại</label>
-            <input type="text" name="phone" placeholder="VD: 0912 345 678">
+            <label for="ctPhone">Số điện thoại</label>
+            <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><input type="text" id="ctPhone" name="phone" placeholder="VD: 0912 345 678"></label>
           </div>
           <div class="field-group">
-            <label>Số Zalo (nếu khác SĐT)</label>
-            <input type="text" name="zalo" placeholder="VD: 0912345678">
+            <label for="ctZalo">Số Zalo (nếu khác SĐT)</label>
+            <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg><input type="text" id="ctZalo" name="zalo" placeholder="VD: 0912345678"></label>
           </div>
           <div class="field-group full">
-            <label>Địa chỉ</label>
-            <input type="text" name="address" placeholder="VD: 123 Đường ABC, Quận 1, TP.HCM">
+            <label for="ctDiaChi">Địa chỉ</label>
+            <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg><input type="text" id="ctDiaChi" name="address" placeholder="VD: 123 Đường ABC, Quận 1, TP.HCM"></label>
           </div>
           <div class="field-group">
-            <label>Giờ mở cửa</label>
-            <input type="text" name="hours" placeholder="VD: 7:00 – 21:00, T2 – CN">
+            <label for="ctGio">Giờ mở cửa</label>
+            <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg><input type="text" id="ctGio" name="hours" placeholder="VD: 7:00 – 21:00, T2 – CN"></label>
           </div>
           <div class="field-group">
-            <label>Facebook</label>
-            <input type="text" name="facebook" placeholder="https://facebook.com/…">
+            <label for="ctFb">Facebook</label>
+            <label class="fx-in"><svg class="ic-mxh" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.41 0 12.07c0 6.02 4.39 11.01 10.13 11.93v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.49 0-1.96.93-1.96 1.87v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.08 24 18.09 24 12.07z"/></svg><input type="text" id="ctFb" name="facebook" placeholder="https://facebook.com/…"></label>
           </div>
           <div class="field-group">
-            <label>Instagram</label>
-            <input type="text" name="instagram" placeholder="https://instagram.com/…">
+            <label for="ctIg">Instagram</label>
+            <label class="fx-in"><svg class="ic-mxh" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.43.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.43-.36-1.06-.41-2.23-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16M12 0C8.74 0 8.33.01 7.05.07c-1.28.06-2.15.26-2.91.56-.79.3-1.46.72-2.12 1.38C1.36 2.67.94 3.34.63 4.14c-.3.76-.5 1.63-.56 2.91C.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.28.26 2.15.56 2.91.3.79.72 1.46 1.38 2.12.66.66 1.33 1.08 2.12 1.38.76.3 1.63.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.28-.06 2.15-.26 2.91-.56.79-.3 1.46-.72 2.12-1.38.66-.66 1.08-1.33 1.38-2.12.3-.76.5-1.63.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.28-.26-2.15-.56-2.91-.3-.79-.72-1.46-1.38-2.12-.66-.66-1.33-1.08-2.12-1.38-.76-.3-1.63-.5-2.91-.56C15.67.01 15.26 0 12 0zm0 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zM12 16a4 4 0 1 1 4-4 4 4 0 0 1-4 4zm6.41-10.85a1.44 1.44 0 1 0 1.44 1.44 1.44 1.44 0 0 0-1.44-1.44z"/></svg><input type="text" id="ctIg" name="instagram" placeholder="https://instagram.com/…"></label>
           </div>
           <div class="field-group">
-            <label>TikTok</label>
-            <input type="text" name="tiktok" placeholder="https://tiktok.com/@…">
+            <label for="ctTiktok">TikTok</label>
+            <label class="fx-in"><svg class="ic-mxh" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 5.82a4.28 4.28 0 0 1-1.06-2.82h-3.4v13.67a2.6 2.6 0 0 1-2.6 2.5 2.6 2.6 0 0 1-2.15-4.06 2.6 2.6 0 0 1 3-1.02V8.2a6 6 0 0 0-5.2 9.87A6 6 0 0 0 15.9 15.6V9.01a7.66 7.66 0 0 0 4.48 1.43V7.05a4.28 4.28 0 0 1-3.78-1.23z"/></svg><input type="text" id="ctTiktok" name="tiktok" placeholder="https://tiktok.com/@…"></label>
           </div>
           <div class="field-group">
-            <label>Threads</label>
-            <input type="text" name="threads" placeholder="https://threads.net/@…">
+            <label for="ctThreads">Threads</label>
+            <label class="fx-in"><svg class="ic-mxh" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.93 11.14c-.09-.04-.18-.08-.27-.12-.16-2.9-1.75-4.56-4.41-4.58h-.04c-1.6 0-2.92.68-3.74 1.91l1.47 1.01c.61-.92 1.57-1.12 2.27-1.12h.03c.87 0 1.53.26 1.96.75.31.36.52.86.63 1.49-.81-.14-1.68-.18-2.62-.12-2.64.15-4.34 1.69-4.22 3.83.06 1.08.6 2.02 1.52 2.62.78.52 1.78.77 2.83.72 1.38-.08 2.46-.6 3.22-1.56.57-.72.94-1.66 1.1-2.85.66.4 1.15.93 1.42 1.56.46 1.08.49 2.85-.96 4.29-1.27 1.27-2.79 1.81-5.09 1.83-2.55-.02-4.48-.84-5.73-2.43C5.13 16.18 4.5 14.05 4.48 12c.02-2.05.65-4.18 1.85-5.72 1.25-1.6 3.18-2.42 5.73-2.43 2.57.02 4.54.84 5.85 2.44.64.79 1.13 1.78 1.45 2.94l1.72-.46c-.39-1.42-1-2.65-1.84-3.68C17.55 3.06 15.09 2.02 11.87 2h-.01c-3.21.02-5.65 1.07-7.24 3.11C3.14 6.9 2.4 9.4 2.38 11.99v.02c.02 2.59.76 5.09 2.24 6.88 1.59 2.04 4.03 3.09 7.24 3.11h.01c2.85-.02 4.86-.77 6.51-2.42 2.16-2.16 2.1-4.86 1.39-6.52-.51-1.19-1.48-2.16-2.84-2.82zm-4.55 5.5c-1.16.07-2.37-.46-2.43-1.55-.04-.81.58-1.71 2.5-1.82.22-.01.43-.02.65-.02.7 0 1.35.07 1.94.2-.22 2.75-1.51 3.13-2.66 3.19z"/></svg><input type="text" id="ctThreads" name="threads" placeholder="https://threads.net/@…"></label>
           </div>
         </div>
         </section>
 
-        <section class="ct-muc">
-        <h2>Ảnh trên web</h2>
+        <section class="ct-muc" hidden>
+        <div class="ct-dau"><span class="ct-dau-ic"><svg class="ic" aria-hidden="true"><use href="#i-img"/></svg></span><h2>Ảnh trên web</h2></div>
         <div class="form-grid">
           <div class="field-group ct-anh">
             <label>Ảnh đầu trang chủ <span class="nhan-phu">(1 ảnh to, lời chào nằm đè lên — nên chọn ảnh ngang, sáng)</span></label>
@@ -3169,44 +3225,48 @@
         </div>
         </section>
 
-        <section class="ct-muc">
-        <h2>Banner thông báo</h2>
+        <section class="ct-muc" hidden>
+        <div class="ct-dau"><span class="ct-dau-ic"><svg class="ic" aria-hidden="true"><use href="#i-msg"/></svg></span><h2>Banner</h2></div>
+        <p class="ct-muc-mota">Dòng chữ nằm trên cùng mọi trang web — báo khuyến mãi, nhận đặt hoa dịp lễ, ngày shop nghỉ…</p>
         <div class="form-grid">
           <div class="field-group full">
-            <label>Nội dung banner thông báo</label>
-            <input type="text" name="banner_text" placeholder="VD: 🌸 Khuyến mãi 8/3 — giảm 10% tất cả đơn hàng!">
+            <label for="ctBanner">Nội dung banner</label>
+            <!-- Ô cao 3 dòng cho đọc hết câu (12/11/2026: ô 1 dòng cũ cắt mất chữ). Web hiện 1 dòng → Enter không xuống dòng, Lưu gộp lại -->
+            <label class="fx-in fx-cao"><svg class="ic" aria-hidden="true"><use href="#i-msg"/></svg><textarea id="ctBanner" name="banner_text" rows="3" placeholder="VD: 🌸 Khuyến mãi 8/3 — giảm 10% tất cả đơn hàng!"
+              onkeydown="if(event.key==='Enter')event.preventDefault()"></textarea></label>
           </div>
-          <div class="check-row">
+          <div class="check-row ct-bat">
             <input type="checkbox" name="banner_active" id="bannerActive">
             <label for="bannerActive">Hiện banner trên website</label>
           </div>
         </div>
         </section>
 
-        <section class="ct-muc">
-        <h2>Chính sách <span class="ct-muc-phu">(hiện ở trang Chính sách)</span></h2>
+        <section class="ct-muc" hidden>
+        <div class="ct-dau"><span class="ct-dau-ic"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg></span><h2>Chính sách</h2></div>
+        <p class="ct-muc-mota">Hiện ở trang Chính sách của web. Mỗi dòng là 1 ý.</p>
         <div class="form-grid">
           <div class="field-group full">
-            <label>Chính sách giao hàng <span class="nhan-phu">(mỗi dòng là 1 ý — hiện ở trang Chính sách)</span></label>
-            <textarea name="policy_delivery" rows="4" placeholder="VD: Miễn phí giao nội thành…"></textarea>
+            <label for="ctCsGiao">Chính sách giao hàng</label>
+            <label class="fx-in fx-cao"><svg class="ic" aria-hidden="true"><use href="#i-truck"/></svg><textarea id="ctCsGiao" name="policy_delivery" rows="4" placeholder="VD: Miễn phí giao nội thành…"></textarea></label>
           </div>
           <div class="field-group full">
-            <label>Chính sách thanh toán</label>
-            <textarea name="policy_payment" rows="3" placeholder="VD: Tiền mặt khi nhận / Chuyển khoản…"></textarea>
+            <label for="ctCsTt">Chính sách thanh toán</label>
+            <label class="fx-in fx-cao"><svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg><textarea id="ctCsTt" name="policy_payment" rows="3" placeholder="VD: Tiền mặt khi nhận / Chuyển khoản…"></textarea></label>
           </div>
           <div class="field-group full">
-            <label>Cam kết chất lượng</label>
-            <textarea name="policy_quality" rows="3" placeholder="VD: Gửi ảnh duyệt trước khi giao…"></textarea>
+            <label for="ctCsCl">Cam kết chất lượng</label>
+            <label class="fx-in fx-cao"><svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg><textarea id="ctCsCl" name="policy_quality" rows="3" placeholder="VD: Gửi ảnh duyệt trước khi giao…"></textarea></label>
           </div>
         </div>
         </section>
 
-        <section class="ct-muc">
-        <h2>Tài khoản nhận chuyển khoản <span class="ct-muc-phu">(để tạo mã QR cho khách quét)</span></h2>
+        <section class="ct-muc" hidden>
+        <div class="ct-dau"><span class="ct-dau-ic"><svg class="ic" aria-hidden="true"><use href="#i-qr"/></svg></span><h2>Tài khoản nhận chuyển khoản</h2></div>
         <div class="form-grid">
           <div class="field-group full">
             <p class="ct-muc-mota">
-              Khách quét mã QR là app ngân hàng tự điền sẵn số tài khoản, số tiền và nội dung <b>LT + mã đơn</b> (vd LT152).
+              Dùng để tạo mã QR cho khách quét. Khách quét là app ngân hàng tự điền sẵn số tài khoản, số tiền và nội dung <b>LT + mã đơn</b> (vd LT152).
               Tiền vào thẳng tài khoản này, không qua bên trung gian nào.
             </p>
             <p id="ckCanSql" class="ct-can-sql" style="display:none">
@@ -3215,15 +3275,15 @@
           </div>
           <div class="field-group">
             <label for="ctNganHang">Ngân hàng</label>
-            <select id="ctNganHang" name="ck_ngan_hang"><option value="">— Chọn ngân hàng —</option></select>
+            <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg><select id="ctNganHang" name="ck_ngan_hang"><option value="">— Chọn ngân hàng —</option></select></label>
           </div>
           <div class="field-group">
             <label for="ctSoTk">Số tài khoản</label>
-            <input type="text" id="ctSoTk" name="ck_so_tk" inputmode="numeric" autocomplete="off" placeholder="VD: 0123456789">
+            <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg><input type="text" id="ctSoTk" name="ck_so_tk" inputmode="numeric" autocomplete="off" placeholder="VD: 0123456789"></label>
           </div>
           <div class="field-group full">
             <label for="ctChuTk">Tên chủ tài khoản</label>
-            <input type="text" id="ctChuTk" name="ck_chu_tk" autocomplete="off" placeholder="VD: NGUYEN THI LAN (không dấu, như trên thẻ)" class="chu-hoa">
+            <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg><input type="text" id="ctChuTk" name="ck_chu_tk" autocomplete="off" placeholder="VD: NGUYEN THI LAN (không dấu, như trên thẻ)" class="chu-hoa"></label>
           </div>
           <div class="field-group full">
             <p class="ck-baove"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>
@@ -3234,12 +3294,12 @@
         </div>
         </section>
 
-        <section class="ct-muc">
-        <h2>Đo lường truy cập <span class="ct-muc-phu">(để trống = không đo)</span></h2>
+        <section class="ct-muc" hidden>
+        <div class="ct-dau"><span class="ct-dau-ic"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></span><h2>Đo lường truy cập</h2></div>
         <div class="form-grid">
           <div class="field-group full">
             <p class="ct-muc-mota">
-              Dán mã để biết bao nhiêu người vào web, xem mẫu nào, bấm đặt hoa bao nhiêu lần.
+              Để trống = không đo. Dán mã để biết bao nhiêu người vào web, xem mẫu nào, bấm đặt hoa bao nhiêu lần.
               Máy nào đã đăng nhập trang quản lý này thì <b>không bị đếm</b>, nên số liệu không lẫn lượt xem của shop.
             </p>
             <p id="doLuongCanSql" class="ct-can-sql" style="display:none">
@@ -3248,11 +3308,11 @@
           </div>
           <div class="field-group">
             <label for="ctGa4">Google Analytics 4</label>
-            <input type="text" id="ctGa4" name="ga4_id" placeholder="G-XXXXXXXXXX" autocomplete="off" spellcheck="false" class="chu-hoa">
+            <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg><input type="text" id="ctGa4" name="ga4_id" placeholder="G-XXXXXXXXXX" autocomplete="off" spellcheck="false" class="chu-hoa"></label>
           </div>
           <div class="field-group">
             <label for="ctClarity">Microsoft Clarity</label>
-            <input type="text" id="ctClarity" name="clarity_id" placeholder="VD: abcd1234ef" autocomplete="off" spellcheck="false">
+            <label class="fx-in"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg><input type="text" id="ctClarity" name="clarity_id" placeholder="VD: abcd1234ef" autocomplete="off" spellcheck="false"></label>
           </div>
         </div>
         </section>
@@ -3999,7 +4059,7 @@
           <div class="field-group full">
             <label>Tên nguyên liệu *</label>
             <input type="text" id="meName" required>
-            <p class="mt-ghi">Đổi tên chỉ áp dụng cho gợi ý về sau — các dòng chi phí đã ghi giữ nguyên tên cũ.</p>
+            <p class="mt-ghi">Đổi tên thì các lần nhập cũ trong Sổ chi phí cũng đổi theo, lịch sử không bị mất.</p>
           </div>
           <div class="field-group full">
             <label>Loại</label>
@@ -4021,6 +4081,7 @@
             <p class="nl-meo">Đơn giá so với lần nhập trước đó:
               <span class="gia-xu gia-len"><svg class="ic" aria-hidden="true"><use href="#i-up"/></svg></span>đắt hơn ·
               <span class="gia-xu gia-xuong"><svg class="ic" aria-hidden="true"><use href="#i-down"/></svg></span>rẻ hơn</p>
+            <div id="meGan"></div>
             <div id="meHistory" class="mt-history">
               <div class="chu-phu">Đang tải…</div>
             </div>
@@ -5511,11 +5572,98 @@ async function deleteChangelog(id) {
 }
 
 // ── Nguyên liệu (sổ tay điền nhanh cho chi phí) ───
+// 12/11/2026: "Các lần nhập" từng tra theo tên gõ Y HỆT → sót các lần gõ khác kiểu ("Thuý châu" / "Thúy châu" — bỏ dấu kiểu
+// cũ/mới, gõ trên iPhone ra Unicode tách dấu, thừa dấu cách) và mọi lần nhập trước khi ĐỔI TÊN nguyên liệu (dòng cũ giữ tên
+// cũ). Giờ: so tên bằng tenKhoa(); tên chỉ GẦN GIỐNG (gõ không dấu, sai 1 chữ, ghi dài hơn) hiện riêng để shop bấm "Gộp";
+// đổi tên nguyên liệu thì đổi luôn tên các dòng chi phí cũ; giá gần nhất lấy theo NGÀY nhập mới nhất (sửa dòng cũ không đè).
 let materials = []
 
 async function loadMaterials() {
   const { data } = await sb.from('materials').select('*').order('name')
   materials = data || []
+}
+
+// Khoá so tên: bỏ qua hoa/thường, dấu cách thừa, kiểu đặt dấu (thuý = thúy, hoà = hòa), Unicode dựng sẵn hay tách dấu.
+// Vẫn GIỮ dấu thanh + dấu mũ: Hồng ≠ Hông, Cúc ≠ Cục.
+const DAU_THANH = /[̣̀́̃̉]/g
+function tenKhoa(s) {
+  return String(s ?? '').normalize('NFD').toLowerCase().trim().split(/\s+/)
+    .map(w => w.replace(DAU_THANH, '') + (w.match(DAU_THANH) || []).join('')).join(' ')
+}
+// Tên bỏ hết dấu, gọn dấu cách — để tìm kiếm và dò tên gần giống
+function tenTho(s) { return noAccent(s).replace(/\s+/g, ' ') }
+function coDau(s) { return /[̀-ͯ]/.test(String(s ?? '').normalize('NFD')) || /đ/i.test(String(s ?? '')) }
+// Tên gõ vào → nguyên liệu đang có: trùng tenKhoa; hoặc gõ KHÔNG dấu mà khớp tên bỏ dấu ("thuy chau" → "Thúy châu")
+function nlKhop(ten) {
+  if (!ten || !String(ten).trim()) return null
+  const k = tenKhoa(ten)
+  return materials.find(m => tenKhoa(m.name) === k)
+    || (!coDau(ten) && materials.find(m => tenTho(m.name) === tenTho(ten))) || null
+}
+// Tên chuẩn để ghi vào Sổ chi phí: theo đúng tên nguyên liệu nếu khớp, không thì gọn dấu cách + Unicode dựng sẵn
+function nlTenChuan(ten) {
+  const t = String(ten ?? '').normalize('NFC').trim().replace(/\s+/g, ' ')
+  return t ? (nlKhop(t)?.name || t) : null
+}
+function saiMotChu(a, b) {   // khác nhau đúng 1 chữ (thêm / bớt / gõ nhầm)
+  if (Math.abs(a.length - b.length) > 1) return false
+  let i = 0, j = 0, sai = 0
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) { i++; j++; continue }
+    if (++sai > 1) return false
+    if (a.length > b.length) i++
+    else if (b.length > a.length) j++
+    else { i++; j++ }
+  }
+  return sai + (a.length - i) + (b.length - j) <= 1
+}
+
+// Mọi dòng chi phí CÓ ghi mặt hàng, mới → cũ (tra lịch sử, đếm số lần, tính giá gần nhất). null = chưa tải
+let nlDong = null, _nlTai = null, _nlLuot = 0
+function taiDongChi(moi = false) {
+  if (moi || !_nlTai) {
+    const luot = ++_nlLuot
+    _nlTai = (async () => {
+      const ds = []
+      for (let tu = 0; ; tu += 1000) {   // database trả tối đa 1000 dòng mỗi lần
+        const { data, error } = await sb.from('expenses').select('id, item, category, expense_date, quantity, unit_price, amount')
+          .not('item', 'is', null).order('expense_date', { ascending: false }).order('id', { ascending: false }).range(tu, tu + 999)
+        if (error) { if (luot === _nlLuot) _nlTai = null; return null }
+        ds.push(...(data || []))
+        if (!data || data.length < 1000) break
+      }
+      ds.forEach(e => { e._k = tenKhoa(e.item) })
+      if (luot === _nlLuot) nlDong = ds
+      return ds
+    })()
+  }
+  return _nlTai
+}
+
+// Giá + loại của nguyên liệu theo lần nhập MỚI NHẤT (theo ngày) — sửa / xoá dòng cũ không làm giá sai
+async function nlTinhLai(mt, theoLoai = true) {
+  if (!mt || !nlDong) return
+  const k = tenKhoa(mt.name)
+  const ds = nlDong.filter(e => e._k === k)
+  const coGia = ds.find(e => e.unit_price != null)
+  const patch = {}
+  if (coGia && Number(coGia.unit_price) !== Number(mt.last_price)) patch.last_price = coGia.unit_price
+  if (theoLoai && ds[0]?.category && ds[0].category !== mt.category) patch.category = ds[0].category
+  if (!Object.keys(patch).length) return
+  const { error } = await sb.from('materials').update(patch).eq('id', mt.id)
+  if (!error) Object.assign(mt, patch)
+}
+
+// Sau khi thêm / sửa / xoá 1 dòng chi phí: chưa có nguyên liệu thì thêm, rồi tính lại giá gần nhất (tên mới + tên cũ)
+async function nlSauKhiDoiChi(itemMoi, category, itemCu, giaMoi = null) {
+  if (!materials.length) await loadMaterials()
+  if (itemMoi && !nlKhop(itemMoi)) {
+    const { data } = await sb.from('materials').insert({ name: itemMoi, category: category || 'Khác', last_price: giaMoi }).select().single()
+    if (data) { materials.push(data); materials.sort((a, b) => a.name.localeCompare(b.name, 'vi')) }
+  }
+  if (!(await taiDongChi(true))) return
+  const ds = new Set([itemMoi, itemCu].map(nlKhop).filter(Boolean))
+  for (const mt of ds) await nlTinhLai(mt)
 }
 
 // ── Gợi ý khách đã có khi lên đơn tay ─────────────────────────
@@ -5576,23 +5724,30 @@ function pickCustomer(key, id) {
   showToast(`Đã chọn khách: ${c.name || c.phone}`)
 }
 
-// Autocomplete ô "Mặt hàng" trong form chi phí
+// Autocomplete ô "Mặt hàng" trong form chi phí — gõ không dấu vẫn ra ("thuy" → "Thúy châu"), khớp từ đầu tên lên trước
+function nlTim(raw) {
+  const q = tenTho(raw)
+  if (!q) return materials
+  return materials.map(mt => ({ mt, t: tenTho(mt.name) })).filter(x => x.t.includes(q))
+    .sort((a, b) => (b.t.startsWith(q) - a.t.startsWith(q)) || a.mt.name.localeCompare(b.mt.name, 'vi')).map(x => x.mt)
+}
+// Đã có nguyên liệu trùng / gần như trùng (chỉ khác dấu) → KHÔNG mời "Thêm" nữa, kẻo ra 2 nguyên liệu cùng một thứ
+function nlCoSan(raw) {
+  const t = tenTho(raw)
+  return !!t && materials.some(mt => tenTho(mt.name) === t)
+}
+
 function showExItemSuggest() {
   const pop = document.getElementById('exItemSuggestPop')
-  const q = document.getElementById('exItem').value.trim().toLowerCase()
-  const list = (q
-    ? materials.filter(mt => mt.name.toLowerCase().includes(q))
-    : materials
-  ).slice(0, 8)
-
-  const exact = q && materials.some(mt => mt.name.toLowerCase() === q)
+  const raw = document.getElementById('exItem').value.trim()
+  const list = nlTim(raw).slice(0, 8)
   let html = list.map(mt => `
 <div class="suggest-row" onclick="pickMaterial(${mt.id})">
   <span>${esc(mt.name)} <span class="s-cat">· ${esc(mt.category)}</span></span>
   ${mt.last_price != null ? `<span class="s-price">${fmtVnd(mt.last_price)}</span>` : ''}
 </div>`).join('')
-  if (q && !exact) {
-    html += `<div class="suggest-row suggest-add" onclick="addMaterialFromInput()">${ic('plus')}Thêm "${esc(document.getElementById('exItem').value.trim())}" vào nguyên liệu</div>`
+  if (raw && !nlCoSan(raw)) {
+    html += `<div class="suggest-row suggest-add" onclick="addMaterialFromInput()">${ic('plus')}Thêm "${esc(raw)}" vào nguyên liệu</div>`
   }
   if (!html) { pop.style.display = 'none'; return }
   pop.innerHTML = html
@@ -5614,34 +5769,19 @@ function pickMaterial(id) {
 
 // Thêm nhanh nguyên liệu mới ngay từ ô gõ (khi tìm không thấy)
 async function addMaterialFromInput() {
-  const name = document.getElementById('exItem').value.trim()
+  const name = nlTenChuan(document.getElementById('exItem').value)
   if (!name) return
+  hideExItemSuggest()
+  const co = nlKhop(name)
+  if (co) { pickMaterial(co.id); return }
   const category = document.getElementById('exCategory').value
   const { data, error } = await sb.from('materials').insert({ name, category }).select().single()
-  hideExItemSuggest()
   if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
   materials.push(data)
   materials.sort((a, b) => a.name.localeCompare(b.name, 'vi'))
+  document.getElementById('exItem').value = name
   showToast(`Đã thêm "${name}" vào nguyên liệu!`)
   document.getElementById('exUnitPrice').focus()
-}
-
-// Sau khi lưu chi phí: tự đồng bộ nguyên liệu (thêm mới nếu chưa có, cập nhật giá gần nhất)
-async function syncMaterialFromExpense(item, category, unitPrice) {
-  if (!item) return
-  const found = materials.find(mt => mt.name.toLowerCase() === item.toLowerCase())
-  if (found) {
-    const patch = {}
-    if (unitPrice != null && unitPrice !== found.last_price) patch.last_price = unitPrice
-    if (category && category !== found.category) patch.category = category
-    if (Object.keys(patch).length) {
-      await sb.from('materials').update(patch).eq('id', found.id)
-      Object.assign(found, patch)
-    }
-  } else {
-    const { data } = await sb.from('materials').insert({ name: item, category, last_price: unitPrice }).select().single()
-    if (data) { materials.push(data); materials.sort((a, b) => a.name.localeCompare(b.name, 'vi')) }
-  }
 }
 
 // ── Modal quản lý nguyên liệu ──
@@ -5650,32 +5790,38 @@ async function openMaterialsModal() {
   document.getElementById('mtSearch').value = ''
   renderMaterialsList()
   document.getElementById('materialsModal').style.display = 'flex'
+  // Đếm số lần nhập của từng nguyên liệu (tải lại mỗi lần mở — máy khác có thể vừa ghi thêm)
+  taiDongChi(true).then(() => { if (document.getElementById('materialsModal').style.display !== 'none') renderMaterialsList() })
 }
 function closeMaterialsModal() { anModal('materialsModal') }
 
 function renderMaterialsList() {
   const el = document.getElementById('materialsList')
   const goRaw = document.getElementById('mtSearch').value.trim()
-  const q = goRaw.toLowerCase()
-  const list = q ? materials.filter(mt => mt.name.toLowerCase().includes(q)) : materials
-  const coSan = q && materials.some(mt => mt.name.toLowerCase() === q)
-  const nutThem = q && !coSan
+  const list = nlTim(goRaw)
+  const nutThem = goRaw && !nlCoSan(goRaw)
     ? `<button type="button" class="mt-them" onclick="addMaterial()">${ic('plus')}Thêm “${esc(goRaw)}”</button>` : ''
   if (!list.length) {
     el.innerHTML = nutThem || '<div class="db-empty">Chưa có nguyên liệu nào — gõ tên ở ô trên để thêm.</div>'
     return
   }
+  const dem = {}, demNL = {}
+  ;(nlDong || []).forEach(e => { dem[e._k] = (dem[e._k] || 0) + 1 })
+  materials.forEach(m => { const k = tenKhoa(m.name); demNL[k] = (demNL[k] || 0) + 1 })   // 2 nguyên liệu chỉ khác kiểu dấu
   const { shown } = limitList('materials', list)
   // Bấm cả dòng = sửa / xem lịch sử giá; chỉ còn 1 nút xoá
-  el.innerHTML = nutThem + shown.map(mt => `
+  el.innerHTML = nutThem + shown.map(mt => {
+    const n = nlDong ? dem[tenKhoa(mt.name)] || 0 : null
+    return `
 <div class="mt-row">
   <button type="button" class="mt-main" onclick="openMaterialEditModal(${mt.id})" title="Sửa / xem lịch sử giá">
     <span class="ex-dot" style="background:${CAT_MAU[mt.category] || '#9E9E9E'}"></span>
-    <span class="mt-name">${esc(mt.name)}<small>${esc(mt.category)}</small></span>
+    <span class="mt-name">${esc(mt.name)}<small>${esc(mt.category)}${n == null ? '' : ` · ${n ? n + ' lần nhập' : 'chưa nhập lần nào'}`}${demNL[tenKhoa(mt.name)] > 1 ? ' · <b class="mt-trung">trùng tên — mở để gộp</b>' : ''}</small></span>
     <span class="mt-price">${mt.last_price != null ? fmtVnd(mt.last_price) : '—'}</span>
   </button>
   ${nutTT('trash', 'Xoá', `deleteMaterial(${mt.id})`, { xoa: true })}
-</div>`).join('') + thanhTrangList('materials', 'renderMaterialsList')
+</div>`
+  }).join('') + thanhTrangList('materials', 'renderMaterialsList')
 }
 
 function openMaterialEditModal(id) {
@@ -5686,29 +5832,76 @@ function openMaterialEditModal(id) {
   document.getElementById('meName').value = mt.name
   segSet('meCat', mt.category)
   moneySet('mePrice', mt.last_price)
+  document.getElementById('meGan').innerHTML = ''
   document.getElementById('meHistory').innerHTML = '<div class="chu-phu">Đang tải…</div>'
   document.getElementById('materialEditModal').style.display = 'flex'
-  loadMaterialHistory(mt.name)
+  loadMaterialHistory(mt.id)
 }
 
 function closeMaterialEditModal() { anModal('materialEditModal') }
 
-// Lịch sử các lần nhập (lấy từ Sổ chi phí theo tên, mới nhất trước)
-async function loadMaterialHistory(name) {
+// Các nhóm tên GẦN GIỐNG trong Sổ chi phí (chưa nằm trong lịch sử của nguyên liệu này): cùng tên khi bỏ dấu ("Thuy chau"),
+// sai 1 chữ ("Thúy chau"), hoặc ghi dài hơn ("Thúy châu trắng" — trừ khi tên đó là 1 nguyên liệu riêng)
+function nlGanGiong(mt) {
+  const k = tenKhoa(mt.name), t = tenTho(mt.name)
+  const laNL = new Set(materials.map(m => tenKhoa(m.name)))
+  const nhom = new Map()
+  // Có nguyên liệu khác cùng tên chỉ khác kiểu dấu ("Thuý châu" bên cạnh "Thúy châu" — lỗi thật 12/11/2026): các lần ghi
+  // theo kiểu đó đã nằm trong lịch sử, nhưng vẫn mời Gộp để Sổ chi phí về 1 tên + xoá nguyên liệu trùng
+  const coTrung = materials.some(m => m.id !== mt.id && tenKhoa(m.name) === k)
+  const chuan = s => String(s).normalize('NFC').trim().replace(/\s+/g, ' ')
+  for (const e of nlDong || []) {
+    if (e._k === k) {
+      if (!coTrung || chuan(e.item) === mt.name) continue
+      const kh = '=' + chuan(e.item)
+      if (!nhom.has(kh)) nhom.set(kh, { ten: chuan(e.item), khoa: k, ds: [] })
+      nhom.get(kh).ds.push(e)
+      continue
+    }
+    const u = tenTho(e.item)
+    if (!u) continue
+    const gan = u === t || (!laNL.has(e._k) && ((u.length >= 5 && t.length >= 5 && saiMotChu(u, t))
+      || (Math.min(u.length, t.length) >= 4 && (` ${u} `.includes(` ${t} `) || ` ${t} `.includes(` ${u} `)))))
+    if (!gan) continue
+    if (!nhom.has(e._k)) nhom.set(e._k, { ten: String(e.item).trim(), khoa: e._k, ds: [] })
+    nhom.get(e._k).ds.push(e)
+  }
+  return [...nhom.values()]
+}
+
+let _nlGan = []   // nhóm gần giống đang hiện (nút "Gộp" gọi theo số thứ tự)
+// Lịch sử các lần nhập (lấy từ Sổ chi phí, mới nhất trước) + các tên gần giống để gộp
+async function loadMaterialHistory(id) {
   const box = document.getElementById('meHistory')
-  const { data } = await sb.from('expenses')
-    .select('expense_date, quantity, unit_price, amount')
-    .ilike('item', name)
-    .order('expense_date', { ascending: false })
-    .order('id', { ascending: false })
-    .limit(50)
-  if (!data?.length) {
+  const ganBox = document.getElementById('meGan')
+  const tatCa = await taiDongChi()
+  const mt = materials.find(x => x.id === id)
+  if (!mt || +document.getElementById('meId').value !== id) return   // đã đóng / đang mở nguyên liệu khác
+  if (!tatCa) { box.innerHTML = '<div class="chu-phu">Chưa tải được lịch sử — kiểm tra mạng rồi mở lại nhé.</div>'; return }
+  const ngay = s => s.split('-').reverse().join('/')
+  // Giá gần nhất từng bị đè bằng giá cũ (sửa 1 dòng chi phí cũ) → mở ra là tự chỉnh theo lần nhập mới nhất
+  const giaO = moneyNum('mePrice'), giaCu = mt.last_price
+  await nlTinhLai(mt, false)
+  if (mt.last_price !== giaCu && Number(giaO) === Number(giaCu) && +document.getElementById('meId').value === id) moneySet('mePrice', mt.last_price)
+
+  _nlGan = nlGanGiong(mt)
+  ganBox.innerHTML = !_nlGan.length ? '' : `<div class="nl-gan">
+  <div class="nl-gan-h">${ic('alert')}Có thể cũng là “${esc(mt.name)}”?</div>
+  <p>Sổ chi phí có ghi những tên dưới đây, gần giống “${esc(mt.name)}”. Đúng là cùng một thứ thì bấm <b>Gộp</b>: tên đổi về “${esc(mt.name)}”, lịch sử gom đủ, nguyên liệu trùng (nếu có) được xoá.</p>
+  ${_nlGan.map((g, i) => `<div class="nl-gan-dong">
+    <span class="nl-gan-ten"><b>${esc(g.ten)}</b><small>${g.ds.length} lần · gần nhất ${ngay(g.ds[0].expense_date)} · ${fmtVnd(g.ds.reduce((s, e) => s + (Number(e.amount) || 0), 0))}</small></span>
+    <button type="button" class="btn-outline nl-gop" onclick="gopTenNL(${i})">Gộp</button>
+  </div>`).join('')}
+</div>`
+
+  const k = tenKhoa(mt.name)
+  const data = tatCa.filter(e => e._k === k)
+  if (!data.length) {
     box.innerHTML = '<div class="chu-phu">Chưa có lần nhập nào trong Sổ chi phí.</div>'
     return
   }
   // Gom theo tháng (danh sách đã xếp mới → cũ). Mũi tên: so ĐƠN GIÁ với lần nhập CŨ HƠN gần nhất có đơn giá
   // (lần chỉ ghi thành tiền, vd Grab, thì bỏ qua) — giá bằng nhau thì không có mũi tên.
-  const ngay = s => s.split('-').reverse().join('/')
   const thang = new Map()
   data.forEach((e, i) => {
     const k = e.expense_date.slice(0, 7)
@@ -5716,7 +5909,7 @@ async function loadMaterialHistory(name) {
     const t = thang.get(k)
     t.tong += Number(e.amount) || 0
     const truoc = e.unit_price != null ? data.slice(i + 1).find(x => x.unit_price != null) : null
-    const xu = !truoc || truoc.unit_price === e.unit_price ? ''
+    const xu = !truoc || Number(truoc.unit_price) === Number(e.unit_price) ? ''
       : `<span class="gia-xu ${e.unit_price > truoc.unit_price ? 'gia-len' : 'gia-xuong'}" title="${e.unit_price > truoc.unit_price ? 'Đắt' : 'Rẻ'} hơn lần ${ngay(truoc.expense_date)} (${fmtVnd(truoc.unit_price)})">${ic(e.unit_price > truoc.unit_price ? 'up' : 'down')}</span>`
     t.ds.push(`<div class="nl-lan${i ? '' : ' moi'}">
   <span class="l1">${e.unit_price != null ? `${fmtVnd(e.unit_price)} <small>× ${e.quantity ?? 1}</small>` : '<small>Không ghi đơn giá</small>'}${xu}</span>
@@ -5724,34 +5917,81 @@ async function loadMaterialHistory(name) {
   <span class="l2">${ngay(e.expense_date)}</span>
 </div>`)
   })
-  box.innerHTML = [...thang].map(([k, t]) =>
+  const tong = data.reduce((s, e) => s + (Number(e.amount) || 0), 0)
+  box.innerHTML = `<div class="nl-tong">Tất cả <b>${data.length} lần</b> · ${fmtVnd(tong)}</div>` + [...thang].map(([k, t]) =>
     `<div class="nl-thang">Tháng ${+k.slice(5)}/${k.slice(0, 4)}<span>${t.ds.length} lần · ${fmtVnd(t.tong)}</span></div><div class="nl-tl">${t.ds.join('')}</div>`).join('')
+}
+
+// Gộp 1 nhóm tên gần giống vào nguyên liệu đang mở: đổi tên các dòng chi phí đó + xoá nguyên liệu trùng (nếu có)
+async function gopTenNL(i) {
+  const id = +document.getElementById('meId').value
+  const mt = materials.find(x => x.id === id)
+  const g = _nlGan[i]
+  if (!mt || !g) return
+  const trung = materials.find(m => m.id !== id && tenKhoa(m.name) === g.khoa)
+  if (!(await askConfirm({
+    title: `Gộp “${g.ten}” vào “${mt.name}”?`,
+    message: `${g.ds.length} dòng chi phí ghi “${g.ten}” sẽ đổi tên thành “${mt.name}” (số tiền, ngày giữ nguyên).`
+      + (trung ? ` Nguyên liệu “${trung.name}” bị trùng sẽ được xoá khỏi danh sách gợi ý.` : ''),
+    okLabel: 'Gộp', icon: 'layers' }))) return
+  const ids = g.ds.map(e => e.id)
+  if (!(await ghiDb(sb.from('expenses').update({ item: mt.name }).in('id', ids).select('id'), 'gộp tên'))) return
+  if (trung) {
+    const { error } = await sb.from('materials').delete().eq('id', trung.id)
+    if (!error) materials = materials.filter(x => x.id !== trung.id)
+  }
+  nlDoiTenTrongMay(ids, mt.name)
+  await nlTinhLai(mt)
+  moneySet('mePrice', mt.last_price)
+  segSet('meCat', mt.category)
+  showToast(`Đã gộp ${g.ds.length} lần nhập vào “${mt.name}”`)
+  loadMaterialHistory(id)
+  renderMaterialsList()
+}
+
+// Đổi tên mặt hàng của các dòng chi phí đang giữ trong máy (lịch sử + Sổ chi phí đang xem) cho khớp database
+function nlDoiTenTrongMay(ids, ten) {
+  const s = new Set(ids), k = tenKhoa(ten)
+  ;(nlDong || []).forEach(e => { if (s.has(e.id)) { e.item = ten; e._k = k } })
+  let doi = false
+  expenses.forEach(e => { if (s.has(e.id)) { e.item = ten; doi = true } })
+  if (doi && document.getElementById('expensesTable')) renderExpensesKeep()
 }
 
 async function saveMaterialEdit(e) {
   e.preventDefault()
   const btn = document.getElementById('saveMaterialBtn')
-  btn.textContent = 'Đang lưu…'; btn.disabled = true
   const id = parseInt(document.getElementById('meId').value)
   const mt = materials.find(x => x.id === id)
-  const name = document.getElementById('meName').value.trim()
-  if (materials.some(x => x.id !== id && x.name.toLowerCase() === name.toLowerCase())) {
-    btn.textContent = 'Lưu'; btn.disabled = false
+  if (!mt) return
+  const name = nlTenChuan(document.getElementById('meName').value) || ''
+  if (materials.some(x => x.id !== id && tenKhoa(x.name) === tenKhoa(name))) {
     baoLoiO('meName', 'Đã có nguyên liệu trùng tên'); return
   }
+  btn.textContent = 'Đang lưu…'; btn.disabled = true
+  const tenCu = mt.name
   const patch = {
     name,
     category: document.getElementById('meCat').value,
     last_price: moneyNum('mePrice'),
   }
   const { error } = await sb.from('materials').update(patch).eq('id', id)
-  btn.textContent = 'Lưu'; btn.disabled = false
-  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  if (error) { btn.textContent = 'Lưu'; btn.disabled = false; showToast('Lỗi: ' + error.message, 'error'); return }
   Object.assign(mt, patch)
+  // Đổi tên → đổi luôn tên các lần nhập cũ trong Sổ chi phí, để lịch sử đi theo nguyên liệu (trước 12/11/2026 bị bỏ lại)
+  let soDoi = 0
+  if (name !== tenCu && await taiDongChi()) {
+    const kCu = tenKhoa(tenCu)
+    const ids = nlDong.filter(x => x._k === kCu && x.item !== name).map(x => x.id)
+    if (ids.length && await ghiDb(sb.from('expenses').update({ item: name }).in('id', ids).select('id'), 'đổi tên các lần nhập cũ')) {
+      nlDoiTenTrongMay(ids, name); soDoi = ids.length
+    }
+  }
+  btn.textContent = 'Lưu'; btn.disabled = false
   materials.sort((a, b) => a.name.localeCompare(b.name, 'vi'))
   closeMaterialEditModal()
   renderMaterialsList()
-  showToast('Đã cập nhật nguyên liệu!')
+  showToast(soDoi ? `Đã cập nhật — đổi tên cả ${soDoi} lần nhập cũ` : 'Đã cập nhật nguyên liệu!')
 }
 
 async function deleteMaterialFromEdit() {
@@ -5763,9 +6003,9 @@ async function deleteMaterialFromEdit() {
 // Thêm từ ô tìm: loại mặc định "Khác", rồi mở luôn màn sửa để chọn loại + giá
 async function addMaterial() {
   const nameEl = document.getElementById('mtSearch')
-  const name = nameEl.value.trim()
+  const name = nlTenChuan(nameEl.value)
   if (!name) { baoLoiO(nameEl, 'Gõ tên nguyên liệu vào ô này'); return }
-  const trung = materials.find(mt => mt.name.toLowerCase() === name.toLowerCase())
+  const trung = nlKhop(name)
   if (trung) { openMaterialEditModal(trung.id); return }
   const { data, error } = await sb.from('materials').insert({ name, category: 'Khác', last_price: null }).select().single()
   if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
@@ -5906,8 +6146,13 @@ function renderExpenses(revenueActual) {
 
   // Tỷ trọng: theo loại + 5 mặt hàng tốn nhiều nhất trong tháng
   const theoMH = {}
-  expenses.forEach(e => { const t = (e.item || 'Không ghi tên').trim(); theoMH[t] = (theoMH[t] || 0) + (Number(e.amount) || 0) })
-  const topMH = Object.entries(theoMH).sort((a, b) => b[1] - a[1]).slice(0, 5)
+  // Gom theo tenKhoa: "Thuý châu" + "Thúy châu" là 1 mặt hàng; hiện bằng tên nguyên liệu nếu có
+  expenses.forEach(e => {
+    const k = e.item ? tenKhoa(e.item) : ''
+    const o = theoMH[k] || (theoMH[k] = { ten: e.item ? (nlKhop(e.item)?.name || e.item.trim()) : 'Không ghi tên', tien: 0 })
+    o.tien += Number(e.amount) || 0
+  })
+  const topMH = Object.values(theoMH).sort((a, b) => b.tien - a.tien).slice(0, 5).map(o => [o.ten, o.tien])
   const pt = x => totalExpense ? Math.round(x * 100 / totalExpense) : 0
   const ky = exKy()
   const kyChu = ky.tuChon ? 'trong ' + nhanKyChi(ky) : 'trong tháng này'
@@ -6045,9 +6290,14 @@ function exCalcNote() {
 function veExQuickItems() {
   const box = document.getElementById('exQuickItems')
   if (!box) return
-  const dem = {}
-  ;(expenses || []).forEach(e => { const t = (e.item || '').trim(); if (t) dem[t] = (dem[t] || 0) + 1 })
-  let ten = Object.keys(dem).sort((a, b) => dem[b] - dem[a])
+  const dem = {}, tenCua = {}
+  ;(expenses || []).forEach(e => {
+    if (!e.item || !e.item.trim()) return
+    const k = tenKhoa(e.item)
+    dem[k] = (dem[k] || 0) + 1
+    if (!tenCua[k]) tenCua[k] = nlKhop(e.item)?.name || e.item.trim()
+  })
+  let ten = Object.keys(dem).sort((a, b) => dem[b] - dem[a]).map(k => tenCua[k])
   if (!ten.length) ten = materials.map(m => m.name)
   ten = ten.slice(0, 5)
   box.innerHTML = (ten.length ? '<span class="fx-goi-y-l">Hay mua:</span>' : '') +
@@ -6056,7 +6306,7 @@ function veExQuickItems() {
 }
 function chonExQuick(btn) {
   const t = btn.dataset.ten
-  const mt = materials.find(m => m.name.toLowerCase() === t.toLowerCase())
+  const mt = nlKhop(t)
   if (mt) pickMaterial(mt.id)
   else document.getElementById('exItem').value = t
   danhDauDangNhap(btn)
@@ -6131,10 +6381,13 @@ async function saveExpense(e) {
   btn.textContent = 'Đang lưu…'; btn.disabled = true
   const id = document.getElementById('exId').value
   const q = document.getElementById('exQty').value
+  if (!materials.length) await loadMaterials()   // để tên khớp đúng nguyên liệu dù danh sách chưa kịp tải
+  const itemCu = id ? expenses.find(x => String(x.id) === id)?.item : null
   const data = {
     expense_date: document.getElementById('exDate').value,
     category:     document.getElementById('exCategory').value,
-    item:         document.getElementById('exItem').value.trim() || null,
+    // gõ "thuy chau" / "Thuý  châu" → ghi đúng tên nguyên liệu "Thúy châu", lịch sử nhập không bị tách (12/11/2026)
+    item:         nlTenChuan(document.getElementById('exItem').value),
     quantity:     q === '' ? null : parseFloat(q),
     unit_price:   moneyNum('exUnitPrice'),
     amount:       moneyNum('exAmount') || 0,
@@ -6147,8 +6400,8 @@ async function saveExpense(e) {
   btn.textContent = 'Lưu'; btn.disabled = false
   if (!daLuu) return
   if (!id) try { localStorage.setItem('lt_loaiChiCuoi', data.category) } catch (e) {}
-  // Đồng bộ sổ nguyên liệu: thêm mới nếu chưa có, nhớ giá lần mua này
-  syncMaterialFromExpense(data.item, data.category, data.unit_price)
+  // Đồng bộ sổ nguyên liệu: thêm mới nếu chưa có, giá gần nhất = lần nhập mới nhất theo ngày
+  nlSauKhiDoiChi(data.item, data.category, itemCu, data.unit_price)
   showToast(id ? 'Đã cập nhật chi phí!' : 'Đã thêm chi phí!')
   closeExpenseModal()
   loadExpenses()
@@ -6156,7 +6409,9 @@ async function saveExpense(e) {
 
 async function deleteExpense(id) {
   if (!(await askConfirm({ title: 'Xóa dòng chi phí?', message: 'Số tiền này sẽ không còn được tính vào tổng chi tháng.', okLabel: 'Xóa' }))) return
+  const itemCu = expenses.find(x => x.id === id)?.item
   if (!(await ghiDb(sb.from('expenses').delete().eq('id', id).select('id'), 'xoá'))) return
+  if (itemCu) nlSauKhiDoiChi(null, null, itemCu)   // xoá lần nhập mới nhất → giá gợi ý về lại lần trước đó
   showToast('Đã xóa chi phí')
   loadExpenses()
 }
@@ -7334,7 +7589,32 @@ async function deleteGalleryItem(id) {
 // ── Contact ──────────────────────────────────────
 let _contactCot = null   // tên các cột bảng contact đang có (biết sau lần tải đầu)
 
+// Tab Liên hệ chia 6 phần, mỗi lần hiện 1 phần (12/11/2026, shop chọn kiểu A). Nhớ phần đang mở theo máy.
+function ctPhanDs() { return [...document.querySelectorAll('#contactForm > .ct-muc')] }
+function ctChonPhan(i) {
+  const ds = ctPhanDs()
+  i = Math.max(0, Math.min(ds.length - 1, +i || 0))
+  ds.forEach((s, j) => { s.hidden = j !== i })
+  document.querySelectorAll('#ctTabs > button').forEach((b, j) => { b.classList.toggle('on', j === i); b.setAttribute('aria-selected', j === i) })
+  try { localStorage.setItem('lt_ctPhan', i) } catch (e) {}
+}
+// Báo lỗi 1 ô đang nằm ở phần bị ẩn → mở phần đó trước, không thì baoLoiO chỉ vào ô không nhìn thấy
+function ctMoPhanCua(id) {
+  const s = document.getElementById(id)?.closest('.ct-muc')
+  if (s && s.hidden) ctChonPhan(ctPhanDs().indexOf(s))
+}
+function ctDanhDauDoi(e) {
+  const i = ctPhanDs().indexOf(e.target.closest('.ct-muc'))
+  if (i >= 0) document.querySelectorAll('#ctTabs > button')[i]?.classList.add('doi')
+}
+function ctBoDanhDau() { document.querySelectorAll('#ctTabs > button.doi').forEach(b => b.classList.remove('doi')) }
+
 async function loadContact() {
+  if (!document.querySelector('#ctTabs > button.on:not(:first-child)')) {
+    let i = 0
+    try { i = +localStorage.getItem('lt_ctPhan') || 0 } catch (e) {}
+    ctChonPhan(i)
+  }
   const { data } = await sb.from('contact').select('*').eq('id', 1).single()
   if (!data) return
   const form = document.getElementById('contactForm')
@@ -7359,6 +7639,7 @@ async function loadContact() {
   if (data.hero_side1) setHeroImagePreview(data.hero_side1, 'side1')
   if (data.hero_side2) setHeroImagePreview(data.hero_side2, 'side2')
   veAnhChiaSe()
+  ctBoDanhDau()   // vừa nạp lại từ database = chưa có gì sửa
 }
 
 // ── Hero Image ────────────────────────────────────
@@ -7377,6 +7658,7 @@ async function handleHeroImageUpload(input, slot = 'main') {
   try { publicUrl = await taiAnhLen('hero', raw, { maxDim: 1920, nho: false }) }
   catch (error) { showToast('Lỗi: ' + error.message, 'error'); return }
   setHeroImagePreview(publicUrl, slot)
+  ctDanhDauDoi({ target: input })   // ảnh trang chủ cần bấm Lưu mới lên web
   showToast('Upload ảnh hero thành công!')
 }
 
@@ -7453,11 +7735,12 @@ async function saveContact(e) {
   // trên web khách, nên chỉ nhận đúng chữ-số, tuyệt đối không nhận ký tự lạ.
   data.ga4_id = String(data.ga4_id || '').trim().toUpperCase()
   data.clarity_id = String(data.clarity_id || '').trim()
+  data.banner_text = String(data.banner_text || '').replace(/\s*\n\s*/g, ' ').trim()   // web hiện banner 1 dòng
   if (data.ga4_id && !MA_GA4.test(data.ga4_id)) {
-    baoLoiO('ctGa4', 'Mã Google Analytics phải có dạng G-XXXXXXXXXX'); return
+    ctMoPhanCua('ctGa4'); baoLoiO('ctGa4', 'Mã Google Analytics phải có dạng G-XXXXXXXXXX'); return
   }
   if (data.clarity_id && !MA_CLARITY.test(data.clarity_id)) {
-    baoLoiO('ctClarity', 'Mã Clarity chỉ gồm chữ thường và số (khoảng 10 ký tự)'); return
+    ctMoPhanCua('ctClarity'); baoLoiO('ctClarity', 'Mã Clarity chỉ gồm chữ thường và số (khoảng 10 ký tự)'); return
   }
   data.ga4_id = data.ga4_id || null
   data.clarity_id = data.clarity_id || null
@@ -7466,7 +7749,7 @@ async function saveContact(e) {
   data.ck_chu_tk = noAccent(data.ck_chu_tk).toUpperCase().replace(/[^A-Z0-9 .]/g, '').replace(/\s+/g, ' ').trim() || null   // khớp luật contact_ck_dinh_dang (SQL 31)
   data.ck_ngan_hang = data.ck_ngan_hang || null
   if (!!data.ck_ngan_hang !== !!data.ck_so_tk) {
-    baoLoiO(data.ck_ngan_hang ? 'ctSoTk' : 'ctNganHang', data.ck_ngan_hang ? 'Cần thêm số tài khoản' : 'Cần chọn ngân hàng'); return
+    ctMoPhanCua('ctSoTk'); baoLoiO(data.ck_ngan_hang ? 'ctSoTk' : 'ctNganHang', data.ck_ngan_hang ? 'Cần thêm số tài khoản' : 'Cần chọn ngân hàng'); return
   }
   // Chưa chạy SQL 20 → bỏ 2 cột này ra, để các ô Liên hệ khác vẫn lưu được
   if (_contactCot) {
@@ -7483,6 +7766,7 @@ async function saveContact(e) {
   const { error } = await sb.from('contact').update(data).eq('id', 1)
   if (!error && 'ck_so_tk' in data) { _taiKhoanCk = taiKhoanCk(data); _ckGoc = ckCua(data) }
   if (!error && doiTk) veNhatKyCk()
+  if (!error) ctBoDanhDau()
   error ? showToast('Lỗi: ' + error.message, 'error') : showToast('Đã lưu thông tin liên hệ!')
 }
 

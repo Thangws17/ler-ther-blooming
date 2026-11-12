@@ -123,3 +123,20 @@ Cách từng tab tải và vẽ dữ liệu, các quy ước riêng của mỗi 
   ở khối `@media (max-width: 1279px)` riêng, KHÔNG còn trong khối 820px.
   Vị trí shop chốt: thẻ Lịch giao = GÓC PHẢI DƯỚI thẻ kể cả khi thẻ bị kéo cao theo thẻ bên cạnh (`.dv:has(.gc-nut)` giãn
   thân thẻ, `.dv-duoi > .gc-nut` bám đáy); thẻ Đơn hàng điện thoại = ngay TRÊN ngày giao (`.oc-meta` xếp dọc).
+- **Nguyên liệu: so tên bằng `tenKhoa()`, KHÔNG so chuỗi y hệt (12/11/2026)** — lỗi thật: "Thúy châu" nhập nhiều lần mà
+  "Các lần nhập" chỉ ra 2. Lịch sử từng tra `.ilike('item', tên)` (khớp đúng từng chữ) nên sót: kiểu bỏ dấu cũ/mới
+  ("Thuý" / "Thúy"), Unicode tách dấu (gõ trên iPhone), thừa dấu cách, gõ không dấu, và MỌI lần nhập trước khi đổi tên
+  nguyên liệu (dòng chi phí cũ giữ tên cũ). Giờ: `taiDongChi()` tải mọi dòng chi phí có tên (theo lô 1000) rồi lọc ở máy
+  bằng `tenKhoa()` (giữ dấu thanh: Hồng ≠ Hông); tên chỉ gần giống (`nlGanGiong`: bỏ dấu trùng, sai 1 chữ, ghi dài hơn)
+  hiện hộp vàng + nút **Gộp** (đổi `item` các dòng đó, xoá nguyên liệu trùng). Ghi chi phí đi qua `nlTenChuan()` → lưu
+  đúng tên nguyên liệu. Đổi tên nguyên liệu → đổi luôn `item` các dòng cũ. Giá gần nhất = lần nhập MỚI NHẤT THEO NGÀY
+  (`nlTinhLai`, sau lưu / xoá chi phí + khi mở bảng sửa) — trước đây sửa 1 dòng cũ là giá gợi ý bị đè bằng giá cũ.
+  So tên nguyên liệu ở chỗ mới thì dùng `nlKhop()` / `tenKhoa()`, đừng `toLowerCase() ===`.
+- **Tab Liên hệ chia 6 phần, mỗi lần hiện 1 phần (12/11/2026, shop chọn kiểu A cho cả điện thoại + máy tính)** — thanh
+  `#ctTabs` (Liên hệ · Ảnh web · Banner · Chính sách · Chuyển khoản · Đo lường; điện thoại xếp 3 × 2), `ctChonPhan(i)` ẩn/hiện
+  `section.ct-muc` bằng `hidden`, nhớ phần đang mở ở `lt_ctPhan`. Vẫn MỘT form `#contactForm`: Lưu là lưu cả 6 phần; sửa mà
+  chưa lưu → chấm cam (`ctDanhDauDoi`, xoá ở `ctBoDanhDau` sau khi nạp / lưu). Báo lỗi ô thuộc phần đang ẩn thì gọi
+  `ctMoPhanCua(id)` TRƯỚC `baoLoiO`. Mỗi ô có biểu tượng (`label.fx-in`); logo Facebook/Instagram/TikTok/Threads là SVG đặc
+  `.ic-mxh` (class `.ic` đặt `fill:none` → logo đặc sẽ tàng hình). Lưới ô phải `minmax(0, 1fr)`: ô có biểu tượng giữ bề
+  rộng tối thiểu → `1fr` thường làm trang tràn 172px ở 390px. Ô banner là textarea 3 dòng nhưng web hiện 1 dòng: Enter bị
+  chặn, `saveContact` gộp xuống dòng thành dấu cách. Xem thử: `/test/xem-admin.html?v=lien&phan=0…5`.

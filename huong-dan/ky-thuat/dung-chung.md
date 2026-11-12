@@ -133,6 +133,13 @@
   bắt Chrome máy tính VẼ LẠI mỗi khung hình khi lăn chuột (đo: 40 lần / 60 nấc lăn; kiểu chuẩn: 3) → shop thấy cuộn giật, chóng
   mặt. `::-webkit-scrollbar` chỉ còn cho Safari. Đừng thêm lại kiểu tự vẽ cho Chrome. Web khách: ảnh hiện dần KHÔNG dùng
   `filter: blur` nữa (nặng nhất khi cuộn qua nhiều ảnh) — chỉ mờ → rõ + thu nhẹ.
+- **Thanh cuộn KHÔNG được chạm góc bo (12/11/2026)** — Chrome máy tính không cắt thanh cuộn (kể cả 2 mũi tên ▲▼ của kiểu chuẩn)
+  theo `border-radius` của CHÍNH khung cuộn → lòi ra ngoài góc tròn (shop thấy ở khung nội dung chính admin, mọi tab). Cách sửa
+  chung: `border: Npx solid transparent` cho khung cuộn (nền vẫn phủ dưới viền, đệm bớt đi N) để thanh cuộn lùi vào trong; viền
+  thấy được thì chuyển sang `box-shadow: 0 0 0 1px màu`. Đã áp: `.content` (máy tính, 8px), `.modal-body:last-child` (hộp không
+  có hàng nút đáy), `.suggest-pop`, `#gcPop`, `.bst-pick`, `.spc-sheet`, web khách `#orderModalBody` (16px trên/dưới — hàng
+  "Gửi đơn" dính đáy nên bớt đệm dưới của nó; KHÔNG chừa bên phải vì hàng đó giãn `margin: 0 -24px`). Khung cuộn bo góc mới
+  thì làm y vậy. Dò: `demo/do-thanh-cuon.html?rong=1100&cao=700&v=lien,chi,…` (nội bộ, liệt kê thanh cuộn lòi khỏi góc).
 - **Ô chọn Loại (`.fx-cat`, form Chi phí + bảng sửa Nguyên liệu) có viên nền trượt (08/11/2026)** — khối `.fx-cat-nen` nằm dưới 4
   ô (ô nền trong suốt), `segSet(id, v, truot)` đặt `--i`. Mở form = đứng yên (`.dung`), bấm (`segChon`) mới trượt. Thêm ô Loại
   thứ 5 thì sửa công thức chiều rộng (đang chia 4) trong CSS. Bảng sửa nguyên liệu: lịch sử "Các lần nhập" kiểu dòng thời gian

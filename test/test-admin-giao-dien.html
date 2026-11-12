@@ -739,7 +739,120 @@ function nutCoEmoji(goc) {
       o.value = 'hồng đỏ'; o.dispatchEvent(new w.Event('input'))
       test('Gõ đúng tên đã có (khác hoa/thường) → KHÔNG hiện nút thêm (tránh trùng)', () => bang(!!d.querySelector('#materialsList .mt-them'), false))
       test('Mỗi dòng: bấm cả dòng để sửa + 1 nút xoá có tên', () => bang(nutThieuTen(id('materialsList')), []))
+      o.value = 'giay'; o.dispatchEvent(new w.Event('input'))
+      test('Tìm không dấu "giay" → ra "Giấy gói"', () => bang(id('materialsList').textContent.includes('Giấy gói'), true))
+      o.value = 'hong do'; o.dispatchEvent(new w.Event('input'))
+      test('Gõ "hong do" (không dấu) khi đã có "Hồng đỏ" → KHÔNG mời thêm nguyên liệu trùng', () => bang(!!d.querySelector('#materialsList .mt-them'), false))
       w.closeMaterialsModal()
+
+      // Lịch sử "Các lần nhập" sót lần nhập gõ khác kiểu (lỗi thật 12/11/2026: "Thúy châu" nhập nhiều lần, lịch sử chỉ 2 lần)
+      test('So tên: "Thuý châu" = "Thúy châu" (kiểu bỏ dấu cũ / mới)', () => bang(w.tenKhoa('Thuý châu'), w.tenKhoa('Thúy châu')))
+      test('So tên: Unicode tách dấu (iPhone) + dấu cách thừa vẫn là 1 tên', () => bang(w.tenKhoa('  Hồng   đỏ '.normalize('NFD')), w.tenKhoa('Hồng đỏ')))
+      test('So tên: vẫn giữ dấu — "Hồng" khác "Hông"', () => bang(w.tenKhoa('Hồng') === w.tenKhoa('Hông'), false))
+      const chiThem = [
+        { id: 801, expense_date: '2025-03-02', category: 'Hoa', item: 'Hồng  đỏ ', quantity: 10, unit_price: 5000, amount: 50000 },
+        { id: 802, expense_date: '2025-02-02', category: 'Hoa', item: 'Hồng đỏ'.normalize('NFD'), quantity: 10, unit_price: 5500, amount: 55000 },
+        { id: 803, expense_date: '2025-01-02', category: 'Hoa', item: 'hong do', quantity: 10, unit_price: 5000, amount: 50000 },
+        { id: 804, expense_date: '2025-01-03', category: 'Phụ kiện', item: 'Giấy gói kraft', quantity: 1, unit_price: 9000, amount: 9000 },
+      ]
+      A.dl.expenses.push(...chiThem)
+      await w.taiDongChi(true)
+      w.openMaterialEditModal(1); await cho(150)
+      const lanNhap = () => d.querySelectorAll('#meHistory .nl-lan').length
+      test('Lịch sử "Hồng đỏ" gom cả lần gõ thừa dấu cách + gõ trên iPhone (3 lần)', () => bang(lanNhap(), 3))
+      test('Tên gõ không dấu "hong do" hiện ở hộp "Có thể cũng là…" kèm nút Gộp', () => {
+        bang(d.querySelectorAll('#meGan .nl-gan-dong').length, 1)
+        bang(d.querySelector('#meGan .nl-gan-ten b').textContent, 'hong do')
+      })
+      const dauGop = A.nhatKy.length
+      d.querySelector('#meGan .nl-gop').click(); await cho(80)
+      id('cfOk').click(); await cho(200)
+      test('Bấm Gộp → đổi tên dòng chi phí đó thành "Hồng đỏ", lịch sử lên 4 lần, hộp gần giống biến mất', () => {
+        bang(A.nhatKy.slice(dauGop).some(x => x.ten === 'expenses' && x.lenh === 'update' && x.v.item === 'Hồng đỏ'), true)
+        bang(lanNhap(), 4); bang(d.querySelectorAll('#meGan .nl-gan-dong').length, 0)
+      })
+      w.closeMaterialEditModal(); await cho(50)
+      w.openMaterialEditModal(2); await cho(150)
+      test('Tên ghi dài hơn ("Giấy gói kraft") cũng được hỏi gộp vào "Giấy gói"', () =>
+        bang(d.querySelector('#meGan .nl-gan-ten b')?.textContent, 'Giấy gói kraft'))
+      // Đổi tên nguyên liệu → các lần nhập cũ đổi theo (trước đây giữ tên cũ → lịch sử mất sạch)
+      const dauDoi = A.nhatKy.length
+      id('meName').value = 'Giấy gói hoa'
+      await w.saveMaterialEdit({ preventDefault() {} }); await cho(100)
+      test('Đổi tên nguyên liệu → đổi luôn tên các dòng chi phí cũ', () =>
+        bang(A.nhatKy.slice(dauDoi).some(x => x.ten === 'expenses' && x.lenh === 'update' && x.v.item === 'Giấy gói hoa'), true))
+      // database giả dùng chung object → trả tên cũ cho các test sau
+      w.eval('materials').find(m => m.id === 2).name = 'Giấy gói'
+      A.dl.expenses.forEach(e => { if (e.id === 2) e.item = 'Giấy gói' })
+      // Ghi chi phí gõ "hong do" → lưu đúng tên nguyên liệu "Hồng đỏ"
+      w.openExpenseModal(); await cho(50)
+      id('exItem').value = 'hong do'; w.eval('moneySet')('exAmount', 1000)
+      const dauLuu = A.nhatKy.length
+      await w.saveExpense({ preventDefault() {} }); await cho(200)
+      test('Ghi chi phí gõ "hong do" → lưu tên chuẩn "Hồng đỏ"', () =>
+        bang(A.nhatKy.slice(dauLuu).find(x => x.ten === 'expenses' && x.lenh === 'insert')?.v.item, 'Hồng đỏ'))
+      A.dl.expenses.splice(A.dl.expenses.length - chiThem.length)
+
+      // Đúng ca thật: 2 nguyên liệu "Thúy châu" (2 lần, 09/2026) + "Thuý châu" (3 lần, từ 10/2026)
+      const chiTC = [
+        { id: 811, expense_date: '2025-11-11', category: 'Hoa', item: 'Thuý châu', quantity: 1, unit_price: 80000, amount: 80000 },
+        { id: 812, expense_date: '2025-10-20', category: 'Hoa', item: 'Thuý châu', quantity: 1, unit_price: 80000, amount: 80000 },
+        { id: 813, expense_date: '2025-10-12', category: 'Hoa', item: 'Thuý châu', quantity: 1, unit_price: 80000, amount: 80000 },
+        { id: 814, expense_date: '2025-09-22', category: 'Hoa', item: 'Thúy châu', quantity: 1, unit_price: 50000, amount: 50000 },
+        { id: 815, expense_date: '2025-09-07', category: 'Hoa', item: 'Thúy châu', quantity: 1, unit_price: 75000, amount: 75000 },
+      ]
+      const nlTC = [{ id: 31, name: 'Thúy châu', category: 'Hoa', last_price: 50000 }, { id: 32, name: 'Thuý châu', category: 'Hoa', last_price: 80000 }]
+      A.dl.expenses.push(...chiTC)
+      w.eval('materials').push(...nlTC)
+      await w.taiDongChi(true)
+      w.openMaterialEditModal(31); await cho(150)
+      test('Ca thật "Thúy châu": lịch sử gom đủ 5 lần (cả 3 lần ghi "Thuý châu")', () => bang(lanNhap(), 5))
+      test('Ca thật: giá gần nhất tự về 80.000đ (lần nhập mới nhất), không còn 50.000đ', () => bang(w.eval("moneyNum('mePrice')"), 80000))
+      test('Ca thật: có nguyên liệu trùng "Thuý châu" → hộp vàng mời Gộp', () =>
+        bang(d.querySelector('#meGan .nl-gan-ten b')?.textContent, 'Thuý châu'))
+      const dauTC = A.nhatKy.length
+      d.querySelector('#meGan .nl-gop').click(); await cho(80)
+      id('cfOk').click(); await cho(200)
+      test('Gộp → đổi 3 dòng về "Thúy châu" + xoá nguyên liệu trùng, hộp vàng biến mất', () => {
+        bang(A.nhatKy.slice(dauTC).some(x => x.ten === 'expenses' && x.lenh === 'update' && x.v.item === 'Thúy châu'), true)
+        bang(A.nhatKy.slice(dauTC).some(x => x.ten === 'materials' && x.lenh === 'delete'), true)
+        bang(w.eval('materials').some(m => m.id === 32), false)
+        bang(d.querySelectorAll('#meGan .nl-gan-dong').length, 0); bang(lanNhap(), 5)
+      })
+      w.closeMaterialEditModal(); await cho(50)
+      A.dl.expenses.splice(A.dl.expenses.length - chiTC.length)
+
+      // ── Liên hệ chia 6 phần (12/11/2026, kiểu A) ──
+      nhom('7b. Liên hệ — 6 phần')
+      Object.assign(A.dl.contact[0], { banner_text: '', banner_active: false })   // database giả có đủ cột banner như thật
+      w.applyTab('Contact'); await cho(300)
+      const phanHien = () => [...d.querySelectorAll('#contactForm > .ct-muc')].filter(s => !s.hidden)
+      w.ctChonPhan(2); await cho(30)
+      test('Bấm "Banner" → chỉ hiện đúng 1 phần (có ô nội dung banner)', () => {
+        bang(phanHien().length, 1); bang(!!phanHien()[0].querySelector('#ctBanner'), true)
+        bang(d.querySelector('#ctTabs > button.on').textContent.trim(), 'Banner')
+      })
+      id('ctBanner').value = 'Nhận đặt hoa\n20/11'; id('ctBanner').dispatchEvent(new w.Event('input', { bubbles: true }))
+      test('Sửa mà chưa Lưu → ô "Banner" có chấm cam', () => bang(d.querySelectorAll('#ctTabs > button')[2].classList.contains('doi'), true))
+      id('ctGa4').value = 'sai-ma'
+      await w.saveContact({ preventDefault() {}, target: id('contactForm') }); await cho(50)
+      test('Mã đo lường sai khi đang ở phần khác → tự mở phần "Đo lường" để thấy ô báo lỗi', () =>
+        bang(d.querySelector('#ctTabs > button.on').textContent.trim(), 'Đo lường'))
+      id('ctGa4').value = ''
+      const dauLh = A.nhatKy.length
+      await w.saveContact({ preventDefault() {}, target: id('contactForm') }); await cho(50)
+      test('Lưu → banner gộp thành 1 dòng + hết chấm cam', () => {
+        bang(A.nhatKy.slice(dauLh).find(x => x.ten === 'contact' && x.lenh === 'update')?.v.banner_text, 'Nhận đặt hoa 20/11')
+        bang(d.querySelectorAll('#ctTabs > button.doi').length, 0)
+      })
+      test('Phần Liên hệ: mọi ô nhập đều có nhãn đọc được', () => {
+        const thieu = [...d.querySelectorAll('#contactForm input:not([type=hidden]):not([type=file]), #contactForm textarea, #contactForm select')]
+          .filter(x => !x.labels || ![...x.labels].some(l => l.textContent.trim())).map(x => x.name)
+        bang(thieu, [])
+      })
+      w.ctChonPhan(0)
+      w.eval('materials').splice(0, w.eval('materials').length, ...w.eval('materials').filter(m => m.id < 30))
+      await w.taiDongChi(true)
 
       // ── Bộ sưu tập ──
       nhom('8. Bộ sưu tập')

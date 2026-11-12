@@ -162,6 +162,8 @@ Chi tiết từng mục (lỗi thật đã xảy ra + cách làm đúng) nằm �
 - Bốn con số tiền dùng chung (21/10/2026, shop chọn bảng tiền phương án A)
 - Lọc thanh toán ở Đơn hàng (21/10/2026)
 - Lọc trạng thái + thanh toán trên điện thoại = nút "Lọc" + bảng trượt (07/11/2026)
+- Nguyên liệu: so tên bằng `tenKhoa()`, KHÔNG so chuỗi y hệt (12/11/2026)
+- Tab Liên hệ chia 6 phần, mỗi lần hiện 1 phần (12/11/2026, kiểu A)
 
 **[Dùng chung web + admin, và luật viết code](huong-dan/ky-thuat/dung-chung.md)**
 - CSS xếp theo PHẦN GIAO DIỆN, không theo đợt sửa (07/11/2026)
@@ -183,6 +185,7 @@ Chi tiết từng mục (lỗi thật đã xảy ra + cách làm đúng) nằm �
 - File `.md` bị GitHub Pages (Jekyll) biến thành trang web công khai
 - Script Python in tiếng Việt ra cửa sổ lệnh Windows bị lỗi `UnicodeEncodeError`
 - Báo lỗi nhập liệu NGAY TẠI Ô (`baoLoiO`), không dùng thông báo nổi (08/11/2026)
+- Thanh cuộn KHÔNG được chạm góc bo (12/11/2026) — viền trong suốt đẩy thanh cuộn vào trong
 - Thanh tab dưới (web + admin) dùng `bamNhanh` + admin đổi tab "vẽ trước, nạp sau" (08/11/2026)
 
 **[Kiểm thử (test) và xem thử bằng dữ liệu giả](huong-dan/ky-thuat/kiem-thu.md)**

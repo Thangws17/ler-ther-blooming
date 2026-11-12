@@ -1108,7 +1108,10 @@ html.chao .trust3 > div:nth-child(3) { animation-delay: .46s; }
 .om-ph .ic { width:32px; height:32px; color:#9aa79a; }
 .order-modal { padding: 0; max-width: 560px; border-radius: 22px; }
 /* Chỉ phần ruột cuộn → nút ✕ luôn đứng yên, không bị cuộn mất hay bị thanh địa chỉ che */
-#orderModalBody { overflow-y: auto; flex: 1; min-height: 0; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 22px 24px 0; }
+#orderModalBody { overflow-y: auto; flex: 1; min-height: 0; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 6px 24px 0;
+  /* Viền trong suốt trên/dưới 16px đẩy thanh cuộn lùi khỏi 2 góc bo bên phải (12/11/2026: Chrome máy tính để mũi tên thanh cuộn
+     lòi ra ngoài góc tròn). Hàng "Gửi đơn" dính đáy vùng cuộn → bớt đệm dưới của nó, viền 16px thay vào. */
+  border: solid transparent; border-width: 16px 0; }
 .omx-sp { display: flex; align-items: center; gap: 12px; padding: 10px; margin-right: 44px; border: 1px solid var(--line); border-radius: 16px; }
 .omx-sp img, .omx-sp .om-ph { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; flex-shrink: 0; }
 .omx-sp-t { flex: 1; min-width: 0; }
@@ -1162,7 +1165,7 @@ html.chao .trust3 > div:nth-child(3) { animation-delay: .46s; }
 .omx-mo small { margin-left: auto; font-weight: 600; font-size: .76rem; color: #9aa79a; }
 .omx-than { display: none; padding: 10px 0 2px; }
 .omx-mo.open + .omx-than { display: block; }
-.omx-ft { position: sticky; bottom: 0; z-index: 3; margin: 14px -24px 0; padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px));
+.omx-ft { position: sticky; bottom: 0; z-index: 3; margin: 14px -24px 0; padding: 12px 24px 0;
   background: #fff; border-top: 1px solid var(--line); }
 .omx-ft-r { display: flex; align-items: center; gap: 12px; }
 .omx-tong { flex: 1; min-width: 0; line-height: 1.2; }
@@ -1220,8 +1223,8 @@ html.chao .trust3 > div:nth-child(3) { animation-delay: .46s; }
   /* Form đặt hoa: tấm trượt từ dưới lên, cao gần hết màn */
   .order-overlay { align-items: flex-end; padding: 0; }
   .order-modal { max-width: none; border-radius: 22px 22px 0 0; max-height: 94dvh; }
-  #orderModalBody { padding: 16px 16px 0; }
-  .omx-ft { margin: 14px -16px 0; padding-left: 16px; padding-right: 16px; }
+  #orderModalBody { padding: 0 16px; border-width: 16px 0 0; }   /* điện thoại: thanh cuộn nổi tự ẩn, chỉ giữ 16px trên như cũ */
+  .omx-ft { margin: 14px -16px 0; padding-left: 16px; padding-right: 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
   .omx-lich { left: auto; right: 0; }
   .omx-in input, .omx-in textarea { font-size: 16px; }
 }

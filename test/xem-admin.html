@@ -7,9 +7,9 @@
      KHÔNG đọc, KHÔNG ghi Supabase thật (kể cả khi máy đang đăng nhập admin). Tên / SĐT trong đây đều bịa.
      Chọn màn bằng ?v=…  (mở bằng python serve.py → http://localhost:8765/test/xem-admin.html?v=ds)
        tq (Tổng quan đã bỏ 06/11/2026 → mở Đơn hàng) · ds Đơn hàng · don form Thêm đơn · sua form Sửa đơn · ct chi tiết đơn · qr bảng mã QR
-       lg Lịch giao · kh / khm Khách hàng · ex / chi Sổ chi phí · nl / nls Nguyên liệu · bc / bcm Báo cáo
+       lg Lịch giao · kh / khm Khách hàng · ex / chi Sổ chi phí · nl / nls / nlt Nguyên liệu (nlt = ca trùng Thúy/Thuý châu) · bc / bcm Báo cáo
        sp / spm / spx Sản phẩm · ttc Thông tin chung · bst / bstm Bộ sưu tập · kk / kka / kkm Khoảnh khắc
-       lh Liên hệ · menu menu bên (điện thoại) · dsn Đơn hàng nhiều trang (thanh phân trang). Danh sách đầy đủ: biến `tab` trong giaLap() bên dưới.
+       lh Liên hệ (cuộn tới tài khoản nhận tiền) · lien Liên hệ (&phan=0…5 mở sẵn 1 phần) · menu menu bên (điện thoại) · dsn Đơn hàng nhiều trang (thanh phân trang). Danh sách đầy đủ: biến `tab` trong giaLap() bên dưới.
      ?dx=… chỉ dùng trên máy làm việc (nạp bản nháp đề xuất ở thư mục demo/, không có trong git). -->
 <script>
 function giaLap(V, Q) {
@@ -67,6 +67,22 @@ function giaLap(V, Q) {
     { id: 5, expense_date: ngay(-4), category: 'Vận chuyển', item: 'Grab giao hàng', quantity: null, unit_price: null, amount: 85000, note: '', image: '' },
     { id: 6, expense_date: ngay(-6), category: 'Hoa', item: 'Hồng đỏ Đà Lạt', quantity: 30, unit_price: 6500, amount: 195000, note: '', image: '' },
   ]
+  // Nguyên liệu: cùng "Hồng đỏ Đà Lạt" nhưng gõ khác kiểu (thừa dấu cách, gõ trên iPhone, không dấu, ghi dài hơn) — 12/11/2026
+  if (V === 'nl' || V === 'nls') {
+    const lui = n => new Date(Date.now() - n * 864e5).toLocaleDateString('sv-SE')
+    exp.push({ id: 201, expense_date: lui(35), category: 'Hoa', item: 'Hồng đỏ  Đà Lạt ', quantity: 40, unit_price: 6000, amount: 240000, note: '', image: '' },
+      { id: 202, expense_date: lui(50), category: 'Hoa', item: 'Hồng đỏ Đà Lạt'.normalize('NFD'), quantity: 50, unit_price: 5500, amount: 275000, note: '', image: '' },
+      { id: 203, expense_date: lui(64), category: 'Hoa', item: 'hong do da lat', quantity: 30, unit_price: 5500, amount: 165000, note: '', image: '' },
+      { id: 204, expense_date: lui(80), category: 'Hoa', item: 'hong do da lat', quantity: 20, unit_price: 5000, amount: 100000, note: '', image: '' },
+      { id: 205, expense_date: lui(70), category: 'Hoa', item: 'Hồng đỏ Đà Lạt loại 1', quantity: 20, unit_price: 7000, amount: 140000, note: '', image: '' })
+  }
+  // ?v=nlt — đúng ca thật 12/11/2026: "Thúy châu" 2 lần (09) + "Thuý châu" 3 lần (10–11), 2 nguyên liệu trùng
+  if (V === 'nlt') exp.push(
+    { id: 211, expense_date: '2026-11-11', category: 'Hoa', item: 'Thuý châu', quantity: 1, unit_price: 80000, amount: 80000, note: '', image: '' },
+    { id: 212, expense_date: '2026-10-20', category: 'Hoa', item: 'Thuý châu', quantity: 1, unit_price: 80000, amount: 80000, note: '', image: '' },
+    { id: 213, expense_date: '2026-10-12', category: 'Hoa', item: 'Thuý châu', quantity: 1, unit_price: 80000, amount: 80000, note: '', image: '' },
+    { id: 214, expense_date: '2026-09-22', category: 'Hoa', item: 'Thúy châu', quantity: 1, unit_price: 50000, amount: 50000, note: '', image: '' },
+    { id: 215, expense_date: '2026-09-07', category: 'Hoa', item: 'Thúy châu', quantity: 1, unit_price: 75000, amount: 75000, note: '', image: '' })
   if (V === 'bc' || V === 'bcm') for (let m = 1; m < 12; m++) exp.push({ id: 100 + m, expense_date: new Date(Date.now() - (m * 30 + 3) * 864e5).toLocaleDateString('sv-SE'), category: 'Hoa', item: 'Hoa nhập chợ', amount: 900000 + (m % 4) * 250000 })
   const sp = [[1, 'Tulip x cỏ suối', 'Từ 6xx', '1784038764629_optw_p1_1.webp'], [4, 'Hồng Ecuador rực rỡ', 'Từ 3xx', '1784038741137_optw_p4_1.jpg'],
     [25, 'Mix Garden - Tone Hồng Pastel', 'Từ 2xx', '1789490039234_optw_p25_0.jpg'], [17, 'Hồng chiết xạ', 'Từ 1xx', '1784038753671_optw_p17_0.webp'],
@@ -88,13 +104,14 @@ function giaLap(V, Q) {
     if (!c) kh.push(c = { id: o.id, name: o.customer_name, phone: o.customer_phone, address: o.delivery_address, created_at: new Date(Date.now() - 30 * 864e5).toISOString() })
     o.customer_id = c.id })
   kh.push({ id: 900, name: 'Trần Bảo Ngọc', phone: '0900000900', address: '12 Phố Mẫu, Q. Thử', created_at: new Date().toISOString() })
-  const contact = [{ id: 1, phone: '0912345678', zalo: '0912345678', ck_ngan_hang: '970436', ck_so_tk: '0123456789', ck_chu_tk: 'LER THER BLOOMING', ga4_id: null, clarity_id: null }]
+  const contact = [{ id: 1, phone: '0912345678', zalo: '0912345678', address: '12 Phố Mẫu, Q. Thử', hours: '8:00 – 21:00, T2 – CN', facebook: 'https://facebook.com/vidu', instagram: 'https://instagram.com/vidu', banner_text: '🌸 Nhận đặt hoa 20/11 — đặt trước 2 ngày nhé', banner_active: true, policy_delivery: 'Miễn phí giao nội thành', policy_payment: 'Chuyển khoản / tiền mặt', ck_ngan_hang: '970436', ck_so_tk: '0123456789', ck_chu_tk: 'LER THER BLOOMING', ga4_id: null, clarity_id: null }]
   const gioTruoc = h => new Date(Date.now() - h * 3600e3).toISOString()
   const nhat_ky_tai_khoan = [{ id: 1, luc: gioTruoc(V === 'qrdoi' ? 2 : 24 * 5), ai: 'shop@example.com', cu: '(chưa có)', moi: '970436 · 0123456789 · LER THER BLOOMING' }]
   const bang = { contact, nhat_ky_tai_khoan, orders: don, expenses: exp, customers: kh, products: sp, collections: bst, collection_products: gan, gallery: gal,
     gallery_categories: [{ id: 1, name: 'Hoa bó', emoji: '🌹', order_index: 1 }, { id: 5, name: 'Sự kiện', emoji: '🎉', order_index: 2 }, { id: 3, name: 'Hoa tốt nghiệp', emoji: '💐', order_index: 3 }],
     materials: [{ id: 1, name: 'Hồng đỏ Đà Lạt', category: 'Hoa', last_price: 6500 }, { id: 2, name: 'Giấy gói', category: 'Phụ kiện', last_price: 3000 },
-                { id: 3, name: 'Ruy băng', category: 'Phụ kiện', last_price: 8000 }, { id: 4, name: 'Tulip', category: 'Hoa', last_price: 25000 }] }
+                { id: 3, name: 'Ruy băng', category: 'Phụ kiện', last_price: 8000 }, { id: 4, name: 'Tulip', category: 'Hoa', last_price: 25000 },
+                ...(V === 'nlt' ? [{ id: 31, name: 'Thúy châu', category: 'Hoa', last_price: 50000 }, { id: 32, name: 'Thuý châu', category: 'Hoa', last_price: 80000 }] : [])] }
   // Bản giả của sb.from(): chuỗi .select().eq()… trả dữ liệu giả; đếm (head) trả count
   w.eval('sb').from = ten => {
     let dl = (bang[ten] || []).slice(), dem = false, vaGhi = null, khuc = null, khoa = []
@@ -133,7 +150,7 @@ function giaLap(V, Q) {
   d.getElementById('loginWrap').style.display = 'none'
   d.getElementById('appWrap').style.display = 'flex'
   if (w.measureViewport) w.measureViewport()
-  const tab = { tq: 'Orders', ds: 'Orders', exl: 'Expenses', exc: 'Expenses', loc: 'Orders', locm: 'Orders', don: 'Orders', gop: 'Orders', gople: 'Orders', chi: 'Expenses', ct: 'Orders', ct2: 'Orders', qr: 'Orders', qrtt: 'Orders', qrcg: 'Orders', qrdoi: 'Orders', mk: 'Contact', doncoc: 'Orders', suacoc: 'Orders', qrchua: 'Orders', lh: 'Contact', lg: 'Delivery', nl: 'Expenses', nls: 'Expenses', ex: 'Expenses', sua: 'Orders', bst: 'Collections', bstm: 'Collections', kk: 'Gallery', kka: 'Gallery', kkm: 'Gallery', menu: 'Orders', sp: 'Products', spx: 'Products', spm: 'Products', sp5: 'Products', ttc: 'Products', spt: 'Products', kh: 'Customers', khm: 'Customers', bc: 'Reports', bcm: 'Reports', dsn: 'Orders' }[V] || 'Dashboard'
+  const tab = { tq: 'Orders', ds: 'Orders', exl: 'Expenses', exc: 'Expenses', loc: 'Orders', locm: 'Orders', don: 'Orders', gop: 'Orders', gople: 'Orders', chi: 'Expenses', ct: 'Orders', ct2: 'Orders', qr: 'Orders', qrtt: 'Orders', qrcg: 'Orders', qrdoi: 'Orders', mk: 'Contact', doncoc: 'Orders', suacoc: 'Orders', qrchua: 'Orders', lh: 'Contact', lien: 'Contact', lg: 'Delivery', nl: 'Expenses', nls: 'Expenses', nlt: 'Expenses', ex: 'Expenses', sua: 'Orders', bst: 'Collections', bstm: 'Collections', kk: 'Gallery', kka: 'Gallery', kkm: 'Gallery', menu: 'Orders', sp: 'Products', spx: 'Products', spm: 'Products', sp5: 'Products', ttc: 'Products', spt: 'Products', kh: 'Customers', khm: 'Customers', bc: 'Reports', bcm: 'Reports', dsn: 'Orders' }[V] || 'Dashboard'
   // Đọc ?dx= / ?thang= từ chuỗi Q chép lúc mở trang, KHÔNG từ location.search: máy đang đăng nhập admin thì admin tự
   // replaceState('#Dashboard'), mà trang có <base href="/admin/"> nên đường dẫn thành /admin/#Dashboard — mất hết ?… (lỗi thật 21/10/2026)
   const P = new URLSearchParams(Q), DX = P.get('dx')
@@ -155,7 +172,8 @@ function giaLap(V, Q) {
       d.getElementById('noTtThan').closest('.fx-grp').scrollIntoView({ block: 'start' }) }, 300) }
     if (V === 'suacoc') { w.cacheOrders(don); w.openOrderEditModal(152); setTimeout(() => d.getElementById('oeTtThan').closest('.fx-grp').scrollIntoView({ block: 'start' }), 300) }
     if (V === 'ct2') { w.cacheOrders(don); w.viewOrderDetail(151) }
-    if (V === 'lh') setTimeout(() => d.getElementById('ctNganHang').closest('.field-group').previousElementSibling.scrollIntoView({ block: 'start' }), 400)
+    if (V === 'lh') setTimeout(() => w.ctChonPhan(4), 400)   // mở sẵn phần Chuyển khoản
+    if (V === 'lien' && P.get('phan')) setTimeout(() => w.ctChonPhan(+P.get('phan')), 400)   // &phan=0…5: mở sẵn 1 phần
     if (V === 'qrchua') {}
     if (V === 'qrtt') { w.cacheOrders(don); w.viewOrderDetail(151); setTimeout(() => w.moQrCk(151), 200) }
     if (V === 'qrcg') { const o = don.find(x => x.id === 149); o.unit_price = null; o.total = 0; w.cacheOrders(don); w.viewOrderDetail(149); setTimeout(() => w.moQrCk(149), 200) }
@@ -165,6 +183,7 @@ function giaLap(V, Q) {
     if (V === 'qrchua') { contact[0].ck_so_tk = null; w.cacheOrders(don); w.viewOrderDetail(151); setTimeout(() => w.moQrCk(151), 200) }
     if (V === 'nl') w.openMaterialsModal()
     if (V === 'nls') w.openMaterialsModal().then(() => w.openMaterialEditModal(1))
+    if (V === 'nlt') w.openMaterialsModal().then(() => w.openMaterialEditModal(31))
     if (V === 'menu') w.openSidebar()
     if (V === 'bstm') w.openBstModal(6)
     if (V === 'kka') w.kkMoAlbum('Hoa bó')
