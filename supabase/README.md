@@ -51,10 +51,14 @@ Mọi file đều **chạy lại được nhiều lần** mà không hỏng dữ
 | 32 | `32_caption_mau_moi_4.sql` | Mô tả mẫu #51, #52 | 📝 | ✅ | |
 | 33 | `33_nguon_khach.sql` | **Nguồn khách** của đơn; đơn web tự ghi "Web" | 🧱 | ✅ | ✓ |
 | 34 | `34_caption_mau_moi_5.sql` | Mô tả mẫu #54, #55 | 📝 | chờ chạy | |
+| 35 | `35_gia_co_tao_don.sql` | Hàm tạo đơn kiểm danh sách quản trị; khoá lượt tạo đơn để không vượt giới hạn khi gửi đồng thời. Giữ SĐT dùng chung như cũ | 🔒 | ✅ | |
+
+File 35 chỉ thay hàm, không thêm bảng/cột nên không có dấu kiểm cột trong admin. Cách thử và áp dụng:
+[gia-co-tao-don.md](../huong-dan/ky-thuat/gia-co-tao-don.md).
 
 ## Thêm file SQL mới
 
-1. Đặt tên theo số tiếp theo: `34_ten_ngan_gon.sql`. Viết sao cho **chạy lại được** (`create table if not exists`,
+1. Đặt tên theo số tiếp theo: `36_ten_ngan_gon.sql`. Viết sao cho **chạy lại được** (`create table if not exists`,
    `add column if not exists`…), có đoạn chú thích đầu file nói "vì sao cần".
 2. Có bảng mới → thêm tên bảng vào danh sách trong `24_chi_quan_tri.sql` (luật "chỉ quản trị") và `SAO_LUU_BANG` (admin, sao lưu Excel).
 3. Có bảng / cột mới → thêm 1 dòng vào `SQL_DAU_HIEU` trong `admin/index.html` (Ctrl+F `SQL_DAU_HIEU`) để Tổng quan tự nhắc khi chưa chạy.

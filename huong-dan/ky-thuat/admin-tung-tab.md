@@ -5,6 +5,10 @@
 
 Cách từng tab tải và vẽ dữ liệu, các quy ước riêng của mỗi tab.
 
+- **SĐT dùng chung là chủ ý của shop (13/11/2026)**: ưu tiên `customers.phone` khi hiển thị đơn, sửa sổ khách thì các đơn
+  cũ hiện số mới. `customer_phone` chỉ là số dự phòng khi xoá khách. Không tự chuyển sang lưu liên hệ riêng mỗi đơn.
+  Khi sửa đơn, `oeSyncCustomer()` vẫn cập nhật khách dùng chung nhưng phải báo lỗi nếu tra/sửa không được dòng nào.
+
 - **Mảng `orders` CHỈ chứa trang đơn đang xem, không phải cả bảng.** Tab Đơn hàng tải theo trang
   (`ordersPage` × `coTrang`, `buildOrdersQuery()` lọc trên server, `count: 'exact'` để đếm). **Đừng bao giờ
   `orders.filter(...)` để lọc/tìm** — sẽ chỉ tìm trong mấy chục đơn đã tải rồi báo "không có đơn nào".

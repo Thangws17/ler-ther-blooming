@@ -18,6 +18,7 @@ Mỗi dòng là một lựa chọn **shop đã cân nhắc và chốt**, kèm l�
 | Quyết định | Ngày | Lý do |
 |---|---|---|
 | **Admin là nơi lên đơn chính** (khách chốt qua Facebook/Zalo rồi shop nhập). Cải tiến nhập đơn làm ở admin trước | 30/08/2026 | Đơn web chỉ là nguồn nhỏ |
+| **SĐT khách dùng chung từ sổ khách**: sửa số thì các đơn cũ hiện số mới. Chỉ giữ số dự phòng khi xoá khách khỏi sổ; không tách số riêng cho mỗi đơn | 13/11/2026 | Shop muốn sửa một lần, không phải sửa từng đơn |
 | Sửa web khách thì **sửa admin cùng lúc** (và ngược lại) | 30/08/2026 | Đã 2 lần lệch nhau sinh lỗi |
 | **Không quản lý tồn kho / giá vốn**, chỉ ghi Sổ chi phí theo dòng tiền | trước 09/2026 | Quá phức tạp cho 2 người bán thời gian |
 | Doanh thu tính theo **ngày giao**, mốc ghi nhận là "Giao thành công" | trước 09/2026 | Khớp với lúc thật sự nhận tiền |

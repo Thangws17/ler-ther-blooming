@@ -21,6 +21,11 @@ và `test/index.html`.
 Không có bước build, không `npm install`. Vẫn nên mở trình duyệt xem thật, nhưng đã có sẵn
 mấy trang test chạy trong trình duyệt (vẫn server 8765 đó):
 
+- `/test/test-do-tin-cay.html` — chạy hàm admin thật với dữ liệu giả: SĐT dùng chung, tra khách lỗi,
+  sửa/xoá 0 dòng, không đổi bộ nhớ tài khoản hay mất dấu chưa lưu khi ghi thất bại. Kiểm mã nguồn SQL 15/35 khớp nhau;
+  **không thay cho test hành vi PostgreSQL**. Test database ở `test/kiem-tra-tao-don.sql` (chỉ môi trường thử nghiệm),
+  và cách kiểm đồng thời ở [gia-co-tao-don.md](gia-co-tao-don.md).
+
 - `/test/test-gia-san-pham.html` — ô giá sản phẩm: chèn dấu chấm, giữ con trỏ, dãy giá hay dùng
 - `/test/test-khung-man-hinh.html` — khung màn hình admin trên iPhone + thanh tab dưới đáy (xem "Bẫy đã biết")
 - `/test/test-form-chi-phi.html` — ô ngày + ô tiền + chip / mục gấp của form chi phí và form thêm đơn

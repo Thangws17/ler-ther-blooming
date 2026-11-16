@@ -41,6 +41,7 @@ CHO_TOI_DA = 300          # giây cho 1 trang (test-web-khach đọc Supabase th
 # Thứ tự: nhanh trước, chậm sau. Thêm trang test mới thì thêm tên vào đây.
 TRANG = [
     'test-cu-phap',
+    'test-do-tin-cay',
     'test-gia-san-pham',
     'test-bo-suu-tap',
     'test-do-luong',

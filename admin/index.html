@@ -7763,11 +7763,11 @@ async function saveContact(e) {
   // → bắt nhập lại mật khẩu: người cầm máy đang đăng nhập sẵn mà không biết mật khẩu thì không đổi được.
   const doiTk = 'ck_so_tk' in data && _ckGoc && ckCua(data) !== _ckGoc
   if (doiTk && !(await hoiMatKhau('Bạn đang đổi TÀI KHOẢN NHẬN TIỀN của shop — khách quét mã QR sẽ chuyển vào tài khoản mới. Nhập mật khẩu để xác nhận.'))) return
-  const { error } = await sb.from('contact').update(data).eq('id', 1)
-  if (!error && 'ck_so_tk' in data) { _taiKhoanCk = taiKhoanCk(data); _ckGoc = ckCua(data) }
-  if (!error && doiTk) veNhatKyCk()
-  if (!error) ctBoDanhDau()
-  error ? showToast('Lỗi: ' + error.message, 'error') : showToast('Đã lưu thông tin liên hệ!')
+  if (!(await ghiDb(sb.from('contact').update(data).eq('id', 1).select('id'), 'lưu thông tin liên hệ'))) return
+  if ('ck_so_tk' in data) { _taiKhoanCk = taiKhoanCk(data); _ckGoc = ckCua(data) }
+  if (doiTk) veNhatKyCk()
+  ctBoDanhDau()
+  showToast('Đã lưu thông tin liên hệ!')
 }
 
 // ── Testimonials ─────────────────────────────────
@@ -9946,23 +9946,31 @@ async function saveOrderEdit(e) {
 
 // Đồng bộ tên/SĐT khách khi sửa đơn — dedupe theo SĐT như place_order RPC
 async function oeSyncCustomer(currentCustomerId, name, phone) {
+  // .single() mà 0 dòng được ghi (PGRST116) = thường do hết phiên đăng nhập → báo câu dễ hiểu
+  function loi(e) {
+    return e.code === 'PGRST116' ? 'chưa lưu được — có thể phiên đăng nhập đã hết. Tải lại trang (F5) rồi thử lại nhé.' : e.message
+  }
   if (!phone) {
-    if (currentCustomerId) await sb.from('customers').update({ name }).eq('id', currentCustomerId)
+    if (currentCustomerId) {
+      const { error } = await sb.from('customers').update({ name }).eq('id', currentCustomerId).select('id').single()
+      if (error) return { customerId: null, error: loi(error) }
+    }
     return { customerId: currentCustomerId }
   }
-  const { data: existing } = await sb.from('customers').select('id').eq('phone', phone).maybeSingle()
+  const { data: existing, error: lookupError } = await sb.from('customers').select('id').eq('phone', phone).maybeSingle()
+  if (lookupError) return { customerId: null, error: lookupError.message }
   if (existing) {
-    const { error } = await sb.from('customers').update({ name }).eq('id', existing.id)
-    if (error) return { customerId: null, error: error.message }
+    const { error } = await sb.from('customers').update({ name }).eq('id', existing.id).select('id').single()
+    if (error) return { customerId: null, error: loi(error) }
     return { customerId: existing.id }
   }
   if (currentCustomerId) {
-    const { error } = await sb.from('customers').update({ name, phone }).eq('id', currentCustomerId)
-    if (error) return { customerId: null, error: error.message }
+    const { error } = await sb.from('customers').update({ name, phone }).eq('id', currentCustomerId).select('id').single()
+    if (error) return { customerId: null, error: loi(error) }
     return { customerId: currentCustomerId }
   }
   const { data: created, error } = await sb.from('customers').insert({ name, phone }).select('id').single()
-  if (error) return { customerId: null, error: error.message }
+  if (error) return { customerId: null, error: loi(error) }
   return { customerId: created.id }
 }
 
@@ -10725,8 +10733,8 @@ async function saveCustomer(e) {
     address: document.getElementById('cuAddress').value.trim() || null,
   }
   const res = id
-    ? await sb.from('customers').update(data).eq('id', parseInt(id))
-    : await sb.from('customers').insert(data)
+    ? await sb.from('customers').update(data).eq('id', parseInt(id)).select('id')
+    : await sb.from('customers').insert(data).select('id')
   btn.textContent = 'Lưu'; btn.disabled = false
   if (res.error) {
     const msg = res.error.code === '23505'
@@ -10734,6 +10742,7 @@ async function saveCustomer(e) {
       : res.error.message
     showToast('Lỗi: ' + msg, 'error'); return
   }
+  if (!(await ghiDb(Promise.resolve(res), 'lưu khách'))) return
   showToast(id ? 'Đã cập nhật khách!' : 'Đã thêm khách!')
   closeCustomerModal()
   loadCustomers()
@@ -10810,8 +10819,9 @@ async function deleteCustomer(id) {
 
   // Chép số vào đơn trước, xoá sau — thứ tự này quan trọng
   if (n && c.phone) {
-    const { error } = await sb.from('orders')
-      .update({ customer_phone: c.phone }).eq('customer_id', id)
+    const result = await sb.from('orders')
+      .update({ customer_phone: c.phone }).eq('customer_id', id).select('id')
+    const { error } = result
     if (error) {
       showToast(
         error.message.includes('customer_phone')
@@ -10819,10 +10829,10 @@ async function deleteCustomer(id) {
           : 'Lỗi: ' + error.message, 'error')
       return
     }
+    if (!(await ghiDb(Promise.resolve(result), 'giữ số liên hệ trước khi xoá khách'))) return
   }
 
-  const { error } = await sb.from('customers').delete().eq('id', id)
-  if (error) { showToast('Lỗi: ' + error.message, 'error'); return }
+  if (!(await ghiDb(sb.from('customers').delete().eq('id', id).select('id'), 'xoá khách'))) return
   showToast(n ? `Đã xóa khách — ${n} đơn vẫn giữ nguyên` : 'Đã xóa khách')
   loadCustomers()
   if (orders.length) loadOrders()   // đơn liên quan cần vẽ lại theo số vừa chép

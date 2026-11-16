@@ -6,6 +6,10 @@
 Bảng, hàm SQL, luật bảo mật, cách viết/chạy file SQL, sao lưu. Đọc trước khi sửa thứ gì trong `supabase/` hoặc chỗ ghi database.
 
 - **`place_order` được định nghĩa lại ở 4 file SQL.** Bản hiện hành là `supabase/15_notifications_v2.sql` (11 tham số, có `p_email`). Ba bản cũ (10 tham số) đã dồn vào `supabase/da-thay-the/` — chạy vào là **lùi** hàm về bản cũ. Sửa RPC thì sửa trong `15_notifications_v2.sql`.
+  Bản vá triển khai `35_gia_co_tao_don.sql` chép cùng hàm của file 15 (test-do-tin-cay kiểm khớp).
+  Sau SQL 35, quyền miễn chống spam lấy từ `la_quan_tri()`, tài khoản ngoài shop bị từ chối.
+  Khoá giao dịch `72638135` dùng chung cho mọi lượt tạo đơn, giữ tới commit/rollback; không đổi sang khoá riêng từng SĐT
+  vì vẫn phải bảo đảm giới hạn toàn web. API dùng mức cô lập READ COMMITTED. Xem [cách kiểm](gia-co-tao-don.md).
 - **Hàm nhắc lịch `send_delivery_reminders()` chỉ còn ở `15_notifications_v2.sql`** (Brevo). File 16 trước đây định nghĩa
   lại bản Telegram/Resend cũ → chạy lại 16 là đè mất bản mới, mất email nhắc 8:30. File 16 giờ chỉ tạo extension + bảng
   `app_settings`; file 15 cũng tự tạo nền đó nên không phụ thuộc thứ tự. Mọi chữ ghép vào HTML email phải qua `html_esc()`,

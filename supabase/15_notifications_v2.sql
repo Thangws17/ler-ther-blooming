@@ -114,7 +114,7 @@ drop function if exists place_order(text, text, text, bigint, text, int, date, t
 --  • Cắt độ dài từng ô (chặn dán cả trang chữ làm nặng database / email)
 --  • Email khách sai định dạng → bỏ qua, không gửi
 --  • Mọi chữ khách gõ đều qua html_esc() trước khi vào email
---  • Chống spam (chỉ áp cho web khách; admin đã đăng nhập thì không bị chặn):
+--  • Chống spam (chỉ tài khoản trong quan_tri được miễn, cần SQL 24):
 --      - 1 SĐT tối đa 3 đơn / 10 phút
 --      - cả web tối đa 20 đơn / 10 phút
 --      - 1 email khách nhận tối đa 3 mail xác nhận / ngày (đơn vẫn ghi, chỉ không gửi mail)
@@ -139,7 +139,7 @@ security definer
 set search_path = public
 as $$
 declare
-  v_admin boolean := coalesce(auth.role(), '') = 'authenticated';
+  v_admin boolean := public.la_quan_tri();
   v_phone text := nullif(left(norm_phone(trim(coalesce(p_phone, ''))), 20), '');
   v_name  text := nullif(left(trim(coalesce(p_name, '')), 100), '');
   v_addr  text := nullif(left(trim(coalesce(p_address, '')), 300), '');
@@ -162,6 +162,13 @@ declare
   v_ct jsonb;
   v_ck text;
 begin
+  if coalesce(auth.role(), '') = 'authenticated' and not v_admin then
+    raise exception 'KHONG_CO_QUYEN: tài khoản không thuộc quản trị shop' using errcode = '42501';
+  end if;
+  -- Cùng một khoá cho MỌI lượt tạo đơn, giữ tới COMMIT/ROLLBACK. Sau khi chờ,
+  -- các SELECT ở READ COMMITTED thấy đơn vừa commit của lượt trước.
+  perform pg_advisory_xact_lock(72638135::bigint);
+
   if v_email is not null and v_email !~* '^[^@[:space:]<>",;]+@[^@[:space:]<>",;]+\.[a-z]{2,}$' then
     v_email := null;
   end if;
@@ -184,17 +191,12 @@ begin
 
   -- Khách: có SĐT → định danh theo SĐT; không ghi đè thông tin khách đã có
   if v_phone is not null then
-    select id into v_customer_id from customers where phone = v_phone;
-    if v_customer_id is null then
-      insert into customers (phone, name, address)
-      values (v_phone, v_name, v_addr)
-      returning id into v_customer_id;
-    else
-      update customers
-        set address    = coalesce(nullif(address, ''), v_addr),
-            updated_at = now()
-      where id = v_customer_id;
-    end if;
+    insert into customers (phone, name, address)
+    values (v_phone, coalesce(v_name, ''), v_addr)
+    on conflict (phone) do update
+      set address = coalesce(nullif(customers.address, ''), excluded.address),
+          updated_at = now()
+    returning id into v_customer_id;
   else
     v_customer_id := null;
   end if;
@@ -303,7 +305,8 @@ begin
 end;
 $$;
 
-grant execute on function place_order to anon;
+revoke execute on function place_order(text, text, text, bigint, text, int, date, text, text, text, text) from public;
+grant execute on function place_order(text, text, text, bigint, text, int, date, text, text, text, text) to anon, authenticated;
 
 -- ── 2) Nhắc lịch giao: các đơn giao trong 2 NGÀY TỚI (8:30 sáng) ──
 create or replace function send_delivery_reminders() returns void

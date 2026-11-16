@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>Kiểm tra độ tin cậy</title>
+<style>
+body { font: 15px/1.6 system-ui; max-width: 900px; padding: 24px; margin: auto; background: #FAF8F5; }
+.ok-box, .ok { color: #1B5E20; } .fail-box, .fail { color: #B71C1C; }
+.ca { padding: 6px 0; } #tongket { font-weight: 700; }
+</style></head><body>
+<h1>Độ tin cậy khi lưu dữ liệu</h1>
+<p>Chạy hàm admin thật với dữ liệu giả. SQL ở đây chỉ kiểm mã nguồn; kiểm hành vi database dùng file test SQL riêng.</p>
+<div id="tongket">Đang chạy…</div><div id="results"></div>
+<script src="kiem-tra-do-tin-cay.js"></script>
+<script>
+(async () => {
+  const tk = document.getElementById('tongket')
+  try {
+    const files = ['../admin/index.html', '../supabase/15_notifications_v2.sql', '../supabase/35_gia_co_tao_don.sql']
+    const src = await Promise.all(files.map(async f => {
+      const r = await fetch(f, { cache: 'no-store' }); if (!r.ok) throw new Error(f); return r.text()
+    }))
+    const results = await kiemTraDoTinCay(...src)
+    results.forEach(r => {
+      const div = document.createElement('div'); div.className = 'ca ' + (r.ok ? 'ok' : 'fail')
+      div.textContent = (r.ok ? '✓ ' : '✕ ') + r.name + (r.error ? ': ' + r.error : '')
+      document.getElementById('results').appendChild(div)
+    })
+    const failed = results.filter(r => !r.ok).length
+    tk.className = failed ? 'fail-box' : 'ok-box'
+    tk.textContent = `${results.length - failed}/${results.length} đạt`
+  } catch (e) { tk.className = 'fail-box'; tk.textContent = e.stack }
+})()
+</script></body></html>

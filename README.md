@@ -26,7 +26,7 @@ Chỉ cần Python, không phải cài gì thêm:
 
 ```bash
 python serve.py                # web: http://localhost:8765/   admin: http://localhost:8765/admin/
-python test/chay-tat-ca.py     # (cửa sổ khác) chạy 12 trang kiểm tra tự động, phải "tất cả đạt" mới đưa lên mạng
+python test/chay-tat-ca.py     # (cửa sổ khác) chạy 13 trang kiểm tra tự động, phải "tất cả đạt" mới đưa lên mạng
 ```
 
 Hoặc mở <http://localhost:8765/test/> rồi bấm **Chạy tất cả**. Các trang kiểm tra dùng **dữ liệu giả**, không đụng đơn thật.
