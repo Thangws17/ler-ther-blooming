@@ -1304,7 +1304,8 @@
     .od-row > span:last-child { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
     .od-row a { color: #2E7D32; }
     .od-canh > span:last-child { color: #E65100; }
-    .od-thiep, .od-ghichu { margin-top: 8px; padding: 10px 12px; border-radius: 10px; font-size: .9rem; line-height: 1.5; overflow-wrap: anywhere; }
+    /* pre-line: giữ chỗ shop xuống dòng (ghi chú nhiều ý, thiệp nhiều dòng) — trước 16/11/2026 dồn thành 1 đoạn liền, ô nổi #gcPop thì giữ */
+    .od-thiep, .od-ghichu { margin-top: 8px; padding: 10px 12px; border-radius: 10px; font-size: .9rem; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-line; }
     .od-thiep { background: #FFF8E1; border: 1px dashed #FFCC80; font-style: italic; }
     .od-ghichu { background: #f4f7f4; }
     .od-thiep span, .od-ghichu span { display: block; font-style: normal; font-size: .72rem; font-weight: 700; color: #7a877a;
@@ -1456,6 +1457,9 @@
     .dh-phu { font-size: .8rem; color: #8a7d62; margin-top: 2px; }
     .dh-phu .ma-don { font-size: .8rem; font-weight: 600; color: #557355; }
     .dh-mau { color: #3d4d3c; line-height: 1.35; max-width: 240px; }
+    /* Tên mẫu dài (shop gõ "Giỏ hoa khai trương 3 tầng … (size đại)") từng kéo 1 hàng cao gấp 4 → tối đa 3 dòng, rê chuột xem đủ,
+       chi tiết đơn hiện đủ (16/11/2026, thử bằng dữ liệu xấu nhất) */
+    .dh-mau-chu { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
     .dh-sl { color: #2E7D32; font-weight: 700; }
     .dh-tien { white-space: nowrap; }
     .dh-tien > div { margin-top: 3px; }
@@ -2404,7 +2408,8 @@
                  color: #fff; font-size: .62rem; display: grid; place-items: center; }
     .sp-tc-thua { flex-basis: 100%; font-size: .8rem; color: #E65100; font-weight: 600; line-height: 1.45; }
     .sp-bsts { display: flex; flex-wrap: wrap; gap: 4px; }
-    .sp-bst { font-size: .72rem; font-weight: 600; padding: 1px 8px; border-radius: 6px; background: #f1f5f0; color: #5d6b5c; white-space: nowrap; }
+    .sp-bst { font-size: .72rem; font-weight: 600; padding: 1px 8px; border-radius: 6px; background: #f1f5f0; color: #5d6b5c; white-space: nowrap; 
+      max-width: 100%; overflow: hidden; text-overflow: ellipsis; }   /* tên BST dài từng tràn khỏi mép thẻ (16/11/2026) — rê chuột xem đủ */
     .sp-bst.tat { background: none; color: #b0b9af; text-decoration: line-through; padding: 1px 3px; }
     .sp-bst.cho { background: none; color: #9aa79a; box-shadow: inset 0 0 0 1px #d5ddd4; }
     .sp-bst.khong { background: #FFF3E0; color: #E65100; }
@@ -3055,7 +3060,7 @@
             <span class="db-tool-ic"><svg class="ic" aria-hidden="true"><use href="#i-zap"/></svg></span>
             <div class="db-tool-txt">
               <strong>Tạo ảnh nhỏ cho ảnh cũ</strong>
-              <p class="bk-mo-ta">Ảnh đăng trước 01/10 chưa có bản nhỏ, ảnh đăng từ iPhone trước 07/11 thì nặng gấp đôi — web khách tải chậm. Nên bấm trên máy tính, 1 lần là xong, ảnh gốc vẫn giữ.</p>
+              <p class="bk-mo-ta">Làm bản nhỏ (nhẹ) cho ảnh chưa có, và làm nhẹ thêm ~20% bản nhỏ đăng trước 17/11 — web khách tải nhanh hơn. Nên bấm trên máy tính, 1 lần là xong, ảnh gốc vẫn giữ.</p>
             </div>
             <button class="btn-outline" id="optimizeBtn" onclick="optimizeOldImages()">Bắt đầu</button>
             <div id="optimizeProgress" style="display:none">
@@ -6451,7 +6456,7 @@ function spNhanBst(p) {
   const ds = bstCuaMau(p.id)
   const nhan = ds.map(c => {
     const loai = !c.active ? 'tat' : bstDangHien(c) ? '' : 'cho'
-    return `<span class="sp-bst ${loai}"${loai ? ` title="${esc(bstLyDoAn(c))}"` : ''}>${esc(spTenBst(c))}</span>`
+    return `<span class="sp-bst ${loai}" title="${esc(loai ? bstLyDoAn(c) : spTenBst(c))}">${esc(spTenBst(c))}</span>`
   })
   if (!bstChuaCaiDat && !spTrongBst(p)) nhan.push('<span class="sp-bst khong">Chưa vào BST</span>')
   return `<div class="sp-bsts">${nhan.join('')}</div>`
@@ -8122,7 +8127,7 @@ async function taoAnhNho(file) {
   const bitmap = await createImageBitmap(file)
   const { width: w, height: h } = bitmap
   if (w <= ANH_NHO_RONG) { bitmap.close(); return null }
-  return veVaXuatAnh(bitmap, ANH_NHO_RONG, Math.round(h * ANH_NHO_RONG / w), 0.8)
+  return veVaXuatAnh(bitmap, ANH_NHO_RONG, Math.round(h * ANH_NHO_RONG / w), ANH_NHO_CHAT)
 }
 
 // Tên file an toàn cho kho ảnh: bỏ dấu, chỉ giữ chữ/số/._- (tên có dấu, ngoặc, emoji… có thể
@@ -8761,6 +8766,13 @@ function veSaoLuuCuoi() {
 // Từ 07/11/2026 làm lại cả ảnh ĐÃ có bản nhỏ nhưng bản nhỏ là JPEG nặng > ANH_NHO_NANG (đăng từ iPhone trước khi sửa
 // veVaXuatAnh: 140–255KB/ảnh, gấp đôi ảnh đăng từ máy tính). Bấm trên máy tính → ra WebP nhẹ hơn nữa.
 const ANH_NHO_NANG = 120 * 1024
+// Từ 17/11/2026 bản nhỏ nén ANH_NHO_CHAT 0.72 (trước 0.8): nhẹ hơn ~20% (thử 12 ảnh thật: 1016KB → 816KB), cỡ thẻ nhìn
+// không khác. Bản nhỏ làm TRƯỚC mốc ANH_NHO_MOC mà > ANH_NHO_NANG_CU thì nút này làm lại. Mốc đọc từ giờ ghi trong tên file
+// "<13 chữ số>n_" → làm lại xong tên mới sau mốc, bấm lần nữa không làm lại (khỏi vòng lặp).
+const ANH_NHO_CHAT = 0.72
+const ANH_NHO_MOC = Date.UTC(2026, 10, 16, 17)   // 0 giờ 17/11/2026 giờ Việt Nam
+const ANH_NHO_NANG_CU = 60 * 1024
+function gioTaoAnh(u) { return Number((String(u).match(/\/(\d{13})n_[^/?#]*$/) || [])[1] || 0) }
 async function optimizeOldImages() {
   if (!(await askConfirm({ title: 'Tạo ảnh nhỏ cho ảnh cũ?', message: 'Mỗi ảnh mẫu hoa, Khoảnh khắc, bìa bộ sưu tập sẽ có thêm 1 bản nhỏ để web khách tải nhanh hơn. Mất vài phút — đừng đóng tab cho tới khi xong.', okLabel: 'Bắt đầu', icon: '⚡' }))) return
   const btn  = document.getElementById('optimizeBtn')
@@ -8789,13 +8801,15 @@ async function optimizeOldImages() {
     if (error || !data?.length) throw error || new Error('không đổi được dòng nào')
   }
   const trongKho = u => !!u && u.includes('/storage/v1/object/public/images/') && !u.includes('/images/expenses/')
-  // Bản nhỏ JPEG nào nặng quá → làm lại (hỏi kích thước bằng HEAD, không tải ảnh về)
+  // Bản nhỏ nào nặng quá → làm lại (hỏi kích thước bằng HEAD, không tải ảnh về): JPEG > ANH_NHO_NANG,
+  // hoặc làm trước mốc ANH_NHO_MOC (nén 0.8) mà > ANH_NHO_NANG_CU
   const tatCa = [...(sp.data || []).flatMap(p => [p.image, ...(p.images || [])]), ...(kk.data || []).map(g => g.url), ...(bst.data || []).map(c => c.cover_url)]
   const nangQua = new Set()
-  await Promise.all([...new Set(tatCa)].filter(u => trongKho(u) && coAnhNhoTuLam(u) && /\.jpe?g$/i.test(u)).map(async u => {
+  const nguong = u => gioTaoAnh(u) < ANH_NHO_MOC ? ANH_NHO_NANG_CU : /\.jpe?g$/i.test(u) ? ANH_NHO_NANG : 0
+  await Promise.all([...new Set(tatCa)].filter(u => trongKho(u) && coAnhNhoTuLam(u) && nguong(u)).map(async u => {
     try {
       const r = await fetch(anhNho(u, ANH_NHO_RONG), { method: 'HEAD' })
-      if (Number(r.headers.get('content-length')) > ANH_NHO_NANG) nangQua.add(u)
+      if (Number(r.headers.get('content-length')) > nguong(u)) nangQua.add(u)
     } catch {}
   }))
   const canLam = u => trongKho(u) && (!coAnhNhoTuLam(u) || nangQua.has(u))
@@ -8983,10 +8997,15 @@ function ganSoDem(els, n) {
     if (!b) continue
     if (n > 0) {
       const moi = String(n > 99 ? '99+' : n)
-      if (b.textContent !== moi) { b.classList.remove('so-nay'); void b.offsetWidth; b.classList.add('so-nay') }   // số đổi → nảy 1 nhịp
+      // Số đổi → nảy 1 nhịp. Hiệu ứng chạy xong tự gỡ class, lần sau chỉ cần gắn lại — KHÔNG dùng "remove + void offsetWidth
+      // + add" như trước: dòng đó bắt tính lại bố cục cả trang mỗi số đỏ (đo 16/11/2026: ~0,1 giây lúc mở admin trên điện thoại).
+      if (b.textContent !== moi && !b.classList.contains('so-nay')) {
+        b.classList.add('so-nay')
+        b.addEventListener('animationend', () => b.classList.remove('so-nay'), { once: true })
+      }
       b.textContent = moi; b.style.display = ''
     }
-    else b.style.display = 'none'
+    else { b.style.display = 'none'; b.classList.remove('so-nay') }   // ẩn giữa chừng thì hiệu ứng không báo xong → gỡ tay
   }
 }
 
@@ -9000,7 +9019,7 @@ function loeDon(id) {
     .forEach(el => {
       if (el.dataset.loe === String(id)) return
       el.dataset.loe = id
-      el.classList.remove('loe'); void el.offsetWidth; el.classList.add('loe')
+      el.classList.add('loe')   // dataset.loe ở trên bảo đảm lúc này chưa có class 'loe' → khỏi "void offsetWidth" (tính lại cả trang)
       setTimeout(() => { el.classList.remove('loe'); delete el.dataset.loe }, 1700)
     })
   ;[60, 400, 1000, 1800].forEach(t => setTimeout(tim, t))
@@ -9582,7 +9601,7 @@ function renderOrders() {
     <td class="dh-khi"><div class="dh-khi-tren">${khiGiaoHTML(o)}</div>${o.delivery_address ? `<div class="dh-dc" title="${esc(o.delivery_address)}">${esc(o.delivery_address)}</div>` : ''}</td>
     <td class="dh-kh"><div class="dh-ten">${orderCustomerName(o)}${nutGhiChu(o) || ''}</div>
       <div class="dh-phu">${o.customers?.phone || o.customer_phone ? orderCustomerPhone(o) + ' · ' : ''}<button type="button" class="ma-don" title="Xem chi tiết đơn" onclick="viewOrderDetail(${o.id})">${orderCode(o.id)}</button></div></td>
-    <td class="dh-mau">${esc(o.product_name)}${o.quantity > 1 ? ` <span class="dh-sl">×${o.quantity}</span>` : ''}</td>
+    <td class="dh-mau"><div class="dh-mau-chu" title="${esc(o.product_name)}">${esc(o.product_name)}</div>${o.quantity > 1 ? `<span class="dh-sl">×${o.quantity}</span>` : ''}</td>
     <td class="dh-tien">${orderTotalLabel(o)}${nhanThanhToan(o) ? '<div>' + nhanThanhToan(o) + '</div>' : ''}</td>
     <td>${nhanTrangThaiDon(o)}</td>
     <td class="actions">
@@ -10684,9 +10703,11 @@ function khTinhSo(list) {
 }
 function khSo(c) { return _khSo[c.id] || { n: 0, tong: 0, cuoi: '' } }
 // Chữ cái đầu của TÊN (chữ cuối): "Chị Tuyền" → T, "Trần Bảo Ngọc" → N
+// Bỏ phần shop ghi chú trong ngoặc ("Quỳnh Anh (lấy hoa cưới)" từng ra "C") và từ không mở đầu bằng chữ cái (emoji cuối tên
+// từng ra nửa ký tự "�"); NFC để chữ gõ trên iPhone ("Á" tách dấu) không mất dấu — 16/11/2026, thử bằng dữ liệu xấu nhất
 function khChuDau(ten) {
-  const w = String(ten || '').trim().split(/\s+/)
-  return (w[w.length - 1] || '?').charAt(0).toUpperCase() || '?'
+  const w = String(ten || '').normalize('NFC').replace(/\([^)]*\)?/g, ' ').split(/\s+/).filter(x => /^\p{L}/u.test(x))
+  return w.length ? w[w.length - 1].charAt(0).toUpperCase() : '?'
 }
 const KH_MAU = [['#E8F5E9', '#2E7D32'], ['#FCE4EC', '#AD1457'], ['#E3F2FD', '#1565C0'], ['#FFF3E0', '#E65100'], ['#EDE7F6', '#5E35B1'], ['#E0F2F1', '#00695C']]
 function khAvatar(c, cls = '') {
@@ -11078,14 +11099,17 @@ function setRootVar(name, px) {
 }
 
 function measureViewport() {
-  setRootVar('--apph', window.innerHeight)
-  const vv = window.visualViewport
+  // ĐỌC hết số đo trước, GHI sau (16/11/2026): đọc xen giữa các lần ghi biến CSS bắt trình duyệt tính lại bố cục
+  // giữa chừng — hàm này chạy liên tục lúc bàn phím iPhone trượt lên/xuống.
+  const cao = window.innerHeight, vv = window.visualViewport
+  const vvCao = vv && vv.height, vvTren = vv && (vv.offsetTop || 0), vvPhong = vv && vv.scale
+  setRootVar('--apph', cao)
   if (!vv) return
-  setRootVar('--vvh', vv.height)
-  setRootVar('--vvtop', vv.offsetTop || 0)
+  setRootVar('--vvh', vvCao)
+  setRootVar('--vvtop', vvTren)
   // Bàn phím đang mở = vùng nhìn thấy thấp hơn cửa sổ > 150px (không tính lúc đang phóng to bằng 2 ngón)
   // → body.phim-dang-mo: form bung kín phần trên bàn phím, tiêu đề + chân form thu 1 dòng (CSS "Bàn phím đang mở")
-  const phim = vv.scale < 1.05 && window.innerHeight - vv.height > 150
+  const phim = vvPhong < 1.05 && cao - vvCao > 150
   if (document.body.classList.contains('phim-dang-mo') !== phim) {
     document.body.classList.toggle('phim-dang-mo', phim)
     if (phim) giuONhapTrongTam()

@@ -22,9 +22,8 @@ Không có bước build, không `npm install`. Vẫn nên mở trình duyệt x
 mấy trang test chạy trong trình duyệt (vẫn server 8765 đó):
 
 - `/test/test-do-tin-cay.html` — chạy hàm admin thật với dữ liệu giả: SĐT dùng chung, tra khách lỗi,
-  sửa/xoá 0 dòng, không đổi bộ nhớ tài khoản hay mất dấu chưa lưu khi ghi thất bại. Kiểm mã nguồn SQL 15/35 khớp nhau;
-  **không thay cho test hành vi PostgreSQL**. Test database ở `test/kiem-tra-tao-don.sql` (chỉ môi trường thử nghiệm),
-  và cách kiểm đồng thời ở [gia-co-tao-don.md](gia-co-tao-don.md).
+  sửa/xoá 0 dòng, không đổi bộ nhớ tài khoản hay mất dấu chưa lưu khi ghi thất bại. Kiểm mã nguồn SQL 15/35 khớp nhau
+  (chỉ so chữ trong file, **không** chạy thật trên database).
 
 - `/test/test-gia-san-pham.html` — ô giá sản phẩm: chèn dấu chấm, giữ con trỏ, dãy giá hay dùng
 - `/test/test-khung-man-hinh.html` — khung màn hình admin trên iPhone + thanh tab dưới đáy (xem "Bẫy đã biết")
@@ -69,6 +68,13 @@ Công cụ xem thử (không phải test, không tự chấm điểm):
   Trình duyệt chạy ngầm không vẽ iframe, nên trang này nạp thẳng mã admin chứ không nhúng.
   Web khách tương tự: `/test/xem-web.html?trang=san-pham&dat=1` (mở sẵn form đặt hoa), `?xong=1` (màn "Đã nhận đơn",
   không gửi đơn thật). Tên / SĐT trong dữ liệu giả phải là tên BỊA — file nằm trong git = công khai trên web.
+- **Dữ liệu XẤU NHẤT (16/11/2026, skill `break-ui`)**: thêm `&du=xau` (admin: `xem-admin.html?v=ds&du=xau`, web:
+  `xem-web.html?trang=san-pham&du=xau`) → tên/địa chỉ/ghi chú dài đúng giới hạn `place_order` (100/300/1000 ký tự), link
+  Facebook dán vào địa chỉ, ghi chú nhiều dòng, giá 9 chữ số, giá chữ dài, đơn trống tên, mẫu không ảnh, tên BST 3 dòng.
+  `&du=trong` = mọi danh sách rỗng. Admin có công tắc 3 nút ở đáy màn hình (`&an=1` ẩn khi chụp). Web: dữ liệu vẫn đọc
+  THẬT rồi `test/du-lieu-xau-web.js` làm xấu vài dòng đầu trên đường về (chỉ đọc). **Sửa giao diện danh sách / thẻ / chi tiết
+  thì mở `&du=xau` xem lại** — lần đầu (16/11) bắt được: ghi chú nhiều dòng bị dồn 1 đoạn ở chi tiết đơn, chữ cái đại diện
+  khách lấy nhầm chữ trong ngoặc, nhãn BST dài tràn thẻ Sản phẩm, tên mẫu dài kéo cao hàng bảng đơn, nút + web bị bóp khi giá dài.
   **Đọc tham số `?…` từ chuỗi `Q` chép lúc mở trang, ĐỪNG đọc `location.search` trong `giaLap()`** (lỗi thật 21/10/2026):
   máy đang đăng nhập admin thì admin tự `history.replaceState(…, '#Dashboard')`, mà trang có `<base href="/admin/">` nên đường
   dẫn thành `/admin/#Dashboard` → mất `?dx=…` → khung "Đề xuất" hiện y bản cũ. Máy kiểm ngầm không đăng nhập nên không thấy:

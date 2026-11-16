@@ -588,11 +588,13 @@ html.chao .trust3 > div:nth-child(3) { animation-delay: .46s; }
   margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .product-footer {
-  display:flex; align-items:center; justify-content:space-between; margin-top:auto;
+  display:flex; align-items:center; justify-content:space-between; gap: 8px; margin-top:auto;
 }
-.product-price { font-family: 'Nunito',sans-serif; font-weight: 700; color: var(--green); font-size: 1.02rem; }
+/* Giá dạng chữ dài ("Từ 1.250.000đ – 3.500.000đ (tuỳ size…)") từng bóp nút + thành cột hẹp (16/11/2026): giá xuống dòng gọn,
+   KHÔNG cắt (khách cần đọc đủ giá); nút giữ nguyên cỡ */
+.product-price { font-family: 'Nunito',sans-serif; font-weight: 700; color: var(--green); font-size: 1.02rem; min-width: 0; line-height: 1.3; overflow-wrap: anywhere; }
 .product-btn {
-  display: inline-flex; align-items: center; cursor: pointer; font-family: 'Nunito',sans-serif; font-weight: 700;
+  flex-shrink: 0; display: inline-flex; align-items: center; cursor: pointer; font-family: 'Nunito',sans-serif; font-weight: 700;
   font-size: .82rem; transition: var(--t);
 }
 .prod-search { position:relative; margin-bottom:16px; max-width:460px; }

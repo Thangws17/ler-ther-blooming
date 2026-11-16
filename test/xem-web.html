@@ -5,7 +5,9 @@
      Dữ liệu mẫu hoa là THẬT (chỉ đọc). KHÔNG gửi đơn: màn "Đã nhận đơn" chỉ được vẽ ra, tài khoản ngân hàng là số GIẢ.
        ?trang=san-pham&dat=1   trang Sản phẩm + mở form đặt hoa
        ?xong=1 (&mo=1)         màn "Đã nhận đơn" (mo=1: mở sẵn khối chuyển khoản)
-       ?trang=chinh-sach&ck=1  mục hỏi đáp chống lừa đảo chuyển khoản -->
+       ?trang=chinh-sach&ck=1  mục hỏi đáp chống lừa đảo chuyển khoản
+       &du=xau                 dữ liệu XẤU NHẤT (tên mẫu dài, giá chữ dài, mẫu không ảnh…) — test/du-lieu-xau-web.js
+                               VD: ?trang=san-pham&du=xau · ?trang=chi-tiet&id=10&du=xau · ?trang=index&du=xau -->
 <script>
 const q = new URLSearchParams(location.search)
 const trang = q.get('trang') || 'san-pham'
@@ -18,6 +20,8 @@ fetch('../' + trang + '.html', { cache: 'no-store' }).then(r => r.text()).then(h
   // ?trang=chinh-sach&ck=1: điền tài khoản GIẢ vào mục hỏi đáp lừa đảo + mở sẵn mục đó
   if (q.get('ck')) html = html.replace('</body>', '<script>setTimeout(() => { contactInfo = Object.assign(contactInfo || {}, { ck_ngan_hang: "970436", ck_so_tk: "0123456789", ck_chu_tk: "LER THER BLOOMING" }); veTkChinhThuc();'
     + ' const d = document.getElementById("ckChinhThuc").closest("details"); d.open = true; d.scrollIntoView({ block: "center" }) }, 2500)<\/script></body>')
+  // ?du=xau: dữ liệu XẤU NHẤT (test/du-lieu-xau-web.js) — nạp ngay sau main.js, làm xấu vài dòng đầu trên đường dữ liệu về
+  if (q.get('du') === 'xau') html = html.replace('<script defer src="js/main.js"><\/script>', '<script defer src="js/main.js"><\/script><script defer src="test/du-lieu-xau-web.js"><\/script>')
   html = html.replace('<head>', '<head><base href="/">').replace('</body>', duoi)
   document.open(); document.write(html); document.close()
 })

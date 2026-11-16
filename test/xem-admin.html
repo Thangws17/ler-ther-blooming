@@ -10,6 +10,8 @@
        lg Lịch giao · kh / khm Khách hàng · ex / chi Sổ chi phí · nl / nls / nlt Nguyên liệu (nlt = ca trùng Thúy/Thuý châu) · bc / bcm Báo cáo
        sp / spm / spx Sản phẩm · ttc Thông tin chung · bst / bstm Bộ sưu tập · kk / kka / kkm Khoảnh khắc
        lh Liên hệ (cuộn tới tài khoản nhận tiền) · lien Liên hệ (&phan=0…5 mở sẵn 1 phần) · menu menu bên (điện thoại) · dsn Đơn hàng nhiều trang (thanh phân trang). Danh sách đầy đủ: biến `tab` trong giaLap() bên dưới.
+     &du=xau dữ liệu XẤU NHẤT (tên/địa chỉ/ghi chú dài, link dán vào, giá 9 chữ số, ô trống…) · &du=trong mọi danh sách rỗng
+     (công tắc ở đáy màn hình; &an=1 ẩn công tắc khi chụp). VD: ?v=ds&du=xau
      ?dx=… chỉ dùng trên máy làm việc (nạp bản nháp đề xuất ở thư mục demo/, không có trong git). -->
 <script>
 function giaLap(V, Q) {
@@ -99,11 +101,50 @@ function giaLap(V, Q) {
   ]
   const gan = [[6, 1], [6, 10], [6, 2], [7, 9], [7, 12], [7, 4], [8, 25], [8, 2], [1, 4], [1, 17]].map(([c, p]) => ({ collection_id: c, product_id: p }))
   const gal = sp.concat(sp).map((p, i) => ({ id: 100 + i, url: p.image, caption: i % 3 ? '' : 'Bó giao chị Lan', category: ['Hoa bó', 'Sự kiện', 'Hoa tốt nghiệp'][i % 3], order_index: i, created_at: new Date().toISOString() }))
+  // ── &du=xau / &du=trong (16/11/2026, skill break-ui): DỮ LIỆU XẤU NHẤT mà vẫn có thật — theo giới hạn place_order
+  // (tên ≤100, địa chỉ ≤300, thiệp ≤500, ghi chú ≤1000, SL ≤99) + kiểu shop hay gõ (ghi chú tên khách, dán link Facebook,
+  // nhiều dòng). Rải mỗi kiểu xấu vào 1 dòng khác nhau như dữ liệu thật. &du=trong: mọi danh sách rỗng.
+  // Công tắc ở đáy màn hình (cuối hàm này). Giữ lại làm bài kiểm hồi quy cho lần sửa giao diện sau.
+  const DU = new URLSearchParams(Q).get('du')
+  if (DU === 'xau') {
+    const xau = [
+      { customer_name: 'Tôn Nữ Hoàng Bảo Ngọc Quỳnh Anh (bạn chị Thảo giới thiệu – lấy hoa cưới)', customer_phone: '0908123456',
+        product_name: 'Giỏ hoa khai trương 3 tầng hồng đỏ Ecuador + lan hồ điệp trắng + băng rôn chúc mừng (size đại, có chân đế)',
+        quantity: 12, unit_price: 12500000, shipping_fee: 150000,
+        delivery_address: 'Số 12 ngõ 34 ngách 56/7 đường Nguyễn Văn Linh, phường Tân Thuận Tây, quận 7, TP. Hồ Chí Minh (toà nhà Sunrise City khu North, tháp V3, tầng 27 — gửi lễ tân nếu khách vắng, gọi trước 30 phút)',
+        message_card: 'Chúc mừng khai trương Hồng Phát! Chúc anh chị làm ăn phát đạt, buôn may bán đắt, tiền vào như nước sông Đà, tiền ra nhỏ giọt như cà phê phin. Thân tặng từ gia đình nhà Bảo Ngọc và các em nhân viên phòng kinh doanh 🌸🌸🌸',
+        note: 'Người nhận: Chị Nguyễn Thị Phương Thảo (quản lý cửa hàng) · 0987654321\nGiờ giao: 7h30\nKhách dặn: băng rôn chữ vàng nền đỏ, KHÔNG dùng hoa cúc trắng.\nĐã gửi mẫu qua Zalo, khách duyệt mẫu số 3.\nThu thêm 200k nếu phải lên tầng bằng thang bộ.\nNhắc khách chuyển khoản phần còn lại trước 6h sáng.\nNhớ chụp ảnh lúc giao gửi lại khách.',
+        customer_email: 'nguyenthiphuongthao.hoatuoi.2026@northwind-industries-holdings.example.com', thanh_toan: 'Đã cọc', tien_coc: 75000000 },
+      { customer_name: 'Vy', customer_phone: null, product_name: 'Hồng', quantity: 1, unit_price: null, shipping_fee: 0, delivery_address: 'Q.1', message_card: '', note: '' },
+      { customer_name: '🌸 Mây', customer_phone: '0935551122', product_name: 'Bó-hồng-Ecuador-99-bông-mix-baby-trắng-giấy-Hàn-cao-cấp',
+        delivery_address: 'https://www.facebook.com/messages/t/100089234567890?mid=m_9f8e7d6c5b4a3c2d1e0f',
+        note: 'Giờ giao: 23h\nhttps://maps.app.goo.gl/AbCdEfGhIjKlMnOpQrStUv' },
+      { customer_name: null, customer_phone: null, product_name: null, quantity: 99, unit_price: 0, shipping_fee: 0, delivery_address: null, message_card: null, note: null },
+      { customer_name: 'Nguyễn Hoàng Phương Uyên Thảo Nguyên', customer_phone: '0911222333', product_name: 'Mix Garden', unit_price: 999999999, shipping_fee: 0, quantity: 1 },
+    ]
+    xau.forEach((x, i) => { const o = don[i]; Object.assign(o, x)
+      o.customers = x.customer_phone ? { name: x.customer_name, phone: x.customer_phone } : null
+      o.total = o.unit_price == null ? 0 : o.unit_price * o.quantity + (o.shipping_fee || 0) })
+    sp[0].name = 'Bó hồng Ecuador đỏ 99 bông mix baby trắng – giấy Hàn cao cấp, kèm thiệp viết tay và hộp quà (size XL)'
+    sp[0].price = 'Từ 1.250.000đ – 3.500.000đ (tuỳ size, inbox để báo giá)'
+    sp[1].name = 'Lan'; sp[1].price = '99000000'; sp[2].price = ''; sp[3].image = null
+    sp[1].description = '“Lan”\n' + 'Lan hồ điệp trắng · '.repeat(18) + '\nSang — sang — sang.\nPhù hợp tặng khai trương, tân gia, sếp, đối tác, người thân, bạn bè, thầy cô, ngày lễ, ngày thường.'
+    bst[0].name = 'BST Mùa Cưới Thu Đông – Những Bó Hoa Cô Dâu Đẹp Nhất'; bst[0].tagline = 'Cho ngày trọng đại của bạn: hoa cô dâu, hoa cài áo chú rể, hoa bàn tiệc, cổng hoa — đặt trước ít nhất 7 ngày để shop chuẩn bị hoa nhập'
+    bst[2].tagline = ''
+    exp[0].item = 'Hồng đỏ Đà Lạt loại 1 (bó 50 bông, chợ Quảng Bá, giá sỉ đêm thứ 7)'; exp[0].quantity = 1250; exp[0].unit_price = 9800; exp[0].amount = 12250000
+    exp[0].note = 'Chị Hạnh sạp 12 — lấy 25 bó, hẹn trả tiền sau 15 ngày, đã chuyển khoản trước 5 triệu'
+    exp[1].item = 'Giấy'; exp[4].amount = 0
+    gal.forEach((g, i) => { if (i === 0) g.caption = 'Bó hồng giao chị Phương Thảo nhân dịp kỷ niệm 10 năm ngày cưới — khách khen hoa tươi lâu 🌸'; if (i === 1) g.caption = 'Hoa' })
+  }
+  if (DU === 'trong') [don, exp, sp, bst, gan, gal].forEach(a => a.length = 0)
   const kh = []
   don.forEach(o => { if (!o.customer_phone) return; let c = kh.find(x => x.phone === o.customer_phone)
     if (!c) kh.push(c = { id: o.id, name: o.customer_name, phone: o.customer_phone, address: o.delivery_address, created_at: new Date(Date.now() - 30 * 864e5).toISOString() })
     o.customer_id = c.id })
   kh.push({ id: 900, name: 'Trần Bảo Ngọc', phone: '0900000900', address: '12 Phố Mẫu, Q. Thử', created_at: new Date().toISOString() })
+  if (DU === 'xau') kh.push({ id: 901, name: 'Công ty TNHH Thương mại và Dịch vụ Tổ chức Sự kiện Hoàng Gia Phát (chị Linh kế toán)', phone: '02838123456',
+    address: 'Lô B2-15, Khu công nghiệp Tân Bình mở rộng, đường số 7, phường Bình Hưng Hoà, quận Bình Tân, TP. Hồ Chí Minh — giao cổng số 2, gọi bảo vệ', created_at: new Date().toISOString() })
+  if (DU === 'trong') kh.length = 0
   const contact = [{ id: 1, phone: '0912345678', zalo: '0912345678', address: '12 Phố Mẫu, Q. Thử', hours: '8:00 – 21:00, T2 – CN', facebook: 'https://facebook.com/vidu', instagram: 'https://instagram.com/vidu', banner_text: '🌸 Nhận đặt hoa 20/11 — đặt trước 2 ngày nhé', banner_active: true, policy_delivery: 'Miễn phí giao nội thành', policy_payment: 'Chuyển khoản / tiền mặt', ck_ngan_hang: '970436', ck_so_tk: '0123456789', ck_chu_tk: 'LER THER BLOOMING', ga4_id: null, clarity_id: null }]
   const gioTruoc = h => new Date(Date.now() - h * 3600e3).toISOString()
   const nhat_ky_tai_khoan = [{ id: 1, luc: gioTruoc(V === 'qrdoi' ? 2 : 24 * 5), ai: 'shop@example.com', cu: '(chưa có)', moi: '970436 · 0123456789 · LER THER BLOOMING' }]
@@ -149,6 +190,13 @@ function giaLap(V, Q) {
   d.head.insertAdjacentHTML('beforeend', '<style>*,*::before{animation:none!important;transition:none!important}</style>')
   d.getElementById('loginWrap').style.display = 'none'
   d.getElementById('appWrap').style.display = 'flex'
+  // Công tắc dữ liệu (chỉ trang xem thử): Thường / Xấu nhất / Trống — giữ nguyên ?v=…, &an=1 để ẩn khi chụp màn hình
+  if (!new URLSearchParams(Q).get('an')) {
+    const den = du => { const p = new URLSearchParams(Q); du ? p.set('du', du) : p.delete('du'); return '/test/xem-admin.html?' + p }
+    const nut = (du, chu) => `<a href="${den(du)}" style="padding:5px 12px;border-radius:999px;text-decoration:none;color:#333;${(DU || '') === du ? 'background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);font-weight:600' : ''}">${chu}</a>`
+    d.body.insertAdjacentHTML('beforeend', '<div style="position:fixed;left:50%;translate:-50% 0;bottom:calc(84px + env(safe-area-inset-bottom));z-index:99999;display:flex;gap:2px;padding:3px;background:#ddd;border-radius:999px;font:13px system-ui,sans-serif">'
+      + nut('', 'Dữ liệu thường') + nut('xau', 'Xấu nhất') + nut('trong', 'Trống') + '</div>')
+  }
   if (w.measureViewport) w.measureViewport()
   const tab = { tq: 'Orders', ds: 'Orders', exl: 'Expenses', exc: 'Expenses', loc: 'Orders', locm: 'Orders', don: 'Orders', gop: 'Orders', gople: 'Orders', chi: 'Expenses', ct: 'Orders', ct2: 'Orders', qr: 'Orders', qrtt: 'Orders', qrcg: 'Orders', qrdoi: 'Orders', mk: 'Contact', doncoc: 'Orders', suacoc: 'Orders', qrchua: 'Orders', lh: 'Contact', lien: 'Contact', lg: 'Delivery', nl: 'Expenses', nls: 'Expenses', nlt: 'Expenses', ex: 'Expenses', sua: 'Orders', bst: 'Collections', bstm: 'Collections', kk: 'Gallery', kka: 'Gallery', kkm: 'Gallery', menu: 'Orders', sp: 'Products', spx: 'Products', spm: 'Products', sp5: 'Products', ttc: 'Products', spt: 'Products', kh: 'Customers', khm: 'Customers', bc: 'Reports', bcm: 'Reports', dsn: 'Orders' }[V] || 'Dashboard'
   // Đọc ?dx= / ?thang= từ chuỗi Q chép lúc mở trang, KHÔNG từ location.search: máy đang đăng nhập admin thì admin tự
