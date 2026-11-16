@@ -5344,7 +5344,8 @@ let delivActive = []          // đơn đang hoạt động (chưa hủy / chưa
 let delivSelectedDate = null  // ngày đang chọn trên lịch (null = xem tất cả)
 
 async function loadDelivery() {
-  const { data, error } = await sb.from('orders').select('*, customers(name, phone), products(image)').order('delivery_date', { ascending: true })
+  const { data, error } = await docHetTrang(() => sb.from('orders').select('*, customers(name, phone), products(image)')
+    .order('delivery_date', { ascending: true }).order('id', { ascending: true }))
   if (error) { document.getElementById('deliveryList').innerHTML = loadErrorHTML('loadDelivery'); return }
   cacheOrders(data)      // KHÔNG gán vào `orders` — đó là trang của tab Đơn hàng
   // Ẩn đơn đã hủy / đã giao thành công / hoàn thành (xong việc giao, không cần trong lịch)
@@ -6128,8 +6129,8 @@ async function loadExpenses() {
 
   // Doanh thu cùng kỳ (đơn đã giao, theo NGÀY GIAO như Tổng quan / Báo cáo) — chỉ để tính 1 dòng lãi.
   // Doanh thu, tiền đã nhận, còn phải thu… xem ở Báo cáo (21/10/2026: mỗi tab 1 việc, Sổ chi phí chỉ lo tiền chi)
-  const { data: ord } = await sb.from('orders').select('status, total, delivery_date, created_at')
-    .in('status', REVENUE_STATUSES)
+  const { data: ord } = await docHetTrang(() => sb.from('orders').select('id, status, total, delivery_date, created_at')
+    .in('status', REVENUE_STATUSES).order('id', { ascending: true }))
   const inKy = o => { const d = statAttrDate(o); return d >= ky.tu && d <= ky.den }
   renderExpenses(congTien((ord || []).filter(inKy)))
 }
@@ -8636,6 +8637,20 @@ const SAO_LUU_BANG = [
 
 // Lấy HẾT dòng của một bảng, từng trang 1.000 dòng, sắp theo id cho ổn định.
 // Bảng không có cột id (hoặc id không sắp được) thì lấy không sắp xếp.
+// Supabase trả TỐI ĐA 1000 dòng mỗi lần hỏi — quá mốc đó là THIẾU mà không báo lỗi (Lịch giao, doanh thu Sổ chi phí, số đơn
+// từng khách từng đọc cả bảng 1 lần). docHetTrang đọc từng trang 1000 dòng tới hết, trả { data, error } y như câu hỏi
+// thường (16/11/2026). taoQ() phải tạo câu hỏi MỚI mỗi lần gọi (mỗi lần await là gửi 1 lần) và xếp theo cột có `id`
+// sau cùng để các trang không chồng / lọt dòng. Đơn ít (< 1000) thì vẫn chỉ 1 lượt hỏi như trước.
+async function docHetTrang(taoQ) {
+  const TRANG = 1000, kq = []
+  for (let tu = 0; ; tu += TRANG) {
+    const { data, error } = await taoQ().range(tu, tu + TRANG - 1)
+    if (error) return { data: null, error }
+    kq.push(...(data || []))
+    if (!data || data.length < TRANG) return { data: kq, error: null }
+  }
+}
+
 async function layHetBang(bang, baoTienDo) {
   const TRANG = 1000, kq = []
   let sapTheoId = true
@@ -10674,8 +10689,8 @@ async function loadCustomers(opt = {}) {
   if (ct && !customers.length) ct.innerHTML = skeletonTable(5)
   // Kèm vài cột của đơn để đếm "mấy đơn · đã mua bao nhiêu · lần cuối" cho từng khách
   const [res, donRes] = await Promise.all([
-    sb.from('customers').select('*').order('created_at', { ascending: false }),
-    sb.from('orders').select('customer_id, total, status, delivery_date, created_at').not('customer_id', 'is', null),
+    docHetTrang(() => sb.from('customers').select('*').order('created_at', { ascending: false }).order('id', { ascending: false })),
+    docHetTrang(() => sb.from('orders').select('id, customer_id, total, status, delivery_date, created_at').not('customer_id', 'is', null).order('id', { ascending: true })),
   ])
   if (res.error) { if (ct) ct.innerHTML = loadErrorHTML('loadCustomers'); return }
   customers = res.data || []

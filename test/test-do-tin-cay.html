@@ -147,6 +147,21 @@ async function kiemTraDoTinCay(admin, sql15, sql35) {
     await load('deleteCustomer', deps)(7)
     eq(toasts.length, 1); eq(toasts[0][1], 'error')
   })
+  // Supabase trả tối đa 1000 dòng / lần → docHetTrang phải đọc đủ mọi trang (16/11/2026)
+  for (const tong of [0, 999, 1000, 2500]) {
+    await test('Đọc hết ' + tong + ' đơn qua nhiều trang 1000 dòng: đủ, không trùng', async () => {
+      const bang = Array.from({ length: tong }, (_, i) => ({ id: i + 1 })), goi = []
+      const doc = load('docHetTrang', {})
+      const kq = await doc(() => ({ range(a, b) { goi.push(a); return Promise.resolve({ data: bang.slice(a, Math.min(b + 1, a + 1000)), error: null }) } }))
+      eq(kq.error, null); eq(kq.data.length, tong); eq(new Set(kq.data.map(r => r.id)).size, tong)
+      eq(goi.length, Math.floor(tong / 1000) + 1)
+    })
+  }
+  await test('Đọc nhiều trang mà 1 trang lỗi → trả lỗi, không trả nửa bảng như đủ', async () => {
+    const doc = load('docHetTrang', {})
+    const kq = await doc(() => ({ range(a) { return Promise.resolve(a === 0 ? { data: Array(1000).fill({ id: 1 }), error: null } : { data: null, error: { message: 'Mất mạng' } }) } }))
+    eq(kq.data, null); eq(kq.error.message, 'Mất mạng')
+  })
   await test('SQL: bản cập nhật 35 trùng hàm gốc 15', () => {
     function body(s) {
       const start = s.indexOf('create or replace function place_order(')

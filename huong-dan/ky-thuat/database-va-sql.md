@@ -13,6 +13,12 @@ Bảng, hàm SQL, luật bảo mật, cách viết/chạy file SQL, sao lưu. Đ
   bị từ chối (`KHONG_CO_QUYEN`). Khoá `pg_advisory_xact_lock(72638135)` dùng chung cho MỌI lượt tạo đơn, giữ tới khi xong —
   các lượt đặt cùng lúc xếp hàng nên đếm giới hạn không bị lọt. Đừng đổi sang khoá riêng từng SĐT (vẫn phải giữ giới hạn
   toàn web 20 đơn/10 phút). Khách mới thêm bằng `on conflict (phone)` nên 2 máy thêm cùng số một lúc không lỗi.
+- **Supabase trả TỐI ĐA 1000 dòng mỗi lần hỏi — quá mốc là THIẾU mà không báo lỗi.** Chỗ nào đọc cả bảng (không lọc theo
+  khoảng ngày / không phân trang) phải dùng `docHetTrang(() => sb.from(…)…order(…, 'id'))` trong admin (16/11/2026; Lịch giao,
+  doanh thu Sổ chi phí, sổ Khách hàng). `taoQ` phải tạo câu hỏi MỚI mỗi lần và xếp có `id` cuối để trang không chồng/lọt.
+  Báo cáo dùng `bcLayDon()`, sao lưu dùng `layHetBang()` — cùng cách.
+- **Chỉ mục bảng đơn (SQL 36, 16/11/2026)**: `created_at`, `delivery_date`, `customer_id`, `lower(customer_email)` + `expenses.expense_date`.
+  Thêm truy vấn lọc theo cột mới thường xuyên (cron, place_order) thì cân nhắc thêm chỉ mục ở file SQL mới.
 - **Hàm nhắc lịch `send_delivery_reminders()` chỉ còn ở `15_notifications_v2.sql`** (Brevo). File 16 trước đây định nghĩa
   lại bản Telegram/Resend cũ → chạy lại 16 là đè mất bản mới, mất email nhắc 8:30. File 16 giờ chỉ tạo extension + bảng
   `app_settings`; file 15 cũng tự tạo nền đó nên không phụ thuộc thứ tự. Mọi chữ ghép vào HTML email phải qua `html_esc()`,
@@ -22,7 +28,7 @@ Bảng, hàm SQL, luật bảo mật, cách viết/chạy file SQL, sao lưu. Đ
   `storage.objects`. Link ảnh công khai vẫn xem được bình thường (kho public không qua luật SELECT).
 - **Admin kiểm quyền sau đăng nhập** (`kiemQuyenQuanTri()` → rpc `la_quan_tri`): tài khoản không có trong `quan_tri` thấy
   cảnh báo đỏ `#canhBaoQuyen` thay vì danh sách trống không lời giải thích.
-- **File SQL đánh số theo thứ tự chạy** (`01_` → `33_`; mục lục + "đã chạy chưa" ở `supabase/README.md`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`) **và** bảng `SQL_DAU_HIEU`.
+- **File SQL đánh số theo thứ tự chạy** (`01_` → `36_`; mục lục + "đã chạy chưa" ở `supabase/README.md`); `17_rls_lockdown.sql` luôn chạy cuối cùng khi dựng lại DB. Đổi tên file SQL thì phải sửa cả 2 thông báo trong `admin/index.html` đang nhắc tên file (`14_changelog_setup`, `03_order_phone_snapshot`) **và** bảng `SQL_DAU_HIEU`.
   **File SQL mới có thêm bảng/cột → thêm 1 dòng vào `SQL_DAU_HIEU` (admin, mục "Kiểm file SQL đã chạy chưa")**:
   Admin (lúc mở, khung ở đầu Đơn hàng) tự đọc thử đúng cột đó, database báo "không có cột" là hiện khung vàng nhắc chạy file (11/10/2026).
   Đủ hết thì máy NHỚ 7 ngày (`lt_sqlDu`, 07/11/2026 — trước đó mỗi lần mở admin tốn ~9 lượt hỏi chỉ để biết "đủ"); khoá
