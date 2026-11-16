@@ -12,7 +12,7 @@ Tài liệu (11/10/2026 sắp xếp lại):
   shop đã chốt ở `06-quyet-dinh-da-chot.md` (đọc trước khi đề xuất đổi hướng).
 - [huong-dan/ky-thuat/](huong-dan/ky-thuat/) — chi tiết kỹ thuật + **mọi bẫy đã gặp** (tách từ file này). Danh sách
   tiêu đề ở mục "Bẫy đã biết" bên dưới: sửa phần nào thì ĐỌC file chủ đề đó trước.
-- [supabase/README.md](supabase/README.md) — 33 file SQL: làm gì, loại nào, đã chạy chưa.
+- [supabase/README.md](supabase/README.md) — 35 file SQL: làm gì, loại nào, đã chạy chưa.
 
 ## Lệnh thường dùng
 
@@ -23,7 +23,7 @@ python serve.py                   # chạy local; web http://localhost:8765/ , a
 Không có bước build, không `npm install`. Kiểm thử tự động (database giả, không đụng dữ liệu thật):
 
 ```bash
-python test/chay-tat-ca.py       # chạy cả 12 trang test (cần serve.py đang chạy), in ✓/✕ từng trang
+python test/chay-tat-ca.py       # chạy cả 13 trang test (cần serve.py đang chạy), in ✓/✕ từng trang
 ```
 
 hoặc mở `/test/` bấm "Chạy tất cả". Danh sách từng trang test, cách chạy ngầm, bẫy khi viết test:
@@ -86,7 +86,7 @@ Chi tiết từng mục (lỗi thật đã xảy ra + cách làm đúng) nằm �
 **sửa phần nào thì mở file chủ đề đó đọc trước**, thêm bẫy mới thì ghi vào đúng file chủ đề (không ghi lại vào đây).
 
 **[Database (Supabase) và file SQL](huong-dan/ky-thuat/database-va-sql.md)**
-- `place_order` được định nghĩa lại ở 4 file SQL
+- `place_order` có ở 3 file SQL — sửa thì sửa CẢ 15 lẫn 35
 - Hàm nhắc lịch `send_delivery_reminders()` chỉ còn ở `15_notifications_v2.sql`
 - Kho ảnh: người lạ từng LIỆT KÊ được mọi file
 - Admin kiểm quyền sau đăng nhập

@@ -31,14 +31,13 @@ ler-ther-blooming/
 │   │                       Có MỤC LỤC ở đầu file → dùng Ctrl+F để tìm phần cần sửa.
 │   └── xlsx.js ........... Tạo file Excel cho nút "Tải file sao lưu"
 │
-├── supabase/ ............. Các file SQL dựng kho dữ liệu, ĐÁNH SỐ theo thứ tự chạy (01 → 33).
-│   ├── README.md ......... Bảng liệt kê từng file: làm gì, đã chạy chưa ← đọc trước khi chạy
-│   └── da-thay-the/ ...... File cũ đã bị thay thế. ĐỪNG chạy (chạy vào là lùi về bản cũ).
+├── supabase/ ............. Các file SQL dựng kho dữ liệu, ĐÁNH SỐ theo thứ tự chạy (01 → 35).
+│   └── README.md ......... Bảng liệt kê từng file: làm gì, đã chạy chưa ← đọc trước khi chạy
 │
 ├── test/ ................. Kiểm tra tự động (dùng dữ liệu GIẢ, không đụng dữ liệu thật)
 │   ├── index.html ........ Mở /test/ → bấm "Chạy tất cả"
 │   ├── chay-tat-ca.py .... Cùng việc đó nhưng chạy bằng dòng lệnh
-│   ├── test-*.html ....... 12 trang kiểm tra, mỗi trang kiểm 1 nhóm chức năng
+│   ├── test-*.html ....... 13 trang kiểm tra, mỗi trang kiểm 1 nhóm chức năng
 │   ├── gia-lap-sb.js ..... "Database giả" cho các trang kiểm tra
 │   ├── xem-admin.html .... Xem trang quản lý với dữ liệu giả (để xem / chụp màn hình giao diện)
 │   └── xem-web.html ...... Xem web khách, mở sẵn form đặt hoa (không gửi đơn thật)
@@ -52,12 +51,15 @@ ler-ther-blooming/
 ├── serve.ps1 ............. Như trên + in link để mở thử trên điện thoại (cùng wifi)
 ├── CNAME ................. ⛔ Gắn tên miền lertherblooming.vn. Xoá file này là MẤT tên miền.
 ├── sitemap.xml, robots.txt  Chỉ đường cho Google (robots chặn Google vào /admin/)
-└── .gitignore ............ Liệt kê những thứ KHÔNG đưa lên mạng (vd thư mục demo/)
+├── .gitignore ............ Liệt kê những thứ KHÔNG đưa lên mạng (vd thư mục demo/)
+└── .vscode/settings.json . Cài đặt VS Code: ẩn rác do Python tự sinh (__pycache__) khỏi khung thư mục
 ```
 
 ## Những thứ chỉ có trên máy làm việc (không có trên GitHub)
 
-- **`demo/`**: bản nháp các phương án giao diện đã đề xuất cho shop chọn, kèm ảnh chụp so sánh. Không ảnh hưởng gì tới web.
+- **`demo/`**: bản nháp các phương án giao diện đề xuất cho shop chọn. Không ảnh hưởng gì tới web. Dọn 16/11/2026: chỉ giữ
+  `so-sanh-logo.html` (font logo đang chờ chọn) và `do-thanh-cuon.html` (công cụ dò thanh cuộn lòi khỏi góc bo).
+  Phương án nào đã chốt/làm xong thì xoá bản nháp đi cho gọn.
 - **`.claude/`**: cài đặt riêng của Claude Code trên máy này.
 
 ## Tìm nhanh: muốn sửa X thì mở file nào?

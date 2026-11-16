@@ -5,11 +5,14 @@
 
 Bảng, hàm SQL, luật bảo mật, cách viết/chạy file SQL, sao lưu. Đọc trước khi sửa thứ gì trong `supabase/` hoặc chỗ ghi database.
 
-- **`place_order` được định nghĩa lại ở 4 file SQL.** Bản hiện hành là `supabase/15_notifications_v2.sql` (11 tham số, có `p_email`). Ba bản cũ (10 tham số) đã dồn vào `supabase/da-thay-the/` — chạy vào là **lùi** hàm về bản cũ. Sửa RPC thì sửa trong `15_notifications_v2.sql`.
-  Bản vá triển khai `35_gia_co_tao_don.sql` chép cùng hàm của file 15 (test-do-tin-cay kiểm khớp).
-  Sau SQL 35, quyền miễn chống spam lấy từ `la_quan_tri()`, tài khoản ngoài shop bị từ chối.
-  Khoá giao dịch `72638135` dùng chung cho mọi lượt tạo đơn, giữ tới commit/rollback; không đổi sang khoá riêng từng SĐT
-  vì vẫn phải bảo đảm giới hạn toàn web. API dùng mức cô lập READ COMMITTED. Xem [cách kiểm](gia-co-tao-don.md).
+- **`place_order` được định nghĩa ở 3 file SQL.** `01_orders_setup_full.sql` là bản gốc (chạy các file sau là bị thay).
+  Bản hiện hành (11 tham số, có `p_email`) nằm ở CẢ `15_notifications_v2.sql` lẫn `35_gia_co_tao_don.sql` — file 35 chép
+  NGUYÊN hàm của file 15 để chỉ cần dán 1 file ngắn; `test-do-tin-cay` kiểm 2 bản giống hệt nhau. **Sửa RPC thì sửa cả 15
+  lẫn 35**, rồi đưa shop dán file 35. Ba bản cũ 10 tham số (thư mục `da-thay-the/`) đã xoá 16/11/2026, còn trong lịch sử git.
+  Từ SQL 35 (shop chạy 16/11/2026): quyền miễn chống spam lấy từ `la_quan_tri()`, tài khoản đăng nhập ngoài danh sách quản trị
+  bị từ chối (`KHONG_CO_QUYEN`). Khoá `pg_advisory_xact_lock(72638135)` dùng chung cho MỌI lượt tạo đơn, giữ tới khi xong —
+  các lượt đặt cùng lúc xếp hàng nên đếm giới hạn không bị lọt. Đừng đổi sang khoá riêng từng SĐT (vẫn phải giữ giới hạn
+  toàn web 20 đơn/10 phút). Khách mới thêm bằng `on conflict (phone)` nên 2 máy thêm cùng số một lúc không lỗi.
 - **Hàm nhắc lịch `send_delivery_reminders()` chỉ còn ở `15_notifications_v2.sql`** (Brevo). File 16 trước đây định nghĩa
   lại bản Telegram/Resend cũ → chạy lại 16 là đè mất bản mới, mất email nhắc 8:30. File 16 giờ chỉ tạo extension + bảng
   `app_settings`; file 15 cũng tự tạo nền đó nên không phụ thuộc thứ tự. Mọi chữ ghép vào HTML email phải qua `html_esc()`,

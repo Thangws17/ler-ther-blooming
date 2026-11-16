@@ -87,7 +87,6 @@ Khi Claude báo *"cần chạy file supabase/xx_….sql"*:
 4. Bấm **Run**. Thấy "Success" là xong.
 
 - Mọi file đều **chạy lại được nhiều lần** mà không hỏng gì. Không chắc đã chạy chưa thì cứ chạy lại.
-- **Đừng chạy** file trong `supabase/da-thay-the/`.
 - Admin tự kiểm database mỗi lần mở: thiếu file nào sẽ hiện **khung vàng** ở đầu tab Đơn hàng ghi đúng tên file cần chạy.
 - Danh sách đầy đủ + file nào đã chạy: [supabase/README.md](../supabase/README.md).
 

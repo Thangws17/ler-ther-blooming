@@ -4,7 +4,6 @@
 Mọi file đều **chạy lại được nhiều lần** mà không hỏng dữ liệu. Không chắc đã chạy chưa thì cứ chạy lại.
 
 - Số đầu tên file = **thứ tự chạy** khi dựng lại database từ đầu. `17_rls_lockdown.sql` chạy **sau cùng** trong lần dựng lại.
-- **Đừng chạy** file trong [`da-thay-the/`](da-thay-the/): đó là bản cũ, chạy vào là lùi chức năng.
 - Admin → **Tổng quan** tự kiểm các file có ✓ ở cột "Tự kiểm": database thiếu file nào sẽ hiện khung vàng ghi đúng tên file.
 
 **Loại file:**
@@ -53,8 +52,7 @@ Mọi file đều **chạy lại được nhiều lần** mà không hỏng dữ
 | 34 | `34_caption_mau_moi_5.sql` | Mô tả mẫu #54, #55 | 📝 | chờ chạy | |
 | 35 | `35_gia_co_tao_don.sql` | Hàm tạo đơn kiểm danh sách quản trị; khoá lượt tạo đơn để không vượt giới hạn khi gửi đồng thời. Giữ SĐT dùng chung như cũ | 🔒 | ✅ | |
 
-File 35 chỉ thay hàm, không thêm bảng/cột nên không có dấu kiểm cột trong admin. Cách thử và áp dụng:
-[gia-co-tao-don.md](../huong-dan/ky-thuat/gia-co-tao-don.md).
+File 35 chỉ thay hàm `place_order` (giống hệt bản trong file 15), không thêm bảng/cột nên không có dấu kiểm cột trong admin.
 
 ## Thêm file SQL mới
 
