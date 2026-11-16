@@ -49,17 +49,18 @@ Mọi file đều **chạy lại được nhiều lần** mà không hỏng dữ
 | 31 | `31_thanh_toan.sql` | Trạng thái **thanh toán / cọc**, tài khoản nhận tiền, nhật ký đổi tài khoản. Chạy xong nên chạy lại 15 | 🧱🔒 | ✅ | ✓ |
 | 32 | `32_caption_mau_moi_4.sql` | Mô tả mẫu #51, #52 | 📝 | ✅ | |
 | 33 | `33_nguon_khach.sql` | **Nguồn khách** của đơn; đơn web tự ghi "Web" | 🧱 | ✅ | ✓ |
-| 34 | `34_caption_mau_moi_5.sql` | Mô tả mẫu #54, #55 | 📝 | chờ chạy | |
+| 34 | `34_caption_mau_moi_5.sql` | Mô tả mẫu #54, #55 | 📝 | ✅ | |
 | 35 | `35_gia_co_tao_don.sql` | Hàm tạo đơn kiểm danh sách quản trị; khoá lượt tạo đơn để không vượt giới hạn khi gửi đồng thời. Giữ SĐT dùng chung như cũ | 🔒 | ✅ | |
 
 | 36 | `36_chi_muc_don_hang.sql` | **Chỉ mục** cho đơn hàng (ngày tạo, ngày giao, khách, email) + chi phí — database tra thẳng thay vì lật cả bảng. Không đổi dữ liệu | 🧱 | ✅ | |
+| 37 | `37_caption_mau_moi_6.sql` | Mô tả mẫu mới #58, #59, #60 + thêm thành phần cho #53, #56, #57 (giữ biệt danh shop viết) | 📝 | chờ chạy | |
 
 File 35 chỉ thay hàm `place_order` (giống hệt bản trong file 15), không thêm bảng/cột nên không có dấu kiểm cột trong admin.
 File 36 chỉ thêm chỉ mục — cũng không có dấu kiểm cột; kiểm bằng câu `select` cuối file.
 
 ## Thêm file SQL mới
 
-1. Đặt tên theo số tiếp theo: `37_ten_ngan_gon.sql`. Viết sao cho **chạy lại được** (`create table if not exists`,
+1. Đặt tên theo số tiếp theo: `38_ten_ngan_gon.sql`. Viết sao cho **chạy lại được** (`create table if not exists`,
    `add column if not exists`…), có đoạn chú thích đầu file nói "vì sao cần".
 2. Có bảng mới → thêm tên bảng vào danh sách trong `24_chi_quan_tri.sql` (luật "chỉ quản trị") và `SAO_LUU_BANG` (admin, sao lưu Excel).
 3. Có bảng / cột mới → thêm 1 dòng vào `SQL_DAU_HIEU` trong `admin/index.html` (Ctrl+F `SQL_DAU_HIEU`) để Tổng quan tự nhắc khi chưa chạy.
